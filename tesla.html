@@ -146,28 +146,7 @@
             null,
             null,
             null,
-            // Fila 4
-            { name: "GROK", url: "https://x.ai" },
-            { name: "CHATGPT", url: "https://chat.openai.com" },
-            { name: "CLAUDE", url: "https://claude.ai/new" },
-            { name: "GEMINI", url: "https://gemini.google.com" },
-            { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
-            null,
-            // Fila 5
-            { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
-            { name: "BetterTheater", url: "https://abettertheater.com" },
-            { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
-            { name: "Octopus", url: "https://octopus.energy/dashboard" },
-            null,
-            null,
-            // Fila 6
-            { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio", url: "chrome://newtab" },
-            null,
-            null,
-            null,
-            null,
-            // Fila 7 (Puntos de carga con favicons personalizados)
+            // Nueva Fila 4 (antigua Fila 7)
             { 
                 name: "ELECTROVERSE", 
                 url: "https://electroverse.com/es/map",
@@ -198,7 +177,7 @@
                 url: "https://www.google.com/maps/search/recarga+ZUNDER",
                 favicon: "https://www.google.com/s2/favicons?domain=zunder.com&sz=64"
             },
-            // Fila 8 (Más puntos de carga con favicons personalizados)
+            // Nueva Fila 5 (antigua Fila 8)
             { 
                 name: "IONITY", 
                 url: "https://www.google.com/maps/search/recarga+IONITY",
@@ -228,14 +207,34 @@
                 name: "EVDC", 
                 url: "https://evdc.network",
                 favicon: "https://www.google.com/s2/favicons?domain=evdc.network&sz=64"
-            }
+            },
+            // Nueva Fila 6 (antigua Fila 4)
+            { name: "GROK", url: "https://x.ai" },
+            { name: "CHATGPT", url: "https://chat.openai.com" },
+            { name: "CLAUDE", url: "https://claude.ai/new" },
+            { name: "GEMINI", url: "https://gemini.google.com" },
+            { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
+            null,
+            // Nueva Fila 7 (antigua Fila 5)
+            { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
+            { name: "BetterTheater", url: "https://abettertheater.com" },
+            { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
+            { name: "Octopus", url: "https://octopus.energy/dashboard" },
+            null,
+            null,
+            // Nueva Fila 8 (antigua Fila 6)
+            { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
+            { name: "Inicio", url: "chrome://newtab" },
+            null,
+            null,
+            null,
+            null
         ];
         const TOTAL_CELLS = 48;
         const grid = document.getElementById('bookmark-grid');
 
         const getFaviconUrl = (bookmark) => {
             try {
-                // Usar favicon personalizado si está definido
                 if (bookmark.favicon) {
                     return bookmark.favicon;
                 }
