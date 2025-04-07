@@ -107,7 +107,7 @@
 
     <footer class="mt-8 text-gray-400 text-center">
         <p>@BoardingGate</p>
-        <p class="footer-subtext">[ Este Tesla hace locuras para gente muy cuerda 🫵]</p>
+        <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
     </footer>
 
     <script>
@@ -174,4 +174,43 @@
 
         const getFaviconUrl = (url) => {
             try {
-                const domain ​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch (e) {
+                return '';
+            }
+        };
+
+        Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
+            const cell = document.createElement('div');
+            if (index < bookmarks.length && bookmarks[index] !== null) {
+                const bookmark = bookmarks[index];
+                const link = document.createElement('a');
+                link.href = bookmark.url;
+                link.className = 'bookmark-item flex flex-col justify-center items-center aspect-square min-w-[60px] rounded-lg';
+                link.title = bookmark.name;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                const img = document.createElement('img');
+                img.src = getFaviconUrl(bookmark.url);
+                img.alt = `Favicon de ${bookmark.name}`;
+                img.className = 'w-9 h-9 rounded';
+                img.loading = "lazy";
+                img.onerror = () => (img.style.display = 'none');
+
+                const name = document.createElement('span');
+                name.className = 'bookmark-name';
+                name.textContent = bookmark.name;
+
+                link.appendChild(img);
+                link.appendChild(name);
+                cell.appendChild(link);
+            } else {
+                cell.className = 'aspect-square min-w-[60px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+            }
+            grid.appendChild(cell);
+        });
+    </script>
+</body>
+</html>
