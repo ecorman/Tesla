@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoardingGate Lanzador</title>
     <!-- Usando th.jpeg como favicon (ícono de la pestaña) -->
-    <link rel="icon" href="th.jpeg" type="image/jpeg">
-    <script src="https://boardinggate.github.io/Tesla/th.jpeg"></script>
+    <link rel="icon" href="https://boardinggate.github.io/Tesla/th.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .bookmark-item {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -35,22 +35,30 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1rem; /* Espacio de separación entre el título y el logo */
+            gap: 0; /* Sin espacio entre el logo y el título */
         }
         .header-logo {
             width: 2.5rem; /* Tamaño del logo, ajustable */
             height: 2.5rem;
+        }
+        .title-container {
+            background-color: white; /* Fondo blanco detrás de BoardingGate y Lanzador */
+            padding: 0.5rem 1rem; /* Espaciado interno para que el fondo blanco no quede muy ajustado */
+            border-radius: 0.5rem; /* Bordes redondeados para el fondo blanco */
+            display: inline-block; /* Para que el fondo blanco se ajuste al texto */
         }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
     <header class="mb-8 text-center">
         <div class="header-container">
-            <h1 class="text-4xl font-bold text-sky-400">
-                BoardingGate <span class="text-xl text-sky-400">Lanzador</span>
-            </h1>
-            <!-- Usando th.jpeg como logo junto al título -->
-            <img src="th.jpeg" alt="Logo de Tesla" class="header-logo">
+            <!-- Logo a la izquierda, pegado al título -->
+            <img src="https://boardinggate.github.io/Tesla/th.jpeg" alt="Logo de Tesla" class="header-logo">
+            <div class="title-container">
+                <h1 class="text-4xl font-bold text-sky-400 inline">
+                    BoardingGate <span class="text-xl text-sky-400">Lanzador</span>
+                </h1>
+            </div>
         </div>
     </header>
 
