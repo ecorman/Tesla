@@ -86,6 +86,22 @@
             color: #9CA3AF; /* Mismo color gris que @BoardingGate (text-gray-400) */
             margin-top: 0.25rem; /* Espacio entre las dos líneas */
         }
+        /* Estilo para los enlaces */
+        .footer-link {
+            color: #9CA3AF;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .footer-link:hover {
+            color: #1DA1F2; /* Azul de Twitter al hacer hover */
+        }
+        .footer-line {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -105,8 +121,12 @@
         </div>
     </header>
 
-    <footer class="mt-8 text-gray-400 text-center">
-        <p>@BoardingGate</p>
+    <footer class="mt-8 text-center">
+        <div class="footer-line">
+            <a href="https://x.com/boardinggate?s=21" class="footer-link" target="_blank" rel="noopener noreferrer">@BoardingGate</a>
+            <span>🤝</span>
+            <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link" target="_blank" rel="noopener noreferrer">Ahorrenos un dinero con mis REFERIDOS</a>
+        </div>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
     </footer>
 
@@ -122,7 +142,7 @@
             // Fila 2
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
             { name: "ElectroMaps", url: "https://map.electromaps.com/es/" },
-            { name: "Recarga (Google)", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos" },
+            { name: "PUNTOS CARGA", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos" },
             { name: "Google Maps", url: "https://maps.google.com" },
             null, // Vacía
             null, // Vacía
@@ -141,10 +161,10 @@
             { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
             null, // Vacía
             // Fila 5
-            { name: "TESLAPARATODOS", url: "https://teslaparatodos.com/cine/" },
-            { name: "A Better Theater", url: "https://abettertheater.com" },
+            { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
+            { name: "BetterTheater", url: "https://abettertheater.com" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
-            { name: "Octopus Energy", url: "https://octopus.energy/dashboard" },
+            { name: "Octopus", url: "https://octopus.energy/dashboard" },
             null, // Vacía
             null, // Vacía
             // Fila 6
