@@ -15,7 +15,7 @@
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
-            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 0.15);
         }
         .bookmark-item img {
             image-rendering: crisp-edges;
@@ -83,7 +83,7 @@
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
-    <main class="grid grid-cols-8 gap-5 max-w-5xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
+    <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
     </main>
 
@@ -112,8 +112,6 @@
             { name: "Batería", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891" },
             { name: "Twitter", url: "https://x.com" },
             null, // Vacía
-            null, // Vacía
-            null, // Vacía
             // Fila 2
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
             { name: "ElectroMaps", url: "https://map.electromaps.com/es/" },
@@ -121,13 +119,9 @@
             null, // Vacía
             null, // Vacía
             null, // Vacía
-            null, // Vacía
-            null, // Vacía
             // Fila 3
             { name: "TESSIE", url: "https://dash.tessie.com/signin" },
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
-            null, // Vacía
-            null, // Vacía
             null, // Vacía
             null, // Vacía
             null, // Vacía
@@ -139,8 +133,6 @@
             { name: "GEMINI", url: "https://gemini.google.com" },
             { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
             null, // Vacía
-            null, // Vacía
-            null, // Vacía
             // Fila 5
             { name: "TESLAPARATODOS", url: "https://teslaparatodos.com/cine/" },
             { name: "A Better Theater", url: "https://abettertheater.com" },
@@ -148,13 +140,9 @@
             { name: "Octopus Energy", url: "https://octopus.energy/dashboard" },
             null, // Vacía
             null, // Vacía
-            null, // Vacía
-            null, // Vacía
             // Fila 6
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
             { name: "Inicio", url: "chrome://newtab" },
-            null, // Vacía
-            null, // Vacía
             null, // Vacía
             null, // Vacía
             null, // Vacía
@@ -166,10 +154,15 @@
             null, // Vacía
             null, // Vacía
             null, // Vacía
+            // Fila 8
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
             null, // Vacía
             null, // Vacía
         ];
-        const TOTAL_CELLS = 48; // 8x6 grid (8 columnas x 6 filas)
+        const TOTAL_CELLS = 48; // 6x8 grid (6 columnas x 8 filas)
         const grid = document.getElementById('bookmark-grid');
 
         const getFaviconUrl = (url) => {
