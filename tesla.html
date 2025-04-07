@@ -43,14 +43,51 @@
         }
         .title-container {
             background-color: white; /* Fondo blanco detrás de BoardingGate y Lanzador */
-            padding: 0.5rem 1rem; /* Espaciado interno para que el fondo blanco no quede muy ajustado */
-            border-radius: 0.5rem; /* Bordes redondeados para el fondo blanco */
-            display: inline-block; /* Para que el fondo blanco se ajuste al texto */
+            padding: 0.5rem 1rem; /* Espaciado interno */
+            border-radius: 0.5rem; /* Bordes redondeados */
+            display: inline-block; /* Ajusta el fondo al texto */
+        }
+        /* Ajustes para mover el título a la parte baja */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Empuja el footer hacia abajo */
+            min-height: 100vh;
+            background-color: black;
+        }
+        header {
+            order: 2; /* Mueve el header al final */
+            margin-top: auto; /* Asegura que esté en la parte baja */
+            margin-bottom: 2rem; /* Espacio inferior */
+        }
+        main {
+            order: 1; /* Mantiene la cuadrícula de iconos arriba */
+        }
+        footer {
+            order: 3; /* El footer va al final */
+        }
+        /* Fondo negro para el título y la caja de iconos */
+        .header-container {
+            background-color: black; /* Fondo negro para el título */
+            padding: 0.5rem; /* Espaciado interno para el fondo negro */
+        }
+        #bookmark-grid {
+            background-color: black !important; /* Fondo negro para la caja de iconos */
+            padding: 2rem; /* Más espacio interno */
+            border-radius: 0.75rem; /* Bordes redondeados */
+        }
+        /* Mayor separación entre iconos */
+        #bookmark-grid {
+            gap: 1.5rem; /* Aumenta la separación horizontal y vertical entre iconos (antes 0.5rem) */
         }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
-    <header class="mb-8 text-center">
+    <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
+        <!-- Grid populated by JavaScript -->
+    </main>
+
+    <header class="text-center">
         <div class="header-container">
             <!-- Logo a la izquierda, pegado al título -->
             <img src="https://boardinggate.github.io/Tesla/th.jpeg" alt="Logo de Tesla" class="header-logo">
@@ -61,10 +98,6 @@
             </div>
         </div>
     </header>
-
-    <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
-        <!-- Grid populated by JavaScript -->
-    </main>
 
     <footer class="mt-8 text-gray-400 text-center">
         <p>@BoardingGate</p>
