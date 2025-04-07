@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoardingGate Lanzador</title>
+    <!-- Usando th.jpeg como favicon (ícono de la pestaña) -->
+    <link rel="icon" href="th.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .bookmark-item {
@@ -19,7 +21,8 @@
             image-rendering: crisp-edges;
         }
         .bookmark-name {
-            font-size: 0.85rem; /* Tamaño un poco más grande (antes 0.65rem) */
+            font-size: 0.85rem; /* Tamaño un poco más grande */
+            font-weight: bold; /* Negrita */
             color: #333; /* Color oscuro para contraste */
             text-align: center;
             margin-top: 4px;
@@ -28,13 +31,27 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem; /* Espacio de separación entre el título y el logo */
+        }
+        .header-logo {
+            width: 2.5rem; /* Tamaño del logo, ajustable */
+            height: 2.5rem;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
     <header class="mb-8 text-center">
-        <h1 class="text-4xl font-bold text-sky-400">
-            BoardingGate <span class="text-xl text-sky-400">Lanzador</span>
-        </h1>
+        <div class="header-container">
+            <h1 class="text-4xl font-bold text-sky-400">
+                BoardingGate <span class="text-xl text-sky-400">Lanzador</span>
+            </h1>
+            <!-- Usando th.jpeg como logo junto al título -->
+            <img src="th.jpeg" alt="Logo de Tesla" class="header-logo">
+        </div>
     </header>
 
     <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
@@ -51,7 +68,7 @@
             { name: "YouTube", url: "https://www.youtube.com" },
             { name: "Google", url: "https://www.google.com" },
             { name: "GDrive", url: "https://drive.google.com" },
-            { name: "North", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891" },
+            { name: "Batería", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891" },
             { name: "Twitter", url: "https://x.com" },
             null, // Vacía
             // Fila 2
