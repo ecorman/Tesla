@@ -1,0 +1,137 @@
+<!Diagnóstico html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoardingGate Lanzador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bookmark-item {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1); /* Relieve */
+            background: #e0e0e0;
+        }
+        .bookmark-item:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+        }
+        .bookmark-item img {
+            image-rendering: crisp-edges;
+        }
+        .bookmark-name {
+            font-size: 0.65rem; /* Tamaño pequeño */
+            color: #333; /* Color oscuro para contraste */
+            text-align: center;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-black flex flex-col items-center p-6">
+    <header class="mb-8 text-center">
+        <h1 class="text-4xl font-bold text-sky-400">
+            BoardingGate <span class="text-xl text-sky-400">Lanzador</span>
+        </h1>
+    </header>
+
+    <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
+        <!-- Grid populated by JavaScript -->
+    </main>
+
+    <footer class="mt-8 text-gray-400 text-center">
+        <p>@BoardingGate</p>
+    </footer>
+
+    <script>
+        const bookmarks = [
+            // Fila 1
+            { name: "YouTube", url: "https://www.youtube.com" },
+            { name: "Google", url: "https://www.google.com" },
+            { name: "GDrive", url: "https://drive.google.com" },
+            { name: "Twitter", url: "https://x.com" },
+            null, // Vacía
+            null, // Vacía
+            // Fila 2
+            { name: "ABRP", url: "https://abetterrouteplanner.com" },
+            { name: "ElectroMaps", url: "https://www.electromaps.com" },
+            { name: "Google Maps", url: "https://maps.google.com" },
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
+            // Fila 3
+            { name: "TESSIE", url: "https://www.tessie.com" },
+            { name: "ENHAUTO", url: "https://www.enhauto.com" },
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
+            // Fila 4
+            { name: "GROK", url: "https://x.ai" },
+            { name: "CHATGPT", url: "https://chat.openai.com" },
+            { name: "CLAUDE", url: "https://anthropic.com" },
+            { name: "GEMINI", url: "https://gemini.google.com" },
+            { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
+            null, // Vacía
+            // Fila 5
+            { name: "TESLAPARATODOS", url: "https://teslaparatodos.com" },
+            { name: "A Better Theater", url: "https://abettertheater.com" },
+            { name: "BIP&DRIVE", url: "https://www.bipdrive.com" },
+            { name: "Octopus Energy", url: "https://octopus.energy/dashboard" },
+            null, // Vacía
+            null, // Vacía
+            // Fila 6
+            { name: "TradingView", url: "https://www.tradingview.com" },
+            { name: "Inicio", url: "chrome://newtab" },
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
+            null, // Vacía
+        ];
+        const TOTAL_CELLS = 36; // 6x6 grid
+        const grid = document.getElementById('bookmark-grid');
+
+        const getFaviconUrl = (url) => {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch (e) {
+                return '';
+            }
+        };
+
+        Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
+            const cell = document.createElement('div');
+            if (index < bookmarks.length && bookmarks[index] !== null) {
+                const bookmark = bookmarks[index];
+                const link = document.createElement('a');
+                link.href = bookmark.url;
+                link.className = 'bookmark-item flex flex-col justify-center items-center aspect-square min-w-[60px] rounded-lg';
+                link.title = bookmark.name;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                const img = document.createElement('img');
+                img.src = getFaviconUrl(bookmark.url);
+                img.alt = `Favicon de ${bookmark.name}`;
+                img.className = 'w-9 h-9 rounded';
+                img.loading = "lazy";
+                img.onerror = () => (img.style.display = 'none');
+
+                const name = document.createElement('span');
+                name.className = 'bookmark-name';
+                name.textContent = bookmark.name;
+
+                link.appendChild(img);
+                link.appendChild(name);
+                cell.appendChild(link);
+            } else {
+                cell.className = 'aspect-square min-w-[60px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+            }
+            grid.appendChild(cell);
+        });
+    </script>
+</body>
+</html>
