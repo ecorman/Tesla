@@ -15,7 +15,7 @@
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
-            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 0.15);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
         }
         .bookmark-item img {
             image-rendering: crisp-edges;
@@ -80,6 +80,12 @@
         #bookmark-grid {
             gap: 1.5rem; /* Separación horizontal y vertical entre iconos */
         }
+        /* Estilo para el texto adicional en el footer */
+        .footer-subtext {
+            font-size: 0.75rem; /* Tamaño más pequeño (12px) */
+            color: #9CA3AF; /* Mismo color gris que @BoardingGate (text-gray-400) */
+            margin-top: 0.25rem; /* Espacio entre las dos líneas */
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -100,7 +106,8 @@
     </header>
 
     <footer class="mt-8 text-gray-400 text-center">
-        <p>@BoardingGate * Este coche hace locuras para gente cuerda 🫵</p>
+        <p>@BoardingGate</p>
+        <p class="footer-subtext">[@elonmusk no está loco. Es John Connor]</p>
     </footer>
 
     <script>
@@ -167,43 +174,4 @@
 
         const getFaviconUrl = (url) => {
             try {
-                const domain = new URL(url).hostname;
-                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-            } catch (e) {
-                return '';
-            }
-        };
-
-        Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
-            const cell = document.createElement('div');
-            if (index < bookmarks.length && bookmarks[index] !== null) {
-                const bookmark = bookmarks[index];
-                const link = document.createElement('a');
-                link.href = bookmark.url;
-                link.className = 'bookmark-item flex flex-col justify-center items-center aspect-square min-w-[60px] rounded-lg';
-                link.title = bookmark.name;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-
-                const img = document.createElement('img');
-                img.src = getFaviconUrl(bookmark.url);
-                img.alt = `Favicon de ${bookmark.name}`;
-                img.className = 'w-9 h-9 rounded';
-                img.loading = "lazy";
-                img.onerror = () => (img.style.display = 'none');
-
-                const name = document.createElement('span');
-                name.className = 'bookmark-name';
-                name.textContent = bookmark.name;
-
-                link.appendChild(img);
-                link.appendChild(name);
-                cell.appendChild(link);
-            } else {
-                cell.className = 'aspect-square min-w-[60px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
-            }
-            grid.appendChild(cell);
-        });
-    </script>
-</body>
-</html>
+                const domain ​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
