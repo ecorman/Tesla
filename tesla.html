@@ -56,10 +56,11 @@
         header {
             order: 2;
             margin-top: auto;
-            margin-bottom: 2rem;
+            margin-bottom: 0.5rem; /* Reduced from 2rem */
         }
         main {
             order: 1;
+            margin-top: 0.5rem; /* Added for consistent spacing */
         }
         footer {
             order: 3;
@@ -99,10 +100,6 @@
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
-    <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
-        <!-- Grid populated by JavaScript -->
-    </main>
-
     <header class="text-center">
         <div class="header-container">
             <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
@@ -113,6 +110,10 @@
             </div>
         </div>
     </header>
+
+    <main class="grid grid-cols-6 gap-5 max-w-4xl w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
+        <!-- Grid populated by JavaScript -->
+    </main>
 
     <footer class="mt-8 text-center">
         <div class="footer-line">
@@ -146,7 +147,7 @@
             null,
             null,
             null,
-            // Nueva Fila 4 (antigua Fila 7)
+            // Fila 4 (Puntos de carga)
             { 
                 name: "ELECTROVERSE", 
                 url: "https://electroverse.com/es/map",
@@ -177,7 +178,7 @@
                 url: "https://www.google.com/maps/search/recarga+ZUNDER",
                 favicon: "https://www.google.com/s2/favicons?domain=zunder.com&sz=64"
             },
-            // Nueva Fila 5 (antigua Fila 8)
+            // Fila 5 (Más puntos de carga)
             { 
                 name: "IONITY", 
                 url: "https://www.google.com/maps/search/recarga+IONITY",
@@ -208,21 +209,21 @@
                 url: "https://evdc.network",
                 favicon: "https://www.google.com/s2/favicons?domain=evdc.network&sz=64"
             },
-            // Nueva Fila 6 (antigua Fila 4)
+            // Fila 6
             { name: "GROK", url: "https://x.ai" },
             { name: "CHATGPT", url: "https://chat.openai.com" },
             { name: "CLAUDE", url: "https://claude.ai/new" },
             { name: "GEMINI", url: "https://gemini.google.com" },
             { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
             null,
-            // Nueva Fila 7 (antigua Fila 5)
+            // Fila 7
             { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
             { name: "BetterTheater", url: "https://abettertheater.com" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
             { name: "Octopus", url: "https://octopus.energy/dashboard" },
             null,
             null,
-            // Nueva Fila 8 (antigua Fila 6)
+            // Fila 8
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
             { name: "Inicio", url: "chrome://newtab" },
             null,
