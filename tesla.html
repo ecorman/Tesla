@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoardingGate Lanzador</title>
-    <!-- Usando IMG_4157.jpeg como favicon (ícono de la pestaña) -->
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .bookmark-item {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1); /* Relieve */
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
             background: #e0e0e0;
         }
         .bookmark-item:hover {
@@ -21,9 +20,9 @@
             image-rendering: crisp-edges;
         }
         .bookmark-name {
-            font-size: 0.85rem; /* Tamaño un poco más grande */
-            font-weight: bold; /* Negrita */
-            color: #333; /* Color oscuro para contraste */
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #333;
             text-align: center;
             margin-top: 4px;
             white-space: nowrap;
@@ -35,65 +34,60 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0; /* Sin espacio entre el logo y el título */
+            gap: 0;
         }
         .header-logo {
-            width: 3rem; /* Tamaño del logo */
+            width: 3rem;
             height: 3rem;
         }
         .title-container {
-            background-color: black; /* Fondo negro detrás de BoardingGate y Lanzador */
-            padding: 0.5rem 1rem; /* Espaciado interno */
-            border-radius: 0.5rem; /* Bordes redondeados */
-            display: inline-block; /* Ajusta el fondo al texto */
+            background-color: black;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            display: inline-block;
         }
-        /* Ajustes para mover el título a la parte baja */
         body {
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Empuja el footer hacia abajo */
+            justify-content: space-between;
             min-height: 100vh;
             background-color: black;
         }
         header {
-            order: 2; /* Mueve el header al final */
-            margin-top: auto; /* Asegura que esté en la parte baja */
-            margin-bottom: 2rem; /* Espacio inferior */
+            order: 2;
+            margin-top: auto;
+            margin-bottom: 2rem;
         }
         main {
-            order: 1; /* Mantiene la cuadrícula de iconos arriba */
+            order: 1;
         }
         footer {
-            order: 3; /* El footer va al final */
+            order: 3;
         }
-        /* Fondo negro para el título y la caja de iconos */
         .header-container {
-            background-color: black; /* Fondo negro para el título */
-            padding: 0.5rem; /* Espaciado interno para el fondo negro */
+            background-color: black;
+            padding: 0.5rem;
         }
         #bookmark-grid {
-            background-color: black !important; /* Fondo negro para la caja de iconos */
-            padding: 2rem; /* Más espacio interno */
-            border-radius: 0.75rem; /* Bordes redondeados */
+            background-color: black !important;
+            padding: 2rem;
+            border-radius: 0.75rem;
         }
-        /* Mayor separación entre iconos */
         #bookmark-grid {
-            gap: 1.5rem; /* Separación horizontal y vertical entre iconos */
+            gap: 1.5rem;
         }
-        /* Estilo para el texto adicional en el footer */
         .footer-subtext {
-            font-size: 0.75rem; /* Tamaño más pequeño (12px) */
-            color: #9CA3AF; /* Mismo color gris que @BoardingGate (text-gray-400) */
-            margin-top: 0.25rem; /* Espacio entre las dos líneas */
+            font-size: 0.75rem;
+            color: #9CA3AF;
+            margin-top: 0.25rem;
         }
-        /* Estilo para los enlaces verdes */
         .footer-link-green {
-            color: #90EE90; /* Verde claro */
+            color: #90EE90;
             text-decoration: none;
             transition: color 0.2s ease;
         }
         .footer-link-green:hover {
-            color: #76c776; /* Verde un poco más oscuro al hacer hover */
+            color: #76c776;
         }
         .footer-line {
             display: flex;
@@ -111,7 +105,6 @@
 
     <header class="text-center">
         <div class="header-container">
-            <!-- Logo a la izquierda, pegado al título -->
             <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
             <div class="title-container">
                 <h1 class="text-2xl font-bold text-sky-400 inline">
@@ -138,63 +131,115 @@
             { name: "GDrive", url: "https://drive.google.com" },
             { name: "Batería", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891" },
             { name: "Twitter", url: "https://x.com" },
-            null, // Vacía
+            null,
             // Fila 2
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
             { name: "ElectroMaps", url: "https://map.electromaps.com/es/" },
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos" },
             { name: "Google Maps", url: "https://maps.google.com" },
-            null, // Vacía
-            null, // Vacía
+            null,
+            null,
             // Fila 3
             { name: "TESSIE", url: "https://dash.tessie.com/signin" },
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
-            null, // Vacía
-            null, // Vacía
-            null, // Vacía
-            null, // Vacía
+            null,
+            null,
+            null,
+            null,
             // Fila 4
             { name: "GROK", url: "https://x.ai" },
             { name: "CHATGPT", url: "https://chat.openai.com" },
             { name: "CLAUDE", url: "https://claude.ai/new" },
             { name: "GEMINI", url: "https://gemini.google.com" },
             { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
-            null, // Vacía
+            null,
             // Fila 5
             { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
             { name: "BetterTheater", url: "https://abettertheater.com" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
             { name: "Octopus", url: "https://octopus.energy/dashboard" },
-            null, // Vacía
-            null, // Vacía
+            null,
+            null,
             // Fila 6
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
             { name: "Inicio", url: "chrome://newtab" },
-            null, // Vacía
-            null, // Vacía
-            null, // Vacía
-            null, // Vacía
-            // Fila 7
-            { name: "ELECTROVERSE", url: "https://electroverse.com/es/map" },
-            { name: "ACCIONA", url: "https://www.google.com/maps/search/recarga+Acciona" },
-            { name: "IBERDROLA", url: "https://www.google.com/maps/search/recarga+IBERDROLA" },
-            { name: "WAYLET Repsol", url: "https://www.google.com/maps/search/recarga+REPSOL+Waylet" },
-            { name: "ENDESA xWay", url: "https://www.google.com/maps/search/recarga+ENDESA+XWAY" },
-            { name: "ZUNDER", url: "https://www.google.com/maps/search/ZUNDER" },
-            // Fila 8
-            { name: "IONITY", url: "https://www.google.com/maps/search/recarga+IONITY" },
-            { name: "WENEA", url: "https://www.google.com/maps/search/recarga+WENEA" },
-            { name: "T.ENERGIES", url: "https://www.google.com/maps/search/recarga+TOTAL+ENERGIES" },
-            { name: "GALP", url: "https://www.google.com/maps/search/recarga+electrico+GALP" },
-            { name: "MIIO", url: "https://www.miio.COM" },
-            { name: "EVDC", url: "https://evdc.network" },
+            null,
+            null,
+            null,
+            null,
+            // Fila 7 (Puntos de carga con favicons personalizados)
+            { 
+                name: "ELECTROVERSE", 
+                url: "https://electroverse.com/es/map",
+                favicon: "https://www.google.com/s2/favicons?domain=electroverse.com&sz=64"
+            },
+            { 
+                name: "ACCIONA", 
+                url: "https://www.google.com/maps/search/recarga+Acciona",
+                favicon: "https://www.google.com/s2/favicons?domain=acciona.com&sz=64"
+            },
+            { 
+                name: "IBERDROLA", 
+                url: "https://www.google.com/maps/search/recarga+IBERDROLA",
+                favicon: "https://www.google.com/s2/favicons?domain=iberdrola.com&sz=64"
+            },
+            { 
+                name: "WAYLET Repsol", 
+                url: "https://www.google.com/maps/search/recarga+REPSOL+Waylet",
+                favicon: "https://www.google.com/s2/favicons?domain=repsol.com&sz=64"
+            },
+            { 
+                name: "ENDESA xWay", 
+                url: "https://www.google.com/maps/search/recarga+ENDESA+XWAY",
+                favicon: "https://www.google.com/s2/favicons?domain=endesa.com&sz=64"
+            },
+            { 
+                name: "ZUNDER", 
+                url: "https://www.google.com/maps/search/recarga+ZUNDER",
+                favicon: "https://www.google.com/s2/favicons?domain=zunder.com&sz=64"
+            },
+            // Fila 8 (Más puntos de carga con favicons personalizados)
+            { 
+                name: "IONITY", 
+                url: "https://www.google.com/maps/search/recarga+IONITY",
+                favicon: "https://www.google.com/s2/favicons?domain=ionity.eu&sz=64"
+            },
+            { 
+                name: "WENEA", 
+                url: "https://www.google.com/maps/search/recarga+WENEA",
+                favicon: "https://www.google.com/s2/favicons?domain=wenea.com&sz=64"
+            },
+            { 
+                name: "T.ENERGIES", 
+                url: "https://www.google.com/maps/search/recarga+TOTAL+ENERGIES",
+                favicon: "https://www.google.com/s2/favicons?domain=totalenergies.com&sz=64"
+            },
+            { 
+                name: "GALP", 
+                url: "https://www.google.com/maps/search/recarga+GALP",
+                favicon: "https://www.google.com/s2/favicons?domain=galp.com&sz=64"
+            },
+            { 
+                name: "MIIO", 
+                url: "https://miio.com",
+                favicon: "https://www.google.com/s2/favicons?domain=miio.com&sz=64"
+            },
+            { 
+                name: "EVDC", 
+                url: "https://evdc.network",
+                favicon: "https://www.google.com/s2/favicons?domain=evdc.network&sz=64"
+            }
         ];
-        const TOTAL_CELLS = 48; // 6x8 grid (6 columnas x 8 filas)
+        const TOTAL_CELLS = 48;
         const grid = document.getElementById('bookmark-grid');
 
-        const getFaviconUrl = (url) => {
+        const getFaviconUrl = (bookmark) => {
             try {
-                const domain = new URL(url).hostname;
+                // Usar favicon personalizado si está definido
+                if (bookmark.favicon) {
+                    return bookmark.favicon;
+                }
+                const domain = new URL(bookmark.url).hostname;
                 return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
             } catch (e) {
                 return '';
@@ -213,7 +258,7 @@
                 link.rel = "noopener noreferrer";
 
                 const img = document.createElement('img');
-                img.src = getFaviconUrl(bookmark.url);
+                img.src = getFaviconUrl(bookmark);
                 img.alt = `Favicon de ${bookmark.name}`;
                 img.className = 'w-9 h-9 rounded';
                 img.loading = "lazy";
