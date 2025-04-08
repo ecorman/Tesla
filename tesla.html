@@ -113,28 +113,49 @@
             z-index: 1000;
             transition: background-color 0.2s ease;
             left: 10px;
-            top: 10px; /* Cambiado a arriba a la izquierda */
+            top: 10px;
         }
         .scroll-toggle-button:hover {
             background-color: #1e40af;
         }
-        .header-text {
+        .top-text-container {
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.75rem;
-            color: #38BDF8; /* Azul celeste */
-            margin-bottom: 0.5rem;
+            color: #38BDF8;
+            margin-top: 0.5rem;
+            gap: 0.5rem;
+        }
+        .arrow-button {
+            width: 24px;
+            height: 24px;
+            background-color: #1E3A8A;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s ease;
+        }
+        .arrow-button:hover {
+            background-color: #1e40af;
         }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
-    <header class="text-center">
-        <div class="header-text">
+    <div class="top-text-container">
+        <div class="arrow-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            <span class="mx-2">[ Para ir a la web anterior o posterior arrastre la pantalla hacia los borde laterales ]</span>
+        </div>
+        <span>[ Para ir a la web anterior o posterior arrastre la pantalla hacia los borde laterales ]</span>
+        <div class="arrow-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
+    </div>
+
+    <header class="text-center">
         <div class="header-container">
             <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
             <div class="title-container">
@@ -164,7 +185,6 @@
         </div>
     </footer>
 
-    <!-- Botón de navegación único -->
     <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
@@ -215,7 +235,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla", url: "chrome: //newtab/" },
+            { name: "Inicio Tesla", url: "#" }, // Cambiado a #, manejado por JS
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -290,7 +310,15 @@
                 name.className = 'bookmark-name';
                 name.textContent = bookmark.name;
 
-                link.href = bookmark.url;
+                if (bookmark.name === "Inicio Tesla") {
+                    link.href = "#";
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.open('', '_blank'); // Abre una nueva ventana en blanco
+                    });
+                } else {
+                    link.href = bookmark.url;
+                }
 
                 link.appendChild(img);
                 link.appendChild(name);
@@ -307,9 +335,9 @@
         scrollToggle.addEventListener('click', () => {
             const scrollPosition = window.scrollY;
             const maxScroll = document.body.scrollHeight - window.innerHeight;
-            if (scrollPosition < 100) { // Si estás cerca del inicio
+            if (scrollPosition < 100) {
                 window.scrollTo({ top: maxScroll, behavior: 'smooth' });
-            } else { // Si estás más abajo
+            } else {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
