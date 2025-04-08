@@ -128,30 +128,38 @@
             gap: 0.5rem;
         }
         .arrow-button {
-            width: 24px;
-            height: 24px;
+            width: 48px; /* Doble del tamaño anterior (24px) */
+            height: 48px;
             background-color: #1E3A8A;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: default;
+            cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             transition: background-color 0.2s ease;
         }
         .arrow-button:hover {
             background-color: #1e40af;
         }
+        .counter-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 1rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
     <div class="top-text-container">
-        <div class="arrow-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <div class="/arrow-button" id="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </div>
         <span>[ Para ir a la web anterior o posterior arrastre la pantalla hacia los borde laterales ]</span>
-        <div class="arrow-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="arrow-button" id="forward-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
     </div>
 
@@ -177,7 +185,7 @@
             <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorrenos un dinero con mis REFERIDOS</a>
         </div>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
-        <div class="counter-container">
+        <div class="counter-container text-center">
             <p class="counter-label">Visitas únicas:</p>
             <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
             <script type="text/javascript" src="https://counter4.optistats.ovh/private/counter.js?c=g896pbr68y2dejczgbn1ys664xjxdf2d&down=async" async></script>
@@ -235,7 +243,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla", url: "#" }, // Cambiado a #, manejado por JS
+            { name: "Inicio Tesla", url: "#" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -314,7 +322,7 @@
                     link.href = "#";
                     link.addEventListener('click', (e) => {
                         e.preventDefault();
-                        window.open('', '_blank'); // Abre una nueva ventana en blanco
+                        window.open('', '_blank');
                     });
                 } else {
                     link.href = bookmark.url;
@@ -340,6 +348,15 @@
             } else {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
+        });
+
+        const backButton = document.getElementById('back-button');
+        const forwardButton = document.getElementById('forward-button');
+        backButton.addEventListener('click', () => {
+            window.history.back();
+        });
+        forwardButton.addEventListener('click', () => {
+            window.history.forward();
         });
     </script>
 </body>
