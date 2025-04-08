@@ -101,7 +101,7 @@
             position: fixed;
             width: 40px;
             height: 40px;
-            background-color: #666666; /* Fondo más oscuro */
+            background-color: #666666;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -112,7 +112,7 @@
             transition: background-color 0.2s ease;
         }
         .scroll-button:hover {
-            background-color: #555555; /* Tono aún más oscuro al hover */
+            background-color: #555555;
         }
         #scroll-down {
             left: 10px;
@@ -175,11 +175,11 @@
             null,
             // Fila 3
             { name: "TESSIE", url: "https://dash.tessie.com/signin" },
+            { name: "Updates", url: "https://es.stats.tessie.com/" },
+            null,
+            null,
+            null,
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
-            null,
-            null,
-            null,
-            null,
             // Fila 4 (Puntos de carga)
             { 
                 name: "ELECTROVERSE", 
@@ -254,7 +254,7 @@
             { name: "BetterTheater", url: "https://abettertheater.com" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
             { name: "Octopus", url: "https://octopus.energy/dashboard" },
-            null,
+            { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             null,
             // Fila 8
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
@@ -262,7 +262,7 @@
             null,
             null,
             null,
-            null
+            { name: "TESLA web", url: "https://www.tesla.com/es_es" }
         ];
         const TOTAL_CELLS = 48;
         const grid = document.getElementById('bookmark-grid');
@@ -284,7 +284,7 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                link.className = 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[65px] rounded-lg';
+                link.className = 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[70px] rounded-lg';
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -313,7 +313,7 @@
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
-                cell.className = 'min-w-[83px] min-h-[65px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+                cell.className = 'min-w-[83px] min-h-[70px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
         });
