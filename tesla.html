@@ -102,9 +102,9 @@
         }
         .scroll-button {
             position: fixed;
-            width: 80px; /* Duplicado de 40px a 80px */
-            height: 80px; /* Duplicado de 40px a 80px */
-            background-color: #4CAF50; /* Fondo verde */
+            width: 80px;
+            height: 80px;
+            background-color: #4CAF50;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -115,7 +115,7 @@
             transition: background-color 0.2s ease;
         }
         .scroll-button:hover {
-            background-color: #45a049; /* Verde más oscuro al hover */
+            background-color: #45a049;
         }
         #scroll-down {
             left: 10px;
@@ -231,7 +231,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla", url: "newtab" },
+            { name: "Inicio Tesla", url: "about:home" }, // Cambiado de "newtab" a "about:home"
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -289,8 +289,8 @@
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
                 link.className = index < 48 
-                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[88px] min-h-[73px] rounded-lg' // Aumentado 5px ancho, 3px alto
-                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[88px] min-h-[38px] rounded-lg'; // Aumentado 5px ancho, 3px alto
+                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[95px] min-h-[73px] rounded-lg' // Aumentado a 95px de ancho
+                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[95px] min-h-[38px] rounded-lg'; // Aumentado a 95px de ancho
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -306,11 +306,8 @@
                 name.className = 'bookmark-name';
                 name.textContent = bookmark.name;
 
-                if (bookmark.url === "newtab") {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.open('', '_blank');
-                    });
+                if (bookmark.url === "about:home") { // Modificado para "Inicio Tesla"
+                    link.href = "about:home"; // Abre la página de inicio del navegador
                 } else {
                     link.href = bookmark.url;
                 }
@@ -320,8 +317,8 @@
                 cell.appendChild(link);
             } else {
                 cell.className = index < 48 
-                    ? 'min-w-[88px] min-h-[73px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado 5px ancho, 3px alto
-                    : 'min-w-[88px] min-h-[38px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado 5px ancho, 3px alto
+                    ? 'min-w-[95px] min-h-[73px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado a 95px de ancho
+                    : 'min-w-[95px] min-h-[38px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado a 95px de ancho
             }
             grid.appendChild(cell);
         });
