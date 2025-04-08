@@ -97,12 +97,11 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
-        /* Estilos para los botones de navegación */
         .scroll-button {
             position: fixed;
             width: 40px;
             height: 40px;
-            background-color: #e0e0e0;
+            background-color: #666666; /* Fondo más oscuro */
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -113,15 +112,15 @@
             transition: background-color 0.2s ease;
         }
         .scroll-button:hover {
-            background-color: #d0d0d0;
+            background-color: #555555; /* Tono aún más oscuro al hover */
         }
         #scroll-down {
             left: 10px;
-            top: 70px; /* Ajustado para alinearse con el primer botón */
+            top: 70px;
         }
         #scroll-up {
             left: 10px;
-            bottom: 100px; /* Ajustado para alinearse con la última fila */
+            bottom: 100px;
         }
     </style>
 </head>
@@ -144,7 +143,7 @@
     <footer class="mt-8 text-center">
         <div class="footer-line">
             <a href="https://x.com/boardinggate?s=21" class="footer-link-green" target="_blank" rel="noopener noreferrer">@BoardingGate</a>
-            <span class="text-green-200">🤝</span>
+            <span class="text-green-200" style="font-size: 1.5rem;">🤝</span>
             <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorrenos un dinero con mis REFERIDOS</a>
         </div>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
@@ -152,10 +151,10 @@
 
     <!-- Botones de navegación -->
     <div id="scroll-down" class="scroll-button" title="Ir abajo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
     <div id="scroll-up" class="scroll-button" title="Ir arriba">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
     </div>
 
     <script>
@@ -259,7 +258,7 @@
             null,
             // Fila 8
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio", url: "newtab" },
+            { name: "Inicio Tesla", url: "newtab" },
             null,
             null,
             null,
@@ -285,7 +284,7 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                link.className = 'bookmark-item flex flex-col justify-center items-center aspect-square min-w-[80px] rounded-lg';
+                link.className = 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[65px] rounded-lg';
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -314,7 +313,7 @@
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
-                cell.className = 'aspect-square min-w-[80px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+                cell.className = 'min-w-[83px] min-h-[65px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
         });
