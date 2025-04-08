@@ -30,7 +30,6 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
-        /* Nueva clase para filas 9 y superiores */
         .small-bookmark .bookmark-name {
             font-size: 0.65rem;
         }
@@ -266,7 +265,7 @@
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             null,
-            { name: "TESLA web", url: "https://www.tesla.com/es_es" },
+            { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             // Fila 9
             { name: "Manual M3", url: "https://www.tesla.com/ownersmanual/model3/es_es/" },
             { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
@@ -309,7 +308,6 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                // Aplicar clases según la fila
                 link.className = index < 48 
                     ? 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[70px] rounded-lg'
                     : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[83px] min-h-[35px] rounded-lg';
@@ -320,7 +318,7 @@
                 const img = document.createElement('img');
                 img.src = getFaviconUrl(bookmark);
                 img.alt = `Favicon de ${bookmark.name}`;
-                img.className = index < 48 ? 'w-9 h-9 rounded' : 'w-5 h-5 rounded'; // Tamaño de favicon según fila
+                img.className = index < 48 ? 'w-9 h-9 rounded' : 'w-5 h-5 rounded';
                 img.loading = "lazy";
                 img.onerror = () => (img.style.display = 'none');
 
