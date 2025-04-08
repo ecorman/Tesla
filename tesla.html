@@ -129,6 +129,7 @@
             font-size: 0.75rem;
             color: #D1D5DB;
             margin-top: 0.25rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -154,8 +155,10 @@
             <span class="text-green-200" style="font-size: 1.5rem;">🤝</span>
             <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorrenos un dinero con mis REFERIDOS</a>
         </div>
-        <p id="visit-counter" class="visit-counter">Visitas: Cargando...</p>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
+        <div class="visit-counter" style="margin-top: 1rem;">
+            <img src="https://visitor-badge.glitch.me/badge?page_id=boardinggate.github.io.Tesla.tesla" alt="Visitor Badge">
+        </div>
     </footer>
 
     <!-- Botones de navegación -->
@@ -168,130 +171,65 @@
 
     <script>
         const bookmarks = [
-            // Fila 1
             { name: "YouTube", url: "https://www.youtube.com" },
             { name: "Google", url: "https://www.google.com" },
             { name: "GDrive", url: "https://drive.google.com" },
             { name: "Batería", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891" },
             { name: "Twitter", url: "https://x.com" },
             null,
-            // Fila 2
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
             { name: "ElectroMaps", url: "https://map.electromaps.com/es/" },
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos" },
             { name: "Google Maps", url: "https://maps.google.com" },
             null,
             null,
-            // Fila 3
             { name: "TESSIE", url: "https://dash.tessie.com/signin" },
             { name: "Updates", url: "https://es.stats.tessie.com/" },
             { name: "Mis Updates", url: "https://dash.tessie.com/software" },
             null,
             null,
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
-            // Fila 4 (Puntos de carga)
-            { 
-                name: "ELECTROVERSE", 
-                url: "https://electroverse.com/es/map",
-                favicon: "https://www.google.com/s2/favicons?domain=electroverse.com&sz=64"
-            },
-            { 
-                name: "ACCIONA", 
-                url: "https://www.google.com/maps/search/recarga+Acciona",
-                favicon: "https://www.google.com/s2/favicons?domain=acciona.com&sz=64"
-            },
-            { 
-                name: "IBERDROLA", 
-                url: "https://www.google.com/maps/search/recarga+IBERDROLA",
-                favicon: "https://www.google.com/s2/favicons?domain=iberdrola.com&sz=64"
-            },
-            { 
-                name: "WAYLET Repsol", 
-                url: "https://www.google.com/maps/search/recarga+REPSOL+Waylet",
-                favicon: "https://www.google.com/s2/favicons?domain=repsol.com&sz=64"
-            },
-            { 
-                name: "ENDESA xWay", 
-                url: "https://www.google.com/maps/search/recarga+ENDESA+XWAY",
-                favicon: "https://www.google.com/s2/favicons?domain=endesa.com&sz=64"
-            },
-            { 
-                name: "ZUNDER", 
-                url: "https://www.google.com/maps/search/recarga+ZUNDER",
-                favicon: "https://www.google.com/s2/favicons?domain=zunder.com&sz=64"
-            },
-            // Fila 5 (Más puntos de carga)
-            { 
-                name: "IONITY", 
-                url: "https://www.google.com/maps/search/recarga+IONITY",
-                favicon: "https://www.google.com/s2/favicons?domain=ionity.eu&sz=64"
-            },
-            { 
-                name: "WENEA", 
-                url: "https://www.google.com/maps/search/recarga+WENEA",
-                favicon: "https://www.google.com/s2/favicons?domain=wenea.com&sz=64"
-            },
-            { 
-                name: "T.ENERGIES", 
-                url: "https://www.google.com/maps/search/recarga+TOTAL+ENERGIES",
-                favicon: "https://www.google.com/s2/favicons?domain=totalenergies.com&sz=64"
-            },
-            { 
-                name: "GALP", 
-                url: "https://www.google.com/maps/search/recarga+GALP",
-                favicon: "https://www.google.com/s2/favicons?domain=galp.com&sz=64"
-            },
-            { 
-                name: "MIIO", 
-                url: "https://miio.com",
-                favicon: "https://www.google.com/s2/favicons?domain=miio.com&sz=64"
-            },
-            { 
-                name: "EVDC", 
-                url: "https://evdc.network",
-                favicon: "https://www.google.com/s2/favicons?domain=evdc.network&sz=64"
-            },
-            // Fila 6
+            { name: "ELECTROVERSE", url: "https://electroverse.com/es/map", favicon: "https://www.google.com/s2/favicons?domain=electroverse.com&sz=64" },
+            { name: "ACCIONA", url: "https://www.google.com/maps/search/recarga+Acciona", favicon: "https://www.google.com/s2/favicons?domain=acciona.com&sz=64" },
+            { name: "IBERDROLA", url: "https://www.google.com/maps/search/recarga+IBERDROLA", favicon: "https://www.google.com/s2/favicons?domain=iberdrola.com&sz=64" },
+            { name: "WAYLET Repsol", url: "https://www.google.com/maps/search/recarga+REPSOL+Waylet", favicon: "https://www.google.com/s2/favicons?domain=repsol.com&sz=64" },
+            { name: "ENDESA xWay", url: "https://www.google.com/maps/search/recarga+ENDESA+XWAY", favicon: "https://www.google.com/s2/favicons?domain=endesa.com&sz=64" },
+            { name: "ZUNDER", url: "https://www.google.com/maps/search/recarga+ZUNDER", favicon: "https://www.google.com/s2/favicons?domain=zunder.com&sz=64" },
+            { name: "IONITY", url: "https://www.google.com/maps/search/recarga+IONITY", favicon: "https://www.google.com/s2/favicons?domain=ionity.eu&sz=64" },
+            { name: "WENEA", url: "https://www.google.com/maps/search/recarga+WENEA", favicon: "https://www.google.com/s2/favicons?domain=wenea.com&sz=64" },
+            { name: "T.ENERGIES", url: "https://www.google.com/maps/search/recarga+TOTAL+ENERGIES", favicon: "https://www.google.com/s2/favicons?domain=totalenergies.com&sz=64" },
+            { name: "GALP", url: "https://www.google.com/maps/search/recarga+GALP", favicon: "https://www.google.com/s2/favicons?domain=galp.com&sz=64" },
+            { name: "MIIO", url: "https://miio.com", favicon: "https://www.google.com/s2/favicons?domain=miio.com&sz=64" },
+            { name: "EVDC", url: "https://evdc.network", favicon: "https://www.google.com/s2/favicons?domain=evdc.network&sz=64" },
             { name: "GROK", url: "https://x.ai" },
             { name: "CHATGPT", url: "https://chat.openai.com" },
             { name: "CLAUDE", url: "https://claude.ai/new" },
             { name: "GEMINI", url: "https://gemini.google.com" },
             { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
             null,
-            // Fila 7
             { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
             { name: "BetterTheater", url: "https://abettertheater.com" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
             { name: "Octopus", url: "https://octopus.energy/dashboard" },
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
-            // Fila 8
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
             { name: "Inicio Tesla", url: "newtab" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             null,
             { name: "TESLA web", url: "https://www.tesla.com/es_es" },
-            // Fila 9
             { name: "Manual M3", url: "https://www.tesla.com/ownersmanual/model3/es_es/" },
             { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
             { name: "de Despiece", url: "https://epc.tesla.com/es-MX/catalogs/e0e07c3d-272f-4d06-b8b6-9e92f857e5f3" },
             { name: "de Usted Mismo", url: "https://www.tesla.com/es_es/support/do-it-yourself-guides" },
             { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
             { name: "de Móvil remoto", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-53651B16-A2E3-4118-933E-B5F41C74D433.html" },
-            // Fila 10
             null, null, null, null, null, null,
-            // Fila 11
             null, null, null, null, null, null,
-            // Fila 12
             null, null, null, null, null, null,
-            // Fila 13
             null, null, null, null, null, null,
-            // Fila 14
             null, null, null, null, null, null,
-            // Fila 15
-            null, null, null, null, null, null,
-            // Fila 16
             null, null, null, null, null, null
         ];
         const TOTAL_CELLS = 96;
@@ -352,24 +290,12 @@
             grid.appendChild(cell);
         });
 
-        // Funcionalidad de los botones de navegación
         document.getElementById('scroll-down').addEventListener('click', () => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
         document.getElementById('scroll-up').addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-
-        // Contador de visitas con CountAPI
-        fetch('https://api.countapi.xyz/hit/boardinggate.github.io/lanzador')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('visit-counter').textContent = `Visitas: ${data.value}`;
-            })
-            .catch(error => {
-                console.error('Error al obtener el contador:', error);
-                document.getElementById('visit-counter').textContent = 'Visitas: Error';
-            });
     </script>
 </body>
 </html>
