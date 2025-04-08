@@ -30,6 +30,10 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
+        /* Nueva clase para filas 9 y superiores */
+        .small-bookmark .bookmark-name {
+            font-size: 0.65rem;
+        }
         .header-container {
             display: flex;
             align-items: center;
@@ -176,7 +180,7 @@
             // Fila 3
             { name: "TESSIE", url: "https://dash.tessie.com/signin" },
             { name: "Updates", url: "https://es.stats.tessie.com/" },
-            null,
+            { name: "Mis Updates", url: "https://dash.tessie.com/software" },
             null,
             null,
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
@@ -264,7 +268,12 @@
             null,
             { name: "TESLA web", url: "https://www.tesla.com/es_es" },
             // Fila 9
-            null, null, null, null, null, null,
+            { name: "Manual M3", url: "https://www.tesla.com/ownersmanual/model3/es_es/" },
+            { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
+            { name: "de Despiece", url: "https://epc.tesla.com/es-MX/catalogs/e0e07c3d-272f-4d06-b8b6-9e92f857e5f3" },
+            { name: "de Usted Mismo", url: "https://www.tesla.com/es_es/support/do-it-yourself-guides" },
+            { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
+            { name: "de Móvil remoto", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-53651B16-A2E3-4118-933E-B5F41C74D433.html" },
             // Fila 10
             null, null, null, null, null, null,
             // Fila 11
@@ -280,7 +289,7 @@
             // Fila 16
             null, null, null, null, null, null
         ];
-        const TOTAL_CELLS = 96; // Aumentado de 48 a 96 para incluir las 8 nuevas filas
+        const TOTAL_CELLS = 96;
         const grid = document.getElementById('bookmark-grid');
 
         const getFaviconUrl = (bookmark) => {
@@ -300,10 +309,10 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                // Aplicar altura diferente según la fila
+                // Aplicar clases según la fila
                 link.className = index < 48 
                     ? 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[70px] rounded-lg'
-                    : 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[35px] rounded-lg';
+                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[83px] min-h-[35px] rounded-lg';
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -311,7 +320,7 @@
                 const img = document.createElement('img');
                 img.src = getFaviconUrl(bookmark);
                 img.alt = `Favicon de ${bookmark.name}`;
-                img.className = 'w-9 h-9 rounded';
+                img.className = index < 48 ? 'w-9 h-9 rounded' : 'w-5 h-5 rounded'; // Tamaño de favicon según fila
                 img.loading = "lazy";
                 img.onerror = () => (img.style.display = 'none');
 
@@ -332,7 +341,6 @@
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
-                // Aplicar altura diferente a celdas vacías según la fila
                 cell.className = index < 48 
                     ? 'min-w-[83px] min-h-[70px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
                     : 'min-w-[83px] min-h-[35px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
