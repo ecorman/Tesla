@@ -102,9 +102,9 @@
         }
         .scroll-button {
             position: fixed;
-            width: 40px;
-            height: 40px;
-            background-color: #666666;
+            width: 80px; /* Duplicado de 40px a 80px */
+            height: 80px; /* Duplicado de 40px a 80px */
+            background-color: #4CAF50; /* Fondo verde */
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -115,7 +115,7 @@
             transition: background-color 0.2s ease;
         }
         .scroll-button:hover {
-            background-color: #555555;
+            background-color: #45a049; /* Verde más oscuro al hover */
         }
         #scroll-down {
             left: 10px;
@@ -180,10 +180,10 @@
 
     <!-- Botones de navegación -->
     <div id="scroll-down" class="scroll-button" title="Ir abajo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
     <div id="scroll-up" class="scroll-button" title="Ir arriba">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
     </div>
 
     <script>
@@ -289,8 +289,8 @@
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
                 link.className = index < 48 
-                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[70px] rounded-lg'
-                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[83px] min-h-[35px] rounded-lg';
+                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[88px] min-h-[73px] rounded-lg' // Aumentado 5px ancho, 3px alto
+                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[88px] min-h-[38px] rounded-lg'; // Aumentado 5px ancho, 3px alto
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -320,8 +320,8 @@
                 cell.appendChild(link);
             } else {
                 cell.className = index < 48 
-                    ? 'min-w-[83px] min-h-[70px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
-                    : 'min-w-[83px] min-h-[35px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+                    ? 'min-w-[88px] min-h-[73px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado 5px ancho, 3px alto
+                    : 'min-w-[88px] min-h-[38px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado 5px ancho, 3px alto
             }
             grid.appendChild(cell);
         });
