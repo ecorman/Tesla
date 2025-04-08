@@ -56,11 +56,11 @@
         header {
             order: 2;
             margin-top: auto;
-            margin-bottom: 0.5rem; /* Reduced from 2rem */
+            margin-bottom: 0.5rem;
         }
         main {
             order: 1;
-            margin-top: 0.5rem; /* Added for consistent spacing */
+            margin-top: 0.5rem;
         }
         footer {
             order: 3;
@@ -97,6 +97,32 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
+        /* Estilos para los botones de navegación */
+        .scroll-button {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transition: background-color 0.2s ease;
+        }
+        .scroll-button:hover {
+            background-color: #d0d0d0;
+        }
+        #scroll-down {
+            left: 10px;
+            top: 70px; /* Ajustado para alinearse con el primer botón */
+        }
+        #scroll-up {
+            left: 10px;
+            bottom: 100px; /* Ajustado para alinearse con la última fila */
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -123,6 +149,14 @@
         </div>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
     </footer>
+
+    <!-- Botones de navegación -->
+    <div id="scroll-down" class="scroll-button" title="Ir abajo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+    </div>
+    <div id="scroll-up" class="scroll-button" title="Ir arriba">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </div>
 
     <script>
         const bookmarks = [
@@ -225,7 +259,7 @@
             null,
             // Fila 8
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio", url: "chrome://newtab" },
+            { name: "Inicio", url: "newtab" },
             null,
             null,
             null,
@@ -251,8 +285,7 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                link.href = bookmark.url;
-                link.className = 'bookmark-item flex flex-col justify-center items-center aspect-square min-w-[60px] rounded-lg';
+                link.className = 'bookmark-item flex flex-col justify-center items-center aspect-square min-w-[80px] rounded-lg';
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -268,13 +301,30 @@
                 name.className = 'bookmark-name';
                 name.textContent = bookmark.name;
 
+                if (bookmark.url === "newtab") {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.open('', '_blank');
+                    });
+                } else {
+                    link.href = bookmark.url;
+                }
+
                 link.appendChild(img);
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
-                cell.className = 'aspect-square min-w-[60px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+                cell.className = 'aspect-square min-w-[80px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
+        });
+
+        // Funcionalidad de los botones de navegación
+        document.getElementById('scroll-down').addEventListener('click', () => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
+        document.getElementById('scroll-up').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     </script>
 </body>
