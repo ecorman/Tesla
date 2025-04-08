@@ -76,7 +76,7 @@
             background-color: black !important;
             padding: 2rem;
             border-radius: 0.75rem;
-            gap: 15px; /* Separación horizontal y vertical de 15px */
+            gap: 15px;
         }
         .footer-subtext {
             font-size: 0.75rem;
@@ -98,54 +98,43 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
-        .scroll-button {
+        .scroll-toggle-button {
             position: fixed;
             width: 75px;
             height: 75px;
             background-color: #1E3A8A;
             border-radius: 50%;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             transition: background-color 0.2s ease;
+            left: 10px;
+            top: 10px; /* Cambiado a arriba a la izquierda */
         }
-        .scroll-button:hover {
+        .scroll-toggle-button:hover {
             background-color: #1e40af;
         }
-        #scroll-down {
-            left: 10px;
-            top: 70px;
-        }
-        #scroll-up {
-            left: 10px;
-            bottom: 100px;
-        }
-        .visit-counter {
-            font-size: 0.75rem;
-            color: #D1D5DB;
-            margin-top: 0.25rem;
-            text-align: center;
-        }
-        .counter-label {
-            font-size: 0.75rem;
-            color: #D1D5DB;
-            margin-bottom: 0.5rem;
-        }
-        .counter-container {
+        .header-text {
             display: flex;
-            justify-content: center;
             align-items: center;
-            flex-direction: column;
-            margin-top: 1rem;
-            text-align: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #38BDF8; /* Azul celeste */
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
     <header class="text-center">
+        <div class="header-text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span class="mx-2">[ Para ir a la web anterior o posterior arrastre la pantalla hacia los borde laterales ]</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
         <div class="header-container">
             <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
             <div class="title-container">
@@ -167,7 +156,6 @@
             <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorrenos un dinero con mis REFERIDOS</a>
         </div>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
-        <!-- Contador de FreeCounterStat con literal "Visitas únicas:" encima, ambos centrados -->
         <div class="counter-container">
             <p class="counter-label">Visitas únicas:</p>
             <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
@@ -176,12 +164,10 @@
         </div>
     </footer>
 
-    <!-- Botones de navegación -->
-    <div id="scroll-down" class="scroll-button" title="Ir abajo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-    </div>
-    <div id="scroll-up" class="scroll-button" title="Ir arriba">
+    <!-- Botón de navegación único -->
+    <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
 
     <script>
@@ -317,11 +303,15 @@
             grid.appendChild(cell);
         });
 
-        document.getElementById('scroll-down').addEventListener('click', () => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        });
-        document.getElementById('scroll-up').addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        const scrollToggle = document.getElementById('scroll-toggle');
+        scrollToggle.addEventListener('click', () => {
+            const scrollPosition = window.scrollY;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            if (scrollPosition < 100) { // Si estás cerca del inicio
+                window.scrollTo({ top: maxScroll, behavior: 'smooth' });
+            } else { // Si estás más abajo
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         });
     </script>
 </body>
