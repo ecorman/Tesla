@@ -259,12 +259,28 @@
             // Fila 8
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
             { name: "Inicio Tesla", url: "newtab" },
+            { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             null,
-            null,
-            { name: "TESLA web", url: "https://www.tesla.com/es_es" }
+            { name: "TESLA web", url: "https://www.tesla.com/es_es" },
+            // Fila 9
+            null, null, null, null, null, null,
+            // Fila 10
+            null, null, null, null, null, null,
+            // Fila 11
+            null, null, null, null, null, null,
+            // Fila 12
+            null, null, null, null, null, null,
+            // Fila 13
+            null, null, null, null, null, null,
+            // Fila 14
+            null, null, null, null, null, null,
+            // Fila 15
+            null, null, null, null, null, null,
+            // Fila 16
+            null, null, null, null, null, null
         ];
-        const TOTAL_CELLS = 48;
+        const TOTAL_CELLS = 96; // Aumentado de 48 a 96 para incluir las 8 nuevas filas
         const grid = document.getElementById('bookmark-grid');
 
         const getFaviconUrl = (bookmark) => {
@@ -284,7 +300,10 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                link.className = 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[70px] rounded-lg';
+                // Aplicar altura diferente según la fila
+                link.className = index < 48 
+                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[70px] rounded-lg'
+                    : 'bookmark-item flex flex-col justify-center items-center min-w-[83px] min-h-[35px] rounded-lg';
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -313,7 +332,10 @@
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
-                cell.className = 'min-w-[83px] min-h-[70px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+                // Aplicar altura diferente a celdas vacías según la fila
+                cell.className = index < 48 
+                    ? 'min-w-[83px] min-h-[70px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
+                    : 'min-w-[83px] min-h-[35px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
         });
