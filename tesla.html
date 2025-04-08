@@ -125,6 +125,11 @@
             left: 10px;
             bottom: 100px;
         }
+        .visit-counter {
+            font-size: 0.75rem;
+            color: #D1D5DB;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -149,6 +154,7 @@
             <span class="text-green-200" style="font-size: 1.5rem;">🤝</span>
             <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorrenos un dinero con mis REFERIDOS</a>
         </div>
+        <p id="visit-counter" class="visit-counter">Visitas: Cargando...</p>
         <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
     </footer>
 
@@ -353,6 +359,17 @@
         document.getElementById('scroll-up').addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // Contador de visitas con CountAPI
+        fetch('https://api.countapi.xyz/hit/boardinggate.github.io/lanzador')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('visit-counter').textContent = `Visitas: ${data.value}`;
+            })
+            .catch(error => {
+                console.error('Error al obtener el contador:', error);
+                document.getElementById('visit-counter').textContent = 'Visitas: Error';
+            });
     </script>
 </body>
 </html>
