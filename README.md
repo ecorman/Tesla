@@ -22,7 +22,7 @@ _Create a site or blog from your GitHub repositories with GitHub Pages._
 
 ## Step 2: Configure your site
 
-https://visitor-badge.glitch.me/badge?page_id=Tesla
+https://visitor-badge.glitch.me/badge?page_id=BoardingGate.Tesla
 
 _You turned on GitHub Pages! :tada:_
 
