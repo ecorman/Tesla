@@ -20,7 +20,7 @@
             image-rendering: crisp-edges;
         }
         .bookmark-name {
-            font-size: 0.85rem;
+            font-size: 0.95rem; /* Aumentado de 0.85rem a 0.95rem */
             font-weight: bold;
             color: #333;
             text-align: center;
@@ -31,7 +31,7 @@
             max-width: 100%;
         }
         .small-bookmark .bookmark-name {
-            font-size: 0.75rem; /* Aumentado de 0.65rem a 0.75rem */
+            font-size: 0.85rem; /* Aumentado de 0.75rem a 0.85rem */
         }
         .header-container {
             display: flex;
@@ -102,9 +102,9 @@
         }
         .scroll-button {
             position: fixed;
-            width: 75px; /* Reducido de 80px a 75px */
-            height: 75px; /* Reducido de 80px a 75px */
-            background-color: #1E3A8A; /* Cambiado a azul */
+            width: 75px;
+            height: 75px;
+            background-color: #1E3A8A;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -115,7 +115,7 @@
             transition: background-color 0.2s ease;
         }
         .scroll-button:hover {
-            background-color: #1e40af; /* Azul más claro al hover */
+            background-color: #1e40af;
         }
         #scroll-down {
             left: 10px;
@@ -218,7 +218,7 @@
             { name: "GALP", url: "https://www.google.com/maps/search/recarga+GALP", favicon: "https://www.google.com/s2/favicons?domain=galp.com&sz=64" },
             { name: "MIIO", url: "https://miio.com", favicon: "https://www.google.com/s2/favicons?domain=miio.com&sz=64" },
             { name: "EVDC", url: "https://evdc.network", favicon: "https://www.google.com/s2/favicons?domain=evdc.network&sz=64" },
-            { name: "GROK", url: "https://grok.com/?referrer=website" }, // URL actualizada
+            { name: "GROK", url: "https://grok.com/?referrer=website" },
             { name: "CHATGPT", url: "https://chat.openai.com" },
             { name: "CLAUDE", url: "https://claude.ai/new" },
             { name: "GEMINI", url: "https://gemini.google.com" },
@@ -231,7 +231,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla", url: "about:home" },
+            { name: "Inicio Tesla", url: "about:blank" }, // Cambiado a "about:blank"
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -289,8 +289,8 @@
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
                 link.className = index < 48 
-                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[105px] min-h-[73px] rounded-lg' // Aumentado a 105px de ancho
-                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[105px] min-h-[38px] rounded-lg'; // Aumentado a 105px de ancho
+                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[120px] min-h-[78px] rounded-lg' // Aumentado a 120px ancho, 78px alto
+                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[120px] min-h-[43px] rounded-lg'; // Aumentado a 120px ancho, 43px alto
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -306,8 +306,8 @@
                 name.className = 'bookmark-name';
                 name.textContent = bookmark.name;
 
-                if (bookmark.url === "about:home") {
-                    link.href = "about:home";
+                if (bookmark.url === "about:blank") { // Cambiado para "Inicio Tesla"
+                    link.href = "about:blank";
                 } else {
                     link.href = bookmark.url;
                 }
@@ -317,8 +317,8 @@
                 cell.appendChild(link);
             } else {
                 cell.className = index < 48 
-                    ? 'min-w-[105px] min-h-[73px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado a 105px de ancho
-                    : 'min-w-[105px] min-h-[38px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado a 105px de ancho
+                    ? 'min-w-[120px] min-h-[78px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado a 120px ancho, 78px alto
+                    : 'min-w-[120px] min-h-[43px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado a 120px ancho, 43px alto
             }
             grid.appendChild(cell);
         });
