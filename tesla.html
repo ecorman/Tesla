@@ -20,7 +20,7 @@
             image-rendering: crisp-edges;
         }
         .bookmark-name {
-            font-size: 0.95rem; /* Aumentado de 0.85rem a 0.95rem */
+            font-size: 1.05rem; /* Aumentado de 0.95rem a 1.05rem */
             font-weight: bold;
             color: #333;
             text-align: center;
@@ -31,7 +31,7 @@
             max-width: 100%;
         }
         .small-bookmark .bookmark-name {
-            font-size: 0.85rem; /* Aumentado de 0.75rem a 0.85rem */
+            font-size: 0.95rem; /* Aumentado de 0.85rem a 0.95rem */
         }
         .header-container {
             display: flex;
@@ -180,7 +180,7 @@
 
     <!-- Botones de navegación -->
     <div id="scroll-down" class="scroll-button" title="Ir abajo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke siniestro-join="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
     <div id="scroll-up" class="scroll-button" title="Ir arriba">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -193,7 +193,7 @@
             { name: "GDrive", url: "https://drive.google.com" },
             { name: "Batería", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891" },
             { name: "Twitter", url: "https://x.com" },
-            { name: "Filmin", url: "https://www.filmin.es/" },
+            { name: "Filmin", url: "https://www.filmin.es/catalogo/peliculas" }, // URL actualizada
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
             { name: "ElectroMaps", url: "https://map.electromaps.com/es/" },
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos" },
@@ -231,7 +231,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla", url: "about:blank" }, // Cambiado a "about:blank"
+            { name: "Inicio Tesla", url: "chrome://new-tab-page/" }, // URL actualizada
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             null,
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -289,8 +289,8 @@
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
                 link.className = index < 48 
-                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[120px] min-h-[78px] rounded-lg' // Aumentado a 120px ancho, 78px alto
-                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[120px] min-h-[43px] rounded-lg'; // Aumentado a 120px ancho, 43px alto
+                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[145px] min-h-[83px] rounded-lg' // Aumentado a 145px ancho, 83px alto
+                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[145px] min-h-[48px] rounded-lg'; // Aumentado a 145px ancho, 48px alto
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -306,19 +306,15 @@
                 name.className = 'bookmark-name';
                 name.textContent = bookmark.name;
 
-                if (bookmark.url === "about:blank") { // Cambiado para "Inicio Tesla"
-                    link.href = "about:blank";
-                } else {
-                    link.href = bookmark.url;
-                }
+                link.href = bookmark.url; // Simplificado, ya que no hay casos especiales ahora
 
                 link.appendChild(img);
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
                 cell.className = index < 48 
-                    ? 'min-w-[120px] min-h-[78px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado a 120px ancho, 78px alto
-                    : 'min-w-[120px] min-h-[43px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado a 120px ancho, 43px alto
+                    ? 'min-w-[145px] min-h-[83px] bg-gray-50 border border-dashed border-gray-200 rounded-lg' // Aumentado a 145px ancho, 83px alto
+                    : 'min-w-[145px] min-h-[48px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'; // Aumentado a 145px ancho, 48px alto
             }
             grid.appendChild(cell);
         });
