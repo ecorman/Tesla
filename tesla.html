@@ -158,31 +158,41 @@
         /* Estilos para los avisos deslizantes */
         .notices-container {
             width: 100%;
-            max-width: 1080px;
+            max-width: 1040px; /* Casi igual que el grid (1080px - algo de margen) */
             margin: 0.5rem auto;
             background-color: #d3d3d3; /* Fondo gris claro */
             padding: 0.5rem;
             border-radius: 0.5rem;
             overflow: hidden;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Espacio entre ícono y texto */
         }
         .notice-wrapper {
             background-color: black;
             padding: 0.5rem;
-            height: 2rem;
+            height: 2.5rem; /* Aumentado para centrar verticalmente */
+            flex-grow: 1;
             overflow: hidden;
             position: relative;
+            display: flex;
+            align-items: center; /* Centrar verticalmente */
         }
         .notice {
             color: #00ff00; /* Verde */
             font-size: 1.25rem; /* Tamaño medio */
             position: absolute;
             white-space: nowrap;
-            animation: slide 20s linear infinite; /* Velocidad muy lenta: 20 segundos */
+            animation: slide 15s linear infinite; /* Velocidad constante legible: 15 segundos */
         }
         @keyframes slide {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
+        }
+        .megaphone-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-left: 0.5rem;
         }
     </style>
 </head>
@@ -207,6 +217,7 @@
             </div>
         </div>
         <div class="notices-container">
+            <img src="https://cdn-icons-png.flaticon.com/512/259/259281.png" alt="Megáfono" class="megaphone-icon">
             <div class="notice-wrapper">
                 <span class="notice" id="current-notice"></span>
             </div>
@@ -454,9 +465,9 @@
                     noticeElement.textContent = notices[currentIndex];
                     noticeElement.style.animation = 'none'; // Reiniciar animación
                     void noticeElement.offsetWidth; // Forzar reflujo
-                    noticeElement.style.animation = 'slide 20s linear infinite';
+                    noticeElement.style.animation = 'slide 15s linear infinite';
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 4000); // Cambiar cada 4 segundos
+                    setTimeout(showNextNotice, 8000); // Cambiar cada 8 segundos
                 }
 
                 showNextNotice();
