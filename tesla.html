@@ -164,7 +164,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            height: 1.5rem;
+            height: 3rem; /* Ajustado para el ícono más grande */
         }
         .notice-wrapper {
             padding: 0.5rem;
@@ -175,33 +175,29 @@
             display: flex;
             align-items: center;
         }
-        .notice-content {
-            display: flex;
-            align-items: center;
-            position: absolute;
-            white-space: nowrap;
-            animation: slideWithPause 14s linear infinite;
-        }
         .notice {
             color: #00ff00;
-            font-size: 1.25rem; /* Reducido de 1.5rem a 1.25rem */
+            font-size: 1.25rem;
             font-weight: bold;
+            position: absolute;
+            white-space: nowrap;
         }
         @keyframes slideWithPause {
             0% { transform: translateX(-100%); }
-            35.71% { transform: translateX(50%); }
-            64.29% { transform: translateX(50%); }
+            35.71% { transform: var(--center-position); } /* Centro calculado por JS */
+            64.29% { transform: var(--center-position); } /* Pausa de 5s */
             100% { transform: translateX(100%); }
         }
-        .megaphone-icon {
+        .megaphone-icon-start {
             width: auto;
-            height: 1.5rem;
-            margin-left: 0.5rem;
+            height: 3rem; /* Doble de 1.5rem */
+            margin-right: 0.5rem;
         }
         .megaphone-icon-end {
             width: auto;
-            height: 1.5rem;
+            height: 3rem; /* Doble de 1.5rem */
             margin-left: 0.5rem;
+            transform: scaleX(-1); /* Efecto espejo */
         }
     </style>
 </head>
@@ -221,13 +217,11 @@
     </main>
 
     <div class="notices-container">
+        <img src="./avisos.png" alt="Megáfono Inicio" class="megaphone-icon-start">
         <div class="notice-wrapper">
-            <div class="notice-content" id="current-notice">
-                <img src="./avisos.png" alt="Megáfono Inicio" class="megaphone-icon">
-                <span class="notice"></span>
-                <img src="./avisos.png" alt="Megáfono Fin" class="megaphone-icon-end">
-            </div>
+            <span class="notice" id="current-notice"></span>
         </div>
+        <img src="./avisos.png" alt="Megáfono Fin" class="megaphone-icon-end">
     </div>
 
     <footer>
@@ -468,15 +462,24 @@
                 const notices = text.split('\n').filter(line => line.trim() !== '');
                 if (notices.length === 0) return;
 
-                const noticeContent = document.getElementById('current-notice');
-                const noticeText = noticeContent.querySelector('.notice');
+                const noticeElement = document.getElementById('current-notice');
                 let currentIndex = 0;
 
+                function centerText() {
+                    const wrapper = document.querySelector('.notice-wrapper');
+                    const wrapperWidth = wrapper.offsetWidth;
+                    const textWidth = noticeElement.offsetWidth;
+                    const centerPosition = (wrapperWidth - textWidth) / 2;
+                    const centerPercentage = (centerPosition / wrapperWidth) * 100;
+                    noticeElement.style.setProperty('--center-position', `translateX(${centerPercentage}%)`);
+                    noticeElement.style.animation = 'slideWithPause 14s linear forwards';
+                }
+
                 function showNextNotice() {
-                    noticeText.textContent = notices[currentIndex];
-                    noticeContent.style.animation = 'none';
-                    void noticeContent.offsetWidth; // Reinicia la animación
-                    noticeContent.style.animation = 'slideWithPause 14s linear forwards';
+                    noticeElement.textContent = notices[currentIndex];
+                    noticeElement.style.animation = 'none';
+                    void noticeElement.offsetWidth; // Reinicia la animación
+                    centerText(); // Calcula y aplica el centrado
                     currentIndex = (currentIndex + 1) % notices.length;
                     setTimeout(showNextNotice, 18000); // 14s animación + 4s pausa
                 }
@@ -485,7 +488,7 @@
             })
             .catch(error => {
                 console.error('Error al cargar avisos.txt:', error);
-                document.getElementById('current-notice').querySelector('.notice').textContent = 'Error al cargar avisos';
+                document.getElementById('current-notice').textContent = 'Error al cargar avisos';
             });
     </script>
 </body>
