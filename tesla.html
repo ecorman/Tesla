@@ -159,7 +159,7 @@
             margin: 0 auto;
             background-color: #d3d3d3;
             padding: 0.5rem;
-            border: 0.5px solid black; /* Borde cambiado a negro */
+            border: none; /* Borde eliminado */
             border-radius: 0.5rem;
             overflow: hidden;
             display: flex;
@@ -179,8 +179,8 @@
         }
         .notice {
             color: #00ff00;
-            font-size: 1.75rem; /* Doble del tamaño anterior (0.875rem x 2) */
-            font-weight: bold; /* Negrita añadida */
+            font-size: 1.75rem; /* Tamaño doble y mantenido */
+            font-weight: bold; /* Negrita mantenida */
             position: absolute;
             white-space: nowrap;
             animation: slideWithPause 15s linear infinite;
@@ -213,13 +213,14 @@
         <!-- Grid populated by JavaScript -->
     </main>
 
-    <footer>
-        <div class="notices-container">
-            <img src="./avisos.png" alt="Megáfono" class="megaphone-icon">
-            <div class="notice-wrapper">
-                <span class="notice" id="current-notice"></span>
-            </div>
+    <div class="notices-container">
+        <img src="./avisos.png" alt="Megáfono" class="megaphone-icon">
+        <div class="notice-wrapper">
+            <span class="notice" id="current-notice"></span>
         </div>
+    </div>
+
+    <footer>
         <div class="footer-content mt-8 text-center">
             <header class="text-center">
                 <div class="header-container">
