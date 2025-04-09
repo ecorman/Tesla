@@ -155,11 +155,10 @@
         }
         .notices-container {
             width: 100%;
-            max-width: 1080px; /* Igualado al ancho de #bookmark-grid */
+            max-width: 1080px;
             margin: 0 auto;
-            background-color: #d3d3d3;
             padding: 0.5rem;
-            border: none; /* Borde eliminado */
+            border: none;
             border-radius: 0.5rem;
             overflow: hidden;
             display: flex;
@@ -168,7 +167,6 @@
             height: 1.5rem;
         }
         .notice-wrapper {
-            background-color: black;
             padding: 0.5rem;
             height: 1.5rem;
             flex-grow: 1;
@@ -179,17 +177,17 @@
         }
         .notice {
             color: #00ff00;
-            font-size: 1.75rem; /* Tamaño doble y mantenido */
-            font-weight: bold; /* Negrita mantenida */
+            font-size: 1.5rem;
+            font-weight: bold;
             position: absolute;
             white-space: nowrap;
-            animation: slideWithPause 15s linear infinite;
+            animation: slideWithPause 14s linear infinite; /* Duración total ajustada */
         }
         @keyframes slideWithPause {
-            0% { transform: translateX(-100%); }
-            33.33% { transform: translateX(50%); }
-            66.66% { transform: translateX(50%); }
-            100% { transform: translateX(150%); }
+            0% { transform: translateX(-100%); } /* Comienza fuera por la izquierda */
+            35.71% { transform: translateX(50%); } /* Llega al centro en ~5s (35.71% de 14s) */
+            64.29% { transform: translateX(50%); } /* Pausa en el centro por 5s (hasta 64.29% de 14s) */
+            100% { transform: translateX(100%); } /* Sale por la derecha en ~4s */
         }
         .megaphone-icon {
             width: auto;
@@ -464,10 +462,10 @@
                 function showNextNotice() {
                     noticeElement.textContent = notices[currentIndex];
                     noticeElement.style.animation = 'none';
-                    void noticeElement.offsetWidth;
-                    noticeElement.style.animation = 'slideWithPause 15s linear forwards';
+                    void noticeElement.offsetWidth; // Reinicia la animación
+                    noticeElement.style.animation = 'slideWithPause 14s linear forwards';
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 15000);
+                    setTimeout(showNextNotice, 18000); // 14s animación + 4s pausa
                 }
 
                 showNextNotice();
