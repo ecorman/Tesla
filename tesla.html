@@ -164,7 +164,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            height: 3rem; /* Ajustado para el ícono más grande */
+            height: 3rem;
         }
         .notice-wrapper {
             padding: 0.5rem;
@@ -177,27 +177,27 @@
         }
         .notice {
             color: #00ff00;
-            font-size: 1.20rem;
+            font-size: 1.20rem; /* Cambiado a 1.20rem */
             font-weight: bold;
             position: absolute;
             white-space: nowrap;
         }
         @keyframes slideWithPause {
-            0% { transform: translateX(-100%); }
-            35.71% { transform: var(--center-position); } /* Centro calculado por JS */
+            0% { transform: translateX(-100%); } /* Comienza fuera por la izquierda */
+            35.71% { transform: var(--center-position); } /* Centro calculado */
             64.29% { transform: var(--center-position); } /* Pausa de 5s */
-            100% { transform: translateX(100%); }
+            100% { transform: translateX(calc(100% + 100%)); } /* Desaparece completamente por la derecha */
         }
         .megaphone-icon-start {
             width: auto;
-            height: 3rem; /* Doble de 1.5rem */
+            height: 3rem;
             margin-right: 0.5rem;
         }
         .megaphone-icon-end {
             width: auto;
-            height: 3rem; /* Doble de 1.5rem */
+            height: 3rem;
             margin-left: 0.5rem;
-            transform: scaleX(-1); /* Efecto espejo */
+            transform: scaleX(-1);
         }
     </style>
 </head>
