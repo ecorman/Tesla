@@ -162,6 +162,7 @@
             margin: 0.5rem auto; /* Margen para separación */
             background-color: #d3d3d3; /* Fondo gris claro */
             padding: 0.5rem;
+            border: 1px solid #a0a0a0; /* Borde más fino */
             border-radius: 0.5rem;
             overflow: hidden;
             display: flex;
@@ -171,7 +172,7 @@
         .notice-wrapper {
             background-color: black;
             padding: 0.5rem;
-            height: 2.5rem; /* Aumentado para centrar verticalmente */
+            height: 2.5rem; /* Altura de la caja de texto */
             flex-grow: 1;
             overflow: hidden;
             position: relative;
@@ -183,15 +184,17 @@
             font-size: 1.25rem; /* Tamaño medio */
             position: absolute;
             white-space: nowrap;
-            animation: slide 15s linear infinite; /* Velocidad constante legible: 15 segundos */
+            animation: slideWithPause 15s linear infinite; /* Animación con pausa */
         }
-        @keyframes slide {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        @keyframes slideWithPause {
+            0% { transform: translateX(-100%); } /* Empieza fuera por la izquierda */
+            33.33% { transform: translateX(50%); } /* Centro de la caja */
+            66.66% { transform: translateX(50%); } /* Pausa en el centro */
+            100% { transform: translateX(150%); } /* Sale por la derecha */
         }
         .megaphone-icon {
-            width: 1.5rem;
-            height: 1.5rem;
+            width: auto; /* Ancho proporcional */
+            height: 2.5rem; /* Misma altura que la caja de texto */
             margin-left: 0.5rem;
         }
     </style>
@@ -466,9 +469,9 @@
                     noticeElement.textContent = notices[currentIndex];
                     noticeElement.style.animation = 'none'; // Reiniciar animación
                     void noticeElement.offsetWidth; // Forzar reflujo
-                    noticeElement.style.animation = 'slide 15s linear infinite';
+                    noticeElement.style.animation = 'slideWithPause 15s linear forwards';
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 8000); // Cambiar cada 8 segundos
+                    setTimeout(showNextNotice, 15000); // 15s total: 5s deslizar + 5s pausa + 5s salir
                 }
 
                 showNextNotice();
