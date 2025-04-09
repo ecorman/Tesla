@@ -150,6 +150,13 @@
             margin-top: 1rem;
             text-align: center;
         }
+        /* Estilos para los favicons coloreados */
+        .favicon-red {
+            filter: hue-rotate(0deg) saturate(200%) brightness(80%);
+        }
+        .favicon-blue {
+            filter: hue-rotate(200deg) saturate(150%) brightness(90%);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -201,7 +208,7 @@
     <script>
         const bookmarks = [
             { name: "YouTube", url: "https://www.youtube.com" },
-            { name: "Google", url: "https://www.google.com" }, // Corregido: reemplaza REVE PdR España
+            { name: "Google", url: "https://www.google.com" },
             { name: "GDrive", url: "https://drive.google.com", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14z'/><rect x='2' y='5' width='20' height='14' rx='2' ry='2'/></svg>" },
             { name: "Batería", url: "https://docs.google.com/spreadsheets/d/1bLZmgVGTBqg2bS2E45JpORjs9eK2nb05AWXYLLDY-RI/edit?gid=1398548891#gid=1398548891", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>" },
             { name: "Twitter", url: "https://x.com" },
@@ -212,12 +219,12 @@
             { name: "REVE PdR España", url: "https://www.mapareve.es/mapa-puntos-recarga", favicon: "https://www.google.com/s2/favicons?domain=mapareve.es&sz=64" },
             { name: "Google Maps", url: "https://maps.google.com" },
             { name: "TIEMPO", url: "https://www.google.com/search?q=weather", favicon: "https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" },
-            { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" }, // Favicon añadido
-            { name: "Mis Updates", url: "https://dash.tessie.com/software", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" }, // Favicon añadido
+            { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" },
+            { name: "Mis Updates", url: "https://dash.tessie.com/software", favicon: "https://cdn-icons-png.flaticon.com/512/148/148767.png" },
+            { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/5815902.png" },
             { name: "NotaTeslaApp", url: "https://www.notateslaapp.com/software-updates/" },
-            { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" },
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
-            { name: "MAREAS", url: "https://www.meteogalicia.gal/web/predicion/mareas-e-luas" }, // Corregido de la reorganización anterior
+            { name: "MAREAS", url: "https://www.meteogalicia.gal/web/predicion/mareas-e-luas" },
             { name: "ELECTROVERSE", url: "https://electroverse.com/es/map", favicon: "https://www.google.com/s2/favicons?domain=electroverse.com&sz=64" },
             { name: "ACCIONA", url: "https://www.google.com/maps/search/recarga+Acciona", favicon: "https://www.google.com/s2/favicons?domain=acciona.com&sz=64" },
             { name: "IBERDROLA", url: "https://www.google.com/maps/search/recarga+IBERDROLA", favicon: "https://www.google.com/s2/favicons?domain=iberdrola.com&sz=64" },
@@ -235,7 +242,7 @@
             { name: "CLAUDE", url: "https://claude.ai/new" },
             { name: "GEMINI", url: "https://gemini.google.com" },
             { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" },
-            null,
+            { name: "iCloud", url: "https://www.icloud.com/", favicon: "https://www.google.com/s2/favicons?domain=icloud.com&sz=64" },
             { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" },
             { name: "BetterTheater", url: "https://abettertheater.com", favicon: "https://www.google.com/s2/favicons?domain=abettertheater.com&sz=64" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
@@ -313,6 +320,13 @@
                 img.className = index < 48 ? 'w-9 h-9 rounded' : 'w-5 h-5 rounded';
                 img.loading = "lazy";
                 img.onerror = () => (img.style.display = 'none');
+
+                // Aplicar clases de color según el nombre del bookmark
+                if (bookmark.name === "Mis Updates") {
+                    img.classList.add('favicon-red');
+                } else if (bookmark.name === "Olas Updates") {
+                    img.classList.add('favicon-blue');
+                }
 
                 const name = document.createElement('span');
                 name.className = 'bookmark-name';
