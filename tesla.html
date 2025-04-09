@@ -10,7 +10,6 @@
         .bookmark-item {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
-            /* Quitamos el fondo gris por defecto */
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
@@ -156,6 +155,35 @@
         .favicon-blue {
             filter: hue-rotate(200deg) saturate(150%) brightness(90%);
         }
+        /* Estilos para los avisos deslizantes */
+        .notices-container {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0.5rem auto;
+            background-color: #d3d3d3; /* Fondo gris claro */
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            text-align: center;
+        }
+        .notice-wrapper {
+            background-color: black;
+            padding: 0.5rem;
+            height: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .notice {
+            color: #00ff00; /* Verde */
+            font-size: 1.25rem; /* Tamaño medio */
+            position: absolute;
+            white-space: nowrap;
+            animation: slide 20s linear infinite; /* Velocidad muy lenta: 20 segundos */
+        }
+        @keyframes slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -176,6 +204,11 @@
                 <h1 class="text-2xl font-bold text-sky-400 inline">
                     BoardingGate <span class="text-base text-sky-400">Lanzador</span>
                 </h1>
+            </div>
+        </div>
+        <div class="notices-container">
+            <div class="notice-wrapper">
+                <span class="notice" id="current-notice"></span>
             </div>
         </div>
     </header>
@@ -306,9 +339,9 @@
         // Función para generar un color HSL aleatorio claro
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
-            const saturation = 40 + Math.floor(Math.random() * 20); // 40-60%
-            const lightness = 90 + Math.floor(Math.random() * 10); // 90-100%
-            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`; // Opacidad alta para más solidez
+            const saturation = 40 + Math.floor(Math.random() * 20);
+            const lightness = 90 + Math.floor(Math.random() * 10);
+            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
         }
 
         // Función para verificar si dos colores son demasiado similares
@@ -316,10 +349,10 @@
             if (!color1 || !color2) return false;
             const [h1] = color1.match(/\d+/g).map(Number);
             const [h2] = color2.match(/\d+/g).map(Number);
-            return Math.abs(h1 - h2) < 60; // Diferencia de matiz menor a 60 grados
+            return Math.abs(h1 - h2) < 60;
         }
 
-        // Generar colores para todos los botones y ajustar según vecinos
+        // Generar colores para todos los botones
         const colors = Array(TOTAL_CELLS).fill(null);
         for (let i = 0; i < TOTAL_CELLS; i++) {
             if (bookmarks[i] !== null) {
@@ -327,10 +360,10 @@
                 do {
                     color = generateBrightColor();
                 } while (
-                    (i >= COLS && areColorsSimilar(color, colors[i - COLS])) || // Arriba
-                    (i < TOTAL_CELLS - COLS && areColorsSimilar(color, colors[i + COLS])) || // Abajo
-                    (i % COLS !== 0 && areColorsSimilar(color, colors[i - 1])) || // Izquierda
-                    (i % COLS !== COLS - 1 && areColorsSimilar(color, colors[i + 1])) // Derecha
+                    (i >= COLS && areColorsSimilar(color, colors[i - COLS])) ||
+                    (i < TOTAL_CELLS - COLS && areColorsSimilar(color, colors[i + COLS])) ||
+                    (i % COLS !== 0 && areColorsSimilar(color, colors[i - 1])) ||
+                    (i % COLS !== COLS - 1 && areColorsSimilar(color, colors[i + 1]))
                 );
                 colors[i] = color;
             }
@@ -347,7 +380,7 @@
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
-                link.style.backgroundColor = colors[index]; // Aplicar color claro aleatorio
+                link.style.backgroundColor = colors[index];
 
                 const img = document.createElement('img');
                 img.src = getFaviconUrl(bookmark);
@@ -406,6 +439,32 @@
         forwardButton.addEventListener('click', () => {
             window.history.forward();
         });
+
+        // Cargar y mostrar avisos
+        fetch('avisos.txt')
+            .then(response => response.text())
+            .then(text => {
+                const notices = text.split('\n').filter(line => line.trim() !== '');
+                if (notices.length === 0) return;
+
+                const noticeElement = document.getElementById('current-notice');
+                let currentIndex = 0;
+
+                function showNextNotice() {
+                    noticeElement.textContent = notices[currentIndex];
+                    noticeElement.style.animation = 'none'; // Reiniciar animación
+                    void noticeElement.offsetWidth; // Forzar reflujo
+                    noticeElement.style.animation = 'slide 20s linear infinite';
+                    currentIndex = (currentIndex + 1) % notices.length;
+                    setTimeout(showNextNotice, 4000); // Cambiar cada 4 segundos
+                }
+
+                showNextNotice();
+            })
+            .catch(error => {
+                console.error('Error al cargar avisos.txt:', error);
+                document.getElementById('current-notice').textContent = 'Error al cargar avisos';
+            });
     </script>
 </body>
 </html>
