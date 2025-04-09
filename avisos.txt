@@ -1,4 +1,5 @@
+** Versión del Lanzador: 25.04.75 **
 ** NUEVA Update 2025.8.7 en despligue **
-** El Commander de Enhauto, fácil de instalar y te mejora el vehículo considerablemente (consultar a la comunidad Referidos) **
-** Se viene la Spring Update... ¿incluirá Grok?... todo parece indicar que si **
-** Si necesitas algún botón que no está en el panel no dudes en sugerírmelo **
+** El Commander de Enhauto hace que tu Tesla sea un mejor Tesla **
+** Se viene la Spring Update. ¿Incluirá Grok?. Todo parece indicar que si **
+** Si necesitas algún botón en el panel no dudes en sugerírmelo **
