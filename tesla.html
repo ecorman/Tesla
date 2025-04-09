@@ -62,7 +62,7 @@
             margin-top: 0.5rem;
         }
         footer {
-            margin-top: 0.5rem; /* Reducido para acercarlo a los botones */
+            margin-top: 0.5rem;
             text-align: center;
         }
         .header-container {
@@ -153,46 +153,46 @@
         .favicon-blue {
             filter: hue-rotate(200deg) saturate(150%) brightness(90%);
         }
-        /* Estilos para los avisos deslizantes */
         .notices-container {
             width: 100%;
-            max-width: 1040px; /* Casi igual que el grid (1080px) */
-            margin: 0 auto; /* Centrado sin margen superior adicional */
-            background-color: #d3d3d3; /* Fondo gris claro */
+            max-width: 1080px; /* Ajustado de 1040px a 1080px para igualar #bookmark-grid */
+            margin: 0 auto;
+            background-color: #d3d3d3;
             padding: 0.5rem;
-            border: 0.5px solid #a0a0a0; /* Borde muy fino */
+            border: 0.5px solid #a0a0a0;
             border-radius: 0.5rem;
             overflow: hidden;
             display: flex;
             align-items: center;
-            gap: 0.5rem; /* Espacio entre ícono y texto */
+            gap: 0.5rem;
+            height: 1.5rem;
         }
         .notice-wrapper {
             background-color: black;
             padding: 0.5rem;
-            height: 2.5rem; /* Altura de la caja de texto */
+            height: 1.5rem;
             flex-grow: 1;
             overflow: hidden;
             position: relative;
             display: flex;
-            align-items: center; /* Centrar verticalmente */
+            align-items: center;
         }
         .notice {
-            color: #00ff00; /* Verde */
-            font-size: 1.25rem; /* Tamaño medio */
+            color: #00ff00;
+            font-size: 0.875rem;
             position: absolute;
             white-space: nowrap;
-            animation: slideWithPause 15s linear infinite; /* Animación con pausa */
+            animation: slideWithPause 15s linear infinite;
         }
         @keyframes slideWithPause {
-            0% { transform: translateX(-100%); } /* Empieza fuera por la izquierda */
-            33.33% { transform: translateX(50%); } /* Centro de la caja */
-            66.66% { transform: translateX(50%); } /* Pausa en el centro */
-            100% { transform: translateX(150%); } /* Sale por la derecha */
+            0% { transform: translateX(-100%); }
+            33.33% { transform: translateX(50%); }
+            66.66% { transform: translateX(50%); }
+            100% { transform: translateX(150%); }
         }
         .megaphone-icon {
-            width: auto; /* Ancho proporcional */
-            height: 2.5rem; /* Misma altura que la caja de texto */
+            width: auto;
+            height: 1.5rem;
             margin-left: 0.5rem;
         }
     </style>
@@ -208,17 +208,6 @@
         </div>
     </div>
 
-    <header class="text-center">
-        <div class="header-container">
-            <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
-            <div class="title-container">
-                <h1 class="text-2xl font-bold text-sky-400 inline">
-                    BoardingGate <span class="text-base text-sky-400">Lanzador</span>
-                </h1>
-            </div>
-        </div>
-    </header>
-
     <main class="grid grid-cols-6 max-w-[1080px] w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
     </main>
@@ -231,6 +220,16 @@
             </div>
         </div>
         <div class="footer-content mt-8 text-center">
+            <header class="text-center">
+                <div class="header-container">
+                    <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
+                    <div class="title-container">
+                        <h1 class="text-2xl font-bold text-sky-400 inline">
+                            BoardingGate <span class="text-base text-sky-400">Lanzador</span>
+                        </h1>
+                    </div>
+                </div>
+            </header>
             <div class="footer-line">
                 <a href="https://x.com/boardinggate?s=21" class="footer-link-green" target="_blank" rel="noopener noreferrer">@BoardingGate</a>
                 <span class="text-green-200" style="font-size: 1.5rem;">🤝</span>
@@ -350,7 +349,6 @@
             }
         };
 
-        // Función para generar un color HSL aleatorio claro
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
             const saturation = 40 + Math.floor(Math.random() * 20);
@@ -358,7 +356,6 @@
             return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
         }
 
-        // Función para verificar si dos colores son demasiado similares
         function areColorsSimilar(color1, color2) {
             if (!color1 || !color2) return false;
             const [h1] = color1.match(/\d+/g).map(Number);
@@ -366,7 +363,6 @@
             return Math.abs(h1 - h2) < 60;
         }
 
-        // Generar colores para todos los botones
         const colors = Array(TOTAL_CELLS).fill(null);
         for (let i = 0; i < TOTAL_CELLS; i++) {
             if (bookmarks[i] !== null) {
@@ -454,7 +450,6 @@
             window.history.forward();
         });
 
-        // Cargar y mostrar avisos
         fetch('avisos.txt')
             .then(response => response.text())
             .then(text => {
@@ -466,11 +461,11 @@
 
                 function showNextNotice() {
                     noticeElement.textContent = notices[currentIndex];
-                    noticeElement.style.animation = 'none'; // Reiniciar animación
-                    void noticeElement.offsetWidth; // Forzar reflujo
+                    noticeElement.style.animation = 'none';
+                    void noticeElement.offsetWidth;
                     noticeElement.style.animation = 'slideWithPause 15s linear forwards';
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 15000); // 15s total: 5s deslizar + 5s pausa + 5s salir
+                    setTimeout(showNextNotice, 15000);
                 }
 
                 showNextNotice();
