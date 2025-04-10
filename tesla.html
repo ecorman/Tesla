@@ -142,7 +142,7 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 70px; /* Ajustado para coincidir con toggle-sign */
+            width: 70px;
             height: clamp(120px, 20vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
@@ -223,7 +223,8 @@
             overflow: hidden;
             display: flex;
             align-items: center;
-            gap: 0; /* Ajustado para controlar márgenes manualmente */
+            justify-content: center; /* Centra el contenido */
+            gap: 0;
             height: 3rem;
         }
         .notice-wrapper {
@@ -234,6 +235,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            justify-content: center; /* Centra el texto */
         }
         .notice {
             color: #00ff00;
@@ -241,6 +243,7 @@
             font-weight: bold;
             position: absolute;
             white-space: nowrap;
+            text-align: center; /* Centra el texto */
         }
         @keyframes slideWithPause {
             0% { transform: translateX(-100%); }
@@ -248,17 +251,17 @@
             64.29% { transform: var(--center-position); }
             100% { transform: translateX(calc(100% + 100%)); }
         }
-        .megaphone-icon-start36px {
+        .megaphone-icon-start {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
-            margin-left: 0;
-            margin-right: 30px; /* 30px hacia la derecha */
+            margin-left: 30px; /* 30px hacia el centro desde la izquierda */
+            margin-right: 0;
         }
         .megaphone-icon-end {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
-            margin-left: 30px; /* 30px desde la izquierda */
-            margin-right: 0;
+            margin-left: 0;
+            margin-right: 30px; /* 30px hacia el centro desde la derecha */
             transform: scaleX(-1);
         }
         .toggle-sign {
@@ -269,7 +272,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #FFFFFF; /* Letra blanca por defecto */
             font-weight: bold;
             font-size: 1rem;
             text-align: center;
@@ -285,7 +287,7 @@
             background-color: #666666;
         }
         #on-off-toggle.on {
-            color: #000000;
+            color: #ಿಸ000000;
         }
         .hidden {
             display: none;
@@ -363,7 +365,7 @@
             { name: "TIEMPO", url: "https://www.ventusky.com/?p=40.09;-5.15;6&l=rain-3h", favicon: "https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" },
             { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" },
             { name: "Mis Updates", url: "https://dash.tessie.com/software", favicon: "https://cdn-icons-png.flaticon.com/512/148/148767.png" },
-            { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/581行事5902.png" },
+            { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/5815902.png" },
             { name: "NotaTeslaApp", url: "https://www.notateslaapp.com/software-updates/" },
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
             { name: "MAREAS", url: "https://www.meteogalicia.gal/web/predicion/mareas-e-luas" },
@@ -537,7 +539,7 @@
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400'; // Verde oscuro inicial
-            toggle.style.color = '#FFFFFF'; // Letra blanca
+            toggle.style.color = '#FFFFFF'; // Letra blanca inicial
             const scrollToggle = document.getElementById('scroll-toggle');
             const scrollRect = scrollToggle.getBoundingClientRect();
             toggle.style.left = `${scrollRect.left}px`;
@@ -561,15 +563,15 @@
         // Crear botón Reload
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#1E3A8A';
-        reloadButton.innerHTML = `<img src="./reload.jpeg" alt="Recargar" class="w-full h-full object-cover rounded-full">`;
+        reloadButton.style.backgroundColor = '#8B4513'; // Tono castaño
+        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-full h-full object-cover rounded-full">`;
         reloadButton.addEventListener('click', () => location.reload());
 
         // Crear botón Home
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#1E3A8A';
-        homeButton.innerHTML = `<img src="./home.jpg" alt="Inicio" class="w-full h-full object-cover rounded-full">`;
+        homeButton.style.backgroundColor = '#8B4513'; // Tono castaño
+        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-full h-full object-cover rounded-full">`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
@@ -601,8 +603,8 @@
 
             if (state === 'visible') {
                 toggle.innerHTML = `<span class="sign">+</span>${label}`;
-                toggle.style.backgroundColor = '#A9A9A9'; // Gris oscuro
-                toggle.style.color = '#FFFFFF'; // Letra blanca
+                toggle.style.backgroundColor = '#696969'; // Gris más oscuro
+                toggle.style.color = '#000000'; // Letra negra
                 toggle.dataset.state = 'hidden';
             } else {
                 toggle.innerHTML = `<span class="sign">-</span>${label}`;
@@ -718,6 +720,7 @@
                         noticeElement.style.animation = 'none';
                         noticeElement.textContent = 'OFF';
                         noticeElement.style.color = '#38BDF8'; // Azul claro
+                        centerText(); // Centrar el "OFF"
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00'; // Verde original
