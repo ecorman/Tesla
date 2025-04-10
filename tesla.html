@@ -20,7 +20,6 @@
             image-rendering: crisp-edges;
         }
         .bookmark-name {
-            font-size: 1.05rem;
             font-weight: bold;
             color: #333;
             text-align: center;
@@ -30,8 +29,58 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
+        /* Tamaños responsivos para botones */
+        #bookmark-grid > div {
+            width: 16vw; /* Ancho relativo al viewport */
+            min-width: 100px; /* Mínimo para evitar que sea demasiado pequeño */
+            height: auto;
+            aspect-ratio: 16 / 9; /* Proporción para mantener consistencia */
+        }
+        .bookmark-item {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.5rem;
+        }
+        .bookmark-item img {
+            width: 30%;
+            height: auto;
+            max-width: 36px;
+            border-radius: 0.25rem;
+        }
+        .bookmark-name {
+            font-size: clamp(0.75rem, 2vw, 1.05rem); /* Tamaño de texto adaptable */
+        }
+        .small-bookmark img {
+            width: 20%;
+            max-width: 20px;
+        }
         .small-bookmark .bookmark-name {
-            font-size: 0.95rem;
+            font-size: clamp(0.65rem, 1.8vw, 0.95rem);
+        }
+        /* Media queries para ajustes específicos */
+        @media (max-width: 768px) {
+            #bookmark-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets/móviles */
+                gap: 10px;
+                padding: 1rem;
+            }
+            #bookmark-grid > div {
+                width: 30vw;
+            }
+        }
+        @media (max-width: 480px) {
+            #bookmark-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles pequeños */
+                gap: 8px;
+                padding: 0.5rem;
+            }
+            #bookmark-grid > div {
+                width: 45vw;
+            }
         }
         .header-container {
             display: flex;
@@ -76,6 +125,8 @@
             border-radius: 0.75rem;
             gap: 15px;
             position: relative;
+            width: 100%;
+            max-width: 1080px;
         }
         .footer-subtext {
             font-size: 0.75rem;
@@ -99,8 +150,8 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 110px;
-            height: 220px;
+            width: clamp(80px, 15vw, 110px); /* Responsive */
+            height: clamp(160px, 30vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
@@ -122,7 +173,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: clamp(0.6rem, 1.5vw, 0.75rem);
             color: #38BDF8;
             margin-top: 0.25rem;
             gap: 0.5rem;
@@ -130,7 +181,7 @@
         }
         .top-text-container span {
             color: #FFFFFF;
-            font-size: 1.5rem;
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
         }
         @keyframes fadeOut {
             0% { opacity: 1; }
@@ -138,8 +189,8 @@
             100% { opacity: 0; display: none; }
         }
         .arrow-button {
-            width: 48px;
-            height: 48px;
+            width: clamp(36px, 6vw, 48px);
+            height: clamp(36px, 6vw, 48px);
             background-color: #1E3A8A;
             border-radius: 50%;
             display: flex;
@@ -190,7 +241,7 @@
         }
         .notice {
             color: #00ff00;
-            font-size: 1.20rem;
+            font-size: clamp(1rem, 2vw, 1.20rem);
             font-weight: bold;
             position: absolute;
             white-space: nowrap;
@@ -203,12 +254,12 @@
         }
         .megaphone-icon-start {
             width: auto;
-            height: 3rem;
+            height: clamp(2rem, 5vw, 3rem);
             margin-right: 0.5rem;
         }
         .megaphone-icon-end {
             width: auto;
-            height: 3rem;
+            height: clamp(2rem, 5vw, 3rem);
             margin-left: 0.5rem;
             transform: scaleX(-1);
         }
@@ -227,8 +278,7 @@
             text-align: center;
             cursor: pointer;
             z-index: 20;
-            transition: background-color 0.2s ease;
-            left: -50px;
+            transition: background-color 0.2s ease, left 0.2s ease;
         }
         .toggle-sign:hover {
             background-color: #666666;
@@ -423,8 +473,8 @@
 
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE" },
-            { start: 30, end: 41, name: "GROK" }, // "GROK" a "App MCE" (antes de "Patrón Luz")
-            { start: 42, end: 59, name: "TradingView" } // "Patrón Luz" a "celda vacía después de AMAZON" (antes de "JOdena")
+            { start: 30, end: 41, name: "GROK" },
+            { start: 42, end: 59, name: "TradingView" }
         ];
 
         const cellElements = [];
@@ -434,8 +484,8 @@
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
                 link.className = index < 48 
-                    ? 'bookmark-item flex flex-col justify-center items-center min-w-[145px] min-h-[83px] rounded-lg'
-                    : 'bookmark-item small-bookmark flex flex-col justify-center items-center min-w-[145px] min-h-[48px] rounded-lg';
+                    ? 'bookmark-item'
+                    : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
                 link.target = "_blank";
                 link.rel = "noopener noreferrer";
@@ -444,7 +494,6 @@
                 const img = document.createElement('img');
                 img.src = getFaviconUrl(bookmark);
                 img.alt = `Favicon de ${bookmark.name}`;
-                img.className = index < 48 ? 'w-9 h-9 rounded' : 'w-5 h-5 rounded';
                 img.loading = "lazy";
                 img.onerror = () => (img.style.display = 'none');
 
@@ -469,9 +518,7 @@
                 link.appendChild(name);
                 cell.appendChild(link);
             } else {
-                cell.className = index < 48 
-                    ? 'min-w-[145px] min-h-[83px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
-                    : 'min-w-[145px] min-h-[48px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
+                cell.className = 'bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
             cellElements.push(cell);
@@ -510,19 +557,27 @@
             const start = parseInt(toggle.dataset.rangeStart);
             const end = parseInt(toggle.dataset.rangeEnd);
             const state = toggle.dataset.state;
-            let topPosition;
+            const gridRect = grid.getBoundingClientRect();
 
+            // Posición vertical
+            let topPosition;
             if (state === 'visible') {
                 const cell = cellElements[start];
                 const cellRect = cell.getBoundingClientRect();
-                const gridRect = grid.getBoundingClientRect();
                 topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
+                toggle.style.left = '-50px'; // Posición fija a la izquierda cuando visible
             } else {
                 const prevCell = findVisibleCellBefore(start);
                 const nextCell = findVisibleCellAfter(end);
                 const prevBottom = prevCell.getBoundingClientRect().bottom - gridRect.top;
                 const nextTop = nextCell.getBoundingClientRect().top - gridRect.top;
                 topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
+
+                // Centrar horizontalmente cuando oculto
+                const gridWidth = gridRect.width;
+                const toggleWidth = toggle.offsetWidth;
+                const leftPosition = (gridWidth - toggleWidth) / 2;
+                toggle.style.left = `${leftPosition}px`;
             }
             toggle.style.top = `${topPosition}px`;
         }
@@ -534,20 +589,13 @@
                 const state = toggle.dataset.state;
                 const rangeName = toggleRanges.find(r => r.start === start).name;
 
-                console.log(`Toggle clicked: name=${rangeName}, start=${start}, end=${end}, state=${state}`);
-                console.log(`Expected range for ${rangeName}: ${start} (${bookmarks[start].name}) to ${end} (${bookmarks[end] ? bookmarks[end].name : 'empty'})`);
-
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
                         if (state === 'visible') {
                             cellElements[i].classList.add('hidden');
-                            console.log(`Hiding cell ${i}: ${bookmarks[i] ? bookmarks[i].name : 'empty'}`);
                         } else {
                             cellElements[i].classList.remove('hidden');
-                            console.log(`Showing cell ${i}: ${bookmarks[i] ? bookmarks[i].name : 'empty'}`);
                         }
-                    } else {
-                        console.log(`Cell ${i} does not exist in cellElements`);
                     }
                 }
 
