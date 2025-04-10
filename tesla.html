@@ -143,7 +143,7 @@
         .scroll-toggle-button {
             position: fixed;
             width: 70px;
-            height: clamp(120px, 20vw, 220px);
+            height: clamp(80px, 20vw, 180px); /* Reducido 40px */
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
@@ -301,7 +301,7 @@
         .version-text {
             font-size: 0.75rem;
             color: #38BDF8;
-            font-weight: normal; /* Sin negrita */
+            font-weight: normal;
         }
     </style>
 </head>
@@ -537,14 +537,16 @@
             cellElements.push(cell);
         });
 
-        const scrollToggleHeight = clamp(120, 20 * window.innerWidth / 100, 220) + 20; // Altura del scroll-toggle + margen
+        const scrollToggleHeight = clamp(80, 20 * window.innerWidth / 100, 180); // Altura del scroll-toggle reducido
+        const buttonSpacing = 50; // Separación uniforme entre botones
+
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
-        onOffToggle.style.top = `${scrollToggleHeight}px`; // Debajo del scroll-toggle
+        onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`; // 50px debajo del scroll-toggle
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
@@ -557,7 +559,7 @@
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
-            toggle.style.top = `${scrollToggleHeight + 50 + (index * 50)}px`; // Debajo de On/Off
+            toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`; // Separación uniforme
             document.body.appendChild(toggle);
         });
 
@@ -565,7 +567,7 @@
         reloadButton.className = 'toggle-sign';
         reloadButton.style.backgroundColor = '#87CEEB';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        reloadButton.style.top = `${scrollToggleHeight + 50 + (toggleRanges.length * 50)}px`;
+        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
@@ -573,7 +575,7 @@
         homeButton.className = 'toggle-sign';
         homeButton.style.backgroundColor = '#87CEEB';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        homeButton.style.top = `${scrollToggleHeight + 50 + ((toggleRanges.length + 1) * 50)}px`;
+        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
@@ -675,7 +677,7 @@
                 let isActive = true;
 
                 function adjustFontSize() {
-                    let fontSize = 1.2; // Tamaño inicial en rem
+                    let fontSize = 1.2;
                     noticeElement.style.fontSize = `${fontSize}rem`;
                     while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
                         fontSize -= 0.1;
@@ -688,7 +690,7 @@
                     noticeElement.textContent = notices[currentIndex];
                     adjustFontSize();
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 14000); // 14 segundos por aviso
+                    setTimeout(showNextNotice, 14000);
                 }
 
                 noticeElement.addEventListener('click', () => {
