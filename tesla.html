@@ -239,17 +239,17 @@
         }
         .notice {
             color: #00ff00;
-            font-size: clamp(1rem, 2vw, 1.20rem);
             font-weight: bold;
-            position: absolute;
             white-space: nowrap;
             text-align: center;
+            opacity: 0;
+            animation: fadeInOut 14s infinite;
         }
-        @keyframes slideWithPause {
-            0% { transform: translateX(-100%); }
-            35.71% { transform: var(--center-position); }
-            64.29% { transform: var(--center-position); }
-            100% { transform: translateX(calc(100% + 100%)); }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
         }
         .megaphone-icon-start {
             width: auto;
@@ -301,6 +301,7 @@
         .version-text {
             font-size: 0.75rem;
             color: #38BDF8;
+            font-weight: normal; /* Sin negrita */
         }
     </style>
 </head>
@@ -418,7 +419,7 @@
             { name: "de Móvil remoto", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-53651B16-A2E3-4118-933E-B5F41C74D433.html" },
             { name: "Waze (consultas)", url: "https://www.waze.com/es/live-map/", favicon: "https://www.google.com/s2/favicons?domain=waze.com&sz=64" },
             { name: "BIP&DRIVE", url: "https://areaprivada.bipdrive.com/login" },
-            { name: "AMAZON", url: "https://amazon.es" },
+            { name: "DEVOLUCIONES", url: "https://www.amazon.es/gp/css/returns/homepage.html" },
             null, null, null,
             { name: "JOdena", url: "https://www.youtube.com/@JOdena", favicon: "https://www.youtube.com/favicon.ico" },
             { name: "earcos", url: "https://www.youtube.com/@earcos", favicon: "https://www.youtube.com/favicon.ico" },
@@ -536,6 +537,17 @@
             cellElements.push(cell);
         });
 
+        const scrollToggleHeight = clamp(120, 20 * window.innerWidth / 100, 220) + 20; // Altura del scroll-toggle + margen
+        const onOffToggle = document.createElement('span');
+        onOffToggle.className = 'toggle-sign';
+        onOffToggle.id = 'on-off-toggle';
+        onOffToggle.textContent = 'On';
+        onOffToggle.dataset.state = 'on';
+        onOffToggle.style.backgroundColor = '#32CD32';
+        onOffToggle.style.top = `${scrollToggleHeight}px`; // Debajo del scroll-toggle
+        onOffToggle.classList.add('on');
+        document.body.appendChild(onOffToggle);
+
         toggleRanges.forEach((range, index) => {
             const toggle = document.createElement('span');
             toggle.className = 'toggle-sign';
@@ -545,38 +557,32 @@
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
-            toggle.style.top = `${60 + (index * 50)}px`;
+            toggle.style.top = `${scrollToggleHeight + 50 + (index * 50)}px`; // Debajo de On/Off
             document.body.appendChild(toggle);
         });
 
-        const onOffToggle = document.createElement('span');
-        onOffToggle.className = 'toggle-sign';
-        onOffToggle.id = 'on-off-toggle';
-        onOffToggle.textContent = 'On';
-        onOffToggle.dataset.state = 'on';
-        onOffToggle.style.backgroundColor = '#32CD32';
-        onOffToggle.style.top = `${60 + (toggleRanges.length * 50)}px`;
-        onOffToggle.classList.add('on');
-        document.body.appendChild(onOffToggle);
-
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#87CEEB'; // Azul celeste
+        reloadButton.style.backgroundColor = '#87CEEB';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        reloadButton.style.top = `${60 + ((toggleRanges.length + 1) * 50)}px`;
+        reloadButton.style.top = `${scrollToggleHeight + 50 + (toggleRanges.length * 50)}px`;
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#87CEEB'; // Azul celeste
+        homeButton.style.backgroundColor = '#87CEEB';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        homeButton.style.top = `${60 + ((toggleRanges.length + 2) * 50)}px`;
+        homeButton.style.top = `${scrollToggleHeight + 50 + ((toggleRanges.length + 1) * 50)}px`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
         });
         document.body.appendChild(homeButton);
+
+        function clamp(min, val, max) {
+            return Math.min(Math.max(val, min), max);
+        }
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -608,7 +614,7 @@
         }
 
         function updateAllToggles(state) {
-            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)');
+            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle)');
             toggles.forEach(toggle => {
                 if (state === 'on' && toggle.dataset.state === 'hidden') {
                     updateToggleState(toggle);
@@ -664,44 +670,37 @@
                 if (notices.length === 0) return;
 
                 const noticeElement = document.getElementById('current-notice');
+                const noticeWrapper = document.querySelector('.notice-wrapper');
                 let currentIndex = 0;
                 let isActive = true;
-                let timeoutId;
 
-                function centerText() {
-                    const wrapper = document.querySelector('.notice-wrapper');
-                    const wrapperWidth = wrapper.offsetWidth;
-                    const textWidth = noticeElement.offsetWidth;
-                    const centerPosition = (wrapperWidth - textWidth) / 2;
-                    const centerPercentage = (centerPosition / wrapperWidth) * 100;
-                    noticeElement.style.setProperty('--center-position', `translateX(${centerPercentage}%)`);
-                    if (isActive) {
-                        noticeElement.style.animation = 'slideWithPause 14s linear forwards';
+                function adjustFontSize() {
+                    let fontSize = 1.2; // Tamaño inicial en rem
+                    noticeElement.style.fontSize = `${fontSize}rem`;
+                    while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
+                        fontSize -= 0.1;
+                        noticeElement.style.fontSize = `${fontSize}rem`;
                     }
                 }
 
                 function showNextNotice() {
                     if (!isActive) return;
                     noticeElement.textContent = notices[currentIndex];
-                    noticeElement.style.fontSize = 'clamp(1rem, 2vw, 1.20rem)';
-                    noticeElement.style.color = '#00ff00';
-                    noticeElement.style.animation = 'none';
-                    void noticeElement.offsetWidth;
-                    centerText();
+                    adjustFontSize();
                     currentIndex = (currentIndex + 1) % notices.length;
-                    timeoutId = setTimeout(showNextNotice, 18000);
+                    setTimeout(showNextNotice, 14000); // 14 segundos por aviso
                 }
 
                 noticeElement.addEventListener('click', () => {
                     if (isActive) {
-                        clearTimeout(timeoutId);
                         noticeElement.style.animation = 'none';
                         noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
                         noticeElement.style.color = '#808080';
-                        centerText();
+                        adjustFontSize();
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00';
+                        noticeElement.style.animation = 'fadeInOut 14s infinite';
                         isActive = true;
                         showNextNotice();
                     }
