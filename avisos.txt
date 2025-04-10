@@ -3,5 +3,5 @@
 ** Se viene la Spring Update. ¿Incluirá Grok?. Todo parece indicar que si **
 ** Si quieres contactarme deja un privado en X @boardinggate **
 ** Si necesitas algún botón en el panel no dudes en sugerírmelo **
-** Versión del Lanzador: 25.04.83 **
+** Versión Lanzador:25.04.83, si veis cosas raras es que estoy modificando **
 ** Pon en la página de inicio de Tesla el Lanzador (como único favorito) **
