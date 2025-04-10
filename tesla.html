@@ -261,7 +261,7 @@
         }
         .toggle-sign {
             position: absolute;
-            width: 60px;
+            width: 70px; /* Ajustado para el texto más largo */
             height: 40px;
             background-color: #808080;
             border-radius: 20px;
@@ -470,7 +470,8 @@
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE", label: "+PdR,s" },
             { start: 30, end: 41, name: "GROK", label: "+iAs" },
-            { start: 42, end: 59, name: "TradingView", label: "+Útiles" }
+            { start: 42, end: 59, name: "TradingView", label: "+Útiles" },
+            { start: 60, end: 95, name: "JOdena", label: "+Otros" }
         ];
 
         const cellElements = [];
@@ -543,14 +544,14 @@
             if (state === 'visible') {
                 const cell = cellElements[start];
                 const cellRect = cell.getBoundingClientRect();
-                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 5}px`; // 5px a la izquierda del grid
+                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 2}px`; // 2px a la izquierda del grid
                 toggle.style.top = `${cellRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2)}px`;
             } else {
                 const hiddenToggles = Array.from(document.querySelectorAll('.toggle-sign'))
                     .filter(t => t.dataset.state === 'hidden');
                 const index = hiddenToggles.indexOf(toggle);
                 const topOffset = scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20)); // 20px de separación
-                toggle.style.left = `${scrollRect.left}px`; // Alineado con el botón de scroll
+                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 2}px`; // Alineado cerca del grid
                 toggle.style.top = `${topOffset}px`;
             }
         }
