@@ -269,11 +269,15 @@
             justify-content: center;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 1rem; /* Reducido para que quepa el texto */
+            font-size: 1rem;
             text-align: center;
             cursor: pointer;
             z-index: 20;
             transition: background-color 0.2s ease;
+        }
+        .toggle-sign .sign {
+            font-size: 1.5rem; /* Tamaño mayor para + y - */
+            margin-right: 2px;
         }
         .toggle-sign:hover {
             background-color: #666666;
@@ -520,20 +524,33 @@
             cellElements.push(cell);
         });
 
+        // Crear botones de toggle
         toggleRanges.forEach((range, index) => {
             const toggle = document.createElement('span');
             toggle.className = 'toggle-sign';
-            toggle.textContent = `-${range.label}`; // Inicialmente visible
+            toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.backgroundColor = '#00FF00'; // Verde inicial
+            toggle.style.backgroundColor = '#808080'; // Gris inicial
             const scrollToggle = document.getElementById('scroll-toggle');
             const scrollRect = scrollToggle.getBoundingClientRect();
             toggle.style.left = `${scrollRect.left}px`;
-            toggle.style.top = `${scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20))}px`;
+            toggle.style.top = `${scrollRect.bottom + 20 + ((index + 1) * (toggle.offsetHeight + 20))}px`; // +1 para dejar espacio al On/Off
             document.body.appendChild(toggle);
         });
+
+        // Crear botón On/Off
+        const onOffToggle = document.createElement('span');
+        onOffToggle.className = 'toggle-sign';
+        onOffToggle.textContent = 'On';
+        onOffToggle.dataset.state = 'on';
+        onOffToggle.style.backgroundColor = '#00FF00'; // Verde inicial
+        const scrollToggle = document.getElementById('scroll-toggle');
+        const scrollRect = scrollToggle.getBoundingClientRect();
+        onOffToggle.style.left = `${scrollRect.left}px`;
+        onOffToggle.style.top = `${scrollRect.bottom + 20}px`; // Justo debajo de scroll-toggle
+        document.body.appendChild(onOffToggle);
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -552,35 +569,56 @@
             }
 
             if (state === 'visible') {
-                toggle.textContent = `+${label}`;
-                toggle.style.backgroundColor = '#808080'; // Gris cuando oculto
+                toggle.innerHTML = `<span class="sign">+</span>${label}`;
+                toggle.style.backgroundColor = '#A9A9A9'; // Gris claro cuando oculto
                 toggle.dataset.state = 'hidden';
             } else {
-                toggle.textContent = `-${label}`;
-                toggle.style.backgroundColor = '#00FF00'; // Verde cuando visible
+                toggle.innerHTML = `<span class="sign">-</span>${label}`;
+                toggle.style.backgroundColor = '#808080'; // Gris cuando visible
                 toggle.dataset.state = 'visible';
             }
         }
 
-        document.querySelectorAll('.toggle-sign').forEach(toggle => {
+        function updateAllToggles(state) {
+            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle)');
+            toggles.forEach(toggle => {
+                if (state === 'on' && toggle.dataset.state === 'hidden') {
+                    updateToggleState(toggle);
+                } else if (state === 'off' && toggle.dataset.state === 'visible') {
+                    updateToggleState(toggle);
+                }
+            });
+            onOffToggle.textContent = state === 'on' ? 'On' : 'Off';
+            onOffToggle.style.backgroundColor = state === 'on' ? '#00FF00' : '#A9A9A9';
+            onOffToggle.dataset.state = state;
+        }
+
+        document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach(toggle => {
             toggle.addEventListener('click', () => {
                 updateToggleState(toggle);
             });
         });
 
+        onOffToggle.id = 'on-off-toggle';
+        onOffToggle.addEventListener('click', () => {
+            const currentState = onOffToggle.dataset.state;
+            updateAllToggles(currentState === 'on' ? 'off' : 'on');
+        });
+
         function updateAllTogglePositions() {
             const scrollToggle = document.getElementById('scroll-toggle');
             const scrollRect = scrollToggle.getBoundingClientRect();
-            document.querySelectorAll('.toggle-sign').forEach((toggle, index) => {
+            onOffToggle.style.left = `${scrollRect.left}px`;
+            onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
+            document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach((toggle, index) => {
                 toggle.style.left = `${scrollRect.left}px`;
-                toggle.style.top = `${scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20))}px`;
+                toggle.style.top = `${scrollRect.bottom + 20 + ((index + 1) * (toggle.offsetHeight + 20))}px`;
             });
         }
 
         window.addEventListener('scroll', updateAllTogglePositions);
         window.addEventListener('resize', updateAllTogglePositions);
 
-        const scrollToggle = document.getElementById('scroll-toggle');
         scrollToggle.addEventListener('click', () => {
             const scrollPosition = window.scrollY;
             const maxScroll = document.body.scrollHeight - window.innerHeight;
