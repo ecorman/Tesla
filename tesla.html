@@ -142,7 +142,7 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: clamp(60px, 10vw, 110px); /* Reducido para mejor ajuste */
+            width: clamp(60px, 10vw, 110px);
             height: clamp(120px, 20vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
@@ -159,7 +159,7 @@
             top: 10px;
         }
         .scroll-toggle-button svg {
-            width: clamp(24px, 4vw, 32px); /* Flechas también responsivas */
+            width: clamp(24px, 4vw, 32px);
             height: clamp(24px, 4vw, 32px);
         }
         .scroll-toggle-button:hover {
@@ -261,10 +261,10 @@
         }
         .toggle-sign {
             position: absolute;
-            width: 40px;
+            width: 60px; /* Alargado para el texto */
             height: 40px;
             background-color: #808080;
-            border-radius: 50%;
+            border-radius: 20px; /* Esquinas redondeadas, no circular */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -468,9 +468,9 @@
         }
 
         const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE" },
-            { start: 30, end: 41, name: "GROK" },
-            { start: 42, end: 59, name: "TradingView" }
+            { start: 18, end: 29, name: "ELECTROVERSE", label: "+Pdr" },
+            { start: 30, end: 41, name: "GROK", label: "+iAs" },
+            { start: 42, end: 59, name: "TradingView", label: "+Uti" }
         ];
 
         const cellElements = [];
@@ -527,6 +527,7 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
+            toggle.dataset.label = range.label; // Guardamos la etiqueta personalizada
             grid.appendChild(toggle);
             updateTogglePosition(toggle);
         });
@@ -549,27 +550,33 @@
             return cellElements[TOTAL_CELLS - 1];
         }
 
-        function updateTogglePosition(toggle) {
-            const start = parseInt(toggle.dataset.rangeStart);
-            const end = parseInt(toggle.dataset.rangeEnd);
-            const state = toggle.dataset.state;
-            const gridRect = grid.getBoundingClientRect();
+        function updateTogglePositions() {
+            const toggles = Array.from(document.querySelectorAll('.toggle-sign'));
+            let offset = 0;
+            toggles.forEach(toggle => {
+                const start = parseInt(toggle.dataset.rangeStart);
+                const end = parseInt(toggle.dataset.rangeEnd);
+                const state = toggle.dataset.state;
+                const gridRect = grid.getBoundingClientRect();
 
-            // Posición vertical
-            let topPosition;
-            if (state === 'visible') {
-                const cell = cellElements[start];
-                const cellRect = cell.getBoundingClientRect();
-                topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
-            } else {
-                const prevCell = findVisibleCellBefore(start);
-                const nextCell = findVisibleCellAfter(end);
-                const prevBottom = prevCell.getBoundingClientRect().bottom - gridRect.top;
-                const nextTop = nextCell.getBoundingClientRect().top - gridRect.top;
-                topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
-            }
-            toggle.style.top = `${topPosition}px`;
-            toggle.style.left = '-20px'; // Siempre en el lateral izquierdo
+                // Posición vertical
+                let topPosition;
+                if (state === 'visible') {
+                    const cell = cellElements[start];
+                    const cellRect = cell.getBoundingClientRect();
+                    topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
+                    toggle.style.left = '-20px'; // Posición inicial cuando visible
+                } else {
+                    const prevCell = findVisibleCellBefore(start);
+                    const nextCell = findVisibleCellAfter(end);
+                    const prevBottom = prevCell.getBoundingClientRect().bottom - gridRect.top;
+                    const nextTop = nextCell.getBoundingClientRect().top - gridRect.top;
+                    topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
+                    toggle.style.left = `${-20 - offset}px`; // Ajuste con offset para evitar superposición
+                    offset += toggle.offsetWidth + 3; // Incrementa offset con ancho del botón + 3px
+                }
+                toggle.style.top = `${topPosition}px`;
+            });
         }
 
         document.querySelectorAll('.toggle-sign').forEach(toggle => {
@@ -577,7 +584,7 @@
                 const start = parseInt(toggle.dataset.rangeStart);
                 const end = parseInt(toggle.dataset.rangeEnd);
                 const state = toggle.dataset.state;
-                const rangeName = toggleRanges.find(r => r.start === start).name;
+                const label = toggle.dataset.label;
 
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
@@ -589,23 +596,14 @@
                     }
                 }
 
-                toggle.textContent = state === 'visible' ? '+' : '-';
+                toggle.textContent = state === 'visible' ? label : '-';
                 toggle.dataset.state = state === 'visible' ? 'hidden' : 'visible';
-                document.querySelectorAll('.toggle-sign').forEach(t => updateTogglePosition(t));
+                updateTogglePositions(); // Actualiza posiciones de todos los toggles
             });
         });
 
-        window.addEventListener('scroll', () => {
-            document.querySelectorAll('.toggle-sign').forEach(toggle => {
-                updateTogglePosition(toggle);
-            });
-        });
-
-        window.addEventListener('resize', () => {
-            document.querySelectorAll('.toggle-sign').forEach(toggle => {
-                updateTogglePosition(toggle);
-            });
-        });
+        window.addEventListener('scroll', updateTogglePositions);
+        window.addEventListener('resize', updateTogglePositions);
 
         const scrollToggle = document.getElementById('scroll-toggle');
         scrollToggle.addEventListener('click', () => {
@@ -671,6 +669,9 @@
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
         }, 9000);
+
+        // Inicializar posiciones al cargar la página
+        updateTogglePositions();
     </script>
 </body>
 </html>
