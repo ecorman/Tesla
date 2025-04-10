@@ -142,7 +142,7 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 70px;
+            width: 70(px;
             height: clamp(120px, 20vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
@@ -299,8 +299,8 @@
         }
         .version-text {
             font-size: 0.75rem;
-            color: #0000FF;
-            font-weight: normal;
+            color: #0000FF; /* Azul sin negrita */
+            font-weight: normal; /* Sin negrita */
         }
     </style>
 </head>
@@ -474,7 +474,7 @@
 
         const colors = Array(TOTAL_CELLS).fill(null);
         for (let i = 0; i < TOTAL_CELLS; i++) {
-            if (bookmarks[i] && bookmarks[i].name !== "Inicio Tesla") {
+            if (bookmarks[i] !== null && bookmarks[i].name !== "Inicio Tesla") {
                 let color;
                 do {
                     color = generateBrightColor();
@@ -486,7 +486,7 @@
                 );
                 colors[i] = color;
             } else if (bookmarks[i] && bookmarks[i].name === "Inicio Tesla") {
-                colors[i] = '#FFFFFF';
+                colors[i] = '#FFFFFF'; // Fondo blanco para Inicio Tesla
             }
         }
 
@@ -498,14 +498,16 @@
         ];
 
         const cellElements = [];
-        for (let i = 0; i < TOTAL_CELLS; i++) {
+        Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
-            if (i < bookmarks.length && bookmarks[i] !== null) {
-                const bookmark = bookmarks[i];
+            if (index < bookmarks.length && bookmarks[index] !== null) {
+                const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                link.className = i < 48 ? 'bookmark-item' : 'bookmark-item small-bookmark';
+                link.className = index < 48 
+                    ? 'bookmark-item'
+                    : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-                link.style.backgroundColor = colors[i];
+                link.style.backgroundColor = colors[index];
 
                 if (bookmark.name !== "Inicio Tesla") {
                     link.target = "_blank";
@@ -534,7 +536,7 @@
             }
             grid.appendChild(cell);
             cellElements.push(cell);
-        }
+        });
 
         toggleRanges.forEach((range, index) => {
             const toggle = document.createElement('span');
@@ -546,7 +548,7 @@
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
             toggle.style.left = '10px';
-            toggle.style.top = `${150 + (index * 50)}px`;
+            toggle.style.top = `${150 + (index * 50)}px`; // Posiciones fijas debajo del scroll-toggle
             document.body.appendChild(toggle);
         });
 
@@ -558,24 +560,24 @@
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.classList.add('on');
         onOffToggle.style.left = '10px';
-        onOffToggle.style.top = '110px';
+        onOffToggle.style.top = '110px'; // Justo debajo del scroll-toggle
         document.body.appendChild(onOffToggle);
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#87CEEB';
+        reloadButton.style.backgroundColor = '#87CEEB'; // Azul celeste
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.style.left = '10px';
-        reloadButton.style.top = '350px';
+        reloadButton.style.top = '350px'; // Posición fija
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#87CEEB';
+        homeButton.style.backgroundColor = '#87CEEB'; // Azul celeste
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.style.left = '10px';
-        homeButton.style.top = '400px';
+        homeButton.style.top = '400px'; // Posición fija
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
@@ -612,7 +614,7 @@
         }
 
         function updateAllToggles(state) {
-            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle)');
+            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)');
             toggles.forEach(toggle => {
                 if (state === 'on' && toggle.dataset.state === 'hidden') {
                     updateToggleState(toggle);
@@ -630,7 +632,7 @@
             }
         }
 
-        document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach(toggle => {
+        document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach(toggle => {
             toggle.addEventListener('click', () => {
                 updateToggleState(toggle);
             });
@@ -682,7 +684,7 @@
                     if (isActive) {
                         noticeElement.style.animation = 'slideWithPause 14s linear forwards';
                     } else {
-                        noticeElement.style.animation = 'none';
+                        noticeElement.style.animation = 'none'; // Sin deslizamiento para OFF
                     }
                 }
 
@@ -722,6 +724,9 @@
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             topTextContainer.style.display = 'none';
+            const mainElement = document.querySelector('main');
+            const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
+            scrollToggle.style.top = `${mainTop - 5}px`;
         }, 9000);
 
         const now = new Date();
