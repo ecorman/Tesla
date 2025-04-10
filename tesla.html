@@ -261,16 +261,15 @@
         }
         .toggle-sign {
             position: absolute;
-            width: 70px; /* Ajustado para el texto más largo */
+            width: 70px;
             height: 40px;
-            background-color: #808080;
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 1rem; /* Reducido para que quepa el texto */
             text-align: center;
             cursor: pointer;
             z-index: 20;
@@ -468,10 +467,10 @@
         }
 
         const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE", label: "+PdR,s" },
-            { start: 30, end: 41, name: "GROK", label: "+iAs" },
-            { start: 42, end: 59, name: "TradingView", label: "+Útiles" },
-            { start: 60, end: 95, name: "JOdena", label: "+Otros" }
+            { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
+            { start: 30, end: 41, name: "GROK", label: "iAs" },
+            { start: 42, end: 59, name: "TradingView", label: "Útiles" },
+            { start: 60, end: 95, name: "JOdena", label: "Otros" }
         ];
 
         const cellElements = [];
@@ -521,69 +520,62 @@
             cellElements.push(cell);
         });
 
-        toggleRanges.forEach(range => {
+        toggleRanges.forEach((range, index) => {
             const toggle = document.createElement('span');
             toggle.className = 'toggle-sign';
-            toggle.textContent = '-';
+            toggle.textContent = `-${range.label}`; // Inicialmente visible
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.dataset.label = range.label;
+            toggle.style.backgroundColor = '#00FF00'; // Verde inicial
+            const scrollToggle = document.getElementById('scroll-toggle');
+            const scrollRect = scrollToggle.getBoundingClientRect();
+            toggle.style.left = `${scrollRect.left}px`;
+            toggle.style.top = `${scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20))}px`;
             document.body.appendChild(toggle);
-            updateTogglePosition(toggle);
         });
 
-        function updateTogglePosition(toggle) {
+        function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
             const end = parseInt(toggle.dataset.rangeEnd);
             const state = toggle.dataset.state;
-            const scrollToggle = document.getElementById('scroll-toggle');
-            const scrollRect = scrollToggle.getBoundingClientRect();
-            const gridRect = grid.getBoundingClientRect();
+            const label = toggleRanges.find(r => r.start === start).label;
+
+            for (let i = start; i <= end; i++) {
+                if (cellElements[i]) {
+                    if (state === 'visible') {
+                        cellElements[i].classList.add('hidden');
+                    } else {
+                        cellElements[i].classList.remove('hidden');
+                    }
+                }
+            }
 
             if (state === 'visible') {
-                const cell = cellElements[start];
-                const cellRect = cell.getBoundingClientRect();
-                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 2}px`; // 2px a la izquierda del grid
-                toggle.style.top = `${cellRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2)}px`;
+                toggle.textContent = `+${label}`;
+                toggle.style.backgroundColor = '#808080'; // Gris cuando oculto
+                toggle.dataset.state = 'hidden';
             } else {
-                const hiddenToggles = Array.from(document.querySelectorAll('.toggle-sign'))
-                    .filter(t => t.dataset.state === 'hidden');
-                const index = hiddenToggles.indexOf(toggle);
-                const topOffset = scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20)); // 20px de separación
-                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 2}px`; // Alineado cerca del grid
-                toggle.style.top = `${topOffset}px`;
+                toggle.textContent = `-${label}`;
+                toggle.style.backgroundColor = '#00FF00'; // Verde cuando visible
+                toggle.dataset.state = 'visible';
             }
-        }
-
-        function updateAllTogglePositions() {
-            document.querySelectorAll('.toggle-sign').forEach(toggle => {
-                updateTogglePosition(toggle);
-            });
         }
 
         document.querySelectorAll('.toggle-sign').forEach(toggle => {
             toggle.addEventListener('click', () => {
-                const start = parseInt(toggle.dataset.rangeStart);
-                const end = parseInt(toggle.dataset.rangeEnd);
-                const state = toggle.dataset.state;
-                const label = toggle.dataset.label;
-
-                for (let i = start; i <= end; i++) {
-                    if (cellElements[i]) {
-                        if (state === 'visible') {
-                            cellElements[i].classList.add('hidden');
-                        } else {
-                            cellElements[i].classList.remove('hidden');
-                        }
-                    }
-                }
-
-                toggle.textContent = state === 'visible' ? label : '-';
-                toggle.dataset.state = state === 'visible' ? 'hidden' : 'visible';
-                updateAllTogglePositions();
+                updateToggleState(toggle);
             });
         });
+
+        function updateAllTogglePositions() {
+            const scrollToggle = document.getElementById('scroll-toggle');
+            const scrollRect = scrollToggle.getBoundingClientRect();
+            document.querySelectorAll('.toggle-sign').forEach((toggle, index) => {
+                toggle.style.left = `${scrollRect.left}px`;
+                toggle.style.top = `${scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20))}px`;
+            });
+        }
 
         window.addEventListener('scroll', updateAllTogglePositions);
         window.addEventListener('resize', updateAllTogglePositions);
