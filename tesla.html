@@ -97,10 +97,10 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 75px;
-            height: 75px;
+            width: 150px; /* Doble de ancho */
+            height: 120px; /* Más alto */
             background-color: #1E3A8A;
-            border-radius: 50%;
+            border-radius: 60px; /* Forma de píldora */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -123,6 +123,12 @@
             color: #38BDF8;
             margin-top: 0.5rem;
             gap: 0.5rem;
+            animation: fadeOut 3s forwards; /* Animación para ocultar después de 3s */
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; display: none; }
         }
         .arrow-button {
             width: 48px;
@@ -177,16 +183,16 @@
         }
         .notice {
             color: #00ff00;
-            font-size: 1.20rem; /* Cambiado a 1.20rem */
+            font-size: 1.20rem;
             font-weight: bold;
             position: absolute;
             white-space: nowrap;
         }
         @keyframes slideWithPause {
-            0% { transform: translateX(-100%); } /* Comienza fuera por la izquierda */
-            35.71% { transform: var(--center-position); } /* Centro calculado */
-            64.29% { transform: var(--center-position); } /* Pausa de 5s */
-            100% { transform: translateX(calc(100% + 100%)); } /* Desaparece completamente por la derecha */
+            0% { transform: translateX(-100%); }
+            35.71% { transform: var(--center-position); }
+            64.29% { transform: var(--center-position); }
+            100% { transform: translateX(calc(100% + 100%)); }
         }
         .megaphone-icon-start {
             width: auto;
@@ -491,6 +497,11 @@
                 console.error('Error al cargar avisos.txt:', error);
                 document.getElementById('current-notice').textContent = 'Error al cargar avisos';
             });
+
+        // Asegurar que el contenedor superior se oculte completamente después de la animación
+        setTimeout(() => {
+            document.querySelector('.top-text-container').style.display = 'none';
+        }, 3000);
     </script>
 </body>
 </html>
