@@ -11,6 +11,7 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
             position: relative;
+            padding-left: 20px; /* Espacio para el toggle */
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
@@ -213,7 +214,7 @@
         }
         .toggle-sign {
             position: absolute;
-            left: -30px;
+            left: 5px;
             top: 50%;
             transform: translateY(-50%);
             color: #FFFFFF;
@@ -222,7 +223,7 @@
             background-color: #000000;
             padding: 2px 5px;
             cursor: pointer;
-            z-index: 10;
+            z-index: 20;
         }
         .hidden {
             display: none;
