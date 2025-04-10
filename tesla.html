@@ -223,12 +223,12 @@
             justify-content: center;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 2rem; /* Reducido para mejor ajuste */
-            line-height: 1; /* Asegura que el texto no tenga espacio adicional */
+            font-size: 1.5rem; /* Tamaño ajustado para mejor centrado */
+            text-align: center;
             cursor: pointer;
             z-index: 20;
             transition: background-color 0.2s ease;
-            left: -50px; /* Restaurado a posición fija a la izquierda */
+            left: -50px;
         }
         .toggle-sign:hover {
             background-color: #666666;
@@ -537,6 +537,7 @@
                 console.log(`Toggle clicked: name=${rangeName}, start=${start}, end=${end}, state=${state}`);
                 console.log(`Expected range for ${rangeName}: ${start} (${bookmarks[start].name}) to ${end} (${bookmarks[end] ? bookmarks[end].name : 'empty'})`);
 
+                // Asegurarse de que solo se oculten/muestren las celdas dentro del rango exacto
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
                         if (state === 'visible') {
