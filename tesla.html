@@ -29,11 +29,10 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
-        /* Tamaños responsivos para botones */
         #bookmark-grid {
             display: grid;
             grid-template-columns: repeat(6, minmax(120px, 1fr));
-            gap: 15px; /* Distancia fija entre botones */
+            gap: 15px;
             padding: 2rem;
             background-color: black !important;
             border-radius: 0.75rem;
@@ -43,7 +42,7 @@
         }
         #bookmark-grid > div {
             height: auto;
-            aspect-ratio: 16 / 9; /* Proporción consistente */
+            aspect-ratio: 16 / 9;
         }
         .bookmark-item {
             width: 100%;
@@ -70,7 +69,6 @@
         .small-bookmark .bookmark-name {
             font-size: clamp(0.65rem, 1.2vw, 0.95rem);
         }
-        /* Media queries para pantallas más pequeñas */
         @media (max-width: 768px) {
             #bookmark-grid {
                 grid-template-columns: repeat(3, minmax(100px, 1fr));
@@ -144,21 +142,25 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: clamp(80px, 15vw, 110px);
-            height: clamp(160px, 30vw, 220px);
+            width: clamp(60px, 10vw, 110px); /* Reducido para mejor ajuste */
+            height: clamp(120px, 20vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 0;
+            padding: clamp(10px, 2vw, 20px);
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             transition: background-color 0.2s ease;
             left: 10px;
             top: 10px;
+        }
+        .scroll-toggle-button svg {
+            width: clamp(24px, 4vw, 32px); /* Flechas también responsivas */
+            height: clamp(24px, 4vw, 32px);
         }
         .scroll-toggle-button:hover {
             background-color: #1e40af;
@@ -272,7 +274,7 @@
             text-align: center;
             cursor: pointer;
             z-index: 20;
-            transition: background-color 0.2s ease, left 0.2s ease;
+            transition: background-color 0.2s ease, top 0.2s ease;
         }
         .toggle-sign:hover {
             background-color: #666666;
@@ -333,8 +335,8 @@
     </footer>
 
     <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
 
     <script>
@@ -559,21 +561,15 @@
                 const cell = cellElements[start];
                 const cellRect = cell.getBoundingClientRect();
                 topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
-                toggle.style.left = '-20px'; // Más cerca del grid cuando visible
             } else {
                 const prevCell = findVisibleCellBefore(start);
                 const nextCell = findVisibleCellAfter(end);
                 const prevBottom = prevCell.getBoundingClientRect().bottom - gridRect.top;
                 const nextTop = nextCell.getBoundingClientRect().top - gridRect.top;
                 topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
-
-                // Centrar horizontalmente cuando oculto
-                const gridWidth = gridRect.width;
-                const toggleWidth = toggle.offsetWidth;
-                const leftPosition = (gridWidth - toggleWidth) / 2;
-                toggle.style.left = `${leftPosition}px`;
             }
             toggle.style.top = `${topPosition}px`;
+            toggle.style.left = '-20px'; // Siempre en el lateral izquierdo
         }
 
         document.querySelectorAll('.toggle-sign').forEach(toggle => {
