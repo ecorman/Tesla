@@ -87,11 +87,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem; /* Espacio entre logo y texto */
+            gap: 0.5rem;
         }
         .header-logo {
-            width: 74px; /* 64px + 10px más de ancho */
-            height: 4rem; /* Mantiene el alto original */
+            width: 74px;
+            height: 4rem;
         }
         .title-container {
             background-color: black;
@@ -265,7 +265,7 @@
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: absolute; /* Cambiado a absolute para seguir al scroll-toggle */
+            position: fixed; /* Cambiado a fixed */
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -298,8 +298,8 @@
             display: none;
         }
         .version-text {
-            font-size: 0.75rem; /* Letra pequeña */
-            color: #38BDF8; /* Azul claro */
+            font-size: 0.75rem;
+            color: #38BDF8;
         }
     </style>
 </head>
@@ -504,7 +504,13 @@
                     ? 'bookmark-item'
                     : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-                link.style.backgroundColor = colors[index];
+
+                // Forzar color blanco para "Inicio Tesla" (índice 42)
+                if (index === 42) {
+                    link.style.backgroundColor = '#FFFFFF';
+                } else {
+                    link.style.backgroundColor = colors[index];
+                }
 
                 if (bookmark.name !== "Inicio Tesla") {
                     link.target = "_blank";
@@ -542,8 +548,8 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.backgroundColor = '#006400'; // Verde oscuro inicial
-            toggle.style.color = '#FFFFFF'; // Letra blanca inicial
+            toggle.style.backgroundColor = '#006400';
+            toggle.style.color = '#FFFFFF';
             document.body.appendChild(toggle);
         });
 
@@ -558,14 +564,14 @@
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
+        reloadButton.style.backgroundColor = '#1E3A8A';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
+        homeButton.style.backgroundColor = '#1E3A8A';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
@@ -576,20 +582,24 @@
         function updateTogglePositions() {
             const scrollToggle = document.getElementById('scroll-toggle');
             const scrollRect = scrollToggle.getBoundingClientRect();
-            onOffToggle.style.left = `${scrollRect.left}px`;
-            onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
+            
+            onOffToggle.style.left = '10px';
+            onOffToggle.style.top = '150px';
+
             document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach((toggle, index) => {
-                toggle.style.left = `${scrollRect.left}px`;
-                toggle.style.top = `${scrollRect.bottom + 20 + (index + 1) * 50}px`;
+                toggle.style.left = '10px';
+                toggle.style.top = `${150 + (index + 1) * 50}px`;
             });
-            reloadButton.style.left = `${scrollRect.left}px`;
-            reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleRanges.length + 1) * 50}px`;
-            homeButton.style.left = `${scrollRect.left}px`;
-            homeButton.style.top = `${scrollRect.bottom + 20 + (toggleRanges.length + 2) * 50}px`;
+
+            reloadButton.style.left = '10px';
+            reloadButton.style.top = `${150 + (toggleRanges.length + 1) * 50}px`;
+
+            homeButton.style.left = '10px';
+            homeButton.style.top = `${150 + (toggleRanges.length + 2) * 50}px`;
         }
 
-        window.addEventListener('scroll', updateTogglePositions);
         window.addEventListener('resize', updateTogglePositions);
+        updateTogglePositions();
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -609,13 +619,13 @@
 
             if (state === 'visible') {
                 toggle.innerHTML = `<span class="sign">+</span>${label}`;
-                toggle.style.backgroundColor = '#696969'; // Gris más oscuro
-                toggle.style.color = '#000000'; // Letra negra
+                toggle.style.backgroundColor = '#696969';
+                toggle.style.color = '#000000';
                 toggle.dataset.state = 'hidden';
             } else {
                 toggle.innerHTML = `<span class="sign">-</span>${label}`;
-                toggle.style.backgroundColor = '#006400'; // Verde oscuro
-                toggle.style.color = '#FFFFFF'; // Letra blanca
+                toggle.style.backgroundColor = '#006400';
+                toggle.style.color = '#FFFFFF';
                 toggle.dataset.state = 'visible';
             }
         }
@@ -736,12 +746,11 @@
             updateTogglePositions();
         }, 9000);
 
-        // Generar versión con fecha y hora
         const now = new Date();
-        const year = now.getFullYear().toString().slice(-2); // Últimos 2 dígitos del año
-        const month = String(now.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
-        const day = String(now.getDate()).padStart(2, '0'); // Día con 2 dígitos
-        const hours = String(now.getHours()).padStart(2, '0'); // Hora con 2 dígitos
+        const year = now.getFullYear().toString().slice(-2);
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
         const version = `${year}.${month}.${day}${hours}`;
         document.getElementById('version').textContent = ` versión: ${version}`;
 
