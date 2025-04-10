@@ -142,7 +142,7 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: clamp(60px, 10vw, 110px);
+            width: 70px; /* Ajustado para coincidir con toggle-sign */
             height: clamp(120px, 20vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
@@ -223,7 +223,7 @@
             overflow: hidden;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0; /* Ajustado para controlar márgenes manualmente */
             height: 3rem;
         }
         .notice-wrapper {
@@ -248,15 +248,17 @@
             64.29% { transform: var(--center-position); }
             100% { transform: translateX(calc(100% + 100%)); }
         }
-        .megaphone-icon-start {
+        .megaphone-icon-start36px {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
-            margin-right: 0.5rem;
+            margin-left: 0;
+            margin-right: 30px; /* 30px hacia la derecha */
         }
         .megaphone-icon-end {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
-            margin-left: 0.5rem;
+            margin-left: 30px; /* 30px desde la izquierda */
+            margin-right: 0;
             transform: scaleX(-1);
         }
         .toggle-sign {
@@ -267,7 +269,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #FFFFFF;
+            color: #FFFFFF; /* Letra blanca por defecto */
             font-weight: bold;
             font-size: 1rem;
             text-align: center;
@@ -361,7 +363,7 @@
             { name: "TIEMPO", url: "https://www.ventusky.com/?p=40.09;-5.15;6&l=rain-3h", favicon: "https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" },
             { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" },
             { name: "Mis Updates", url: "https://dash.tessie.com/software", favicon: "https://cdn-icons-png.flaticon.com/512/148/148767.png" },
-            { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/5815902.png" },
+            { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/581行事5902.png" },
             { name: "NotaTeslaApp", url: "https://www.notateslaapp.com/software-updates/" },
             { name: "ENHAUTO", url: "https://www.enhauto.com" },
             { name: "MAREAS", url: "https://www.meteogalicia.gal/web/predicion/mareas-e-luas" },
@@ -534,7 +536,8 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.backgroundColor = '#696969';
+            toggle.style.backgroundColor = '#006400'; // Verde oscuro inicial
+            toggle.style.color = '#FFFFFF'; // Letra blanca
             const scrollToggle = document.getElementById('scroll-toggle');
             const scrollRect = scrollToggle.getBoundingClientRect();
             toggle.style.left = `${scrollRect.left}px`;
@@ -555,6 +558,31 @@
         onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
         document.body.appendChild(onOffToggle);
 
+        // Crear botón Reload
+        const reloadButton = document.createElement('span');
+        reloadButton.className = 'toggle-sign';
+        reloadButton.style.backgroundColor = '#1E3A8A';
+        reloadButton.innerHTML = `<img src="./reload.jpeg" alt="Recargar" class="w-full h-full object-cover rounded-full">`;
+        reloadButton.addEventListener('click', () => location.reload());
+
+        // Crear botón Home
+        const homeButton = document.createElement('span');
+        homeButton.className = 'toggle-sign';
+        homeButton.style.backgroundColor = '#1E3A8A';
+        homeButton.innerHTML = `<img src="./home.jpg" alt="Inicio" class="w-full h-full object-cover rounded-full">`;
+        homeButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.history.back();
+        });
+
+        const toggleCount = toggleRanges.length;
+        reloadButton.style.left = `${scrollRect.left}px`;
+        reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 1) * (reloadButton.offsetHeight + 20)}px`;
+        homeButton.style.left = `${scrollRect.left}px`;
+        homeButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 2) * (homeButton.offsetHeight + 20)}px`;
+        document.body.appendChild(reloadButton);
+        document.body.appendChild(homeButton);
+
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
             const end = parseInt(toggle.dataset.rangeEnd);
@@ -573,11 +601,13 @@
 
             if (state === 'visible') {
                 toggle.innerHTML = `<span class="sign">+</span>${label}`;
-                toggle.style.backgroundColor = '#A9A9A9';
+                toggle.style.backgroundColor = '#A9A9A9'; // Gris oscuro
+                toggle.style.color = '#FFFFFF'; // Letra blanca
                 toggle.dataset.state = 'hidden';
             } else {
                 toggle.innerHTML = `<span class="sign">-</span>${label}`;
-                toggle.style.backgroundColor = '#696969';
+                toggle.style.backgroundColor = '#006400'; // Verde oscuro
+                toggle.style.color = '#FFFFFF'; // Letra blanca
                 toggle.dataset.state = 'visible';
             }
         }
@@ -619,8 +649,12 @@
             onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
             document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach((toggle, index) => {
                 toggle.style.left = `${scrollRect.left}px`;
-                toggle.style.top = `${scrollRect.bottom + 20 + ((index + 1) * (toggle.offsetHeight + 20))}px`;
+                toggle.style.top = `${scrollRect.bottom + 20 + (index + 1) * (toggle.offsetHeight + 20)}px`;
             });
+            reloadButton.style.left = `${scrollRect.left}px`;
+            reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 1) * (reloadButton.offsetHeight + 20)}px`;
+            homeButton.style.left = `${scrollRect.left}px`;
+            homeButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 2) * (homeButton.offsetHeight + 20)}px`;
         }
 
         window.addEventListener('scroll', updateAllTogglePositions);
@@ -653,6 +687,8 @@
 
                 const noticeElement = document.getElementById('current-notice');
                 let currentIndex = 0;
+                let isActive = true;
+                let timeoutId;
 
                 function centerText() {
                     const wrapper = document.querySelector('.notice-wrapper');
@@ -661,17 +697,34 @@
                     const centerPosition = (wrapperWidth - textWidth) / 2;
                     const centerPercentage = (centerPosition / wrapperWidth) * 100;
                     noticeElement.style.setProperty('--center-position', `translateX(${centerPercentage}%)`);
-                    noticeElement.style.animation = 'slideWithPause 14s linear forwards';
+                    if (isActive) {
+                        noticeElement.style.animation = 'slideWithPause 14s linear forwards';
+                    }
                 }
 
                 function showNextNotice() {
+                    if (!isActive) return;
                     noticeElement.textContent = notices[currentIndex];
                     noticeElement.style.animation = 'none';
                     void noticeElement.offsetWidth;
                     centerText();
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 18000);
+                    timeoutId = setTimeout(showNextNotice, 18000);
                 }
+
+                noticeElement.addEventListener('click', () => {
+                    if (isActive) {
+                        clearTimeout(timeoutId);
+                        noticeElement.style.animation = 'none';
+                        noticeElement.textContent = 'OFF';
+                        noticeElement.style.color = '#38BDF8'; // Azul claro
+                        isActive = false;
+                    } else {
+                        noticeElement.style.color = '#00ff00'; // Verde original
+                        isActive = true;
+                        showNextNotice();
+                    }
+                });
 
                 showNextNotice();
             })
