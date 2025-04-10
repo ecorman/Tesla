@@ -223,7 +223,7 @@
             justify-content: center;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 1.5rem; /* Tamaño ajustado para mejor centrado */
+            font-size: 1.5rem;
             text-align: center;
             cursor: pointer;
             z-index: 20;
@@ -423,8 +423,8 @@
 
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE" },
-            { start: 30, end: 42, name: "GROK" }, // "GROK" a "Patrón Luz"
-            { start: 43, end: 61, name: "TradingView" } // "TradingView" a tercera celda vacía antes de "JOdena"
+            { start: 30, end: 41, name: "GROK" }, // "GROK" a "App MCE" (antes de "Patrón Luz")
+            { start: 42, end: 59, name: "TradingView" } // "Patrón Luz" a "celda vacía después de AMAZON" (antes de "JOdena")
         ];
 
         const cellElements = [];
@@ -537,7 +537,6 @@
                 console.log(`Toggle clicked: name=${rangeName}, start=${start}, end=${end}, state=${state}`);
                 console.log(`Expected range for ${rangeName}: ${start} (${bookmarks[start].name}) to ${end} (${bookmarks[end] ? bookmarks[end].name : 'empty'})`);
 
-                // Asegurarse de que solo se oculten/muestren las celdas dentro del rango exacto
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
                         if (state === 'visible') {
