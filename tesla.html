@@ -223,7 +223,7 @@
             overflow: hidden;
             display: flex;
             align-items: center;
-            justify-content: center; /* Centra el contenido */
+            justify-content: center;
             gap: 0;
             height: 3rem;
         }
@@ -235,7 +235,7 @@
             position: relative;
             display: flex;
             align-items: center;
-            justify-content: center; /* Centra el texto */
+            justify-content: center;
         }
         .notice {
             color: #00ff00;
@@ -243,7 +243,7 @@
             font-weight: bold;
             position: absolute;
             white-space: nowrap;
-            text-align: center; /* Centra el texto */
+            text-align: center;
         }
         @keyframes slideWithPause {
             0% { transform: translateX(-100%); }
@@ -254,14 +254,14 @@
         .megaphone-icon-start {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
-            margin-left: 30px; /* 30px hacia el centro desde la izquierda */
+            margin-left: 40px; /* Cambiado de 30px a 40px */
             margin-right: 0;
         }
         .megaphone-icon-end {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
             margin-left: 0;
-            margin-right: 30px; /* 30px hacia el centro desde la derecha */
+            margin-right: 40px; /* Cambiado de 30px a 40px */
             transform: scaleX(-1);
         }
         .toggle-sign {
@@ -286,8 +286,13 @@
         .toggle-sign:hover {
             background-color: #666666;
         }
+        .toggle-sign img {
+            width: 24px; /* Tamaño ajustado para caber en el botón */
+            height: 24px;
+            object-fit: contain; /* Cambiado a contain para mantener proporciones */
+        }
         #on-off-toggle.on {
-            color: #ಿಸ000000;
+            color: #000000;
         }
         .hidden {
             display: none;
@@ -564,14 +569,14 @@
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
         reloadButton.style.backgroundColor = '#8B4513'; // Tono castaño
-        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-full h-full object-cover rounded-full">`;
+        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.addEventListener('click', () => location.reload());
 
         // Crear botón Home
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
         homeButton.style.backgroundColor = '#8B4513'; // Tono castaño
-        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-full h-full object-cover rounded-full">`;
+        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
@@ -623,7 +628,7 @@
                     updateToggleState(toggle);
                 }
             });
-            onOffToggle.textContent = state === 'on' ? 'On' : 'Off';
+            onOffToggle.textContent = state === 'on' ? 'Off' : 'On';
             onOffToggle.style.backgroundColor = state === 'on' ? '#32CD32' : '#A9A9A9';
             onOffToggle.dataset.state = state;
             if (state === 'on') {
@@ -707,6 +712,8 @@
                 function showNextNotice() {
                     if (!isActive) return;
                     noticeElement.textContent = notices[currentIndex];
+                    noticeElement.style.fontSize = 'clamp(1rem, 2vw, 1.20rem)'; // Tamaño original
+                    noticeElement.style.color = '#00ff00'; // Verde original
                     noticeElement.style.animation = 'none';
                     void noticeElement.offsetWidth;
                     centerText();
@@ -718,9 +725,9 @@
                     if (isActive) {
                         clearTimeout(timeoutId);
                         noticeElement.style.animation = 'none';
-                        noticeElement.textContent = 'OFF';
-                        noticeElement.style.color = '#38BDF8'; // Azul claro
-                        centerText(); // Centrar el "OFF"
+                        noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
+                        noticeElement.style.color = '#38BDF8'; // Azul claro para "OFF"
+                        centerText();
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00'; // Verde original
