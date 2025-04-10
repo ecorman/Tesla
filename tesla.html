@@ -223,10 +223,12 @@
             justify-content: center;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 2.5rem;
+            font-size: 2rem; /* Reducido para mejor ajuste */
+            line-height: 1; /* Asegura que el texto no tenga espacio adicional */
             cursor: pointer;
             z-index: 20;
             transition: background-color 0.2s ease;
+            left: -50px; /* Restaurado a posición fija a la izquierda */
         }
         .toggle-sign:hover {
             background-color: #666666;
@@ -469,7 +471,7 @@
             } else {
                 cell.className = index < 48 
                     ? 'min-w-[145px] min-h-[83px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
-                    : 'min-w-[145px] min-h-[48px] bg-gray-50 border border-dashed border-gray caspada border-gray-200 rounded-lg';
+                    : 'min-w-[145px] min-h-[48px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
             cellElements.push(cell);
@@ -508,24 +510,21 @@
             const start = parseInt(toggle.dataset.rangeStart);
             const end = parseInt(toggle.dataset.rangeEnd);
             const state = toggle.dataset.state;
-            const cell = cellElements[start];
-            const cellRect = cell.getBoundingClientRect();
-            const gridRect = grid.getBoundingClientRect();
-            let topPosition, leftPosition;
+            let topPosition;
 
             if (state === 'visible') {
+                const cell = cellElements[start];
+                const cellRect = cell.getBoundingClientRect();
+                const gridRect = grid.getBoundingClientRect();
                 topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
-                leftPosition = cellRect.left - gridRect.left - toggle.offsetWidth - 10; // 10px de margen a la izquierda
             } else {
                 const prevCell = findVisibleCellBefore(start);
                 const nextCell = findVisibleCellAfter(end);
                 const prevBottom = prevCell.getBoundingClientRect().bottom - gridRect.top;
                 const nextTop = nextCell.getBoundingClientRect().top - gridRect.top;
                 topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
-                leftPosition = prevCell.getBoundingClientRect().left - gridRect.left - toggle.offsetWidth - 10;
             }
             toggle.style.top = `${topPosition}px`;
-            toggle.style.left = `${leftPosition}px`;
         }
 
         document.querySelectorAll('.toggle-sign').forEach(toggle => {
@@ -533,8 +532,10 @@
                 const start = parseInt(toggle.dataset.rangeStart);
                 const end = parseInt(toggle.dataset.rangeEnd);
                 const state = toggle.dataset.state;
+                const rangeName = toggleRanges.find(r => r.start === start).name;
 
-                console.log(`Toggle clicked: name=${toggleRanges.find(r => r.start === start).name}, start=${start}, end=${end}, state=${state}`);
+                console.log(`Toggle clicked: name=${rangeName}, start=${start}, end=${end}, state=${state}`);
+                console.log(`Expected range for ${rangeName}: ${start} (${bookmarks[start].name}) to ${end} (${bookmarks[end] ? bookmarks[end].name : 'empty'})`);
 
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
@@ -545,6 +546,8 @@
                             cellElements[i].classList.remove('hidden');
                             console.log(`Showing cell ${i}: ${bookmarks[i] ? bookmarks[i].name : 'empty'}`);
                         }
+                    } else {
+                        console.log(`Cell ${i} does not exist in cellElements`);
                     }
                 }
 
