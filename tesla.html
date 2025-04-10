@@ -30,11 +30,20 @@
             max-width: 100%;
         }
         /* Tamaños responsivos para botones */
+        #bookmark-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(120px, 1fr));
+            gap: 15px; /* Distancia fija entre botones */
+            padding: 2rem;
+            background-color: black !important;
+            border-radius: 0.75rem;
+            position: relative;
+            width: 100%;
+            max-width: 1080px;
+        }
         #bookmark-grid > div {
-            width: 16vw; /* Ancho relativo al viewport */
-            min-width: 100px; /* Mínimo para evitar que sea demasiado pequeño */
             height: auto;
-            aspect-ratio: 16 / 9; /* Proporción para mantener consistencia */
+            aspect-ratio: 16 / 9; /* Proporción consistente */
         }
         .bookmark-item {
             width: 100%;
@@ -52,34 +61,28 @@
             border-radius: 0.25rem;
         }
         .bookmark-name {
-            font-size: clamp(0.75rem, 2vw, 1.05rem); /* Tamaño de texto adaptable */
+            font-size: clamp(0.75rem, 1.5vw, 1.05rem);
         }
         .small-bookmark img {
             width: 20%;
             max-width: 20px;
         }
         .small-bookmark .bookmark-name {
-            font-size: clamp(0.65rem, 1.8vw, 0.95rem);
+            font-size: clamp(0.65rem, 1.2vw, 0.95rem);
         }
-        /* Media queries para ajustes específicos */
+        /* Media queries para pantallas más pequeñas */
         @media (max-width: 768px) {
             #bookmark-grid {
-                grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets/móviles */
+                grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
                 padding: 1rem;
-            }
-            #bookmark-grid > div {
-                width: 30vw;
             }
         }
         @media (max-width: 480px) {
             #bookmark-grid {
-                grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles pequeños */
+                grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
                 padding: 0.5rem;
-            }
-            #bookmark-grid > div {
-                width: 45vw;
             }
         }
         .header-container {
@@ -119,15 +122,6 @@
             background-color: black;
             padding: 0.5rem;
         }
-        #bookmark-grid {
-            background-color: black !important;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            gap: 15px;
-            position: relative;
-            width: 100%;
-            max-width: 1080px;
-        }
         .footer-subtext {
             font-size: 0.75rem;
             color: #9CA3AF;
@@ -150,7 +144,7 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: clamp(80px, 15vw, 110px); /* Responsive */
+            width: clamp(80px, 15vw, 110px);
             height: clamp(160px, 30vw, 220px);
             background-color: #1E3A8A;
             border-radius: 60px;
@@ -299,7 +293,7 @@
         </div>
     </div>
 
-    <main class="grid grid-cols-6 max-w-[1080px] w-full p-5 bg-white rounded-xl shadow-lg" id="bookmark-grid">
+    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
     </main>
 
@@ -565,7 +559,7 @@
                 const cell = cellElements[start];
                 const cellRect = cell.getBoundingClientRect();
                 topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
-                toggle.style.left = '-50px'; // Posición fija a la izquierda cuando visible
+                toggle.style.left = '-20px'; // Más cerca del grid cuando visible
             } else {
                 const prevCell = findVisibleCellBefore(start);
                 const nextCell = findVisibleCellAfter(end);
