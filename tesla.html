@@ -214,23 +214,23 @@
         }
         .toggle-sign {
             position: absolute;
-            left: -50px; /* Pegado al borde izquierdo del grid */
+            left: -50px;
             width: 40px;
             height: 40px;
-            background-color: #808080; /* Fondo gris */
-            border-radius: 50%; /* Circular */
+            background-color: #808080;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 2.5rem; /* Más grande */
+            font-size: 2.5rem;
             cursor: pointer;
             z-index: 20;
             transition: background-color 0.2s ease;
         }
         .toggle-sign:hover {
-            background-color: #666666; /* Gris más oscuro al pasar el ratón */
+            background-color: #666666;
         }
         .hidden {
             display: none;
@@ -421,9 +421,9 @@
         }
 
         const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE" }, // ELECTROVERSE a EVDC
-            { start: 30, end: 42, name: "GROK" },        // GROK a Patrón Luz
-            { start: 43, end: 61, name: "TradingView" }  // TradingView a AMAZON + 3 espacios
+            { start: 18, end: 29, name: "ELECTROVERSE" },
+            { start: 30, end: 42, name: "GROK" },
+            { start: 43, end: 61, name: "TradingView" }
         ];
 
         const cellElements = [];
@@ -467,20 +467,6 @@
                 link.appendChild(img);
                 link.appendChild(name);
                 cell.appendChild(link);
-
-                toggleRanges.forEach(range => {
-                    if (bookmark.name === range.name) {
-                        const toggle = document.createElement('span');
-                        toggle.className = 'toggle-sign';
-                        toggle.textContent = '-';
-                        toggle.dataset.rangeStart = range.start;
-                        toggle.dataset.rangeEnd = range.end;
-                        toggle.dataset.state = 'visible';
-                        cell.style.position = 'relative';
-                        grid.appendChild(toggle); // Añadimos al grid para posicionamiento absoluto
-                        updateTogglePosition(toggle, range.start, range.end);
-                    }
-                });
             } else {
                 cell.className = index < 48 
                     ? 'min-w-[145px] min-h-[83px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
@@ -490,19 +476,32 @@
             cellElements.push(cell);
         });
 
+        // Crear toggles después de renderizar las celdas
+        toggleRanges.forEach(range => {
+            const toggle = document.createElement('span');
+            toggle.className = 'toggle-sign';
+            toggle.textContent = '-';
+            toggle.dataset.rangeStart = range.start;
+            toggle.dataset.rangeEnd = range.end;
+            toggle.dataset.state = 'visible';
+            grid.appendChild(toggle);
+            updateTogglePosition(toggle, range.start, range.end);
+        });
+
         function updateTogglePosition(toggle, start, end) {
             const state = toggle.dataset.state;
             let topPosition;
             if (state === 'visible') {
                 const cell = cellElements[start];
-                const cellTop = cell.getBoundingClientRect().top - grid.getBoundingClientRect().top + (cell.offsetHeight / 2);
-                topPosition = cellTop;
+                const cellRect = cell.getBoundingClientRect();
+                const gridRect = grid.getBoundingClientRect();
+                topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
             } else {
                 const prevCell = cellElements[start - 1] || cellElements[0];
                 const nextCell = cellElements[end + 1] || cellElements[TOTAL_CELLS - 1];
                 const prevBottom = prevCell.getBoundingClientRect().bottom - grid.getBoundingClientRect().top;
                 const nextTop = nextCell.getBoundingClientRect().top - grid.getBoundingClientRect().top;
-                topPosition = (prevBottom + nextTop) / 2;
+                topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
             }
             toggle.style.top = `${topPosition}px`;
         }
