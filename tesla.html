@@ -10,6 +10,7 @@
         .bookmark-item {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
+            position: relative;
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
@@ -127,8 +128,8 @@
             animation: fadeOut 9s forwards;
         }
         .top-text-container span {
-            color: #FFFFFF; /* Blanco */
-            font-size: 1.5rem; /* Doble del tamaño original */
+            color: #FFFFFF;
+            font-size: 1.5rem;
         }
         @keyframes fadeOut {
             0% { opacity: 1; }
@@ -205,11 +206,26 @@
             margin-right: 0.5rem;
         }
         .megaphone-icon-end {
-            white-space: nowrap;
             width: auto;
             height: 3rem;
             margin-left: 0.5rem;
             transform: scaleX(-1);
+        }
+        .toggle-sign {
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 1.2rem;
+            background-color: #000000;
+            padding: 2px 5px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -358,9 +374,7 @@
 
         const getFaviconUrl = (bookmark) => {
             try {
-                if (bookmark.favicon) {
-                    return bookmark.favicon;
-                }
+                if (bookmark.favicon) return bookmark.favicon;
                 const domain = new URL(bookmark.url).hostname;
                 return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
             } catch (e) {
@@ -398,6 +412,13 @@
             }
         }
 
+        const toggleRanges = [
+            { start: 18, end: 29, name: "ELECTROVERSE" },
+            { start: 30, end: 42, name: "GROK" },
+            { start: 43, end: 61, name: "TradingView" }
+        ];
+
+        const cellElements = [];
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
             if (index < bookmarks.length && bookmarks[index] !== null) {
@@ -418,11 +439,8 @@
                 img.loading = "lazy";
                 img.onerror = () => (img.style.display = 'none');
 
-                if (bookmark.name === "Mis Updates") {
-                    img.classList.add('favicon-red');
-                } else if (bookmark.name === "Olas Updates") {
-                    img.classList.add('favicon-blue');
-                }
+                if (bookmark.name === "Mis Updates") img.classList.add('favicon-red');
+                else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
 
                 const name = document.createElement('span');
                 name.className = 'bookmark-name';
@@ -441,12 +459,46 @@
                 link.appendChild(img);
                 link.appendChild(name);
                 cell.appendChild(link);
+
+                toggleRanges.forEach(range => {
+                    if (bookmark.name === range.name) {
+                        const toggle = document.createElement('span');
+                        toggle.className = 'toggle-sign';
+                        toggle.textContent = '-';
+                        toggle.dataset.rangeStart = range.start;
+                        toggle.dataset.rangeEnd = range.end;
+                        toggle.dataset.state = 'visible';
+                        cell.appendChild(toggle);
+                    }
+                });
             } else {
                 cell.className = index < 48 
                     ? 'min-w-[145px] min-h-[83px] bg-gray-50 border border-dashed border-gray-200 rounded-lg'
                     : 'min-w-[145px] min-h-[48px] bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
             grid.appendChild(cell);
+            cellElements.push(cell);
+        });
+
+        document.querySelectorAll('.toggle-sign').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const start = parseInt(toggle.dataset.rangeStart);
+                const end = parseInt(toggle.dataset.rangeEnd);
+                const state = toggle.dataset.state;
+
+                for (let i = start + 1; i <= end; i++) {
+                    if (cellElements[i]) {
+                        if (state === 'visible') {
+                            cellElements[i].classList.add('hidden');
+                        } else {
+                            cellElements[i].classList.remove('hidden');
+                        }
+                    }
+                }
+
+                toggle.textContent = state === 'visible' ? '+' : '-';
+                toggle.dataset.state = state === 'visible' ? 'hidden' : 'visible';
+            });
         });
 
         const scrollToggle = document.getElementById('scroll-toggle');
@@ -491,10 +543,10 @@
                 function showNextNotice() {
                     noticeElement.textContent = notices[currentIndex];
                     noticeElement.style.animation = 'none';
-                    void noticeElement.offsetWidth; // Reinicia la animación
-                    centerText(); // Calcula y aplica el centrado
+                    void noticeElement.offsetWidth;
+                    centerText();
                     currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 18000); // 14s animación + 4s pausa
+                    setTimeout(showNextNotice, 18000);
                 }
 
                 showNextNotice();
@@ -504,15 +556,12 @@
                 document.getElementById('current-notice').textContent = 'Error al cargar avisos';
             });
 
-        // Asegurar que el contenedor superior se oculte y ajustar el botón de desplazamiento
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             const scrollToggle = document.getElementById('scroll-toggle');
             const mainElement = document.querySelector('main');
             
             topTextContainer.style.display = 'none';
-            
-            // Calcular la posición superior del main y restar un margen de 5px
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
         }, 9000);
