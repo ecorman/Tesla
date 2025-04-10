@@ -261,10 +261,10 @@
         }
         .toggle-sign {
             position: absolute;
-            width: 60px; /* Alargado para el texto */
+            width: 60px;
             height: 40px;
             background-color: #808080;
-            border-radius: 20px; /* Esquinas redondeadas, no circular */
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -274,7 +274,7 @@
             text-align: center;
             cursor: pointer;
             z-index: 20;
-            transition: background-color 0.2s ease, top 0.2s ease;
+            transition: background-color 0.2s ease;
         }
         .toggle-sign:hover {
             background-color: #666666;
@@ -527,55 +527,37 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.dataset.label = range.label; // Guardamos la etiqueta personalizada
-            grid.appendChild(toggle);
+            toggle.dataset.label = range.label;
+            document.body.appendChild(toggle); // Añadimos al body para posicionarlo libremente
             updateTogglePosition(toggle);
         });
 
-        function findVisibleCellBefore(index) {
-            for (let i = index - 1; i >= 0; i--) {
-                if (!cellElements[i].classList.contains('hidden')) {
-                    return cellElements[i];
-                }
+        function updateTogglePosition(toggle) {
+            const start = parseInt(toggle.dataset.rangeStart);
+            const end = parseInt(toggle.dataset.rangeEnd);
+            const state = toggle.dataset.state;
+            const scrollToggle = document.getElementById('scroll-toggle');
+            const scrollRect = scrollToggle.getBoundingClientRect();
+            const gridRect = grid.getBoundingClientRect();
+
+            if (state === 'visible') {
+                const cell = cellElements[start];
+                const cellRect = cell.getBoundingClientRect();
+                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 10}px`; // 10px a la izquierda del grid
+                toggle.style.top = `${cellRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2)}px`;
+            } else {
+                const hiddenToggles = Array.from(document.querySelectorAll('.toggle-sign'))
+                    .filter(t => t.dataset.state === 'hidden');
+                const index = hiddenToggles.indexOf(toggle);
+                const topOffset = scrollRect.bottom + 10 + (index * (toggle.offsetHeight + 5)); // 5px de separación
+                toggle.style.left = `${scrollRect.left}px`; // Alineado con el botón de scroll
+                toggle.style.top = `${topOffset}px`;
             }
-            return cellElements[0];
         }
 
-        function findVisibleCellAfter(index) {
-            for (let i = index + 1; i < TOTAL_CELLS; i++) {
-                if (!cellElements[i].classList.contains('hidden')) {
-                    return cellElements[i];
-                }
-            }
-            return cellElements[TOTAL_CELLS - 1];
-        }
-
-        function updateTogglePositions() {
-            const toggles = Array.from(document.querySelectorAll('.toggle-sign'));
-            let offset = 0;
-            toggles.forEach(toggle => {
-                const start = parseInt(toggle.dataset.rangeStart);
-                const end = parseInt(toggle.dataset.rangeEnd);
-                const state = toggle.dataset.state;
-                const gridRect = grid.getBoundingClientRect();
-
-                // Posición vertical
-                let topPosition;
-                if (state === 'visible') {
-                    const cell = cellElements[start];
-                    const cellRect = cell.getBoundingClientRect();
-                    topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
-                    toggle.style.left = '-20px'; // Posición inicial cuando visible
-                } else {
-                    const prevCell = findVisibleCellBefore(start);
-                    const nextCell = findVisibleCellAfter(end);
-                    const prevBottom = prevCell.getBoundingClientRect().bottom - gridRect.top;
-                    const nextTop = nextCell.getBoundingClientRect().top - gridRect.top;
-                    topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
-                    toggle.style.left = `${-20 - offset}px`; // Ajuste con offset para evitar superposición
-                    offset += toggle.offsetWidth + 3; // Incrementa offset con ancho del botón + 3px
-                }
-                toggle.style.top = `${topPosition}px`;
+        function updateAllTogglePositions() {
+            document.querySelectorAll('.toggle-sign').forEach(toggle => {
+                updateTogglePosition(toggle);
             });
         }
 
@@ -598,12 +580,12 @@
 
                 toggle.textContent = state === 'visible' ? label : '-';
                 toggle.dataset.state = state === 'visible' ? 'hidden' : 'visible';
-                updateTogglePositions(); // Actualiza posiciones de todos los toggles
+                updateAllTogglePositions();
             });
         });
 
-        window.addEventListener('scroll', updateTogglePositions);
-        window.addEventListener('resize', updateTogglePositions);
+        window.addEventListener('scroll', updateAllTogglePositions);
+        window.addEventListener('resize', updateAllTogglePositions);
 
         const scrollToggle = document.getElementById('scroll-toggle');
         scrollToggle.addEventListener('click', () => {
@@ -662,16 +644,16 @@
 
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
-            const scrollToggle = document.getElementById('scroll-toggle');
             const mainElement = document.querySelector('main');
             
             topTextContainer.style.display = 'none';
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
+            updateAllTogglePositions();
         }, 9000);
 
         // Inicializar posiciones al cargar la página
-        updateTogglePositions();
+        updateAllTogglePositions();
     </script>
 </body>
 </html>
