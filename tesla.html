@@ -665,55 +665,55 @@
             window.history.forward();
         });
 
-        fetch('avisos.txt')
-            .then(response => response.text())
-            .then(text => {
-                const notices = text.split('\n').filter(line => line.trim() !== '');
-                if (notices.length === 0) return;
+fetch('avisos.txt')
+    .then(response => response.text())
+    .then(text => {
+        const notices = text.split('\n').filter(line => line.trim() !== '');
+        if (notices.length === 0) return;
 
-                const noticeElement = document.getElementById('current-notice');
-                const noticeWrapper = document.querySelector('.notice-wrapper');
-                let currentIndex = 0;
-                let isActive = true;
+        const noticeElement = document.getElementById('current-notice');
+        const noticeWrapper = document.querySelector('.notice-wrapper');
+        let currentIndex = 0;
+        let isActive = true;
 
-                function adjustFontSize() {
-                    let fontSize = 1.2;
-                    noticeElement.style.fontSize = `${fontSize}rem`;
-                    while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
-                        fontSize -= 0.1;
-                        noticeElement.style.fontSize = `${fontSize}rem`;
-                    }
-                }
+        function adjustFontSize() {
+            let fontSize = 1.2;
+            noticeElement.style.fontSize = `${fontSize}rem`;
+            while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
+                fontSize -= 0.1;
+                noticeElement.style.fontSize = `${fontSize}rem`;
+            }
+        }
 
-                function showNextNotice() {
-                    if (!isActive) return;
-                    noticeElement.textContent = notices[currentIndex];
-                    adjustFontSize();
-                    currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 14000);
-                }
+        function showNextNotice() {
+            if (!isActive) return;
+            noticeElement.textContent = notices[currentIndex];
+            adjustFontSize();
+            currentIndex = (currentIndex + 1) % notices.length;
+            setTimeout(showNextNotice, 14000);
+        }
 
-                noticeElement.addEventListener('click', () => {
-                    if (isActive) {
-                        noticeElement.style.animation = 'none';
-                        noticeElement.textContent = 'Avisos desactivados';
-                        noticeElement.style.color = '#808080'; // Gris
-                        noticeElement.style.fontSize = '0.8rem'; // Tamaño pequeño
-                        isActive = false;
-                    } else {
-                        noticeElement.style.color = '#00ff00';
-                        noticeElement.style.animation = 'fadeInOut 14s infinite';
-                        isActive = true;
-                        showNextNotice();
-                    }
-                });
-
+        noticeElement.addEventListener('click', () => {
+            if (isActive) {
+                noticeElement.style.animation = 'none';
+                noticeElement.textContent = 'Avisos desactivados';
+                noticeElement.style.color = '#A9A9A9'; // Gris más claro
+                noticeElement.style.fontSize = '0.8rem'; // Tamaño pequeño
+                isActive = false;
+            } else {
+                noticeElement.style.color = '#00ff00';
+                noticeElement.style.animation = 'fadeInOut 14s infinite';
+                isActive = true;
                 showNextNotice();
-            })
-            .catch(error => {
-                console.error('Error al cargar avisos.txt:', error);
-                document.getElementById('current-notice').textContent = 'Error al cargar avisos';
-            });
+            }
+        });
+
+        showNextNotice();
+    })
+    .catch(error => {
+        console.error('Error al cargar avisos.txt:', error);
+        document.getElementById('current-notice').textContent = 'Error al cargar avisos';
+    });
 
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
