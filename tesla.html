@@ -97,14 +97,15 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 140px; /* Reducido de 150px a 140px */
-            height: 280px; /* Ajustado para ser el doble del ancho (140px * 2) */
+            width: 110px; /* Reducido de 140px a 110px */
+            height: 220px; /* Doble del ancho: 110px * 2 */
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between; /* Distribuye las flechas hacia los extremos */
+            padding: 20px 0; /* Margen interno para separar las flechas de los bordes */
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
@@ -258,8 +259,8 @@
     </footer>
 
     <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
 
     <script>
