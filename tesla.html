@@ -265,7 +265,7 @@
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: fixed; /* Cambiado a fixed para que sean estáticos */
+            position: fixed;
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -299,8 +299,8 @@
         }
         .version-text {
             font-size: 0.75rem;
-            color: #0000FF; /* Azul sin negrita */
-            font-weight: normal; /* Sin negrita */
+            color: #0000FF;
+            font-weight: normal;
         }
     </style>
 </head>
@@ -474,7 +474,7 @@
 
         const colors = Array(TOTAL_CELLS).fill(null);
         for (let i = 0; i < TOTAL_CELLS; i++) {
-            if (bookmarks[i] !== null && bookmarks[i].name !== "Inicio Tesla") {
+            if (bookmarks[i] && bookmarks[i].name !== "Inicio Tesla") {
                 let color;
                 do {
                     color = generateBrightColor();
@@ -486,7 +486,7 @@
                 );
                 colors[i] = color;
             } else if (bookmarks[i] && bookmarks[i].name === "Inicio Tesla") {
-                colors[i] = '#FFFFFF'; // Fondo blanco para Inicio Tesla
+                colors[i] = '#FFFFFF';
             }
         }
 
@@ -498,16 +498,14 @@
         ];
 
         const cellElements = [];
-        Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
+        for (let i = 0; i < TOTAL_CELLS; i++) {
             const cell = document.createElement('div');
-            if (index < bookmarks.length && bookmarks[index] !== null) {
-                const bookmark = bookmarks[index];
+            if (i < bookmarks.length && bookmarks[i] !== null) {
+                const bookmark = bookmarks[i];
                 const link = document.createElement('a');
-                link.className = index < 48 
-                    ? 'bookmark-item'
-                    : 'bookmark-item small-bookmark';
+                link.className = i < 48 ? 'bookmark-item' : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-                link.style.backgroundColor = colors[index];
+                link.style.backgroundColor = colors[i];
 
                 if (bookmark.name !== "Inicio Tesla") {
                     link.target = "_blank";
@@ -536,7 +534,7 @@
             }
             grid.appendChild(cell);
             cellElements.push(cell);
-        });
+        }
 
         toggleRanges.forEach((range, index) => {
             const toggle = document.createElement('span');
@@ -548,7 +546,7 @@
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
             toggle.style.left = '10px';
-            toggle.style.top = `${clamp(150, 20vw, 250) + (index * 50)}px`; // Debajo del scroll-toggle
+            toggle.style.top = `${150 + (index * 50)}px`;
             document.body.appendChild(toggle);
         });
 
@@ -560,24 +558,24 @@
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.classList.add('on');
         onOffToggle.style.left = '10px';
-        onOffToggle.style.top = `${clamp(150, 20vw, 250) - 40}px`; // Justo debajo del scroll-toggle
+        onOffToggle.style.top = '110px';
         document.body.appendChild(onOffToggle);
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#87CEEB'; // Azul celeste
+        reloadButton.style.backgroundColor = '#87CEEB';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.style.left = '10px';
-        reloadButton.style.top = `${clamp(150, 20vw, 250) + (toggleRanges.length * 50)}px`;
+        reloadButton.style.top = '350px';
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#87CEEB'; // Azul celeste
+        homeButton.style.backgroundColor = '#87CEEB';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.style.left = '10px';
-        homeButton.style.top = `${clamp(150, 20vw, 250) + (toggleRanges.length + 1) * 50}px`;
+        homeButton.style.top = '400px';
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
@@ -614,7 +612,7 @@
         }
 
         function updateAllToggles(state) {
-            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)');
+            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle)');
             toggles.forEach(toggle => {
                 if (state === 'on' && toggle.dataset.state === 'hidden') {
                     updateToggleState(toggle);
@@ -632,7 +630,7 @@
             }
         }
 
-        document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach(toggle => {
+        document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach(toggle => {
             toggle.addEventListener('click', () => {
                 updateToggleState(toggle);
             });
@@ -684,7 +682,7 @@
                     if (isActive) {
                         noticeElement.style.animation = 'slideWithPause 14s linear forwards';
                     } else {
-                        noticeElement.style.animation = 'none'; // Sin deslizamiento para OFF
+                        noticeElement.style.animation = 'none';
                     }
                 }
 
@@ -724,9 +722,6 @@
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             topTextContainer.style.display = 'none';
-            const mainElement = document.querySelector('main');
-            const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
-            scrollToggle.style.top = `${mainTop - 5}px`;
         }, 9000);
 
         const now = new Date();
