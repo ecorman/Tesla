@@ -87,11 +87,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem; /* Espacio entre logo y texto */
+            gap: 0.5rem;
         }
         .header-logo {
-            width: 74px; /* 64px + 10px más de ancho */
-            height: 4rem; /* Mantiene el alto original */
+            width: 74px;
+            height: 4rem;
         }
         .title-container {
             background-color: black;
@@ -265,7 +265,7 @@
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: absolute; /* Cambiado a absolute para seguir al scroll-toggle */
+            position: fixed; /* Cambiado a fixed para que sean estáticos */
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -298,8 +298,9 @@
             display: none;
         }
         .version-text {
-            font-size: 0.75rem; /* Letra pequeña */
-            color: #38BDF8; /* Azul claro */
+            font-size: 0.75rem;
+            color: #0000FF; /* Azul sin negrita */
+            font-weight: normal; /* Sin negrita */
         }
     </style>
 </head>
@@ -404,7 +405,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla" }, // Sin URL ni contenido adicional
+            { name: "Inicio Tesla" },
             { name: "Twitter", url: "https://x.com" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -473,7 +474,7 @@
 
         const colors = Array(TOTAL_CELLS).fill(null);
         for (let i = 0; i < TOTAL_CELLS; i++) {
-            if (bookmarks[i] !== null) {
+            if (bookmarks[i] !== null && bookmarks[i].name !== "Inicio Tesla") {
                 let color;
                 do {
                     color = generateBrightColor();
@@ -484,6 +485,8 @@
                     (i % COLS !== COLS - 1 && areColorsSimilar(color, colors[i + 1]))
                 );
                 colors[i] = color;
+            } else if (bookmarks[i] && bookmarks[i].name === "Inicio Tesla") {
+                colors[i] = '#FFFFFF'; // Fondo blanco para Inicio Tesla
             }
         }
 
@@ -542,8 +545,10 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.backgroundColor = '#006400'; // Verde oscuro inicial
-            toggle.style.color = '#FFFFFF'; // Letra blanca inicial
+            toggle.style.backgroundColor = '#006400';
+            toggle.style.color = '#FFFFFF';
+            toggle.style.left = '10px';
+            toggle.style.top = `${clamp(150, 20vw, 250) + (index * 50)}px`; // Debajo del scroll-toggle
             document.body.appendChild(toggle);
         });
 
@@ -554,42 +559,30 @@
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.classList.add('on');
+        onOffToggle.style.left = '10px';
+        onOffToggle.style.top = `${clamp(150, 20vw, 250) - 40}px`; // Justo debajo del scroll-toggle
         document.body.appendChild(onOffToggle);
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
+        reloadButton.style.backgroundColor = '#87CEEB'; // Azul celeste
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        reloadButton.style.left = '10px';
+        reloadButton.style.top = `${clamp(150, 20vw, 250) + (toggleRanges.length * 50)}px`;
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
+        homeButton.style.backgroundColor = '#87CEEB'; // Azul celeste
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        homeButton.style.left = '10px';
+        homeButton.style.top = `${clamp(150, 20vw, 250) + (toggleRanges.length + 1) * 50}px`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
         });
         document.body.appendChild(homeButton);
-
-        function updateTogglePositions() {
-            const scrollToggle = document.getElementById('scroll-toggle');
-            const scrollRect = scrollToggle.getBoundingClientRect();
-            onOffToggle.style.left = `${scrollRect.left}px`;
-            onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
-            document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach((toggle, index) => {
-                toggle.style.left = `${scrollRect.left}px`;
-                toggle.style.top = `${scrollRect.bottom + 20 + (index + 1) * 50}px`;
-            });
-            reloadButton.style.left = `${scrollRect.left}px`;
-            reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleRanges.length + 1) * 50}px`;
-            homeButton.style.left = `${scrollRect.left}px`;
-            homeButton.style.top = `${scrollRect.bottom + 20 + (toggleRanges.length + 2) * 50}px`;
-        }
-
-        window.addEventListener('scroll', updateTogglePositions);
-        window.addEventListener('resize', updateTogglePositions);
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -609,13 +602,13 @@
 
             if (state === 'visible') {
                 toggle.innerHTML = `<span class="sign">+</span>${label}`;
-                toggle.style.backgroundColor = '#696969'; // Gris más oscuro
-                toggle.style.color = '#000000'; // Letra negra
+                toggle.style.backgroundColor = '#696969';
+                toggle.style.color = '#000000';
                 toggle.dataset.state = 'hidden';
             } else {
                 toggle.innerHTML = `<span class="sign">-</span>${label}`;
-                toggle.style.backgroundColor = '#006400'; // Verde oscuro
-                toggle.style.color = '#FFFFFF'; // Letra blanca
+                toggle.style.backgroundColor = '#006400';
+                toggle.style.color = '#FFFFFF';
                 toggle.dataset.state = 'visible';
             }
         }
@@ -690,6 +683,8 @@
                     noticeElement.style.setProperty('--center-position', `translateX(${centerPercentage}%)`);
                     if (isActive) {
                         noticeElement.style.animation = 'slideWithPause 14s linear forwards';
+                    } else {
+                        noticeElement.style.animation = 'none'; // Sin deslizamiento para OFF
                     }
                 }
 
@@ -708,11 +703,10 @@
                 noticeElement.addEventListener('click', () => {
                     if (isActive) {
                         clearTimeout(timeoutId);
-                        noticeElement.style.animation = 'none';
                         noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
                         noticeElement.style.color = '#808080';
-                        centerText();
                         isActive = false;
+                        centerText();
                     } else {
                         noticeElement.style.color = '#00ff00';
                         isActive = true;
@@ -733,19 +727,15 @@
             const mainElement = document.querySelector('main');
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
-            updateTogglePositions();
         }, 9000);
 
-        // Generar versión con fecha y hora
         const now = new Date();
-        const year = now.getFullYear().toString().slice(-2); // Últimos 2 dígitos del año
-        const month = String(now.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
-        const day = String(now.getDate()).padStart(2, '0'); // Día con 2 dígitos
-        const hours = String(now.getHours()).padStart(2, '0'); // Hora con 2 dígitos
+        const year = now.getFullYear().toString().slice(-2);
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
         const version = `${year}.${month}.${day}${hours}`;
         document.getElementById('version').textContent = ` versión: ${version}`;
-
-        updateTogglePositions();
     </script>
 </body>
 </html>
