@@ -265,7 +265,7 @@
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: fixed; /* Cambiado a fixed */
+            position: fixed;
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -278,6 +278,7 @@
             cursor: pointer;
             z-index: 1000;
             transition: background-color 0.2s ease;
+            left: 10px;
         }
         .toggle-sign .sign {
             font-size: 1.5rem;
@@ -404,7 +405,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            null,
+            { name: "Inicio Tesla" },
             { name: "Twitter", url: "https://x.com" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -504,13 +505,7 @@
                     ? 'bookmark-item'
                     : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-
-                // Forzar color blanco para "Inicio Tesla" (índice 42)
-                if (index === 42) {
-                    link.style.backgroundColor = '#FFFFFF';
-                } else {
-                    link.style.backgroundColor = colors[index];
-                }
+                link.style.backgroundColor = colors[index];
 
                 if (bookmark.name !== "Inicio Tesla") {
                     link.target = "_blank";
@@ -550,6 +545,7 @@
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
+            toggle.style.top = `${60 + (index * 50)}px`;
             document.body.appendChild(toggle);
         });
 
@@ -559,47 +555,28 @@
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
+        onOffToggle.style.top = `${60 + (toggleRanges.length * 50)}px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#1E3A8A';
+        reloadButton.style.backgroundColor = '#87CEEB'; // Azul celeste
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        reloadButton.style.top = `${60 + ((toggleRanges.length + 1) * 50)}px`;
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#1E3A8A';
+        homeButton.style.backgroundColor = '#87CEEB'; // Azul celeste
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        homeButton.style.top = `${60 + ((toggleRanges.length + 2) * 50)}px`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
         });
         document.body.appendChild(homeButton);
-
-        function updateTogglePositions() {
-            const scrollToggle = document.getElementById('scroll-toggle');
-            const scrollRect = scrollToggle.getBoundingClientRect();
-            
-            onOffToggle.style.left = '10px';
-            onOffToggle.style.top = '150px';
-
-            document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach((toggle, index) => {
-                toggle.style.left = '10px';
-                toggle.style.top = `${150 + (index + 1) * 50}px`;
-            });
-
-            reloadButton.style.left = '10px';
-            reloadButton.style.top = `${150 + (toggleRanges.length + 1) * 50}px`;
-
-            homeButton.style.left = '10px';
-            homeButton.style.top = `${150 + (toggleRanges.length + 2) * 50}px`;
-        }
-
-        window.addEventListener('resize', updateTogglePositions);
-        updateTogglePositions();
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -649,7 +626,7 @@
             }
         }
 
-        document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach(toggle => {
+        document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach(toggle => {
             toggle.addEventListener('click', () => {
                 updateToggleState(toggle);
             });
@@ -743,7 +720,6 @@
             const mainElement = document.querySelector('main');
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
-            updateTogglePositions();
         }, 9000);
 
         const now = new Date();
@@ -753,8 +729,6 @@
         const hours = String(now.getHours()).padStart(2, '0');
         const version = `${year}.${month}.${day}${hours}`;
         document.getElementById('version').textContent = ` versión: ${version}`;
-
-        updateTogglePositions();
     </script>
 </body>
 </html>
