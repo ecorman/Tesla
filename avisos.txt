@@ -5,4 +5,4 @@
 ** Si necesitas algún botón en el panel no dudes en sugerírmelo **
 ** Versión Lanzador:25.04.83, si veis cosas raras es que estoy modificando **
 ** Pon en la página de inicio de Tesla el Lanzador (como único favorito) **
-** Próxima mejora: que se vea bien en móvil para uso externo al coche **
+** En el móvil para uso externo, visualizarla en horizontal **
