@@ -87,11 +87,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0;
+            gap: 0.5rem; /* Espacio entre logo y texto */
         }
         .header-logo {
-            width: 4rem;
-            height: 4rem;
+            width: 74px; /* 64px + 10px más de ancho */
+            height: 4rem; /* Mantiene el alto original */
         }
         .title-container {
             background-color: black;
@@ -265,7 +265,7 @@
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: fixed; /* Cambiado de absolute a fixed */
+            position: absolute; /* Cambiado a absolute para seguir al scroll-toggle */
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -276,7 +276,7 @@
             font-size: 1rem;
             text-align: center;
             cursor: pointer;
-            z-index: 1000; /* Aseguramos que esté por encima de otros elementos */
+            z-index: 1000;
             transition: background-color 0.2s ease;
         }
         .toggle-sign .sign {
@@ -296,6 +296,10 @@
         }
         .hidden {
             display: none;
+        }
+        .version-text {
+            font-size: 0.75rem; /* Letra pequeña */
+            color: #38BDF8; /* Azul claro */
         }
     </style>
 </head>
@@ -330,6 +334,7 @@
                     <div class="title-container">
                         <h1 class="text-2xl font-bold text-sky-400 inline">
                             BoardingGate <span class="text-base text-sky-400">Lanzador</span>
+                            <span id="version" class="version-text"></span>
                         </h1>
                     </div>
                 </div>
@@ -399,7 +404,7 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            { name: "Inicio Tesla", url: "#" },
+            { name: "Inicio Tesla" }, // Sin URL ni contenido adicional
             { name: "Twitter", url: "https://x.com" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
@@ -499,35 +504,29 @@
                     ? 'bookmark-item'
                     : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
                 link.style.backgroundColor = colors[index];
 
-                const img = document.createElement('img');
-                img.src = getFaviconUrl(bookmark);
-                img.alt = `Favicon de ${bookmark.name}`;
-                img.loading = "lazy";
-                img.onerror = () => (img.style.display = 'none');
+                if (bookmark.name !== "Inicio Tesla") {
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                    const img = document.createElement('img');
+                    img.src = getFaviconUrl(bookmark);
+                    img.alt = `Favicon de ${bookmark.name}`;
+                    img.loading = "lazy";
+                    img.onerror = () => (img.style.display = 'none');
 
-                if (bookmark.name === "Mis Updates") img.classList.add('favicon-red');
-                else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
+                    if (bookmark.name === "Mis Updates") img.classList.add('favicon-red');
+                    else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
 
-                const name = document.createElement('span');
-                name.className = 'bookmark-name';
-                name.textContent = bookmark.name;
+                    const name = document.createElement('span');
+                    name.className = 'bookmark-name';
+                    name.textContent = bookmark.name;
 
-                if (bookmark.name === "Inicio Tesla") {
-                    link.href = "#";
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.history.back();
-                    });
-                } else {
-                    link.href = bookmark.url;
+                    link.href = bookmark.url || "#";
+                    link.appendChild(img);
+                    link.appendChild(name);
                 }
 
-                link.appendChild(img);
-                link.appendChild(name);
                 cell.appendChild(link);
             } else {
                 cell.className = 'bg-gray-50 border border-dashed border-gray-200 rounded-lg';
@@ -545,8 +544,6 @@
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400'; // Verde oscuro inicial
             toggle.style.color = '#FFFFFF'; // Letra blanca inicial
-            toggle.style.left = '10px'; // Fijo en la pantalla
-            toggle.style.top = `${150 + (index * 50)}px`; // Posición fija inicial
             document.body.appendChild(toggle);
         });
 
@@ -557,32 +554,42 @@
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.classList.add('on');
-        onOffToggle.style.left = '10px'; // Fijo en la pantalla
-        onOffToggle.style.top = '110px'; // Posición fija inicial
         document.body.appendChild(onOffToggle);
 
-        // Crear botón Reload
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
         reloadButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        reloadButton.style.left = '10px'; // Fijo en la pantalla
-        reloadButton.style.top = `${150 + (toggleRanges.length * 50)}px`; // Posición fija
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
-        // Crear botón Home
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
         homeButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        homeButton.style.left = '10px'; // Fijo en la pantalla
-        homeButton.style.top = `${150 + (toggleRanges.length + 1) * 50}px`; // Posición fija
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
         });
         document.body.appendChild(homeButton);
+
+        function updateTogglePositions() {
+            const scrollToggle = document.getElementById('scroll-toggle');
+            const scrollRect = scrollToggle.getBoundingClientRect();
+            onOffToggle.style.left = `${scrollRect.left}px`;
+            onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
+            document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach((toggle, index) => {
+                toggle.style.left = `${scrollRect.left}px`;
+                toggle.style.top = `${scrollRect.bottom + 20 + (index + 1) * 50}px`;
+            });
+            reloadButton.style.left = `${scrollRect.left}px`;
+            reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleRanges.length + 1) * 50}px`;
+            homeButton.style.left = `${scrollRect.left}px`;
+            homeButton.style.top = `${scrollRect.bottom + 20 + (toggleRanges.length + 2) * 50}px`;
+        }
+
+        window.addEventListener('scroll', updateTogglePositions);
+        window.addEventListener('resize', updateTogglePositions);
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -643,6 +650,7 @@
             updateAllToggles(currentState === 'on' ? 'off' : 'on');
         });
 
+        const scrollToggle = document.getElementById('scroll-toggle');
         scrollToggle.addEventListener('click', () => {
             const scrollPosition = window.scrollY;
             const maxScroll = document.body.scrollHeight - window.innerHeight;
@@ -688,8 +696,8 @@
                 function showNextNotice() {
                     if (!isActive) return;
                     noticeElement.textContent = notices[currentIndex];
-                    noticeElement.style.fontSize = 'clamp(1rem, 2vw, 1.20rem)'; // Tamaño original
-                    noticeElement.style.color = '#00ff00'; // Verde original
+                    noticeElement.style.fontSize = 'clamp(1rem, 2vw, 1.20rem)';
+                    noticeElement.style.color = '#00ff00';
                     noticeElement.style.animation = 'none';
                     void noticeElement.offsetWidth;
                     centerText();
@@ -702,11 +710,11 @@
                         clearTimeout(timeoutId);
                         noticeElement.style.animation = 'none';
                         noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
-                        noticeElement.style.color = '#808080'; // Gris para "OFF"
+                        noticeElement.style.color = '#808080';
                         centerText();
                         isActive = false;
                     } else {
-                        noticeElement.style.color = '#00ff00'; // Verde original
+                        noticeElement.style.color = '#00ff00';
                         isActive = true;
                         showNextNotice();
                     }
@@ -722,7 +730,22 @@
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             topTextContainer.style.display = 'none';
+            const mainElement = document.querySelector('main');
+            const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
+            scrollToggle.style.top = `${mainTop - 5}px`;
+            updateTogglePositions();
         }, 9000);
+
+        // Generar versión con fecha y hora
+        const now = new Date();
+        const year = now.getFullYear().toString().slice(-2); // Últimos 2 dígitos del año
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
+        const day = String(now.getDate()).padStart(2, '0'); // Día con 2 dígitos
+        const hours = String(now.getHours()).padStart(2, '0'); // Hora con 2 dígitos
+        const version = `${year}.${month}.${day}${hours}`;
+        document.getElementById('version').textContent = ` versión: ${version}`;
+
+        updateTogglePositions();
     </script>
 </body>
 </html>
