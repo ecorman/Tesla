@@ -143,7 +143,7 @@
         .scroll-toggle-button {
             position: fixed;
             width: 70px;
-            height: clamp(80px, 20vw, 180px); /* Reducido 40px */
+            height: clamp(80px, 20vw, 180px);
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
@@ -537,8 +537,8 @@
             cellElements.push(cell);
         });
 
-        const scrollToggleHeight = clamp(80, 20 * window.innerWidth / 100, 180); // Altura del scroll-toggle reducido
-        const buttonSpacing = 50; // Separación uniforme entre botones
+        const scrollToggleHeight = clamp(80, 20 * window.innerWidth / 100, 180);
+        const buttonSpacing = 50;
 
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
@@ -546,7 +546,7 @@
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
-        onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`; // 50px debajo del scroll-toggle
+        onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
@@ -559,7 +559,7 @@
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
-            toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`; // Separación uniforme
+            toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
             document.body.appendChild(toggle);
         });
 
@@ -696,9 +696,9 @@
                 noticeElement.addEventListener('click', () => {
                     if (isActive) {
                         noticeElement.style.animation = 'none';
-                        noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
-                        noticeElement.style.color = '#808080';
-                        adjustFontSize();
+                        noticeElement.textContent = 'Avisos desactivados';
+                        noticeElement.style.color = '#808080'; // Gris
+                        noticeElement.style.fontSize = '0.8rem'; // Tamaño pequeño
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00';
