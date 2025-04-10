@@ -468,9 +468,9 @@
         }
 
         const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE", label: "+Pdr" },
+            { start: 18, end: 29, name: "ELECTROVERSE", label: "+PdR,s" },
             { start: 30, end: 41, name: "GROK", label: "+iAs" },
-            { start: 42, end: 59, name: "TradingView", label: "+Uti" }
+            { start: 42, end: 59, name: "TradingView", label: "+Útiles" }
         ];
 
         const cellElements = [];
@@ -528,7 +528,7 @@
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
             toggle.dataset.label = range.label;
-            document.body.appendChild(toggle); // Añadimos al body para posicionarlo libremente
+            document.body.appendChild(toggle);
             updateTogglePosition(toggle);
         });
 
@@ -543,13 +543,13 @@
             if (state === 'visible') {
                 const cell = cellElements[start];
                 const cellRect = cell.getBoundingClientRect();
-                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 10}px`; // 10px a la izquierda del grid
+                toggle.style.left = `${gridRect.left - toggle.offsetWidth - 5}px`; // 5px a la izquierda del grid
                 toggle.style.top = `${cellRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2)}px`;
             } else {
                 const hiddenToggles = Array.from(document.querySelectorAll('.toggle-sign'))
                     .filter(t => t.dataset.state === 'hidden');
                 const index = hiddenToggles.indexOf(toggle);
-                const topOffset = scrollRect.bottom + 10 + (index * (toggle.offsetHeight + 5)); // 5px de separación
+                const topOffset = scrollRect.bottom + 20 + (index * (toggle.offsetHeight + 20)); // 20px de separación
                 toggle.style.left = `${scrollRect.left}px`; // Alineado con el botón de scroll
                 toggle.style.top = `${topOffset}px`;
             }
