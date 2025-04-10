@@ -476,7 +476,6 @@
             cellElements.push(cell);
         });
 
-        // Crear toggles después de renderizar las celdas
         toggleRanges.forEach(range => {
             const toggle = document.createElement('span');
             toggle.className = 'toggle-sign';
@@ -485,20 +484,41 @@
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
             grid.appendChild(toggle);
-            updateTogglePosition(toggle, range.start, range.end);
+            updateTogglePosition(toggle);
         });
 
-        function updateTogglePosition(toggle, start, end) {
+        function findVisibleCellBefore(index) {
+            for (let i = index - 1; i >= 0; i--) {
+                if (!cellElements[i].classList.contains('hidden')) {
+                    return cellElements[i];
+                }
+            }
+            return cellElements[0];
+        }
+
+        function findVisibleCellAfter(index) {
+            for (let i = index + 1; i < TOTAL_CELLS; i++) {
+                if (!cellElements[i].classList.contains('hidden')) {
+                    return cellElements[i];
+                }
+            }
+            return cellElements[TOTAL_CELLS - 1];
+        }
+
+        function updateTogglePosition(toggle) {
+            const start = parseInt(toggle.dataset.rangeStart);
+            const end = parseInt(toggle.dataset.rangeEnd);
             const state = toggle.dataset.state;
             let topPosition;
+
             if (state === 'visible') {
                 const cell = cellElements[start];
                 const cellRect = cell.getBoundingClientRect();
                 const gridRect = grid.getBoundingClientRect();
                 topPosition = cellRect.top - gridRect.top + (cellRect.height / 2) - (toggle.offsetHeight / 2);
             } else {
-                const prevCell = cellElements[start - 1] || cellElements[0];
-                const nextCell = cellElements[end + 1] || cellElements[TOTAL_CELLS - 1];
+                const prevCell = findVisibleCellBefore(start);
+                const nextCell = findVisibleCellAfter(end);
                 const prevBottom = prevCell.getBoundingClientRect().bottom - grid.getBoundingClientRect().top;
                 const nextTop = nextCell.getBoundingClientRect().top - grid.getBoundingClientRect().top;
                 topPosition = (prevBottom + nextTop) / 2 - (toggle.offsetHeight / 2);
@@ -524,23 +544,19 @@
 
                 toggle.textContent = state === 'visible' ? '+' : '-';
                 toggle.dataset.state = state === 'visible' ? 'hidden' : 'visible';
-                updateTogglePosition(toggle, start, end);
+                document.querySelectorAll('.toggle-sign').forEach(t => updateTogglePosition(t));
             });
         });
 
         window.addEventListener('scroll', () => {
             document.querySelectorAll('.toggle-sign').forEach(toggle => {
-                const start = parseInt(toggle.dataset.rangeStart);
-                const end = parseInt(toggle.dataset.rangeEnd);
-                updateTogglePosition(toggle, start, end);
+                updateTogglePosition(toggle);
             });
         });
 
         window.addEventListener('resize', () => {
             document.querySelectorAll('.toggle-sign').forEach(toggle => {
-                const start = parseInt(toggle.dataset.rangeStart);
-                const end = parseInt(toggle.dataset.rangeEnd);
-                updateTogglePosition(toggle, start, end);
+                updateTogglePosition(toggle);
             });
         });
 
