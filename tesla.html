@@ -422,8 +422,8 @@
 
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE" },
-            { start: 30, end: 42, name: "GROK" },
-            { start: 43, end: 58, name: "TradingView" } // Ajustado a 43-58 para incluir "TradingView" hasta "AMAZON"
+            { start: 30, end: 42, name: "GROK" }, // Termina en "Patrón Luz" (42)
+            { start: 43, end: 58, name: "TradingView" } // Comienza en "TradingView" (43) hasta "AMAZON" (58)
         ];
 
         const cellElements = [];
@@ -532,15 +532,17 @@
                 const end = parseInt(toggle.dataset.rangeEnd);
                 const state = toggle.dataset.state;
 
-                // Debugging: Verificar el rango
-                console.log(`Toggle clicked: start=${start}, end=${end}, state=${state}`);
+                // Debugging: Verificar el rango y las celdas afectadas
+                console.log(`Toggle clicked: name=${toggleRanges.find(r => r.start === start).name}, start=${start}, end=${end}, state=${state}`);
 
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
                         if (state === 'visible') {
                             cellElements[i].classList.add('hidden');
+                            console.log(`Hiding cell ${i}: ${bookmarks[i] ? bookmarks[i].name : 'empty'}`);
                         } else {
                             cellElements[i].classList.remove('hidden');
+                            console.log(`Showing cell ${i}: ${bookmarks[i] ? bookmarks[i].name : 'empty'}`);
                         }
                     }
                 }
