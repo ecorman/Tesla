@@ -239,18 +239,17 @@
         }
         .notice {
             color: #00ff00;
-            font-size: clamp(0.8rem, 2vw, 1.2rem); /* Ajuste inicial para caber */
+            font-size: clamp(1rem, 2vw, 1.20rem);
             font-weight: bold;
             position: absolute;
             white-space: nowrap;
             text-align: center;
-            animation: fadeInOut 4s ease-in-out infinite; /* Efecto fade */
         }
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
+        @keyframes slideWithPause {
+            0% { transform: translateX(-100%); }
+            35.71% { transform: var(--center-position); }
+            64.29% { transform: var(--center-position); }
+            100% { transform: translateX(calc(100% + 100%)); }
         }
         .megaphone-icon-start {
             width: auto;
@@ -266,7 +265,7 @@
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: fixed;
+            position: fixed; /* Cambiado a fixed */
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -405,7 +404,8 @@
             { name: "App MCE", url: "https://www.oscarabilleira.com/app-mi-coche-electrico/#ayuda" },
             { name: "Patrón Luz", url: "https://docs.google.com/spreadsheets/d/1R7UUZ9i4BAYWAGAX6PQT1WGd12GEZ4Ja/edit?usp=sharing&ouid=108345701896498198132&rtpof=true&sd=true" },
             { name: "TradingView", url: "https://es.tradingview.com/chart/t5g9UFG0/" },
-            null,
+            { name: "Inicio Tesla" }, // Sin URL ni contenido adicional
+            { name: "Twitter", url: "https://x.com" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
             { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
             { name: "TESLA web", url: "https://www.tesla.com/es_es" },
@@ -504,7 +504,13 @@
                     ? 'bookmark-item'
                     : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-                link.style.backgroundColor = colors[index];
+
+                // Forzar color blanco para "Inicio Tesla" (índice 42)
+                if (index === 42) {
+                    link.style.backgroundColor = '#FFFFFF';
+                } else {
+                    link.style.backgroundColor = colors[index];
+                }
 
                 if (bookmark.name !== "Inicio Tesla") {
                     link.target = "_blank";
@@ -528,9 +534,6 @@
                 }
 
                 cell.appendChild(link);
-            } else if (index === 43) { // Celda vacía después de TradingView
-                cell.className = 'bookmark-item';
-                cell.style.backgroundColor = '#FFFFFF'; // Fondo blanco
             } else {
                 cell.className = 'bg-gray-50 border border-dashed border-gray-200 rounded-lg';
             }
@@ -578,22 +581,21 @@
 
         function updateTogglePositions() {
             const scrollToggle = document.getElementById('scroll-toggle');
-            const scrollHeight = scrollToggle.offsetHeight;
-            const topPosition = 10 + scrollHeight + 30; // 30px debajo del scroll-toggle
-
+            const scrollRect = scrollToggle.getBoundingClientRect();
+            
             onOffToggle.style.left = '10px';
-            onOffToggle.style.top = `${topPosition}px`;
+            onOffToggle.style.top = '150px';
 
             document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach((toggle, index) => {
                 toggle.style.left = '10px';
-                toggle.style.top = `${topPosition + (index + 1) * 50}px`;
+                toggle.style.top = `${150 + (index + 1) * 50}px`;
             });
 
             reloadButton.style.left = '10px';
-            reloadButton.style.top = `${topPosition + (toggleRanges.length + 1) * 50}px`;
+            reloadButton.style.top = `${150 + (toggleRanges.length + 1) * 50}px`;
 
             homeButton.style.left = '10px';
-            homeButton.style.top = `${topPosition + (toggleRanges.length + 2) * 50}px`;
+            homeButton.style.top = `${150 + (toggleRanges.length + 2) * 50}px`;
         }
 
         window.addEventListener('resize', updateTogglePositions);
@@ -628,9 +630,7 @@
             }
         }
 
-        function updateAllToggles(state нази
-
-) {
+        function updateAllToggles(state) {
             const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)');
             toggles.forEach(toggle => {
                 if (state === 'on' && toggle.dataset.state === 'hidden') {
@@ -691,27 +691,28 @@
                 let isActive = true;
                 let timeoutId;
 
-                function adjustFontSize() {
+                function centerText() {
                     const wrapper = document.querySelector('.notice-wrapper');
                     const wrapperWidth = wrapper.offsetWidth;
-                    let fontSize = parseFloat(window.getComputedStyle(noticeElement).fontSize);
-                    noticeElement.style.fontSize = `${fontSize}px`;
-
-                    while (noticeElement.offsetWidth > wrapperWidth && fontSize > 8) {
-                        fontSize -= 1;
-                        noticeElement.style.fontSize = `${fontSize}px`;
+                    const textWidth = noticeElement.offsetWidth;
+                    const centerPosition = (wrapperWidth - textWidth) / 2;
+                    const centerPercentage = (centerPosition / wrapperWidth) * 100;
+                    noticeElement.style.setProperty('--center-position', `translateX(${centerPercentage}%)`);
+                    if (isActive) {
+                        noticeElement.style.animation = 'slideWithPause 14s linear forwards';
                     }
                 }
 
                 function showNextNotice() {
                     if (!isActive) return;
                     noticeElement.textContent = notices[currentIndex];
-                    adjustFontSize();
-                    noticeElement.style.opacity = '0';
-                    void noticeElement.offsetWidth; // Forzar reflow
-                    noticeElement.style.animation = 'fadeInOut 4s ease-in-out forwards';
+                    noticeElement.style.fontSize = 'clamp(1rem, 2vw, 1.20rem)';
+                    noticeElement.style.color = '#00ff00';
+                    noticeElement.style.animation = 'none';
+                    void noticeElement.offsetWidth;
+                    centerText();
                     currentIndex = (currentIndex + 1) % notices.length;
-                    timeoutId = setTimeout(showNextNotice, 4000);
+                    timeoutId = setTimeout(showNextNotice, 18000);
                 }
 
                 noticeElement.addEventListener('click', () => {
@@ -720,7 +721,7 @@
                         noticeElement.style.animation = 'none';
                         noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
                         noticeElement.style.color = '#808080';
-                        adjustFontSize();
+                        centerText();
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00';
