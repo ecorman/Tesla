@@ -254,18 +254,18 @@
         .megaphone-icon-start {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
-            margin-left: 40px; /* Cambiado de 30px a 40px */
+            margin-left: 40px;
             margin-right: 0;
         }
         .megaphone-icon-end {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
             margin-left: 0;
-            margin-right: 40px; /* Cambiado de 30px a 40px */
+            margin-right: 40px;
             transform: scaleX(-1);
         }
         .toggle-sign {
-            position: absolute;
+            position: fixed; /* Cambiado de absolute a fixed */
             width: 70px;
             height: 40px;
             border-radius: 20px;
@@ -276,7 +276,7 @@
             font-size: 1rem;
             text-align: center;
             cursor: pointer;
-            z-index: 20;
+            z-index: 1000; /* Aseguramos que esté por encima de otros elementos */
             transition: background-color 0.2s ease;
         }
         .toggle-sign .sign {
@@ -287,9 +287,9 @@
             background-color: #666666;
         }
         .toggle-sign img {
-            width: 24px; /* Tamaño ajustado para caber en el botón */
+            width: 24px;
             height: 24px;
-            object-fit: contain; /* Cambiado a contain para mantener proporciones */
+            object-fit: contain;
         }
         #on-off-toggle.on {
             color: #000000;
@@ -545,10 +545,8 @@
             toggle.dataset.state = 'visible';
             toggle.style.backgroundColor = '#006400'; // Verde oscuro inicial
             toggle.style.color = '#FFFFFF'; // Letra blanca inicial
-            const scrollToggle = document.getElementById('scroll-toggle');
-            const scrollRect = scrollToggle.getBoundingClientRect();
-            toggle.style.left = `${scrollRect.left}px`;
-            toggle.style.top = `${scrollRect.bottom + 20 + ((index + 1) * (toggle.offsetHeight + 20))}px`;
+            toggle.style.left = '10px'; // Fijo en la pantalla
+            toggle.style.top = `${150 + (index * 50)}px`; // Posición fija inicial
             document.body.appendChild(toggle);
         });
 
@@ -559,35 +557,31 @@
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.classList.add('on');
-        const scrollToggle = document.getElementById('scroll-toggle');
-        const scrollRect = scrollToggle.getBoundingClientRect();
-        onOffToggle.style.left = `${scrollRect.left}px`;
-        onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
+        onOffToggle.style.left = '10px'; // Fijo en la pantalla
+        onOffToggle.style.top = '110px'; // Posición fija inicial
         document.body.appendChild(onOffToggle);
 
         // Crear botón Reload
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#8B4513'; // Tono castaño
+        reloadButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        reloadButton.style.left = '10px'; // Fijo en la pantalla
+        reloadButton.style.top = `${150 + (toggleRanges.length * 50)}px`; // Posición fija
         reloadButton.addEventListener('click', () => location.reload());
+        document.body.appendChild(reloadButton);
 
         // Crear botón Home
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#8B4513'; // Tono castaño
+        homeButton.style.backgroundColor = '#1E3A8A'; // Azul oscuro
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        homeButton.style.left = '10px'; // Fijo en la pantalla
+        homeButton.style.top = `${150 + (toggleRanges.length + 1) * 50}px`; // Posición fija
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
         });
-
-        const toggleCount = toggleRanges.length;
-        reloadButton.style.left = `${scrollRect.left}px`;
-        reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 1) * (reloadButton.offsetHeight + 20)}px`;
-        homeButton.style.left = `${scrollRect.left}px`;
-        homeButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 2) * (homeButton.offsetHeight + 20)}px`;
-        document.body.appendChild(reloadButton);
         document.body.appendChild(homeButton);
 
         function updateToggleState(toggle) {
@@ -620,7 +614,7 @@
         }
 
         function updateAllToggles(state) {
-            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle)');
+            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)');
             toggles.forEach(toggle => {
                 if (state === 'on' && toggle.dataset.state === 'hidden') {
                     updateToggleState(toggle);
@@ -628,7 +622,7 @@
                     updateToggleState(toggle);
                 }
             });
-            onOffToggle.textContent = state === 'on' ? 'Off' : 'On';
+            onOffToggle.textContent = state === 'on' ? 'On' : 'Off';
             onOffToggle.style.backgroundColor = state === 'on' ? '#32CD32' : '#A9A9A9';
             onOffToggle.dataset.state = state;
             if (state === 'on') {
@@ -638,7 +632,7 @@
             }
         }
 
-        document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach(toggle => {
+        document.querySelectorAll('.toggle-sign:not(#on-off-toggle, #reload-button, #home-button)').forEach(toggle => {
             toggle.addEventListener('click', () => {
                 updateToggleState(toggle);
             });
@@ -648,24 +642,6 @@
             const currentState = onOffToggle.dataset.state;
             updateAllToggles(currentState === 'on' ? 'off' : 'on');
         });
-
-        function updateAllTogglePositions() {
-            const scrollToggle = document.getElementById('scroll-toggle');
-            const scrollRect = scrollToggle.getBoundingClientRect();
-            onOffToggle.style.left = `${scrollRect.left}px`;
-            onOffToggle.style.top = `${scrollRect.bottom + 20}px`;
-            document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach((toggle, index) => {
-                toggle.style.left = `${scrollRect.left}px`;
-                toggle.style.top = `${scrollRect.bottom + 20 + (index + 1) * (toggle.offsetHeight + 20)}px`;
-            });
-            reloadButton.style.left = `${scrollRect.left}px`;
-            reloadButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 1) * (reloadButton.offsetHeight + 20)}px`;
-            homeButton.style.left = `${scrollRect.left}px`;
-            homeButton.style.top = `${scrollRect.bottom + 20 + (toggleCount + 2) * (homeButton.offsetHeight + 20)}px`;
-        }
-
-        window.addEventListener('scroll', updateAllTogglePositions);
-        window.addEventListener('resize', updateAllTogglePositions);
 
         scrollToggle.addEventListener('click', () => {
             const scrollPosition = window.scrollY;
@@ -726,7 +702,7 @@
                         clearTimeout(timeoutId);
                         noticeElement.style.animation = 'none';
                         noticeElement.innerHTML = 'OFF <span style="color: #808080; font-size: 0.8rem;">(pulse para reactivar)</span>';
-                        noticeElement.style.color = '#38BDF8'; // Azul claro para "OFF"
+                        noticeElement.style.color = '#808080'; // Gris para "OFF"
                         centerText();
                         isActive = false;
                     } else {
@@ -745,15 +721,8 @@
 
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
-            const mainElement = document.querySelector('main');
-            
             topTextContainer.style.display = 'none';
-            const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
-            scrollToggle.style.top = `${mainTop - 5}px`;
-            updateAllTogglePositions();
         }, 9000);
-
-        updateAllTogglePositions();
     </script>
 </body>
 </html>
