@@ -532,6 +532,9 @@
                 const end = parseInt(toggle.dataset.rangeEnd);
                 const state = toggle.dataset.state;
 
+                // Debugging: Verificar el rango
+                console.log(`Toggle clicked: start=${start}, end=${end}, state=${state}`);
+
                 for (let i = start; i <= end; i++) {
                     if (cellElements[i]) {
                         if (state === 'visible') {
