@@ -11,7 +11,6 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
             position: relative;
-            padding-left: 20px; /* Espacio para el toggle */
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
@@ -76,6 +75,7 @@
             padding: 2rem;
             border-radius: 0.75rem;
             gap: 15px;
+            position: relative; /* Para posicionar los toggles respecto al grid */
         }
         .footer-subtext {
             font-size: 0.75rem;
@@ -214,14 +214,12 @@
         }
         .toggle-sign {
             position: absolute;
-            left: 5px;
-            top: 50%;
-            transform: translateY(-50%);
+            left: -40px; /* Pegado al borde izquierdo del grid */
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 2rem; /* Más grande */
             background-color: #000000;
-            padding: 2px 5px;
+            padding: 5px 10px;
             cursor: pointer;
             z-index: 20;
         }
@@ -414,9 +412,9 @@
         }
 
         const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE" },
-            { start: 30, end: 42, name: "GROK" },
-            { start: 43, end: 61, name: "TradingView" }
+            { start: 18, end: 29, name: "ELECTROVERSE" }, // ELECTROVERSE a EVDC
+            { start: 30, end: 42, name: "GROK" },        // GROK a Patrón Luz
+            { start: 43, end: 61, name: "TradingView" }  // TradingView a AMAZON + 3 espacios vacíos
         ];
 
         const cellElements = [];
@@ -461,6 +459,7 @@
                 link.appendChild(name);
                 cell.appendChild(link);
 
+                // Añadir toggle si es uno de los botones especificados
                 toggleRanges.forEach(range => {
                     if (bookmark.name === range.name) {
                         const toggle = document.createElement('span');
@@ -469,7 +468,14 @@
                         toggle.dataset.rangeStart = range.start;
                         toggle.dataset.rangeEnd = range.end;
                         toggle.dataset.state = 'visible';
+                        // Posicionar el toggle respecto a la celda
+                        cell.style.position = 'relative';
                         cell.appendChild(toggle);
+                        // Ajustar posición vertical dinámicamente después de renderizar
+                        setTimeout(() => {
+                            const cellTop = cell.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+                            toggle.style.top = `${cellTop + (cell.offsetHeight / 2)}px`;
+                        }, 0);
                     }
                 });
             } else {
@@ -481,6 +487,7 @@
             cellElements.push(cell);
         });
 
+        // Manejar el clic en los toggles
         document.querySelectorAll('.toggle-sign').forEach(toggle => {
             toggle.addEventListener('click', () => {
                 const start = parseInt(toggle.dataset.rangeStart);
