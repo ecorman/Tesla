@@ -588,16 +588,63 @@
         });
         document.body.appendChild(homeButton);
 
-const weatherButton = document.createElement('span');
-weatherButton.className = 'toggle-sign';
-weatherButton.style.backgroundColor = '#FBBF24'; // Amarillo suave que resalta el naranja
-weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[24px] h-[24px] object-contain rounded-full">`;
-weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-weatherButton.style.left = `${10}px`;
-weatherButton.addEventListener('click', () => {
-    window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
-});
-document.body.appendChild(weatherButton);
+        const weatherButton = document.createElement('span');
+        weatherButton.className = 'toggle-sign';
+        weatherButton.style.backgroundColor = '#FBBF24'; // Amarillo suave que resalta el naranja
+        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+        weatherButton.style.left = `${10}px`;
+        weatherButton.addEventListener('click', () => {
+            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
+        });
+        document.body.appendChild(weatherButton);
+
+                const zoomButton = document.createElement('span');
+        zoomButton.className = 'toggle-sign';
+        zoomButton.style.backgroundColor = '#F97316'; // Naranja inicial
+        zoomButton.innerHTML = `<img src="./zoon.png" alt="Zoom" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`; // Debajo del weatherButton
+        zoomButton.style.left = `${10}px`;
+        zoomButton.dataset.zoomState = 'off'; // Estado inicial
+        document.body.appendChild(zoomButton);
+        
+        zoomButton.addEventListener('click', () => {
+            const gridItems = document.querySelectorAll('.bookmark-item');
+            const currentState = zoomButton.dataset.zoomState;
+            
+            if (currentState === 'off') {
+                gridItems.forEach(item => {
+                    item.style.transform = 'scale(2)';
+                    item.style.transformOrigin = 'center';
+                });
+                zoomButton.style.backgroundColor = '#EA580C'; // Naranja más intenso
+                zoomButton.dataset.zoomState = 'on';
+            } else {
+                gridItems.forEach(item => {
+                    item.style.transform = 'scale(1)';
+                });
+                zoomButton.style.backgroundColor = '#F97316'; // Naranja inicial
+                zoomButton.dataset.zoomState = 'off';
+            }
+        });
+        
+        // Asegurar que el botón se reposicione con los demás
+        const buttons = [scrollToggle, ...document.querySelectorAll('.toggle-sign')];
+        window.addEventListener('load', () => {
+            const gridRect = grid.getBoundingClientRect();
+            const newLeft = gridRect.left - buttonWidth - desiredGap;
+            if (newLeft >= 10) {
+                buttons.forEach(button => button.style.left = `${newLeft}px`);
+            }
+        });
+        window.addEventListener('resize', () => {
+            const gridRect = grid.getBoundingClientRect();
+            const newLeft = gridRect.left - buttonWidth - desiredGap;
+            if (newLeft >= 10) {
+                buttons.forEach(button => button.style.left = `${newLeft}px`);
+            }
+        });
+       
 
         function clamp(min, val, max) {
             return Math.min(Math.max(val, min), max);
