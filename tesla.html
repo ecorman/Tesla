@@ -665,55 +665,132 @@
             window.history.forward();
         });
 
-fetch('avisos.txt')
-    .then(response => response.text())
-    .then(text => {
-        const notices = text.split('\n').filter(line => line.trim() !== '');
-        if (notices.length === 0) return;
+        // Función para formatear la fecha en YY.MM.DDHH
+        function formatVersionDate(date) {
+            const year = date.getFullYear().toString().slice(-2);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            return `${year}.${month}.${day}${hours}`;
+        }
 
-        const noticeElement = document.getElementById('current-notice');
-        const noticeWrapper = document.querySelector('.notice-wrapper');
-        let currentIndex = 0;
-        let isActive = true;
+        // Función para obtener la fecha de última modificación desde GitHub
+        async function getLastModifiedDate() {
+            const cacheKey = 'avisosLastModified';
+            const cacheTimestampKey = 'avisosLastModifiedTimestamp';
+            const cacheDuration = 24 * 60 * 60 * 1000; // 1 día en milisegundos
 
-        function adjustFontSize() {
-            let fontSize = 1.2;
-            noticeElement.style.fontSize = `${fontSize}rem`;
-            while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
-                fontSize -= 0.1;
-                noticeElement.style.fontSize = `${fontSize}rem`;
+            // Verificar si hay datos en caché y no han expirado
+            const cachedDate = localStorage.getItem(cacheKey);
+            const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+            const now = new Date().getTime();
+
+            if (cachedDate && cachedTimestamp && (now - cachedTimestamp < cacheDuration)) {
+                return new Date(cachedDate);
+            }
+
+            try {
+                // Reemplaza con la URL de tu repositorio y ruta al archivo
+                const repoUrl = 'https://api.github.com/repos/boardinggate/Tesla/contents/avisos.txt';
+                const response = await fetch(repoUrl, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('No se pudo obtener la información del archivo');
+                }
+
+                const data = await response.json();
+                const commitUrl = `https://api.github.com/repos/boardinggate/Tesla/commits?path=avisos.txt&per_page=1`;
+                const commitResponse = await fetch(commitUrl, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!commitResponse.ok) {
+                    throw new Error('No se pudo obtener la información del commit');
+                }
+
+                const commitData = await commitResponse.json();
+                const lastModified = commitData[0]?.commit?.committer?.date;
+
+                if (!lastModified) {
+                    throw new Error('No se encontró la fecha de última modificación');
+                }
+
+                const lastModifiedDate = new Date(lastModified);
+
+                // Almacenar en caché
+                localStorage.setItem(cacheKey, lastModifiedDate.toISOString());
+                localStorage.setItem(cacheTimestampKey, now.toString());
+
+                return lastModifiedDate;
+            } catch (error) {
+                console.error('Error al obtener la fecha de última modificación:', error);
+                // Fallback a la fecha actual si hay un error
+                return new Date();
             }
         }
 
-        function showNextNotice() {
-            if (!isActive) return;
-            noticeElement.textContent = notices[currentIndex];
-            adjustFontSize();
-            currentIndex = (currentIndex + 1) % notices.length;
-            setTimeout(showNextNotice, 14000);
+        // Actualizar el texto de la versión
+        async function updateVersion() {
+            const lastModifiedDate = await getLastModifiedDate();
+            const version = formatVersionDate(lastModifiedDate);
+            document.getElementById('version').textContent = ` versión: ${version}`;
         }
 
-        noticeElement.addEventListener('click', () => {
-            if (isActive) {
-                noticeElement.style.animation = 'none';
-                noticeElement.textContent = 'Avisos desactivados';
-                noticeElement.style.color = '#A9A9A9'; // Gris más claro
-                noticeElement.style.fontSize = '0.8rem'; // Tamaño pequeño
-                isActive = false;
-            } else {
-                noticeElement.style.color = '#00ff00';
-                noticeElement.style.animation = 'fadeInOut 14s infinite';
-                isActive = true;
+        fetch('avisos.txt')
+            .then(response => response.text())
+            .then(text => {
+                const notices = text.split('\n').filter(line => line.trim() !== '');
+                if (notices.length === 0) return;
+
+                const noticeElement = document.getElementById('current-notice');
+                const noticeWrapper = document.querySelector('.notice-wrapper');
+                let currentIndex = 0;
+                let isActive = true;
+
+                function adjustFontSize() {
+                    let fontSize = 1.2;
+                    noticeElement.style.fontSize = `${fontSize}rem`;
+                    while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
+                        fontSize -= 0.1;
+                        noticeElement.style.fontSize = `${fontSize}rem`;
+                    }
+                }
+
+                function showNextNotice() {
+                    if (!isActive) return;
+                    noticeElement.textContent = notices[currentIndex];
+                    adjustFontSize();
+                    currentIndex = (currentIndex + 1) % notices.length;
+                    setTimeout(showNextNotice, 14000);
+                }
+
+                noticeElement.addEventListener('click', () => {
+                    if (isActive) {
+                        noticeElement.style.animation = 'none';
+                        noticeElement.textContent = 'Avisos desactivados';
+                        noticeElement.style.color = '#A9A9A9';
+                        noticeElement.style.fontSize = '0.8rem';
+                        isActive = false;
+                    } else {
+                        noticeElement.style.color = '#00ff00';
+                        noticeElement.style.animation = 'fadeInOut 14s infinite';
+                        isActive = true;
+                        showNextNotice();
+                    }
+                });
+
                 showNextNotice();
-            }
-        });
-
-        showNextNotice();
-    })
-    .catch(error => {
-        console.error('Error al cargar avisos.txt:', error);
-        document.getElementById('current-notice').textContent = 'Error al cargar avisos';
-    });
+            })
+            .catch(error => {
+                console.error('Error al cargar avisos.txt:', error);
+                document.getElementById('current-notice').textContent = 'Error al cargar avisos';
+            });
 
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
@@ -723,13 +800,8 @@ fetch('avisos.txt')
             scrollToggle.style.top = `${mainTop - 5}px`;
         }, 9000);
 
-        const now = new Date();
-        const year = now.getFullYear().toString().slice(-2);
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const version = `${year}.${month}.${day}${hours}`;
-        document.getElementById('version').textContent = ` versión: ${version}`;
+        // Llamar a la función para actualizar la versión
+        updateVersion();
     </script>
 </body>
 </html>
