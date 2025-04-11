@@ -278,7 +278,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1.25rem; /* Aumentado de 1rem a 1.25rem */
             text-align: center;
             cursor: pointer;
             z-index: 1000;
@@ -353,7 +353,6 @@
             </div>
             <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
             <div class="counter-container text-center">
-                <p class="counter-label">Visitas únicas:</p>
                 <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
                 <script type="text/javascript" src="https://counter4.optistats.ovh/private/counter.js?c=g896pbr68y2dejczgbn1ys664xjxdf2d&down=async" async></script>
                 <br><a href="https://www.freecounterstat.com">website counter</a><noscript><a href="https://www.freecounterstat.com" title="website counter"><img src="https://counter4.optistats.ovh/private/freecounterstat.php?c=g896pbr68y2dejczgbn1ys664xjxdf2d" border="0" title="website counter" alt="website counter"></a></noscript>
@@ -497,8 +496,8 @@
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
             { start: 30, end: 41, name: "GROK", label: "iAs" },
-            { start: 42, end: 59, name: "TradingView", label: "Útiles" },
-            { start: 60, end: 95, name: "JOdena", label: "Otros" }
+            { start: 42, end: 59, name: "TradingView", label: "Útil" },
+            { start: 60, end: 95, name: "JOdena", label: "Varios" }
         ];
 
         const cellElements = [];
@@ -694,7 +693,7 @@
 
         zoomButton.addEventListener('click', () => {
             const currentState = zoomButton.dataset.zoomState;
-            const gridWidth = Math.min(1080, window.innerWidth - 32); // 1080px o menos si la pantalla es más pequeña (32px por padding)
+            const gridWidth = Math.min(1080, window.innerWidth - 32); // 1080px o menos si la pantalla es más pequeña
             const baseWidth = 120; // Ancho base del botón
             const zoomFactor = 1.3; // 30% más grande
             const gap = 15;
@@ -709,20 +708,6 @@
                     cell.style.width = `${zoomedWidth}px`;
                     cell.style.height = `${zoomedWidth * 9 / 16}px`; // Mantener aspect-ratio 16/9
                 });
-                document.querySelectorAll('.bookmark-item img').forEach(img => {
-                    img.style.width = '39%'; // 30% * 1.3
-                    img.style.maxWidth = `${36 * zoomFactor}px`; // 36px * 1.3 = 46.8px
-                });
-                document.querySelectorAll('.small-bookmark img').forEach(img => {
-                    img.style.width = '26%'; // 20% * 1.3
-                    img.style.maxWidth = `${20 * zoomFactor}px`; // 20px * 1.3 = 26px
-                });
-                document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = `clamp(${0.75 * zoomFactor}rem, ${1.5 * zoomFactor}vw, ${1.05 * zoomFactor}rem)`;
-                });
-                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = `clamp(${0.65 * zoomFactor}rem, ${1.2 * zoomFactor}vw, ${0.95 * zoomFactor}rem)`;
-                });
                 zoomButton.style.backgroundColor = '#C2410C';
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'on';
@@ -732,20 +717,6 @@
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = 'auto';
                     cell.style.height = 'auto';
-                });
-                document.querySelectorAll('.bookmark-item img').forEach(img => {
-                    img.style.width = '30%';
-                    img.style.maxWidth = '36px';
-                });
-                document.querySelectorAll('.small-bookmark img').forEach(img => {
-                    img.style.width = '20%';
-                    img.style.maxWidth = '20px';
-                });
-                document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.75rem, 1.5vw, 1.05rem)';
-                });
-                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.65rem, 1.2vw, 0.95rem)';
                 });
                 zoomButton.style.backgroundColor = '#F97316';
                 zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
