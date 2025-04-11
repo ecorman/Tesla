@@ -142,8 +142,8 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 91px; /* 70px * 1.3 */
-            height: clamp(92px, 23vw, 207px); /* 80px*1.15, 180px*1.15 */
+            width: 91px;
+            height: clamp(92px, 23vw, 207px);
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
@@ -155,7 +155,7 @@
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             transition: background-color 0.2s ease;
-            left: 10px; /* Punto de partida fijo */
+            left: 10px;
             top: 10px;
         }
         .scroll-toggle-button svg {
@@ -251,9 +251,9 @@
             90% { opacity: 1; }
             100% { opacity: 0; }
         }
-        .megaphone-icon-start {
-            width: auto;
-            height: clamp(2rem, 5vw, 3rem);
+        .notice-off-text {
+            color: #4B5563;
+            font-size: 0.8rem;
             margin-left: 40px;
             margin-right: 0;
         }
@@ -266,8 +266,8 @@
         }
         .toggle-sign {
             position: fixed;
-            width: 91px; /* 70px * 1.3 */
-            height: 46px; /* 40px * 1.15 */
+            width: 91px;
+            height: 46px;
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -278,7 +278,7 @@
             cursor: pointer;
             z-index: 1000;
             transition: background-color 0.2s ease;
-            left: 10px; /* Punto de partida fijo */
+            left: 10px;
         }
         .toggle-sign .sign {
             font-size: 1.5rem;
@@ -321,7 +321,7 @@
     </main>
 
     <div class="notices-container">
-        <img src="./avisos.png" alt="Megáfono Inicio" class="megaphone-icon-start">
+        <span class="notice-off-text">Pulse para OFF: </span>
         <div class="notice-wrapper">
             <span class="notice" id="current-notice"></span>
         </div>
@@ -374,7 +374,7 @@
             { name: "REVE PdR España", url: "https://www.mapareve.es/mapa-puntos-recarga", favicon: "https://www.google.com/s2/favicons?domain=mapareve.es&sz=64" },
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 18h8v2h-8v-2z'/><path d='M12 14h8v2h-8v-2z'/><path d='M12 10h8v2h-8v-2z'/><path d='M12 6h8v2h-8V6z'/><path d='M4 18h4v-2H4v2zM4 14h4v-2H4v2zM4 10h4v-2H4v2zM4 6h4V4H4v2z'/></svg>" },
             { name: "Google Maps", url: "https://maps.google.com" },
-            { name: "TIEMPO", url: "https://www.ventusky.com/?p=40.09;-5.15;6&l=rain-3h", favicon: "https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" },
+            { name: "TIEMPO", url: "https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h", favicon: "https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" },
             { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" },
             { name: "Mis Updates", url: "https://dash.tessie.com/software", favicon: "https://cdn-icons-png.flaticon.com/512/148/148767.png" },
             { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/5815902.png" },
@@ -537,10 +537,10 @@
             cellElements.push(cell);
         });
 
-        const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207); // Ajustado al nuevo alto
-        const buttonSpacing = 50;
-        const buttonWidth = 91; // Nuevo ancho de los botones
-        const desiredGap = 40; // Separación deseada desde el borde derecho
+        const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
+        const buttonSpacing = 55; // Aumentado de 50 a 55 para 5px de separación adicional
+        const buttonWidth = 91;
+        const desiredGap = 40;
 
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
@@ -549,7 +549,7 @@
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-        onOffToggle.style.left = `${10}px`; // Posición inicial fija
+        onOffToggle.style.left = `${10}px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
@@ -563,30 +563,41 @@
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
-            toggle.style.left = `${10}px`; // Posición inicial fija
+            toggle.style.left = `${10}px`;
             document.body.appendChild(toggle);
         });
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#5DA8D6'; // Celeste más oscuro
+        reloadButton.style.backgroundColor = '#5DA8D6';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-        reloadButton.style.left = `${10}px`; // Posición inicial fija
+        reloadButton.style.left = `${10}px`;
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#5DA8D6'; // Celeste más oscuro
+        homeButton.style.backgroundColor = '#5DA8D6';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        homeButton.style.left = `${10}px`; // Posición inicial fija
+        homeButton.style.left = `${10}px`;
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
         });
         document.body.appendChild(homeButton);
+
+        const weatherButton = document.createElement('span');
+        weatherButton.className = 'toggle-sign';
+        weatherButton.style.backgroundColor = '#D97706'; // Amarillo oscuro
+        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+        weatherButton.style.left = `${10}px`;
+        weatherButton.addEventListener('click', () => {
+            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
+        });
+        document.body.appendChild(weatherButton);
 
         function clamp(min, val, max) {
             return Math.min(Math.max(val, min), max);
@@ -671,7 +682,6 @@
             window.history.forward();
         });
 
-        // Función para formatear la fecha en YY.MM.DDHH
         function formatVersionDate(date) {
             const year = date.getFullYear().toString().slice(-2);
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -680,11 +690,10 @@
             return `${year}.${month}.${day}${hours}`;
         }
 
-        // Función para obtener la fecha de última modificación desde GitHub
         async function getLastModifiedDate() {
             const cacheKey = 'avisosLastModified';
             const cacheTimestampKey = 'avisosLastModifiedTimestamp';
-            const cacheDuration = 24 * 60 * 60 * 1000; // 1 día en milisegundos
+            const cacheDuration = 24 * 60 * 60 * 1000;
 
             const cachedDate = localStorage.getItem(cacheKey);
             const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
@@ -697,36 +706,25 @@
             try {
                 const repoUrl = 'https://api.github.com/repos/boardinggate/Tesla/contents/avisos.txt';
                 const response = await fetch(repoUrl, {
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
+                    headers: { 'Accept': 'application/vnd.github.v3+json' }
                 });
 
-                if (!response.ok) {
-                    throw new Error('No se pudo obtener la información del archivo');
-                }
+                if (!response.ok) throw new Error('No se pudo obtener la información del archivo');
 
                 const data = await response.json();
                 const commitUrl = `https://api.github.com/repos/boardinggate/Tesla/commits?path=avisos.txt&per_page=1`;
                 const commitResponse = await fetch(commitUrl, {
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
+                    headers: { 'Accept': 'application/vnd.github.v3+json' }
                 });
 
-                if (!commitResponse.ok) {
-                    throw new Error('No se pudo obtener la información del commit');
-                }
+                if (!commitResponse.ok) throw new Error('No se pudo obtener la información del commit');
 
                 const commitData = await commitResponse.json();
                 const lastModified = commitData[0]?.commit?.committer?.date;
 
-                if (!lastModified) {
-                    throw new Error('No se encontró la fecha de última modificación');
-                }
+                if (!lastModified) throw new Error('No se encontró la fecha de última modificación');
 
                 const lastModifiedDate = new Date(lastModified);
-
                 localStorage.setItem(cacheKey, lastModifiedDate.toISOString());
                 localStorage.setItem(cacheTimestampKey, now.toString());
 
@@ -737,7 +735,6 @@
             }
         }
 
-        // Actualizar el texto de la versión
         async function updateVersion() {
             const lastModifiedDate = await getLastModifiedDate();
             const version = formatVersionDate(lastModifiedDate);
@@ -804,11 +801,10 @@
 
         updateVersion();
 
-        // Ajustar la posición de los botones para mantener 40px de separación del grid
         function adjustButtonPositions() {
             const gridRect = grid.getBoundingClientRect();
             const newLeft = gridRect.left - buttonWidth - desiredGap;
-            if (newLeft >= 10) { // Asegurarse de que no se salga del borde izquierdo
+            if (newLeft >= 10) {
                 const buttons = [scrollToggle, ...document.querySelectorAll('.toggle-sign')];
                 buttons.forEach(button => {
                     button.style.left = `${newLeft}px`;
