@@ -40,6 +40,7 @@
             width: 100%;
             max-width: 1080px;
             transition: all 0.3s ease;
+            margin-left: 60px; /* Margen adicional de 60px a la izquierda */
         }
         #bookmark-grid > div {
             height: auto;
@@ -77,6 +78,7 @@
                 grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
                 padding: 1rem;
+                margin-left: 60px;
             }
         }
         @media (max-width: 480px) {
@@ -84,6 +86,7 @@
                 grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
                 padding: 0.5rem;
+                margin-left: 60px;
             }
         }
         .header-container {
@@ -542,7 +545,7 @@
         const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
         const buttonSpacing = 55;
         const buttonWidth = 91;
-        const desiredGap = 45; // Separación ajustada a 45px
+        const desiredGap = 45; // Separación entre botones y grid
 
         const scrollToggle = document.getElementById('scroll-toggle');
         const onOffToggle = document.createElement('span');
@@ -691,16 +694,15 @@
 
         zoomButton.addEventListener('click', () => {
             const currentState = zoomButton.dataset.zoomState;
-            const gridWidth = 1080; // Ancho fijo del grid
-            const baseWidth = 120; // Ancho base del botón
-            const zoomFactor = 1.3; // 30% más grande
+            const originalWidth = 1080; // Ancho original del grid con 6 botones
+            const originalCols = 6;
+            const zoomedCols = 4;
             const gap = 15;
-            const maxColumns = 6;
-            const zoomedWidth = baseWidth * zoomFactor; // 156px
-            const availableColumns = Math.min(maxColumns, Math.floor((gridWidth + gap) / (zoomedWidth + gap))); // Máximo 6 columnas
+            const originalCellWidth = (originalWidth - (originalCols - 1) * gap) / originalCols; // 165px
+            const zoomedWidth = (originalWidth + gap) / zoomedCols - gap; // 262.5px
 
             if (currentState === 'off') {
-                grid.style.gridTemplateColumns = `repeat(${availableColumns}, ${zoomedWidth}px)`;
+                grid.style.gridTemplateColumns = `repeat(${zoomedCols}, ${zoomedWidth}px)`;
                 grid.style.gap = `${gap}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = `${zoomedWidth}px`;
@@ -710,7 +712,7 @@
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'on';
             } else {
-                grid.style.gridTemplateColumns = 'repeat(6, minmax(120px, 1fr))';
+                grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(120px, 1fr))`;
                 grid.style.gap = `${gap}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = 'auto';
