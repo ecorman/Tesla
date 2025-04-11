@@ -257,7 +257,7 @@
             100% { opacity: 0; }
         }
         .notice-off-text {
-            color: #6B7280; /* Gris más claro */
+            color: #6B7280;
             font-size: 0.8rem;
             margin-left: 40px;
             margin-right: 0;
@@ -293,8 +293,8 @@
             background-color: #666666;
         }
         .toggle-sign img {
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             object-fit: contain;
         }
         #on-off-toggle.on {
@@ -694,33 +694,41 @@
 
         zoomButton.addEventListener('click', () => {
             const currentState = zoomButton.dataset.zoomState;
+            const gridWidth = Math.min(1080, window.innerWidth - 32); // 1080px o menos si la pantalla es más pequeña (32px por padding)
+            const baseWidth = 120; // Ancho base del botón
+            const zoomFactor = 1.3; // 30% más grande
+            const gap = 15;
+            const maxColumns = 6;
+            const zoomedWidth = baseWidth * zoomFactor; // 156px
+            const availableColumns = Math.min(maxColumns, Math.floor((gridWidth + gap) / (zoomedWidth + gap))); // Máximo 6 columnas
+
             if (currentState === 'off') {
-                grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(156px, 1fr))'; // Ajuste dinámico
-                grid.style.gap = '15px'; // Mismo gap que en estado normal
+                grid.style.gridTemplateColumns = `repeat(${availableColumns}, ${zoomedWidth}px)`;
+                grid.style.gap = `${gap}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
-                    cell.style.width = '156px'; // Ancho base * 1.3
-                    cell.style.height = `${156 * 9 / 16}px`; // Mantener aspect-ratio 16/9
+                    cell.style.width = `${zoomedWidth}px`;
+                    cell.style.height = `${zoomedWidth * 9 / 16}px`; // Mantener aspect-ratio 16/9
                 });
                 document.querySelectorAll('.bookmark-item img').forEach(img => {
                     img.style.width = '39%'; // 30% * 1.3
-                    img.style.maxWidth = '46.8px'; // 36px * 1.3
+                    img.style.maxWidth = `${36 * zoomFactor}px`; // 36px * 1.3 = 46.8px
                 });
                 document.querySelectorAll('.small-bookmark img').forEach(img => {
                     img.style.width = '26%'; // 20% * 1.3
-                    img.style.maxWidth = '26px'; // 20px * 1.3
+                    img.style.maxWidth = `${20 * zoomFactor}px`; // 20px * 1.3 = 26px
                 });
                 document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.975rem, 1.95vw, 1.365rem)'; // 1.3x normal
+                    name.style.fontSize = `clamp(${0.75 * zoomFactor}rem, ${1.5 * zoomFactor}vw, ${1.05 * zoomFactor}rem)`;
                 });
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.845rem, 1.56vw, 1.235rem)'; // 1.3x small
+                    name.style.fontSize = `clamp(${0.65 * zoomFactor}rem, ${1.2 * zoomFactor}vw, ${0.95 * zoomFactor}rem)`;
                 });
                 zoomButton.style.backgroundColor = '#C2410C';
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'on';
             } else {
-                grid.style.gridTemplateColumns = 'repeat(6, minmax(120px, 1fr))'; // 6 columnas fijas
-                grid.style.gap = '15px';
+                grid.style.gridTemplateColumns = 'repeat(6, minmax(120px, 1fr))';
+                grid.style.gap = `${gap}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = 'auto';
                     cell.style.height = 'auto';
