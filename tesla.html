@@ -142,8 +142,8 @@
         }
         .scroll-toggle-button {
             position: fixed;
-            width: 70px;
-            height: clamp(80px, 20vw, 180px);
+            width: 91px; /* 70px * 1.3 */
+            height: clamp(92px, 23vw, 207px); /* 80px*1.15, 180px*1.15 */
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
@@ -155,7 +155,7 @@
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             transition: background-color 0.2s ease;
-            left: 10px;
+            left: 10px; /* Punto de partida fijo */
             top: 10px;
         }
         .scroll-toggle-button svg {
@@ -266,8 +266,8 @@
         }
         .toggle-sign {
             position: fixed;
-            width: 70px;
-            height: 40px;
+            width: 91px; /* 70px * 1.3 */
+            height: 46px; /* 40px * 1.15 */
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -278,7 +278,7 @@
             cursor: pointer;
             z-index: 1000;
             transition: background-color 0.2s ease;
-            left: 10px;
+            left: 10px; /* Punto de partida fijo */
         }
         .toggle-sign .sign {
             font-size: 1.5rem;
@@ -537,8 +537,10 @@
             cellElements.push(cell);
         });
 
-        const scrollToggleHeight = clamp(80, 20 * window.innerWidth / 100, 180);
+        const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207); // Ajustado al nuevo alto
         const buttonSpacing = 50;
+        const buttonWidth = 91; // Nuevo ancho de los botones
+        const desiredGap = 40; // Separación deseada desde el borde derecho
 
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
@@ -547,6 +549,7 @@
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
+        onOffToggle.style.left = `${10}px`; // Posición inicial fija
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
@@ -560,22 +563,25 @@
             toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
+            toggle.style.left = `${10}px`; // Posición inicial fija
             document.body.appendChild(toggle);
         });
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#87CEEB';
+        reloadButton.style.backgroundColor = '#5DA8D6'; // Celeste más oscuro
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
+        reloadButton.style.left = `${10}px`; // Posición inicial fija
         reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#87CEEB';
+        homeButton.style.backgroundColor = '#5DA8D6'; // Celeste más oscuro
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
+        homeButton.style.left = `${10}px`; // Posición inicial fija
         homeButton.addEventListener('click', (e) => {
             e.preventDefault();
             window.history.back();
@@ -680,7 +686,6 @@
             const cacheTimestampKey = 'avisosLastModifiedTimestamp';
             const cacheDuration = 24 * 60 * 60 * 1000; // 1 día en milisegundos
 
-            // Verificar si hay datos en caché y no han expirado
             const cachedDate = localStorage.getItem(cacheKey);
             const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
             const now = new Date().getTime();
@@ -690,7 +695,6 @@
             }
 
             try {
-                // Reemplaza con la URL de tu repositorio y ruta al archivo
                 const repoUrl = 'https://api.github.com/repos/boardinggate/Tesla/contents/avisos.txt';
                 const response = await fetch(repoUrl, {
                     headers: {
@@ -723,14 +727,12 @@
 
                 const lastModifiedDate = new Date(lastModified);
 
-                // Almacenar en caché
                 localStorage.setItem(cacheKey, lastModifiedDate.toISOString());
                 localStorage.setItem(cacheTimestampKey, now.toString());
 
                 return lastModifiedDate;
             } catch (error) {
                 console.error('Error al obtener la fecha de última modificación:', error);
-                // Fallback a la fecha actual si hay un error
                 return new Date();
             }
         }
@@ -800,8 +802,22 @@
             scrollToggle.style.top = `${mainTop - 5}px`;
         }, 9000);
 
-        // Llamar a la función para actualizar la versión
         updateVersion();
+
+        // Ajustar la posición de los botones para mantener 40px de separación del grid
+        function adjustButtonPositions() {
+            const gridRect = grid.getBoundingClientRect();
+            const newLeft = gridRect.left - buttonWidth - desiredGap;
+            if (newLeft >= 10) { // Asegurarse de que no se salga del borde izquierdo
+                const buttons = [scrollToggle, ...document.querySelectorAll('.toggle-sign')];
+                buttons.forEach(button => {
+                    button.style.left = `${newLeft}px`;
+                });
+            }
+        }
+
+        window.addEventListener('load', adjustButtonPositions);
+        window.addEventListener('resize', adjustButtonPositions);
     </script>
 </body>
 </html>
