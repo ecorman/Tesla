@@ -40,7 +40,7 @@
             width: 100%;
             max-width: 1080px;
             transition: all 0.3s ease;
-            margin-left: 60px; /* Margen adicional de 60px a la izquierda */
+            margin-left: 60px;
         }
         #bookmark-grid > div {
             height: auto;
@@ -58,20 +58,20 @@
             transition: all 0.3s ease;
         }
         .bookmark-item img {
-            width: 30%;
+            width: 36px;
             height: auto;
-            max-width: 36px;
+            max-width: 40px;
             border-radius: 0.25rem;
         }
         .bookmark-name {
-            font-size: clamp(0.75rem, 1.5vw, 1.05rem);
+            font-size: clamp(0.85rem, 1.5vw, 1.15rem);
         }
         .small-bookmark img {
-            width: 20%;
-            max-width: 20px;
+            width: 24px;
+            max-width: 28px;
         }
         .small-bookmark .bookmark-name {
-            font-size: clamp(0.65rem, 1.2vw, 0.95rem);
+            font-size: clamp(0.75rem, 1.2vw, 1.05rem);
         }
         @media (max-width: 768px) {
             #bookmark-grid {
@@ -273,7 +273,7 @@
         .toggle-sign {
             position: fixed;
             width: 91px;
-            height: 46px;
+            height: 54px;
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -544,9 +544,9 @@
         });
 
         const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
-        const buttonSpacing = 55;
+        const buttonSpacing = 58;
         const buttonWidth = 91;
-        const desiredGap = 45; // Separación entre botones y grid
+        const desiredGap = 45;
 
         const scrollToggle = document.getElementById('scroll-toggle');
         const onOffToggle = document.createElement('span');
@@ -695,19 +695,35 @@
 
         zoomButton.addEventListener('click', () => {
             const currentState = zoomButton.dataset.zoomState;
-            const originalWidth = 1080; // Ancho original del grid con 6 botones
+            const originalWidth = 1080;
+            const adjustedWidth = 1030;
             const originalCols = 6;
             const zoomedCols = 4;
             const gap = 15;
-            const originalCellWidth = (originalWidth - (originalCols - 1) * gap) / originalCols; // 165px
-            const zoomedWidth = (originalWidth + gap) / zoomedCols - gap; // 262.5px
+            const originalCellWidth = (originalWidth - (originalCols - 1) * gap) / originalCols;
+            const zoomedCellWidth = (adjustedWidth - (zoomedCols - 1) * gap) / zoomedCols;
 
             if (currentState === 'off') {
-                grid.style.gridTemplateColumns = `repeat(${zoomedCols}, ${zoomedWidth}px)`;
+                grid.style.gridTemplateColumns = `repeat(${zoomedCols}, ${zoomedCellWidth}px)`;
                 grid.style.gap = `${gap}px`;
+                grid.style.maxWidth = `${adjustedWidth}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
-                    cell.style.width = `${zoomedWidth}px`;
-                    cell.style.height = `${zoomedWidth * 9 / 16}px`; // Mantener aspect-ratio 16/9
+                    cell.style.width = `${zoomedCellWidth}px`;
+                    cell.style.height = `${zoomedCellWidth * 9 / 16}px`;
+                });
+                document.querySelectorAll('.bookmark-item img').forEach(img => {
+                    img.style.width = '48px';
+                    img.style.maxWidth = '56px';
+                });
+                document.querySelectorAll('.bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
+                });
+                document.querySelectorAll('.small-bookmark img').forEach(img => {
+                    img.style.width = '32px';
+                    img.style.maxWidth = '40px';
+                });
+                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(0.95rem, 1.5vw, 1.25rem)';
                 });
                 zoomButton.style.backgroundColor = '#C2410C';
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
@@ -715,15 +731,30 @@
             } else {
                 grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(120px, 1fr))`;
                 grid.style.gap = `${gap}px`;
+                grid.style.maxWidth = `${originalWidth}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = 'auto';
                     cell.style.height = 'auto';
+                });
+                document.querySelectorAll('.bookmark-item img').forEach(img => {
+                    img.style.width = '36px';
+                    img.style.maxWidth = '40px';
+                });
+                document.querySelectorAll('.bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
+                });
+                document.querySelectorAll('.small-bookmark img').forEach(img => {
+                    img.style.width = '24px';
+                    img.style.maxWidth = '28px';
+                });
+                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(0.75rem, 1.2vw, 1.05rem)';
                 });
                 zoomButton.style.backgroundColor = '#F97316';
                 zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'off';
             }
-            adjustButtonPositions(); // Ajustar posición de botones después de zoom
+            adjustButtonPositions();
         });
 
         const backButton = document.getElementById('back-button');
@@ -856,15 +887,15 @@
 
         function adjustButtonPositions() {
             const gridRect = grid.getBoundingClientRect();
-            const newLeft = gridRect.left - buttonWidth - desiredGap; // 45px de separación fija
-            const minLeft = 10; // Mínimo 10px desde el borde izquierdo de la pantalla
+            const newLeft = gridRect.left - buttonWidth - desiredGap;
+            const minLeft = 10;
 
             buttons.forEach(button => {
-                button.style.left = `${Math.max(minLeft, newLeft)}px`; // Nunca menos de 10px, nunca superpuesto
+                button.style.left = `${Math.max(minLeft, newLeft)}px`;
             });
         }
 
-        window.adecentéis tener('load', adjustButtonPositions);
+        window.addEventListener('load', adjustButtonPositions);
         window.addEventListener('resize', adjustButtonPositions);
     </script>
 </body>
