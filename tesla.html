@@ -588,16 +588,16 @@
         });
         document.body.appendChild(homeButton);
 
-        const weatherButton = document.createElement('span');
-        weatherButton.className = 'toggle-sign';
-        weatherButton.style.backgroundColor = '#D97706'; // Amarillo oscuro
-        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-        weatherButton.style.left = `${10}px`;
-        weatherButton.addEventListener('click', () => {
-            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
-        });
-        document.body.appendChild(weatherButton);
+const weatherButton = document.createElement('span');
+weatherButton.className = 'toggle-sign';
+weatherButton.style.backgroundColor = '#FBBF24'; // Amarillo suave que resalta el naranja
+weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[24px] h-[24px] object-contain rounded-full">`;
+weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+weatherButton.style.left = `${10}px`;
+weatherButton.addEventListener('click', () => {
+    window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
+});
+document.body.appendChild(weatherButton);
 
         function clamp(min, val, max) {
             return Math.min(Math.max(val, min), max);
