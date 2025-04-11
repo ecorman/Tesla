@@ -257,14 +257,14 @@
         .notice-off-text {
             color: #6B7280;
             font-size: 0.8rem;
-            margin-left: 40px;
+            margin-left: 45px;
             margin-right: 0;
         }
         .megaphone-icon-end {
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
             margin-left: 0;
-            margin-right: 40px;
+            margin-right: 45px;
             transform: scaleX(-1);
         }
         .toggle-sign {
@@ -542,7 +542,7 @@
         const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
         const buttonSpacing = 55;
         const buttonWidth = 91;
-        const desiredGap = 40;
+        const desiredGap = 45; // Separación ajustada a 45px
 
         const scrollToggle = document.getElementById('scroll-toggle');
         const onOffToggle = document.createElement('span');
@@ -853,7 +853,7 @@
 
         function adjustButtonPositions() {
             const gridRect = grid.getBoundingClientRect();
-            const newLeft = gridRect.left - buttonWidth - desiredGap; // 40px de separación fija
+            const newLeft = gridRect.left - buttonWidth - desiredGap; // 45px de separación fija
             const minLeft = 10; // Mínimo 10px desde el borde izquierdo de la pantalla
 
             buttons.forEach(button => {
