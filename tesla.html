@@ -538,10 +538,11 @@
         });
 
         const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
-        const buttonSpacing = 55; // Aumentado de 50 a 55 para 5px de separación adicional
+        const buttonSpacing = 55;
         const buttonWidth = 91;
         const desiredGap = 40;
 
+        const scrollToggle = document.getElementById('scroll-toggle');
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
@@ -553,7 +554,7 @@
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
-        toggleRanges.forEach((range, index) => {
+        const toggleButtons = toggleRanges.map((range, index) => {
             const toggle = document.createElement('span');
             toggle.className = 'toggle-sign';
             toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
@@ -565,6 +566,7 @@
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
             toggle.style.left = `${10}px`;
             document.body.appendChild(toggle);
+            return toggle;
         });
 
         const reloadButton = document.createElement('span');
@@ -573,7 +575,6 @@
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[24px] h-[24px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
         reloadButton.style.left = `${10}px`;
-        reloadButton.addEventListener('click', () => location.reload());
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
@@ -582,69 +583,26 @@
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[24px] h-[24px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         homeButton.style.left = `${10}px`;
-        homeButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.history.back();
-        });
         document.body.appendChild(homeButton);
 
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
-        weatherButton.style.backgroundColor = '#FBBF24'; // Amarillo suave que resalta el naranja
+        weatherButton.style.backgroundColor = '#FBBF24';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[24px] h-[24px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         weatherButton.style.left = `${10}px`;
-        weatherButton.addEventListener('click', () => {
-            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
-        });
         document.body.appendChild(weatherButton);
 
-                const zoomButton = document.createElement('span');
+        const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
-        zoomButton.style.backgroundColor = '#F97316'; // Naranja inicial
-        zoomButton.innerHTML = `<img src="./zoon.png" alt="Zoom" class="w-[24px] h-[24px] object-contain rounded-full">`;
-        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`; // Debajo del weatherButton
+        zoomButton.style.backgroundColor = '#F97316';
+        zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[24px] h-[24px] object-contain rounded-full">`;
+        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
         zoomButton.style.left = `${10}px`;
-        zoomButton.dataset.zoomState = 'off'; // Estado inicial
+        zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
-        
-        zoomButton.addEventListener('click', () => {
-            const gridItems = document.querySelectorAll('.bookmark-item');
-            const currentState = zoomButton.dataset.zoomState;
-            
-            if (currentState === 'off') {
-                gridItems.forEach(item => {
-                    item.style.transform = 'scale(2)';
-                    item.style.transformOrigin = 'center';
-                });
-                zoomButton.style.backgroundColor = '#EA580C'; // Naranja más intenso
-                zoomButton.dataset.zoomState = 'on';
-            } else {
-                gridItems.forEach(item => {
-                    item.style.transform = 'scale(1)';
-                });
-                zoomButton.style.backgroundColor = '#F97316'; // Naranja inicial
-                zoomButton.dataset.zoomState = 'off';
-            }
-        });
-        
-        // Asegurar que el botón se reposicione con los demás
-        const buttons = [scrollToggle, ...document.querySelectorAll('.toggle-sign')];
-        window.addEventListener('load', () => {
-            const gridRect = grid.getBoundingClientRect();
-            const newLeft = gridRect.left - buttonWidth - desiredGap;
-            if (newLeft >= 10) {
-                buttons.forEach(button => button.style.left = `${newLeft}px`);
-            }
-        });
-        window.addEventListener('resize', () => {
-            const gridRect = grid.getBoundingClientRect();
-            const newLeft = gridRect.left - buttonWidth - desiredGap;
-            if (newLeft >= 10) {
-                buttons.forEach(button => button.style.left = `${newLeft}px`);
-            }
-        });
-       
+
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton];
 
         function clamp(min, val, max) {
             return Math.min(Math.max(val, min), max);
@@ -680,8 +638,7 @@
         }
 
         function updateAllToggles(state) {
-            const toggles = document.querySelectorAll('.toggle-sign:not(#on-off-toggle)');
-            toggles.forEach(toggle => {
+            toggleButtons.forEach(toggle => {
                 if (state === 'on' && toggle.dataset.state === 'hidden') {
                     updateToggleState(toggle);
                 } else if (state === 'off' && toggle.dataset.state === 'visible') {
@@ -698,18 +655,6 @@
             }
         }
 
-        document.querySelectorAll('.toggle-sign:not(#on-off-toggle)').forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                updateToggleState(toggle);
-            });
-        });
-
-        onOffToggle.addEventListener('click', () => {
-            const currentState = onOffToggle.dataset.state;
-            updateAllToggles(currentState === 'on' ? 'off' : 'on');
-        });
-
-        const scrollToggle = document.getElementById('scroll-toggle');
         scrollToggle.addEventListener('click', () => {
             const scrollPosition = window.scrollY;
             const maxScroll = document.body.scrollHeight - window.innerHeight;
@@ -717,6 +662,48 @@
                 window.scrollTo({ top: maxScroll, behavior: 'smooth' });
             } else {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        onOffToggle.addEventListener('click', () => {
+            const currentState = onOffToggle.dataset.state;
+            updateAllToggles(currentState === 'on' ? 'off' : 'on');
+        });
+
+        toggleButtons.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                updateToggleState(toggle);
+            });
+        });
+
+        reloadButton.addEventListener('click', () => location.reload());
+
+        homeButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.history.back();
+        });
+
+        weatherButton.addEventListener('click', () => {
+            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
+        });
+
+        zoomButton.addEventListener('click', () => {
+            const currentState = zoomButton.dataset.zoomState;
+            if (currentState === 'off') {
+                grid.style.transform = 'scale(2)';
+                grid.style.transformOrigin = 'top left';
+                grid.style.gridTemplateColumns = 'repeat(6, minmax(240px, 1fr))';
+                grid.style.gap = '30px';
+                zoomButton.style.backgroundColor = '#C2410C';
+                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[24px] h-[24px] object-contain rounded-full">`;
+                zoomButton.dataset.zoomState = 'on';
+            } else {
+                grid.style.transform = 'scale(1)';
+                grid.style.gridTemplateColumns = 'repeat(6, minmax(120px, 1fr))';
+                grid.style.gap = '15px';
+                zoomButton.style.backgroundColor = '#F97316';
+                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[24px] h-[24px] object-contain rounded-full">`;
+                zoomButton.dataset.zoomState = 'off';
             }
         });
 
@@ -852,7 +839,6 @@
             const gridRect = grid.getBoundingClientRect();
             const newLeft = gridRect.left - buttonWidth - desiredGap;
             if (newLeft >= 10) {
-                const buttons = [scrollToggle, ...document.querySelectorAll('.toggle-sign')];
                 buttons.forEach(button => {
                     button.style.left = `${newLeft}px`;
                 });
