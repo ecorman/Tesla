@@ -134,7 +134,7 @@
             transition: color 0.2s ease;
         }
         .footer-link-green:hover {
-            color: #76c776;
+            color: #cdc776;
         }
         .footer-line {
             display: flex;
@@ -720,7 +720,7 @@
                 zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'off';
             }
-            adjustButtonPositions(); // Ajustar posición de botones laterales después de zoom
+            adjustButtonPositions(); // Ajustar posición de botones después de zoom
         });
 
         const backButton = document.getElementById('back-button');
@@ -853,16 +853,12 @@
 
         function adjustButtonPositions() {
             const gridRect = grid.getBoundingClientRect();
-            const newLeft = gridRect.left - buttonWidth - desiredGap; // Siempre 40px de distancia
-            if (newLeft >= 10) {
-                buttons.forEach(button => {
-                    button.style.left = `${newLeft}px`;
-                });
-            } else {
-                buttons.forEach(button => {
-                    button.style.left = '10px'; // Mínimo 10px desde el borde izquierdo
-                });
-            }
+            const newLeft = gridRect.left - buttonWidth - desiredGap; // 40px de separación fija
+            const minLeft = 10; // Mínimo 10px desde el borde izquierdo de la pantalla
+
+            buttons.forEach(button => {
+                button.style.left = `${Math.max(minLeft, newLeft)}px`; // Nunca menos de 10px, nunca superpuesto
+            });
         }
 
         window.addEventListener('load', adjustButtonPositions);
