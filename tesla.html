@@ -31,7 +31,7 @@
         }
         #bookmark-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             padding: 2rem;
             background-color: black !important;
@@ -76,14 +76,14 @@
         }
         @media (max-width: 768px) {
             #bookmark-grid {
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
                 padding: 1rem;
             }
         }
         @media (max-width: 480px) {
             #bookmark-grid {
-                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
                 padding: 0.5rem;
             }
@@ -257,7 +257,7 @@
             100% { opacity: 0; }
         }
         .notice-off-text {
-            color: #4B5563;
+            color: #6B7280; /* Gris más claro */
             font-size: 0.8rem;
             margin-left: 40px;
             margin-right: 0;
@@ -577,7 +577,7 @@
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
         reloadButton.style.backgroundColor = '#5DA8D6';
-        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[28px] h-[28px] object-contain rounded-full">`;
+        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
         reloadButton.style.left = `${10}px`;
         document.body.appendChild(reloadButton);
@@ -585,7 +585,7 @@
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
         homeButton.style.backgroundColor = '#5DA8D6';
-        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[28px] h-[28px] object-contain rounded-full">`;
+        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         homeButton.style.left = `${10}px`;
         document.body.appendChild(homeButton);
@@ -593,7 +593,7 @@
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
         weatherButton.style.backgroundColor = '#FBBF24';
-        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[28px] h-[28px] object-contain rounded-full">`;
+        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         weatherButton.style.left = `${10}px`;
         document.body.appendChild(weatherButton);
@@ -601,7 +601,7 @@
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
         zoomButton.style.backgroundColor = '#F97316';
-        zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[28px] h-[28px] object-contain rounded-full">`;
+        zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
         zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
         zoomButton.style.left = `${10}px`;
         zoomButton.dataset.zoomState = 'off';
@@ -695,8 +695,8 @@
         zoomButton.addEventListener('click', () => {
             const currentState = zoomButton.dataset.zoomState;
             if (currentState === 'off') {
-                grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(156px, 1fr))'; // 120px * 1.3
-                grid.style.gap = '19.5px'; // 15px * 1.3
+                grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(156px, 1fr))'; // Ajuste dinámico
+                grid.style.gap = '15px'; // Mismo gap que en estado normal
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = '156px'; // Ancho base * 1.3
                     cell.style.height = `${156 * 9 / 16}px`; // Mantener aspect-ratio 16/9
@@ -716,10 +716,10 @@
                     name.style.fontSize = 'clamp(0.845rem, 1.56vw, 1.235rem)'; // 1.3x small
                 });
                 zoomButton.style.backgroundColor = '#C2410C';
-                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[28px] h-[28px] object-contain rounded-full">`;
+                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'on';
             } else {
-                grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(120px, 1fr))';
+                grid.style.gridTemplateColumns = 'repeat(6, minmax(120px, 1fr))'; // 6 columnas fijas
                 grid.style.gap = '15px';
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                     cell.style.width = 'auto';
@@ -740,7 +740,7 @@
                     name.style.fontSize = 'clamp(0.65rem, 1.2vw, 0.95rem)';
                 });
                 zoomButton.style.backgroundColor = '#F97316';
-                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[28px] h-[28px] object-contain rounded-full">`;
+                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'off';
             }
         });
