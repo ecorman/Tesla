@@ -19,6 +19,8 @@
             --bg-button-zoom: #F97316;
             --bg-button-zoom-on: #C2410C;
             --bg-button-theme: #FFD700;
+            --bg-bookmark: #4B5563; /* Oscuro para bookmarks */
+            --bg-bookmark-hover: #6B7280;
         }
         body.light {
             --bg-button-scroll: #3B82F6;
@@ -32,6 +34,8 @@
             --bg-button-zoom: #EA580C;
             --bg-button-zoom-on: #B91C1C;
             --bg-button-theme: #6B7280;
+            --bg-bookmark: #D1D5DB; /* Claro para bookmarks */
+            --bg-bookmark-hover: #B0B7C3;
         }
         body {
             background-color: #000000;
@@ -42,13 +46,15 @@
             overflow-x: hidden;
         }
         .bookmark-item {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
             position: relative;
+            background-color: var(--bg-bookmark);
         }
         .bookmark-item:hover {
             transform: scale(1.1) translateY(-2px);
             box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+            background-color: var(--bg-bookmark-hover);
         }
         .bookmark-item img {
             image-rendering: crisp-edges;
@@ -320,6 +326,7 @@
             width: 32px;
             height: 32px;
             object-fit: contain;
+            transition: filter 0.3s ease;
         }
         #on-off-toggle.on {
             background-color: var(--bg-button-on);
@@ -347,7 +354,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-6 dark">
+<body class="min-h-screen flex flex-col items-center p-6">
     <div class="top-text-container">
         <div class="arrow-button" id="back-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -562,43 +569,6 @@
             }
         };
 
-        function generateBrightColor() {
-            const hue = Math.floor(Math.random() * 360);
-            const saturation = 40 + Math.floor(Math.random() * 20);
-            const lightness = 90 + Math.floor(Math.random() * 10);
-            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
-        }
-
-        function areColorsSimilar(color1, color2) {
-            if (!color1 || !color2) return false;
-            const [h1] = color1.match(/\d+/g).map(Number);
-            const [h2] = color2.match(/\d+/g).map(Number);
-            return Math.abs(h1 - h2) < 60;
-        }
-
-        const colors = Array(TOTAL_CELLS).fill(null);
-        for (let i = 0; i < TOTAL_CELLS; i++) {
-            if (bookmarks[i] !== null) {
-                let color;
-                do {
-                    color = generateBrightColor();
-                } while (
-                    (i >= COLS && areColorsSimilar(color, colors[i - COLS])) ||
-                    (i < TOTAL_CELLS - COLS && areColorsSimilar(color, colors[i + COLS])) ||
-                    (i % COLS !== 0 && areColorsSimilar(color, colors[i - 1])) ||
-                    (i % COLS !== COLS - 1 && areColorsSimilar(color, colors[i + 1]))
-                );
-                colors[i] = color;
-            }
-        }
-
-        const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
-            { start: 30, end: 41, name: "GROK", label: "iAs" },
-            { start: 42, end: 59, name: "TradingView", label: "Útil" },
-            { start: 60, end: 95, name: "JOdena", label: "Varios" }
-        ];
-
         const cellElements = [];
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
@@ -609,7 +579,6 @@
                     ? 'bookmark-item'
                     : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
-                link.style.backgroundColor = colors[index];
                 link.href = bookmark.url || "#";
 
                 if (bookmark.name !== "Inicio Tesla" && bookmark.name !== "") {
@@ -655,6 +624,13 @@
         onOffToggle.style.left = `10px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
+
+        const toggleRanges = [
+            { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
+            { start: 30, end: 41, name: "GROK", label: "iAs" },
+            { start: 42, end: 59, name: "TradingView", label: "Útil" },
+            { start: 60, end: 95, name: "JOdena", label: "Varios" }
+        ];
 
         const toggleButtons = toggleRanges.map((range, index) => {
             const toggle = document.createElement('span');
@@ -725,17 +701,19 @@
             themeButton.dataset.theme = theme;
             themeButton.classList.remove('light', 'dark');
             themeButton.classList.add(theme);
-            themeButton.style.backgroundColor = 'var(--bg-button-theme)';
             localStorage.setItem('theme', theme);
             toggleButtons.forEach(toggle => {
                 toggle.style.backgroundColor = toggle.dataset.state === 'visible' 
                     ? 'var(--bg-button-toggle)' 
                     : 'var(--bg-button-toggle-hidden)';
             });
+            document.querySelectorAll('.bookmark-item').forEach(bookmark => {
+                bookmark.style.backgroundColor = 'var(--bg-bookmark)';
+            });
         }
 
-        const savedTheme = localStorage.getItem('theme');
-        setTheme(savedTheme || 'dark');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
 
         themeButton.addEventListener('click', () => {
             const currentTheme = themeButton.dataset.theme;
