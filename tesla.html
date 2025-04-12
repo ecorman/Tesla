@@ -67,18 +67,16 @@
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             padding: 2rem;
-            background-color: #ffffff !important;
+            background-color: #ffffff;
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
             max-width: 1080px;
-            transition: all 0.3s ease;
             margin-left: 60px;
         }
         #bookmark-grid > div {
             height: auto;
             aspect-ratio: 16 / 9;
-            transition: all 0.3s ease;
         }
         .bookmark-item {
             width: 100%;
@@ -88,309 +86,6 @@
             justify-content: center;
             align-items: center;
             border-radius: 0.5rem;
-            transition: all 0.3s ease;
-        }
-        .bookmark-item img {
-            width: 36px;
-            height: auto;
-            max-width: 40px;
-            border-radius: 0.25rem;
-        }
-        .bookmark-name {
-            font-size: clamp(0.85rem, 1.5vw, 1.15rem);
-        }
-        .small-bookmark img {
-            width: 36px;
-            max-width: auto;
-        }
-        .small-bookmark .bookmark-name {
-            font-size: clamp(0.85rem, 1.5vw, 1.15rem);
-        }
-        @media (max-width: 768px) {
-            #bookmark-grid {
-                grid-template-columns: repeat(3, minmax(100px, 1fr));
-                gap: 10px;
-                padding: 1rem;
-                margin-left: 60px;
-            }
-        }
-        @media (max-width: 480px) {
-            #bookmark-grid {
-                grid-template-columns: repeat(2, minmax(80px, 1fr));
-                gap: 8px;
-                padding: 0.5rem;
-                margin-left: 60px;
-            }
-        }
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            background-color: #000000;
-            padding: 0.5rem;
-        }
-        .header-logo {
-            width: 74px;
-            height: 4rem;
-        }
-        .title-container {
-            background-color: #000000;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            display: inline-block;
-        }
-        header {
-            margin-top: auto;
-            margin-bottom: 0.5rem;
-        }
-        main {
-            margin-top: 0.5rem;
-        }
-        footer {
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-        .footer-subtext {
-            font-size: 0.75rem;
-            color: #9CA3AF;
-            margin-top: 0.25rem;
-        }
-        .footer-link-green {
-            color: #90EE90;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        .footer-link-green:hover {
-            color: #cdc776;
-        }
-        .footer-line {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .scroll-toggle-button {
-            position: fixed;
-            width: 91px;
-            height: clamp(92px, 23vw, 207px);
-            background-color: var(--bg-button-scroll);
-            border-radius: 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: clamp(10px, 2vw, 20px);
-            cursor: pointer;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            transition: background-color 0.3s ease;
-            left: 10px;
-            top: 10px;
-        }
-        .scroll-toggle-button svg {
-            width: clamp(24px, 4vw, 32px);
-            height: clamp(24px, 4vw, 32px);
-        }
-        .scroll-toggle-button:hover {
-            background-color: var(--bg-button-scroll-hover);
-        }
-        .top-text-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(0.6rem, 1.5vw, 0.75rem);
-            color: #38BDF8;
-            margin-top: 0.25rem;
-            gap: 0.5rem;
-            animation: fadeOut 9s forwards;
-        }
-        .top-text-container span {
-            color: #FFFFFF;
-            font-size: clamp(1rem, 2.5vw, 1.5rem);
-        }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; display: none; }
-        }
-        .arrow-button {
-            width: clamp(36px, 6vw, 48px);
-            height: clamp(36px, 6vw, 48px);
-            background-color: var(--bg-button-scroll);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s ease;
-        }
-        .arrow-button:hover {
-            background-color: var(--bg-button-scroll-hover);
-        }
-        .counter-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            margin-top: 1rem;
-            text-align: center;
-        }
-        .favicon-red {
-            filter: hue-rotate(0deg) saturate(200%) brightness(80%);
-        }
-        .favicon-blue {
-            filter: hue-rotate(200deg) saturate(150%) brightness(90%);
-        }
-        .notices-container {
-            width: 100%;
-            max-width: 1080px;
-            margin: 0 auto;
-            padding: 0.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
-            height: 3rem;
-        }
-        .notice-wrapper {
-            padding: 0.5rem;
-            height: 1.5rem;
-            flex-grow: 1;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .notice {
-            color: #00ff00;
-            font-weight: bold;
-            white-space: nowrap;
-            text-align: center;
-            opacity: 0;
-            animation: fadeInOut 14才有
-
-System: ¡Gracias por la aclaración! Entiendo que quieres que el modo claro/oscuro afecte **solo los colores de los botones** (como `scroll-toggle`, `on-off-toggle`, toggles de secciones, `reload`, `home`, `weather`, `zoom` y el botón de tema), manteniendo el **fondo negro** del resto de la página sin cambios. Además, usarás un único favicon `bw.png` (alojado en `https://boardinggate.github.io/Tesla/bw.png`) para el botón de alternancia, con un filtro para diferenciar los modos. A continuación, proporciono el código actualizado para `tesla.html` con estas especificaciones, asegurando que todo lo demás (sistema de versiones, bookmarks, avisos, etc.) siga funcionando correctamente.
-
-### Cambios Realizados
-1. **Modo Claro/Oscuro Solo para Botones**:
-   - **Modo Oscuro** (predeterminado): Colores actuales de los botones (`#1E3A8A` para `scroll-toggle`, `#32CD32` para `on-off-toggle`, etc.).
-   - **Modo Claro**: Colores más claros para los botones (por ejemplo, `#3B82F6`, `#22C55E`), diseñados para contrastar sobre el fondo negro.
-   - El fondo del `body`, `header-container`, `title-container`, `notices-container` y otros elementos permanece fijo en `#000000`.
-   - Los textos (`version-text`, `notice`, `footer-subtext`, etc.) y el grid (`#bookmark-grid`) mantienen sus colores originales.
-2. **Favicon `bw.png`**:
-   - El botón de tema usa `bw.png` como ícono.
-   - En modo oscuro, se muestra sin filtro; en modo claro, se aplica `filter: invert(1)` para invertir los colores y distinguir los modos.
-   - Asegúrate de que `bw.png` esté en `https://boardinggate.github.io/Tesla/bw.png`.
-3. **Persistencia**:
-   - El modo seleccionado (`dark` o `light`) se guarda en `localStorage` con la clave `theme`.
-   - Al cargar la página, se aplica el modo guardado o `dark` por defecto.
-4. **Transiciones**:
-   - Los botones tienen `transition: background-color 0.3s ease` para cambios suaves.
-5. **Compatibilidad**:
-   - El sistema de versiones (`version.txt`), la carga de `avisos.txt`, los bookmarks y los eventos interactivos no se ven afectados.
-
-### Código HTML Actualizado
-Aquí está el código completo para `tesla.html`:
-
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoardingGate Lanzador</title>
-    <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --bg-button-scroll: #1E3A8A;
-            --bg-button-scroll-hover: #1e40af;
-            --bg-button-on: #32CD32;
-            --bg-button-off: #A9A9A9;
-            --bg-button-toggle: #006400;
-            --bg-button-toggle-hidden: #696969;
-            --bg-button-reload: #5DA8D6;
-            --bg-button-weather: #FBBF24;
-            --bg-button-zoom: #F97316;
-            --bg-button-zoom-on: #C2410C;
-            --bg-button-theme: #FFD700;
-        }
-        body.light {
-            --bg-button-scroll: #3B82F6;
-            --bg-button-scroll-hover: #2563EB;
-            --bg-button-on: #22C55E;
-            --bg-button-off: #D1D5DB;
-            --bg-button-toggle: #16A34A;
-            --bg-button-toggle-hidden: #9CA3AF;
-            --bg-button-reload: #60A5FA;
-            --bg-button-weather: #F59E0B;
-            --bg-button-zoom: #EA580C;
-            --bg-button-zoom-on: #B91C1C;
-            --bg-button-theme: #6B7280;
-        }
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .bookmark-item {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-        .bookmark-item:hover {
-            transform: scale(1.1) translateY(-2px);
-            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
-        }
-        .bookmark-item img {
-            image-rendering: crisp-edges;
-        }
-        .bookmark-name {
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
-        #bookmark-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(120px, 1fr));
-            gap: 15px;
-            padding: 2rem;
-            background-color: #ffffff !important;
-            border-radius: 0.75rem;
-            position: relative;
-            width: 100%;
-            max-width: 1080px;
-            transition: all 0.3s ease;
-            margin-left: 60px;
-        }
-        #bookmark-grid > div {
-            height: auto;
-            aspect-ratio: 16 / 9;
-            transition: all 0.3s ease;
-        }
-        .bookmark-item {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
         }
         .bookmark-item img {
             width: 36px;
@@ -706,7 +401,6 @@ Aquí está el código completo para `tesla.html`:
     </div>
 
     <script>
-        // Lista de bookmarks
         const bookmarks = [
             { name: "YouTube", url: "https://www.youtube.com" },
             { name: "Google", url: "https://www.google.com" },
@@ -800,7 +494,6 @@ Aquí está el código completo para `tesla.html`:
         const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
 
-        // Formatear la fecha al formato YY.MM.DDHH
         function formatVersionDate(date) {
             const year = date.getUTCFullYear().toString().slice(-2);
             const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -809,11 +502,10 @@ Aquí está el código completo para `tesla.html`:
             return `${year}.${month}.${day}${hours}`;
         }
 
-        // Obtener la fecha de version.txt
         async function getLastModifiedDate() {
             const cacheKey = 'teslaHtmlLastModified';
             const cacheTimestampKey = 'teslaHtmlLastModifiedTimestamp';
-            const cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
+            const cacheDuration = 24 * 60 * 60 * 1000;
 
             const cachedDate = localStorage.getItem(cacheKey);
             const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
@@ -852,14 +544,12 @@ Aquí está el código completo para `tesla.html`:
             }
         }
 
-        // Actualizar el elemento de versión
         async function updateVersion() {
             const lastModifiedDate = await getLastModifiedDate();
             const version = formatVersionDate(lastModifiedDate);
             document.getElementById('version').textContent = `versión: ${version}`;
         }
 
-        // Generar favicons para los bookmarks
         const getFaviconUrl = (bookmark) => {
             try {
                 if (bookmark.favicon) return bookmark.favicon;
@@ -870,7 +560,6 @@ Aquí está el código completo para `tesla.html`:
             }
         };
 
-        // Generar colores para los bookmarks
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
             const saturation = 40 + Math.floor(Math.random() * 20);
@@ -901,7 +590,6 @@ Aquí está el código completo para `tesla.html`:
             }
         }
 
-        // Definir rangos para los toggles
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
             { start: 30, end: 41, name: "GROK", label: "iAs" },
@@ -909,7 +597,6 @@ Aquí está el código completo para `tesla.html`:
             { start: 60, end: 95, name: "JOdena", label: "Varios" }
         ];
 
-        // Generar el grid de bookmarks
         const cellElements = [];
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
@@ -951,7 +638,6 @@ Aquí está el código completo para `tesla.html`:
             cellElements.push(cell);
         });
 
-        // Configurar botones de interacción
         const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
         const buttonSpacing = 58;
         const buttonWidth = 91;
@@ -1019,7 +705,7 @@ Aquí está el código completo para `tesla.html`:
         const themeButton = document.createElement('span');
         themeButton.className = 'toggle-sign';
         themeButton.id = 'theme-toggle';
-        themeButton.innerHTML = `<img src="./bw.png" alt="Tema" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        themeButton.innerHTML = `<img src="./IMG_4187.png" alt="Tema" class="w-[32px] h-[32px] object-contain rounded-full">`;
         themeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
         themeButton.style.left = `${10}px`;
         themeButton.dataset.theme = 'dark';
@@ -1031,7 +717,6 @@ Aquí está el código completo para `tesla.html`:
             return Math.min(Math.max(val, min), max);
         }
 
-        // Manejo del modo claro/oscuro
         function setTheme(theme) {
             document.body.classList.remove('light', 'dark');
             document.body.classList.add(theme);
@@ -1046,7 +731,6 @@ Aquí está el código completo para `tesla.html`:
             });
         }
 
-        // Cargar tema guardado o predeterminado
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
 
@@ -1159,7 +843,7 @@ Aquí está el código completo para `tesla.html`:
                     img.style.width = '48px';
                     img.style.maxWidth = '56px';
                 });
-                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
+                document.querySelectorAllBUFFALO('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
                 });
                 zoomButton.style.backgroundColor = 'var(--bg-button-zoom-on)';
@@ -1203,7 +887,6 @@ Aquí está el código completo para `tesla.html`:
             window.history.forward();
         });
 
-        // Cargar avisos.txt
         fetch('avisos.txt')
             .then(response => response.text())
             .then(text => {
@@ -1254,7 +937,6 @@ Aquí está el código completo para `tesla.html`:
                 document.getElementById('current-notice').textContent = 'Error al cargar avisos';
             });
 
-        // Ajustar posición de botones y ocultar top-text
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             topTextContainer.style.display = 'none';
@@ -1270,14 +952,45 @@ Aquí está el código completo para `tesla.html`:
 
             buttons.forEach(button => {
                 button.style.left = `${Math.max(minLeft, newLeft)}px`;
-            });
+           agenda {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
         }
-
-        window.addEventListener('load', adjustButtonPositions);
-        window.addEventListener('resize', adjustButtonPositions);
-
-        // Ejecutar actualización de versión al cargar la página
-        updateVersion();
-    </script>
+        .agenda-item {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .agenda-item h3 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        .agenda-item p {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="agenda">
+        <div class="agenda-item">
+            <h3>Lunes</h3>
+            <p>Reunión equipo - 10:00</p>
+            <p>Revisión proyecto - 14:00</p>
+        </div>
+        <div class="agenda-item">
+            <h3>Martes</h3>
+            <p>Capacitación - 09:00</p>
+            <p>Presentación cliente - 15:00</p>
+        </div>
+        <div class="agenda-item">
+            <h3>Miércoles</h3>
+            <p>Planificación sprint - 11:00</p>
+            <p>Seguimiento proveedores - 16:00</p>
+        </div>
+    </div>
 </body>
 </html>
