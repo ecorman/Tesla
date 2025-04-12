@@ -7,42 +7,8 @@
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-button-scroll: #1E3A8A;
-            --bg-button-scroll-hover: #1e40af;
-            --bg-button-on: #32CD32;
-            --bg-button-off: #A9A9A9;
-            --bg-button-toggle: #006400;
-            --bg-button-toggle-hidden: #696969;
-            --bg-button-reload: #5DA8D6;
-            --bg-button-weather: #FBBF24;
-            --bg-button-zoom: #F97316;
-            --bg-button-zoom-on: #C2410C;
-            --bg-button-theme: #D4AF37; /* Amarillo suave */
-        }
-        body.light {
-            --bg-button-scroll: #3B82F6;
-            --bg-button-scroll-hover: #2563EB;
-            --bg-button-on: #22C55E;
-            --bg-button-off: #D1D5DB;
-            --bg-button-toggle: #16A34A;
-            --bg-button-toggle-hidden: #9CA3AF;
-            --bg-button-reload: #60A5FA;
-            --bg-button-weather: #F59E0B;
-            --bg-button-zoom: #EA580C;
-            --bg-button-zoom-on: #B91C1C;
-            --bg-button-theme: #D1D5DB; /* Gris claro */
-        }
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
         .bookmark-item {
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
             position: relative;
         }
@@ -55,6 +21,7 @@
         }
         .bookmark-name {
             font-weight: bold;
+            color: #333;
             text-align: center;
             margin-top: 4px;
             white-space: nowrap;
@@ -62,27 +29,23 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
-        body.dark .bookmark-name {
-            color: #E5E7EB; /* Texto claro para modo oscuro */
-        }
-        body.light .bookmark-name {
-            color: #333; /* Texto oscuro para modo claro */
-        }
         #bookmark-grid {
             display: grid;
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             padding: 2rem;
-            background-color: #ffffff;
+            background-color: black !important;
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
             max-width: 1080px;
+            transition: all 0.3s ease;
             margin-left: 60px;
         }
         #bookmark-grid > div {
             height: auto;
             aspect-ratio: 16 / 9;
+            transition: all 0.3s ease;
         }
         .bookmark-item {
             width: 100%;
@@ -92,6 +55,7 @@
             justify-content: center;
             align-items: center;
             border-radius: 0.5rem;
+            transition: all 0.3s ease;
         }
         .bookmark-item img {
             width: 36px;
@@ -130,18 +94,22 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            background-color: #000000;
-            padding: 0.5rem;
         }
         .header-logo {
             width: 74px;
             height: 4rem;
         }
         .title-container {
-            background-color: #000000;
+            background-color: black;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             display: inline-block;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: black;
         }
         header {
             margin-top: auto;
@@ -153,6 +121,10 @@
         footer {
             margin-top: 0.5rem;
             text-align: center;
+        }
+        .header-container {
+            background-color: black;
+            padding: 0.5rem;
         }
         .footer-subtext {
             font-size: 0.75rem;
@@ -178,7 +150,7 @@
             position: fixed;
             width: 91px;
             height: clamp(92px, 23vw, 207px);
-            background-color: var(--bg-button-scroll);
+            background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
             flex-direction: column;
@@ -188,7 +160,7 @@
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease;
             left: 10px;
             top: 10px;
         }
@@ -197,7 +169,7 @@
             height: clamp(24px, 4vw, 32px);
         }
         .scroll-toggle-button:hover {
-            background-color: var(--bg-button-scroll-hover);
+            background-color: #1e40af;
         }
         .top-text-container {
             display: flex;
@@ -221,17 +193,17 @@
         .arrow-button {
             width: clamp(36px, 6vw, 48px);
             height: clamp(36px, 6vw, 48px);
-            background-color: var(--bg-button-scroll);
+            background-color: #1E3A8A;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease;
         }
         .arrow-button:hover {
-            background-color: var(--bg-button-scroll-hover);
+            background-color: #1e40af;
         }
         .counter-container {
             display: flex;
@@ -311,7 +283,7 @@
             text-align: center;
             cursor: pointer;
             z-index: 1000;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease;
             left: 10px;
         }
         .toggle-sign .sign {
@@ -325,20 +297,9 @@
             width: 32px;
             height: 32px;
             object-fit: contain;
-            transition: filter 0.3s ease;
         }
         #on-off-toggle.on {
-            background-color: var(--bg-button-on);
-        }
-        #on-off-toggle.off {
-            background-color: var(--bg-button-off);
-        }
-        #theme-toggle {
-            background-color: var(--bg-button-theme);
-            transition: background-color 0.3s ease;
-        }
-        #theme-toggle.light img {
-            filter: invert(1);
+            color: #000000;
         }
         .hidden {
             display: none;
@@ -348,12 +309,9 @@
             color: #38BDF8;
             font-weight: normal;
         }
-        h1.text-sky-400 {
-            color: #38BDF8;
-        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-6">
+<body class="min-h-screen bg-black flex flex-col items-center p-6">
     <div class="top-text-container">
         <div class="arrow-button" id="back-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -364,7 +322,7 @@
         </div>
     </div>
 
-    <main class="max-w-[1080px] w-full rounded-xl shadow-lg" id="bookmark-grid">
+    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
     </main>
 
@@ -409,6 +367,7 @@
     </div>
 
     <script>
+        // Lista de bookmarks
         const bookmarks = [
             { name: "YouTube", url: "https://www.youtube.com" },
             { name: "Google", url: "https://www.google.com" },
@@ -502,6 +461,7 @@
         const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
 
+        // Formatear la fecha al formato YY.MM.DDHH
         function formatVersionDate(date) {
             const year = date.getUTCFullYear().toString().slice(-2);
             const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -510,10 +470,11 @@
             return `${year}.${month}.${day}${hours}`;
         }
 
+        // Obtener la fecha de version.txt
         async function getLastModifiedDate() {
             const cacheKey = 'teslaHtmlLastModified';
             const cacheTimestampKey = 'teslaHtmlLastModifiedTimestamp';
-            const cacheDuration = 24 * 60 * 60 * 1000;
+            const cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
 
             const cachedDate = localStorage.getItem(cacheKey);
             const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
@@ -552,12 +513,14 @@
             }
         }
 
+        // Actualizar el elemento de versión
         async function updateVersion() {
             const lastModifiedDate = await getLastModifiedDate();
             const version = formatVersionDate(lastModifiedDate);
             document.getElementById('version').textContent = `versión: ${version}`;
         }
 
+        // Generar favicons para los bookmarks
         const getFaviconUrl = (bookmark) => {
             try {
                 if (bookmark.favicon) return bookmark.favicon;
@@ -568,21 +531,12 @@
             }
         };
 
+        // Generar colores para los bookmarks
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
             const saturation = 40 + Math.floor(Math.random() * 20);
             const lightness = 90 + Math.floor(Math.random() * 10);
             return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
-        }
-
-        function darkenColor(color) {
-            const match = color.match(/hsla\((\d+),\s*(\d+)%,\s*(\d+)%,\s*([\d.]+)\)/);
-            if (!match) return color;
-            const hue = match[1];
-            const saturation = match[2];
-            const lightness = Math.max(30, parseInt(match[3]) - 30); // Reducir luminosidad
-            const alpha = match[4];
-            return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
         }
 
         function areColorsSimilar(color1, color2) {
@@ -608,6 +562,7 @@
             }
         }
 
+        // Definir rangos para los toggles
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
             { start: 30, end: 41, name: "GROK", label: "iAs" },
@@ -615,6 +570,7 @@
             { start: 60, end: 95, name: "JOdena", label: "Varios" }
         ];
 
+        // Generar el grid de bookmarks
         const cellElements = [];
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
@@ -656,6 +612,7 @@
             cellElements.push(cell);
         });
 
+        // Configurar botones de interacción
         const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
         const buttonSpacing = 58;
         const buttonWidth = 91;
@@ -667,8 +624,9 @@
         onOffToggle.id = 'on-off-toggle';
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
+        onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-        onOffToggle.style.left = `10px`;
+        onOffToggle.style.left = `${10}px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
@@ -679,86 +637,52 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.backgroundColor = 'var(--bg-button-toggle)';
+            toggle.style.backgroundColor = '#006400';
             toggle.style.color = '#FFFFFF';
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
-            toggle.style.left = `10px`;
+            toggle.style.left = `${10}px`;
             document.body.appendChild(toggle);
             return toggle;
         });
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = 'var(--bg-button-reload)';
+        reloadButton.style.backgroundColor = '#5DA8D6';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-        reloadButton.style.left = `10px`;
+        reloadButton.style.left = `${10}px`;
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = 'var(--bg-button-reload)';
+        homeButton.style.backgroundColor = '#5DA8D6';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        homeButton.style.left = `10px`;
+        homeButton.style.left = `${10}px`;
         document.body.appendChild(homeButton);
 
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
-        weatherButton.style.backgroundColor = 'var(--bg-button-weather)';
+        weatherButton.style.backgroundColor = '#FBBF24';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-        weatherButton.style.left = `10px`;
+        weatherButton.style.left = `${10}px`;
         document.body.appendChild(weatherButton);
 
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
-        zoomButton.style.backgroundColor = 'var(--bg-button-zoom)';
+        zoomButton.style.backgroundColor = '#F97316';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
         zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-        zoomButton.style.left = `10px`;
+        zoomButton.style.left = `${10}px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
 
-        const themeButton = document.createElement('span');
-        themeButton.className = 'toggle-sign';
-        themeButton.id = 'theme-toggle';
-        themeButton.innerHTML = `<img src="./IMG_4187.png" alt="Tema" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        themeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
-        themeButton.style.left = `10px`;
-        themeButton.dataset.theme = 'dark';
-        document.body.appendChild(themeButton);
-
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton, themeButton];
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton];
 
         function clamp(min, val, max) {
             return Math.min(Math.max(val, min), max);
         }
-
-        function setTheme(theme) {
-            document.body.classList.remove('light', 'dark');
-            document.body.classList.add(theme);
-            themeButton.dataset.theme = theme;
-            themeButton.classList.remove('light', 'dark');
-            themeButton.classList.add(theme);
-            localStorage.setItem('theme', theme);
-            toggleButtons.forEach(toggle => {
-                toggle.style.backgroundColor = toggle.dataset.state === 'visible' 
-                    ? 'var(--bg-button-toggle)' 
-                    : 'var(--bg-button-toggle-hidden)';
-            });
-            document.querySelectorAll('.bookmark-item').forEach((bookmark, index) => {
-                bookmark.style.backgroundColor = theme === 'dark' ? darkenColor(colors[index]) : colors[index];
-            });
-        }
-
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-
-        themeButton.addEventListener('click', () => {
-            const currentTheme = themeButton.dataset.theme;
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -778,12 +702,12 @@
 
             if (state === 'visible') {
                 toggle.innerHTML = `<span class="sign">+</span>${label}`;
-                toggle.style.backgroundColor = 'var(--bg-button-toggle-hidden)';
+                toggle.style.backgroundColor = '#696969';
                 toggle.style.color = '#000000';
                 toggle.dataset.state = 'hidden';
             } else {
                 toggle.innerHTML = `<span class="sign">-</span>${label}`;
-                toggle.style.backgroundColor = 'var(--bg-button-toggle)';
+                toggle.style.backgroundColor = '#006400';
                 toggle.style.color = '#FFFFFF';
                 toggle.dataset.state = 'visible';
             }
@@ -798,8 +722,13 @@
                 }
             });
             onOffToggle.textContent = state === 'on' ? 'On' : 'Off';
-            onOffToggle.classList.toggle('on', state === 'on');
-            onOffToggle.classList.toggle('off', state === 'off');
+            onOffToggle.style.backgroundColor = state === 'on' ? '#32CD32' : '#A9A9A9';
+            onOffToggle.dataset.state = state;
+            if (state === 'on') {
+                onOffToggle.classList.add('on');
+            } else {
+                onOffToggle.classList.remove('on');
+            }
         }
 
         scrollToggle.addEventListener('click', () => {
@@ -815,13 +744,12 @@
         onOffToggle.addEventListener('click', () => {
             const currentState = onOffToggle.dataset.state;
             updateAllToggles(currentState === 'on' ? 'off' : 'on');
-            onOffToggle.dataset.state = currentState === 'on' ? 'off' : 'on';
         });
 
         toggleButtons.forEach(toggle => {
             toggle.addEventListener('click', () => {
                 updateToggleState(toggle);
-            });
+            }
         });
 
         reloadButton.addEventListener('click', () => location.reload());
@@ -867,7 +795,7 @@
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
                 });
-                zoomButton.style.backgroundColor = 'var(--bg-button-zoom-on)';
+                zoomButton.style.backgroundColor = '#C2410C';
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'on';
             } else {
@@ -892,8 +820,8 @@
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
                 });
-                zoomButton.style.backgroundColor = 'var(--bg-button-zoom)';
-                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
+                zoomButton.style.backgroundColor = '#F97316';
+                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-controunded-full">`;
                 zoomButton.dataset.zoomState = 'off';
             }
             adjustButtonPositions();
@@ -908,6 +836,7 @@
             window.history.forward();
         });
 
+        // Cargar avisos.txt
         fetch('avisos.txt')
             .then(response => response.text())
             .then(text => {
@@ -958,13 +887,13 @@
                 document.getElementById('current-notice').textContent = 'Error al cargar avisos';
             });
 
+        // Ajustar posición de botones y ocultar top-text
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             topTextContainer.style.display = 'none';
             const mainElement = document.querySelector('main');
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
-            adjustButtonPositions();
         }, 9000);
 
         function adjustButtonPositions() {
@@ -977,14 +906,10 @@
             });
         }
 
-        window.addEventListener('load', () => {
-            adjustButtonPositions();
-            buttons.forEach(button => {
-                button.style.display = 'flex';
-            });
-        });
+        window.addEventListener('load', adjustButtonPositions);
         window.addEventListener('resize', adjustButtonPositions);
 
+        // Ejecutar actualización de versión al cargar la página
         updateVersion();
     </script>
 </body>
