@@ -793,7 +793,7 @@
             }
 
             try {
-                const repoUrl = 'https://api.github.com/repos/boardinggate/contents/Tesla/avisos.txt.html';
+                const repoUrl = 'https://api.github.com/repos/boardinggate/contents/Tesla/avisos.txt';
                 const response = await fetch(repoUrl, {
                     headers: { 'Accept': 'application/vnd.github.v3+json' }
                 });
@@ -801,7 +801,7 @@
                 if (!response.ok) throw new Error('No se pudo obtener la información del archivo');
 
                 const data = await response.json();
-                const commitUrl = `https://api.github.com/repos/boardinggate/Tesla/commits?path=avisos.txt.html&per_page=1`;
+                const commitUrl = `https://api.github.com/repos/boardinggate/Tesla/commits?path=avisos.txt&per_page=1`;
                 const commitResponse = await fetch(commitUrl, {
                     headers: { 'Accept': 'application/vnd.github.v3+json' }
                 });
