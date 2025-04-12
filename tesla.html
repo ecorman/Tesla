@@ -1,5 +1,5 @@
-<!DOCTYPE html> 
-<html lang="es"> 
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,49 @@
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --bg-body: #000000;
+            --bg-grid: #ffffff;
+            --text-primary: #38BDF8;
+            --text-secondary: #ffffff;
+            --text-notice: #00ff00;
+            --text-footer-sub: #9CA3AF;
+            --bg-button-scroll: #1E3A8A;
+            --bg-button-scroll-hover: #1e40af;
+            --bg-button-on: #32CD32;
+            --bg-button-off: #A9A9A9;
+            --bg-button-toggle: #006400;
+            --bg-button-toggle-hidden: #696969;
+            --bg-button-reload: #5DA8D6;
+            --bg-button-weather: #FBBF24;
+            --bg-button-zoom: #F97316;
+            --bg-button-zoom-on: #C2410C;
+            --bg-button-theme: #FFD700;
+        }
+        body.light {
+            --bg-body: #ffffff;
+            --bg-grid: #f3f4f6;
+            --text-primary: #1E3A8A;
+            --text-secondary: #000000;
+            --text-notice: #228B22;
+            --text-footer-sub: #4B5563;
+            --bg-button-scroll: #3B82F6;
+            --bg-button-scroll-hover: #2563EB;
+            --bg-button-on: #22C55E;
+            --bg-button-off: #D1D5DB;
+            --bg-button-toggle: #16A34A;
+            --bg-button-toggle-hidden: #9CA3AF;
+            --bg-button-reload: #60A5FA;
+            --bg-button-weather: #F59E0B;
+            --bg-button-zoom: #EA580C;
+            --bg-button-zoom-on: #B91C1C;
+            --bg-button-theme: #6B7280;
+        }
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
         .bookmark-item {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
@@ -34,7 +77,7 @@
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             padding: 2rem;
-            background-color: black !important;
+            background-color: var(--bg-grid) !important;
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
@@ -100,16 +143,16 @@
             height: 4rem;
         }
         .title-container {
-            background-color: black;
+            background-color: var(--bg-body);
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             display: inline-block;
+            transition: background-color 0.3s ease;
         }
         body {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            background-color: black;
         }
         header {
             margin-top: auto;
@@ -123,13 +166,15 @@
             text-align: center;
         }
         .header-container {
-            background-color: black;
+            background-color: var(--bg-body);
             padding: 0.5rem;
+            transition: background-color 0.3s ease;
         }
         .footer-subtext {
             font-size: 0.75rem;
-            color: #9CA3AF;
+            color: var(--text-footer-sub);
             margin-top: 0.25rem;
+            transition: color 0.3s ease;
         }
         .footer-link-green {
             color: #90EE90;
@@ -150,7 +195,7 @@
             position: fixed;
             width: 91px;
             height: clamp(92px, 23vw, 207px);
-            background-color: #1E3A8A;
+            background-color: var(--bg-button-scroll);
             border-radius: 60px;
             display: flex;
             flex-direction: column;
@@ -160,7 +205,7 @@
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.3s ease;
             left: 10px;
             top: 10px;
         }
@@ -169,20 +214,20 @@
             height: clamp(24px, 4vw, 32px);
         }
         .scroll-toggle-button:hover {
-            background-color: #1e40af;
+            background-color: var(--bg-button-scroll-hover);
         }
         .top-text-container {
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: clamp(0.6rem, 1.5vw, 0.75rem);
-            color: #38BDF8;
+            color: var(--text-primary);
             margin-top: 0.25rem;
             gap: 0.5rem;
             animation: fadeOut 9s forwards;
         }
         .top-text-container span {
-            color: #FFFFFF;
+            color: var(--text-secondary);
             font-size: clamp(1rem, 2.5vw, 1.5rem);
         }
         @keyframes fadeOut {
@@ -193,17 +238,17 @@
         .arrow-button {
             width: clamp(36px, 6vw, 48px);
             height: clamp(36px, 6vw, 48px);
-            background-color: #1E3A8A;
+            background-color: var(--bg-button-scroll);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.2s ease;
+            transition: background-color 0.3s ease;
         }
         .arrow-button:hover {
-            background-color: #1e40af;
+            background-color: var(--bg-button-scroll-hover);
         }
         .counter-container {
             display: flex;
@@ -244,12 +289,13 @@
             justify-content: center;
         }
         .notice {
-            color: #00ff00;
+            color: var(--text-notice);
             font-weight: bold;
             white-space: nowrap;
             text-align: center;
             opacity: 0;
             animation: fadeInOut 14s infinite;
+            transition: color 0.3s ease;
         }
         @keyframes fadeInOut {
             0% { opacity: 0; }
@@ -258,10 +304,11 @@
             100% { opacity: 0; }
         }
         .notice-off-text {
-            color: #6B7280;
+            color: var(--text-footer-sub);
             font-size: 0.6rem;
             margin-left: 45px;
             margin-right: 0;
+            transition: color 0.3s ease;
         }
         .megaphone-icon-end {
             width: auto;
@@ -283,7 +330,7 @@
             text-align: center;
             cursor: pointer;
             z-index: 1000;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
             left: 10px;
         }
         .toggle-sign .sign {
@@ -298,20 +345,31 @@
             height: 32px;
             object-fit: contain;
         }
-        #on-off-toggle.on {
-            color: #000000;
+        #on-off-toggle {
+            background-color: var(--bg-button-on);
+        }
+        #on-off-toggle.off {
+            background-color: var(--bg-button-off);
+        }
+        #theme-toggle {
+            background-color: var(--bg-button-theme);
         }
         .hidden {
             display: none;
         }
         .version-text {
             font-size: 0.75rem;
-            color: #38BDF8;
+            color: var(--text-primary);
             font-weight: normal;
+            transition: color 0.3s ease;
+        }
+        h1.text-sky-400 {
+            color: var(--text-primary);
+            transition: color 0.3s ease;
         }
     </style>
 </head>
-<body class="min-h-screen bg-black flex flex-col items-center p-6">
+<body class="min-h-screen flex flex-col items-center p-6">
     <div class="top-text-container">
         <div class="arrow-button" id="back-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -322,7 +380,7 @@
         </div>
     </div>
 
-    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
+    <main class="max-w-[1080px] w-full rounded-xl shadow-lg" id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
     </main>
 
@@ -624,7 +682,6 @@
         onOffToggle.id = 'on-off-toggle';
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
-        onOffToggle.style.backgroundColor = '#32CD32';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
         onOffToggle.style.left = `${10}px`;
         onOffToggle.classList.add('on');
@@ -637,7 +694,7 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.backgroundColor = '#006400';
+            toggle.style.backgroundColor = 'var(--bg-button-toggle)';
             toggle.style.color = '#FFFFFF';
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
             toggle.style.left = `${10}px`;
@@ -647,7 +704,7 @@
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
-        reloadButton.style.backgroundColor = '#5DA8D6';
+        reloadButton.style.backgroundColor = 'var(--bg-button-reload)';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
         reloadButton.style.left = `${10}px`;
@@ -655,7 +712,7 @@
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
-        homeButton.style.backgroundColor = '#5DA8D6';
+        homeButton.style.backgroundColor = 'var(--bg-button-reload)';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         homeButton.style.left = `${10}px`;
@@ -663,7 +720,7 @@
 
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
-        weatherButton.style.backgroundColor = '#FBBF24';
+        weatherButton.style.backgroundColor = 'var(--bg-button-weather)';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         weatherButton.style.left = `${10}px`;
@@ -671,18 +728,53 @@
 
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
-        zoomButton.style.backgroundColor = '#F97316';
+        zoomButton.style.backgroundColor = 'var(--bg-button-zoom)';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
         zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
         zoomButton.style.left = `${10}px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
 
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton];
+        const themeButton = document.createElement('span');
+        themeButton.className = 'toggle-sign';
+        themeButton.id = 'theme-toggle';
+        themeButton.innerHTML = `<img src="./sun.png" alt="Tema" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        themeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
+        themeButton.style.left = `${10}px`;
+        themeButton.dataset.theme = 'dark';
+        document.body.appendChild(themeButton);
+
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton, themeButton];
 
         function clamp(min, val, max) {
             return Math.min(Math.max(val, min), max);
         }
+
+        // Manejo del modo claro/oscuro
+        function setTheme(theme) {
+            document.body.classList.remove('light', 'dark');
+            document.body.classList.add(theme);
+            themeButton.dataset.theme = theme;
+            themeButton.innerHTML = theme === 'dark' 
+                ? `<img src="./sun.png" alt="Tema Claro" class="w-[32px] h-[32px] object-contain rounded-full">`
+                : `<img src="./moon.png" alt="Tema Oscuro" class="w-[32px] h-[32px] object-contain rounded-full">`;
+            localStorage.setItem('theme', theme);
+            toggleButtons.forEach(toggle => {
+                toggle.style.backgroundColor = toggle.dataset.state === 'visible' 
+                    ? 'var(--bg-button-toggle)' 
+                    : 'var(--bg-button-toggle-hidden)';
+            });
+        }
+
+        // Cargar tema guardado o predeterminado
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        themeButton.addEventListener('click', () => {
+            const currentTheme = themeButton.dataset.theme;
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            adjustButtonPositions();
+        });
 
         function updateToggleState(toggle) {
             const start = parseInt(toggle.dataset.rangeStart);
@@ -702,12 +794,12 @@
 
             if (state === 'visible') {
                 toggle.innerHTML = `<span class="sign">+</span>${label}`;
-                toggle.style.backgroundColor = '#696969';
+                toggle.style.backgroundColor = 'var(--bg-button-toggle-hidden)';
                 toggle.style.color = '#000000';
                 toggle.dataset.state = 'hidden';
             } else {
                 toggle.innerHTML = `<span class="sign">-</span>${label}`;
-                toggle.style.backgroundColor = '#006400';
+                toggle.style.backgroundColor = 'var(--bg-button-toggle)';
                 toggle.style.color = '#FFFFFF';
                 toggle.dataset.state = 'visible';
             }
@@ -722,13 +814,8 @@
                 }
             });
             onOffToggle.textContent = state === 'on' ? 'On' : 'Off';
-            onOffToggle.style.backgroundColor = state === 'on' ? '#32CD32' : '#A9A9A9';
-            onOffToggle.dataset.state = state;
-            if (state === 'on') {
-                onOffToggle.classList.add('on');
-            } else {
-                onOffToggle.classList.remove('on');
-            }
+            onOffToggle.classList.toggle('on', state === 'on');
+            onOffToggle.classList.toggle('off', state === 'off');
         }
 
         scrollToggle.addEventListener('click', () => {
@@ -744,6 +831,7 @@
         onOffToggle.addEventListener('click', () => {
             const currentState = onOffToggle.dataset.state;
             updateAllToggles(currentState === 'on' ? 'off' : 'on');
+            onOffToggle.dataset.state = currentState === 'on' ? 'off' : 'on';
         });
 
         toggleButtons.forEach(toggle => {
@@ -795,7 +883,7 @@
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
                 });
-                zoomButton.style.backgroundColor = '#C2410C';
+                zoomButton.style.backgroundColor = 'var(--bg-button-zoom-on)';
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'on';
             } else {
@@ -820,7 +908,7 @@
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
                 });
-                zoomButton.style.backgroundColor = '#F97316';
+                zoomButton.style.backgroundColor = 'var(--bg-button-zoom)';
                 zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
                 zoomButton.dataset.zoomState = 'off';
             }
@@ -869,11 +957,11 @@
                     if (isActive) {
                         noticeElement.style.animation = 'none';
                         noticeElement.textContent = 'Avisos desactivados';
-                        noticeElement.style.color = '#A9A9A9';
+                        noticeElement.style.color = 'var(--text-footer-sub)';
                         noticeElement.style.fontSize = '0.8rem';
                         isActive = false;
                     } else {
-                        noticeElement.style.color = '#00ff00';
+                        noticeElement.style.color = 'var(--text-notice)';
                         noticeElement.style.animation = 'fadeInOut 14s infinite';
                         isActive = true;
                         showNextNotice();
