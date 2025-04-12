@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'tesla.html'
+      - 'Tesla/tesla.html'
 
 jobs:
   update-version:
