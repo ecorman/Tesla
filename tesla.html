@@ -39,6 +39,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         .bookmark-item {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -650,7 +651,7 @@
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-        onOffToggle.style.left = `${10}px`;
+        onOffToggle.style.left = `10px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
 
@@ -664,7 +665,7 @@
             toggle.style.backgroundColor = 'var(--bg-button-toggle)';
             toggle.style.color = '#FFFFFF';
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
-            toggle.style.left = `${10}px`;
+            toggle.style.left = `10px`;
             document.body.appendChild(toggle);
             return toggle;
         });
@@ -674,7 +675,7 @@
         reloadButton.style.backgroundColor = 'var(--bg-button-reload)';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-        reloadButton.style.left = `${10}px`;
+        reloadButton.style.left = `10px`;
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
@@ -682,7 +683,7 @@
         homeButton.style.backgroundColor = 'var(--bg-button-reload)';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        homeButton.style.left = `${10}px`;
+        homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
 
         const weatherButton = document.createElement('span');
@@ -690,7 +691,7 @@
         weatherButton.style.backgroundColor = 'var(--bg-button-weather)';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-        weatherButton.style.left = `${10}px`;
+        weatherButton.style.left = `10px`;
         document.body.appendChild(weatherButton);
 
         const zoomButton = document.createElement('span');
@@ -698,7 +699,7 @@
         zoomButton.style.backgroundColor = 'var(--bg-button-zoom)';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
         zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-        zoomButton.style.left = `${10}px`;
+        zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
 
@@ -707,7 +708,7 @@
         themeButton.id = 'theme-toggle';
         themeButton.innerHTML = `<img src="./IMG_4187.png" alt="Tema" class="w-[32px] h-[32px] object-contain rounded-full">`;
         themeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
-        themeButton.style.left = `${10}px`;
+        themeButton.style.left = `10px`;
         themeButton.dataset.theme = 'dark';
         document.body.appendChild(themeButton);
 
@@ -843,7 +844,7 @@
                     img.style.width = '48px';
                     img.style.maxWidth = '56px';
                 });
-                document.querySelectorAllBUFFALO('.small-bookmark .bookmark-name').forEach(name => {
+                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
                 });
                 zoomButton.style.backgroundColor = 'var(--bg-button-zoom-on)';
@@ -943,6 +944,7 @@
             const mainElement = document.querySelector('main');
             const mainTop = mainElement.getBoundingClientRect().top + window.scrollY;
             scrollToggle.style.top = `${mainTop - 5}px`;
+            adjustButtonPositions();
         }, 9000);
 
         function adjustButtonPositions() {
@@ -952,45 +954,18 @@
 
             buttons.forEach(button => {
                 button.style.left = `${Math.max(minLeft, newLeft)}px`;
-           agenda {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 20px;
+            });
         }
-        .agenda-item {
-            background-color: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .agenda-item h3 {
-            margin: 0 0 10px;
-            color: #333;
-        }
-        .agenda-item p {
-            margin: 5px 0;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="agenda">
-        <div class="agenda-item">
-            <h3>Lunes</h3>
-            <p>Reunión equipo - 10:00</p>
-            <p>Revisión proyecto - 14:00</p>
-        </div>
-        <div class="agenda-item">
-            <h3>Martes</h3>
-            <p>Capacitación - 09:00</p>
-            <p>Presentación cliente - 15:00</p>
-        </div>
-        <div class="agenda-item">
-            <h3>Miércoles</h3>
-            <p>Planificación sprint - 11:00</p>
-            <p>Seguimiento proveedores - 16:00</p>
-        </div>
-    </div>
+
+        window.addEventListener('load', () => {
+            adjustButtonPositions();
+            buttons.forEach(button => {
+                button.style.display = 'flex';
+            });
+        });
+        window.addEventListener('resize', adjustButtonPositions);
+
+        updateVersion();
+    </script>
 </body>
 </html>
