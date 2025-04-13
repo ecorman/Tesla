@@ -114,8 +114,8 @@
         }
         main {
             margin-top: 0.5rem;
-            margin-left: 196px;
-            margin-right: 10px;
+            margin-left: 166px;
+            margin-right: 40px;
             background-color: #ABAB99;
             border-radius: 0.75rem;
             padding: 1rem;
@@ -129,8 +129,8 @@
         footer {
             margin-top: 0.5rem;
             text-align: center;
-            margin-left: 196px;
-            margin-right: 10px;
+            margin-left: 166px;
+            margin-right: 40px;
             max-width: calc(100vw - 206px);
         }
         .header-container {
@@ -190,7 +190,7 @@
             color: #38BDF8;
             margin-top: 0.25rem;
             gap: 0.5rem;
-            animation: fadeOut 9s forwards;
+            animation: fadeOut 12s forwards;
         }
         .top-text-container span {
             color: #FFFFFF;
@@ -233,8 +233,8 @@
         .notices-container {
             width: 100%;
             max-width: 1080px;
-            margin-left: 196px;
-            margin-right: 10px;
+            margin-left: 166px;
+            margin-right: 40px;
             padding: 0.5rem;
             border: none;
             border-radius: 0.5rem;
@@ -270,8 +270,8 @@
             100% { opacity: 0; }
         }
         .notice-off-icon {
-            width: 20px;
-            height: 20px;
+            width: 30px;
+            height: 30px;
             margin-left: 45px;
             margin-right: 10px;
             align-self: center;
@@ -552,6 +552,7 @@
             localStorage.setItem('toggleStates', JSON.stringify(toggleStates));
             localStorage.setItem('zoomState', document.getElementById('zoom-button').dataset.zoomState);
             localStorage.setItem('onOffState', document.getElementById('on-off-toggle').dataset.state);
+            localStorage.setItem('noticesActive', JSON.stringify(isActive));
         }
 
         function loadSavedSettings() {
@@ -1021,6 +1022,7 @@
             window.history.forward();
         });
 
+        let isActive = true;
         fetch('avisos.txt')
             .then(response => response.text())
             .then(text => {
@@ -1031,7 +1033,10 @@
                 const noticeWrapper = document.querySelector('.notice-wrapper');
                 const noticeToggleIcon = document.getElementById('notice-toggle-icon');
                 let currentIndex = 0;
-                let isActive = true;
+
+                // Cargar estado de avisos desde localStorage
+                const savedNoticesActive = localStorage.getItem('noticesActive');
+                isActive = savedNoticesActive !== null ? JSON.parse(savedNoticesActive) : true;
 
                 function adjustFontSize() {
                     let fontSize = 1.2;
@@ -1059,16 +1064,25 @@
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00';
-                        noticeElement.style.animation = 'fadeInOut 14s infinite  infinite';
+                        noticeElement.style.animation = 'fadeInOut 14s infinite';
                         isActive = true;
                         showNextNotice();
                     }
+                    saveSettings();
                 }
 
                 noticeElement.addEventListener('click', toggleNotices);
                 noticeToggleIcon.addEventListener('click', toggleNotices);
 
-                showNextNotice();
+                // Aplicar estado inicial
+                if (!isActive) {
+                    noticeElement.style.animation = 'none';
+                    noticeElement.textContent = 'Avisos desactivados';
+                    noticeElement.style.color = '#A9A9A9';
+                    noticeElement.style.fontSize = '0.8rem';
+                } else {
+                    showNextNotice();
+                }
             })
             .catch(error => {
                 console.error('Error al cargar avisos.txt:', error);
