@@ -33,7 +33,7 @@
             display: grid;
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
-            background-color: transparent; /* Fondo movido a main */
+            background-color: transparent;
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
@@ -111,16 +111,16 @@
         }
         main {
             margin-top: 0.5rem;
-            margin-left: 141px; /* 10px (botones left) + 91px (botones width) + 40px (distancia) */
+            margin-left: 181px; /* 10px + 91px + 40px + 40px extra */
             margin-right: 10px;
-            background-color: #F5F5DC; /* Fondo beige movido aquí */
+            background-color: #ABAB99; /* Beige 30% más oscuro */
             border-radius: 0.75rem;
             padding: 2rem;
             min-height: 400px;
             transition: background-color 0.3s ease;
         }
         body.dark-mode main {
-            background-color: #D2D2B0; /* Beige oscurecido */
+            background-color: #92927E; /* Beige aún más oscuro */
         }
         footer {
             margin-top: 0.5rem;
@@ -331,8 +331,8 @@
             background-color: #FFFFFF;
         }
         #on-off-toggle {
-            background-color: #FFFFFF;
-            color: #FFFFFF; /* Para cualquier texto residual, aunque usamos imágenes */
+            background-color: #E6E6E6; /* Gris muy claro */
+            color: #FFFFFF;
         }
         .range-toggle {
             color: #FFFFFF;
@@ -353,7 +353,7 @@
             background-color: #374151;
         }
         body.dark-mode #on-off-toggle {
-            background-color: #FFFFFF;
+            background-color: #E6E6E6;
         }
         body.dark-mode #dark-mode-toggle {
             background-color: #FFFFFF;
@@ -647,8 +647,8 @@
         // Generar colores para los bookmarks
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
-            const saturation = 45 + Math.floor(Math.random() * 30); // 45-75%
-            const lightness = 75 + Math.floor(Math.random() * 15); // 75-90%
+            const saturation = 40 + Math.floor(Math.random() * 30); // 40-70%
+            const lightness = 80 + Math.floor(Math.random() * 15); // 80-95%
             return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
         }
 
@@ -1027,7 +1027,7 @@
         window.addEventListener('load', () => {
             console.log('Página cargada, ajustando posiciones...');
             adjustButtonPositions();
-            updateButtonStyles(); // Asegurar que los estilos iniciales se apliquen
+            updateButtonStyles();
         });
         window.addEventListener('resize', adjustButtonPositions);
 
