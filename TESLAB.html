@@ -350,6 +350,9 @@
             background-color: #E0E0E0;
             color: #FFFFFF;
         }
+        #reminder-button {
+            background-color: #87CEEB;
+        }
         .range-toggle {
             color: #FFFFFF;
         }
@@ -389,6 +392,9 @@
         body.dark-mode #zoom-button.zoomed {
             background-color: #7c2d12;
         }
+        body.dark-mode #reminder-button {
+            background-color: #0ea5e9;
+        }
         .minimal-mode {
             background-color: #000000;
         }
@@ -397,7 +403,8 @@
         .minimal-mode footer,
         .minimal-mode .top-text-container,
         .minimal-mode .scroll-toggle-button,
-        .minimal-mode .toggle-sign:not(#on-off-toggle) {
+        .minimal-mode .toggle-sign:not(#on-off-toggle),
+        .minimal-mode #reminder-notifications {
             display: none !important;
         }
         .minimal-mode #on-off-toggle {
@@ -412,6 +419,85 @@
             top: 70px;
             left: 10px;
             z-index: 1000;
+        }
+        .reminder-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #F3F4F6;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            max-width: 400px;
+            width: 90%;
+        }
+        .reminder-modal h2 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .reminder-modal label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .reminder-modal input,
+        .reminder-modal textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.25rem;
+        }
+        .reminder-modal .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        .reminder-modal button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        .reminder-modal button[type="submit"] {
+            background-color: #2563EB;
+            color: #FFFFFF;
+        }
+        .reminder-modal button[type="button"] {
+            background-color: #D1D5DB;
+            color: #111827;
+        }
+        #reminder-notifications {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1500;
+            max-width: 300px;
+            width: 90%;
+        }
+        .reminder-notification {
+            background-color: #D1D5DB;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .reminder-notification p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #111827;
+        }
+        .reminder-notification button {
+            background-color: #EF4444;
+            color: #FFFFFF;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -468,6 +554,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
+
+    <div id="reminder-notifications"></div>
 
     <script>
         const bookmarks = [
@@ -647,6 +735,7 @@
                 }
 
                 updateButtonStyles();
+                loadReminders();
             }, 0);
         }
 
@@ -736,6 +825,7 @@
             const homeButton = document.getElementById('home-button');
             const weatherButton = document.getElementById('weather-button');
             const zoomButton = document.getElementById('zoom-button');
+            const reminderButton = document.getElementById('reminder-button');
 
             darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
             onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[56px] h-[56px] object-contain">`;
@@ -749,6 +839,7 @@
                 weatherButton.style.backgroundColor = '#b45309';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#7c2d12' : '#c2410c';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
+                reminderButton.style.backgroundColor = '#0ea5e9';
             } else if (!isMinimalMode) {
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969';
@@ -758,6 +849,7 @@
                 weatherButton.style.backgroundColor = '#FBBF24';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#C2410C' : '#F97316';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
+                reminderButton.style.backgroundColor = '#87CEEB';
             }
         }
 
@@ -946,11 +1038,29 @@
         document.body.appendChild(weatherButton);
         console.log('Weather button creado:', weatherButton);
 
+        const reloadButton = document.createElement('span');
+        reloadButton.className = 'toggle-sign';
+        reloadButton.id = 'reload-button';
+        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
+        reloadButton.style.left = `10px`;
+        document.body.appendChild(reloadButton);
+        console.log('Reload button creado:', reloadButton);
+
+        const reminderButton = document.createElement('span');
+        reminderButton.className = 'toggle-sign';
+        reminderButton.id = 'reminder-button';
+        reminderButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4197.jpeg" alt="Recordatorio" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+        reminderButton.style.left = `10px`;
+        document.body.appendChild(reminderButton);
+        console.log('Reminder button creado:', reminderButton);
+
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
         zoomButton.id = 'zoom-button';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
+        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
         zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
@@ -960,30 +1070,21 @@
         darkModeToggle.className = 'toggle-sign';
         darkModeToggle.id = 'dark-mode-toggle';
         darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
-        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
         darkModeToggle.style.left = `10px`;
         document.body.appendChild(darkModeToggle);
         console.log('Dark mode toggle creado:', darkModeToggle);
-
-        const reloadButton = document.createElement('span');
-        reloadButton.className = 'toggle-sign';
-        reloadButton.id = 'reload-button';
-        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-        reloadButton.style.left = `10px`;
-        document.body.appendChild(reloadButton);
-        console.log('Reload button creado:', reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
         homeButton.id = 'home-button';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
+        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 7)}px`;
         homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
         console.log('Home button creado:', homeButton);
 
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, zoomButton, darkModeToggle, reloadButton, homeButton];
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, reloadButton, reminderButton, zoomButton, darkModeToggle, homeButton];
 
         darkModeToggle.addEventListener('click', () => {
             if (isMinimalMode) return;
@@ -1102,6 +1203,112 @@
             saveSettings();
             adjustButtonPositions();
         });
+
+        function showReminderModal() {
+            if (isMinimalMode) return;
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.setAttribute('aria-label', 'Añadir nuevo recordatorio');
+            modal.innerHTML = `
+                <h2>Añadir Recordatorio</h2>
+                <form id="reminder-form">
+                    <label for="reminder-text">Texto del recordatorio:</label>
+                    <textarea id="reminder-text" required rows="4"></textarea>
+                    <label for="reminder-time">Hora (opcional):</label>
+                    <input type="time" id="reminder-time">
+                    <div class="button-group">
+                        <button type="button" id="cancel-reminder">Cancelar</button>
+                        <button type="submit">Guardar</button>
+                    </div>
+                </form>
+            `;
+            document.body.appendChild(modal);
+
+            const form = modal.querySelector('#reminder-form');
+            const cancelButton = modal.querySelector('#cancel-reminder');
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = modal.querySelector('#reminder-text').value.trim();
+                const time = modal.querySelector('#reminder-time').value;
+                if (text) {
+                    saveReminder(text, time);
+                    document.body.removeChild(modal);
+                }
+            });
+
+            cancelButton.addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+
+            document.addEventListener('keydown', function closeOnEsc(e) {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', closeOnEsc);
+                }
+            });
+        }
+
+        function saveReminder(text, time) {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const reminder = {
+                id: Date.now(),
+                text,
+                time: time || null,
+                isCancelled: false
+            };
+            reminders.push(reminder);
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            showReminder(reminder);
+        }
+
+        function showReminder(reminder) {
+            if (reminder.isCancelled || isMinimalMode) return;
+            const notificationsContainer = document.getElementById('reminder-notifications');
+            const notification = document.createElement('div');
+            notification.className = 'reminder-notification';
+            notification.innerHTML = `
+                <p>${reminder.text}</p>
+                <button onclick="cancelReminder(${reminder.id})">Descartar</button>
+            `;
+            notificationsContainer.appendChild(notification);
+        }
+
+        function cancelReminder(id) {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const updatedReminders = reminders.map(r => 
+                r.id === id ? { ...r, isCancelled: true } : r
+            );
+            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+            const notification = document.querySelector(`#reminder-notifications .reminder-notification button[onclick="cancelReminder(${id})"]`).parentElement;
+            notification.remove();
+        }
+
+        function loadReminders() {
+            if (isMinimalMode) return;
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders.forEach(reminder => {
+                if (!reminder.isCancelled && !reminder.time) {
+                    showReminder(reminder);
+                }
+            });
+        }
+
+        function checkScheduledReminders() {
+            if (isMinimalMode) return;
+            const now = new Date();
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders.forEach(reminder => {
+                if (!reminder.isCancelled && reminder.time === currentTime) {
+                    showReminder(reminder);
+                }
+            });
+        }
+
+        reminderButton.addEventListener('click', showReminderModal);
+
+        setInterval(checkScheduledReminders, 60000);
 
         const backButton = document.getElementById('back-button');
         const forwardButton = document.getElementById('forward-button');
