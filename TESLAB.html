@@ -310,9 +310,9 @@
             font-weight: normal;
         }
         #dark-mode-toggle {
-            position: fixed;
-            top: 10px;
-            left: 10px;
+            position: absolute;
+            top: 2px;
+            left: 2px;
             width: 32px;
             height: 32px;
             cursor: pointer;
@@ -322,7 +322,7 @@
             filter: brightness(50%) grayscale(50%);
         }
         body.dark-mode .bookmark-item {
-            filter: brightness(60%); /* Aumentado el oscurecimiento un 10% */
+            filter: brightness(60%);
         }
         body.dark-mode .scroll-toggle-button {
             background-color: #1e293b;
@@ -367,9 +367,8 @@
         </div>
     </div>
 
-    <img src="https://boardinggate.github.io/Tesla/IMG_4187.png" alt="Toggle Dark Mode" id="dark-mode-toggle" class="absolute top-2 left-2 w-8 h-8 cursor-pointer z-10">
-
-    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
+    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg relative" id="bookmark-grid">
+        <img src="https://boardinggate.github.io/Tesla/IMG_4187.png" alt="Toggle Dark Mode" id="dark-mode-toggle" class="absolute top-2 left-2 w-8 h-8 cursor-pointer z-10">
         <!-- Grid populated by JavaScript -->
     </main>
 
