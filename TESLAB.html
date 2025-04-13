@@ -269,12 +269,13 @@
             90% { opacity: 1; }
             100% { opacity: 0; }
         }
-        .notice-off-text {
-            color: #A9A9A9;
-            font-size: 0.5rem; /* Letra más pequeña */
+        .notice-off-icon {
+            width: clamp(1.5rem, 4vw, 2rem);
+            height: auto;
             margin-left: 45px;
             margin-right: 0;
             align-self: center;
+            cursor: pointer;
         }
         .megaphone-icon-end {
             width: auto;
@@ -337,7 +338,7 @@
             font-weight: normal;
         }
         #dark-mode-toggle {
-            background-color: #F0F0F0; /* Blanco con tono gris */
+            background-color: #F0F0F0;
         }
         #on-off-toggle {
             background-color: #E0E0E0;
@@ -402,7 +403,7 @@
     </main>
 
     <div class="notices-container">
-        <span class="notice-off-text">Toque para Off:</span>
+        <img src="https://boardinggate.github.io/Tesla/IMG_4194.jpeg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon">
         <div class="notice-wrapper">
             <span class="notice" id="current-notice"></span>
         </div>
@@ -964,6 +965,7 @@
 
                 const noticeElement = document.getElementById('current-notice');
                 const noticeWrapper = document.querySelector('.notice-wrapper');
+                const noticeToggleIcon = document.getElementById('notice-toggle-icon');
                 let currentIndex = 0;
                 let isActive = true;
 
@@ -984,7 +986,7 @@
                     setTimeout(showNextNotice, 14000);
                 }
 
-                noticeElement.addEventListener('click', () => {
+                function toggleNotices() {
                     if (isActive) {
                         noticeElement.style.animation = 'none';
                         noticeElement.textContent = 'Avisos desactivados';
@@ -997,7 +999,10 @@
                         isActive = true;
                         showNextNotice();
                     }
-                });
+                }
+
+                noticeElement.addEventListener('click', toggleNotices);
+                noticeToggleIcon.addEventListener('click', toggleNotices);
 
                 showNextNotice();
             })
