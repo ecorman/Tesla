@@ -66,8 +66,8 @@
             font-size: clamp(0.85rem, 1.5vw, 1.15rem);
         }
         .small-bookmark img {
-            width: 36px;
-            max-width: auto;
+            width: 24px;
+            max-width: 28px;
         }
         .small-bookmark .bookmark-name {
             font-size: clamp(0.85rem, 1.5vw, 1.15rem);
@@ -338,6 +338,7 @@
             justify-content: center;
             align-items: center;
             background-color: #87CEEB;
+            position: relative;
         }
         #reminder-button img {
             width: 48px;
@@ -345,9 +346,14 @@
             object-fit: contain;
         }
         #reminder-button .reminder-count {
+            position: absolute;
+            top: 2px;
+            left: 2px;
             font-size: 0.65rem;
-            color: #FFFFFF;
-            margin-top: 2px;
+            color: #000000;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 4px;
+            border-radius: 4px;
         }
         .hidden {
             display: none;
@@ -364,7 +370,7 @@
             background-color: #F0F0F0;
         }
         #on-off-toggle {
-            background-color: #E0E0E0;
+            background-color: #6B7280;
             color: #FFFFFF;
         }
         .range-toggle {
@@ -386,7 +392,7 @@
             background-color: #374151;
         }
         body.dark-mode #on-off-toggle {
-            background-color: #E0E0E0;
+            background-color: #6B7280;
         }
         body.dark-mode #dark-mode-toggle {
             background-color: #F0F0F0;
@@ -427,8 +433,8 @@
             left: 10px;
         }
         .minimal-mode-message {
-            color: #FFFFFF;
-            font-size: 1rem;
+            color: #9CA3AF;
+            font-size: 0.85rem;
             position: fixed;
             top: 70px;
             left: 10px;
@@ -523,6 +529,10 @@
         }
         .reminder-notification button.modify {
             background-color: #10B981;
+            color: #FFFFFF;
+        }
+        .reminder-notification button.postpone {
+            background-color: #F59E0B;
             color: #FFFFFF;
         }
     </style>
@@ -635,7 +645,7 @@
             { name: "TESLA web", url: "https://www.tesla.com/es_es" },
             { name: "Manual M3", url: "https://www.tesla.com/ownersmanual/model3/es_es/" },
             { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
-            { name: "de Despiece", url: "https://epc.tesla.com/es-MX/catalogs/e0e07c3d-272f-4d06-b8b6-9e92f857e5f3" },
+            { name: "de Despiece", url: "https://epc.tesla.com/es-MX/catalogs/e0e07c3d-272f-4d06-b brass6-9e92f857e5f3" },
             { name: "de Usted Mismo", url: "https://www.tesla.com/es_es/support/do-it-yourself-guides" },
             { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
             { name: "de Móvil remoto", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-53651B16-A2E3-4118-933E-B5F41C74D433.html" },
@@ -679,6 +689,7 @@
         let isDarkMode = false;
         let isMinimalMode = false;
         let pressStartTime = null;
+        let reminderPressStartTime = null;
 
         function checkDarkModeTime() {
             const now = new Date();
@@ -747,6 +758,9 @@
                     if (savedOnOffState === 'off') {
                         updateAllToggles('off');
                     }
+                } else {
+                    onOffToggle.dataset.state = 'off';
+                    updateAllToggles('off');
                 }
 
                 if (savedNoticesActive) {
@@ -1041,10 +1055,9 @@
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
-        onOffToggle.dataset.state = 'on';
+        onOffToggle.dataset.state = 'off';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
         onOffToggle.style.left = `10px`;
-        onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
         console.log('On/off toggle creado:', onOffToggle);
 
@@ -1116,7 +1129,7 @@
         document.body.appendChild(homeButton);
         console.log('Home button creado:', homeButton);
 
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, reminderButton, zoomButton, darkModeToggle, reloadButton, homeButton];
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, zoomButton, darkModeToggle, reloadButton, homeButton];
 
         darkModeToggle.addEventListener('click', () => {
             if (isMinimalMode) return;
@@ -1355,8 +1368,8 @@
             updateButtonStyles();
         }
 
-        function showReminder(reminder) {
-            if (reminder.isCancelled || isMinimalMode) return;
+        function showReminder(reminder, showAll = false) {
+            if (!showAll && (reminder.isCancelled || isMinimalMode)) return;
             const notificationsContainer = document.getElementById('reminder-notifications');
             const notification = document.createElement('div');
             notification.className = 'reminder-notification';
@@ -1364,6 +1377,7 @@
             notification.innerHTML = `
                 <p>${reminder.text}</p>
                 <div class="button-group">
+                    <button class="postpone" onclick="postponeReminder(${reminder.id})">Posponer</button>
                     <button class="modify" onclick="modifyReminder(${reminder.id})">Modificar</button>
                     <button class="cancel" onclick="cancelReminder(${reminder.id})">Descartar</button>
                 </div>
@@ -1391,6 +1405,32 @@
             }
         }
 
+        function postponeReminder(id) {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const reminder = reminders.find(r => r.id === id);
+            if (reminder) {
+                const now = new Date();
+                const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                const time = reminder.time || '00:00';
+                const updatedReminders = reminders.map(r => 
+                    r.id === id ? { ...r, time, isCancelled: false } : r
+                );
+                localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                const notification = document.querySelector(`#reminder-notifications .reminder-notification[data-id="${id}"]`);
+                if (notification) notification.remove();
+                updateButtonStyles();
+            }
+        }
+
+        function showAllReminders() {
+            const notificationsContainer = document.getElementById('reminder-notifications');
+            notificationsContainer.innerHTML = '';
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders.forEach(reminder => {
+                showReminder(reminder, true);
+            });
+        }
+
         function loadReminders() {
             if (isMinimalMode) return;
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
@@ -1414,7 +1454,31 @@
             });
         }
 
-        reminderButton.addEventListener('click', () => showReminderModal());
+        function handleReminderLongPress() {
+            const pressDuration = Date.now() - reminderPressStartTime;
+            if (pressDuration >= 3000) {
+                showAllReminders();
+            } else {
+                showReminderModal();
+            }
+            reminderPressStartTime = null;
+        }
+
+        reminderButton.addEventListener('mousedown', () => {
+            reminderPressStartTime = Date.now();
+        });
+
+        reminderButton.addEventListener('mouseup', handleReminderLongPress);
+
+        reminderButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            reminderPressStartTime = Date.now();
+        });
+
+        reminderButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleReminderLongPress();
+        });
 
         setInterval(checkScheduledReminders, 60000);
 
@@ -1441,87 +1505,86 @@
                 footerLine.classList.toggle('footer-hidden', !isFooterVisible);
                 footerSubtext.classList.toggle('footer-hidden', !isFooterVisible);
             }
+            saveSettings();
         }
 
-        function loadNotices() {
-            fetch('avisos.txt')
-                .then(response => response.text())
-                .then(text => {
-                    const noticeElement = document.getElementById('current-notice');
-                    if (!isActive) {
-                        noticeElement.textContent = 'Avisos desactivados';
-                        noticeElement.style.color = '#A9A9A9';
-                        noticeElement.style.fontSize = '0.8rem';
-                        noticeElement.style.animation = 'none';
-                        isFooterVisible = false;
-                        toggleFooterVisibility();
-                        return;
-                    }
+        const noticeToggleIcon = document.getElementById('notice-toggle-icon');
+        const currentNotice = document.getElementById('current-notice');
+        let noticeIndex = 0;
+        let notices = [];
 
-                    const notices = text.split('\n').filter(line => line.trim() !== '');
-                    if (notices.length === 0) return;
-
-                    const noticeWrapper = document.querySelector('.notice-wrapper');
-                    const noticeToggleIcon = document.getElementById('notice-toggle-icon');
-                    let currentIndex = 0;
-
-                    function adjustFontSize() {
-                        let fontSize = 1.2;
-                        noticeElement.style.fontSize = `${fontSize}rem`;
-                        while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
-                            fontSize -= 0.1;
-                            noticeElement.style.fontSize = `${fontSize}rem`;
-                        }
-                    }
-
-                    function showNextNotice() {
-                        if (!isActive || isMinimalMode) return;
-                        noticeElement.textContent = notices[currentIndex];
-                        adjustFontSize();
-                        currentIndex = (currentIndex + 1) % notices.length;
-                        setTimeout(showNextNotice, 14000);
-                    }
-
-                    function toggleNotices() {
-                        if (isMinimalMode) return;
-                        isActive = !isActive;
-                        isFooterVisible = isActive;
-                        toggleFooterVisibility();
-                        saveSettings();
-
-                        if (!isActive) {
-                            noticeElement.style.animation = 'none';
-                            noticeElement.textContent = 'Avisos desactivados';
-                            noticeElement.style.color = '#A9A9A9';
-                            noticeElement.style.fontSize = '0.8rem';
-                        } else {
-                            noticeElement.style.animation = '';
-                            noticeElement.style.color = '#00ff00';
-                            noticeElement.style.fontSize = '';
-                            currentIndex = 0;
-                            showNextNotice();
-                        }
-                    }
-
-                    noticeToggleIcon.addEventListener('click', toggleNotices);
-
-                    if (isActive) {
-                        showNextNotice();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al cargar avisos:', error);
-                    document.getElementById('current-notice').textContent = 'Error al cargar avisos';
-                });
+        async function fetchNotices() {
+            try {
+                const response = await fetch('https://boardinggate.github.io/Tesla/notices.json');
+                notices = await response.json();
+                if (isActive && notices.length > 0) {
+                    currentNotice.textContent = notices[noticeIndex];
+                }
+            } catch (error) {
+                console.error('Error al cargar avisos:', error);
+            }
         }
 
-        window.addEventListener('load', () => {
+        function cycleNotices() {
+                function cycleNotices() {
+            if (!isActive || notices.length === 0) {
+                currentNotice.textContent = '';
+                return;
+            }
+            noticeIndex = (noticeIndex + 1) % notices.length;
+            currentNotice.textContent = notices[noticeIndex];
+        }
+
+        noticeToggleIcon.addEventListener('click', () => {
+            if (isMinimalMode) return;
+            isActive = !isActive;
+            noticeToggleIcon.src = isActive 
+                ? 'https://boardinggate.github.io/Tesla/IMG_4194.jpeg'
+                : 'https://boardinggate.github.io/Tesla/IMG_4195.jpeg';
+            noticeToggleIcon.alt = isActive ? 'Toggle Avisos' : 'Avisos Desactivados';
+            if (!isActive) {
+                currentNotice.textContent = '';
+            } else if (notices.length > 0) {
+                currentNotice.textContent = notices[noticeIndex];
+            }
+            isFooterVisible = isActive;
+            toggleFooterVisibility();
+            saveSettings();
+        });
+
+        async function initialize() {
+            await updateVersion();
+            await fetchNotices();
             loadSavedSettings();
-            updateVersion();
-            loadNotices();
             updateButtonStyles();
             adjustButtonPositions();
+
+            if (notices.length > 0 && isActive) {
+                currentNotice.textContent = notices[noticeIndex];
+                setInterval(cycleNotices, 14000);
+            }
+
+            window.addEventListener('resize', adjustButtonPositions);
+        }
+
+        initialize().catch(error => console.error('Error en inicialización:', error));
+
+        document.addEventListener('keydown', (e) => {
+            if (isMinimalMode) return;
+            if (e.key === 'ArrowLeft') {
+                window.history.back();
+            } else if (e.key === 'ArrowRight') {
+                window.history.forward();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('bookmark-grid');
+            if (grid.children.length === 0) {
+                console.error('Grid no inicializado correctamente');
+            }
         });
     </script>
 </body>
 </html>
+           
