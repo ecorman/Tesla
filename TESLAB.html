@@ -332,6 +332,23 @@
             width: 56px;
             height: 56px;
         }
+        #reminder-button {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #87CEEB;
+        }
+        #reminder-button img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        #reminder-button .reminder-count {
+            font-size: 0.65rem;
+            color: #FFFFFF;
+            margin-top: 2px;
+        }
         .hidden {
             display: none;
         }
@@ -349,9 +366,6 @@
         #on-off-toggle {
             background-color: #E0E0E0;
             color: #FFFFFF;
-        }
-        #reminder-button {
-            background-color: #87CEEB;
         }
         .range-toggle {
             color: #FFFFFF;
@@ -842,6 +856,13 @@
             darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
             onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[56px] h-[56px] object-contain">`;
 
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const pendingCount = reminders.filter(r => !r.isCancelled).length;
+            reminderButton.innerHTML = `
+                <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpeg" alt="Recordatorio" class="w-[48px] h-[48px] object-contain">
+                ${pendingCount > 0 ? `<span class="reminder-count">${pendingCount}</span>` : ''}
+            `;
+
             if (isDarkMode && !isMinimalMode) {
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#166534' : '#4B5563';
@@ -1053,7 +1074,6 @@
         const reminderButton = document.createElement('span');
         reminderButton.className = 'toggle-sign';
         reminderButton.id = 'reminder-button';
-        reminderButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4197.jpeg" alt="Recordatorio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         reminderButton.style.left = `10px`;
         document.body.appendChild(reminderButton);
@@ -1161,11 +1181,7 @@
             }
         });
 
-        onOffToggle.addEventListener('mousedown', () => {
-            pressStartTime = Date.now();
-        });
-
-        onOffToggle.addEventListener('mouseup', () => {
+        function handleLongPress() {
             const pressDuration = Date.now() - pressStartTime;
             if (pressDuration >= 3000) {
                 isMinimalMode = !isMinimalMode;
@@ -1175,12 +1191,22 @@
                 updateAllToggles(currentState === 'on' ? 'off' : 'on');
             }
             pressStartTime = null;
+        }
+
+        onOffToggle.addEventListener('mousedown', () => {
+            pressStartTime = Date.now();
         });
 
-        onOffToggle.addEventListener('click', (e) => {
-            if (pressStartTime && (Date.now() - pressStartTime) >= 3000) {
-                e.preventDefault();
-            }
+        onOffToggle.addEventListener('mouseup', handleLongPress);
+
+        onOffToggle.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            pressStartTime = Date.now();
+        });
+
+        onOffToggle.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleLongPress();
         });
 
         toggleButtons.forEach(toggle => {
@@ -1283,6 +1309,7 @@
                     }
                     document.body.removeChild(modal);
                 }
+                updateButtonStyles();
             });
 
             cancelButton.addEventListener('click', () => {
@@ -1310,6 +1337,7 @@
             if (!time) {
                 showReminder(reminder);
             }
+            updateButtonStyles();
         }
 
         function updateReminder(id, text, time) {
@@ -1324,6 +1352,7 @@
             if (!time) {
                 showReminder(updatedReminder);
             }
+            updateButtonStyles();
         }
 
         function showReminder(reminder) {
@@ -1340,6 +1369,7 @@
                 </div>
             `;
             notificationsContainer.appendChild(notification);
+            updateButtonStyles();
         }
 
         function cancelReminder(id) {
@@ -1350,6 +1380,7 @@
             localStorage.setItem('reminders', JSON.stringify(updatedReminders));
             const notification = document.querySelector(`#reminder-notifications .reminder-notification[data-id="${id}"]`);
             if (notification) notification.remove();
+            updateButtonStyles();
         }
 
         function modifyReminder(id) {
@@ -1368,6 +1399,7 @@
                     showReminder(reminder);
                 }
             });
+            updateButtonStyles();
         }
 
         function checkScheduledReminders() {
@@ -1411,79 +1443,85 @@
             }
         }
 
-        fetch('avisos.txt')
-            .then(response => response.text())
-            .then(text => {
-                const notices = text.split('\n').filter(line => line.trim() !== '');
-                if (notices.length === 0) return;
-
-                const noticeElement = document.getElementById('current-notice');
-                const noticeWrapper = document.querySelector('.notice-wrapper');
-                const noticeToggleIcon = document.getElementById('notice-toggle-icon');
-                let currentIndex = 0;
-
-                function adjustFontSize() {
-                    let fontSize = 1.2;
-                    noticeElement.style.fontSize = `${fontSize}rem`;
-                    while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
-                        fontSize -= 0.1;
-                        noticeElement.style.fontSize = `${fontSize}rem`;
-                    }
-                }
-
-                function showNextNotice() {
-                    if (!isActive || isMinimalMode) return;
-                    noticeElement.textContent = notices[currentIndex];
-                    adjustFontSize();
-                    currentIndex = (currentIndex + 1) % notices.length;
-                    setTimeout(showNextNotice, 14000);
-                }
-
-                function toggleNotices() {
-                    if (isMinimalMode) return;
-                    if (isActive) {
-                        noticeElement.style.animation = 'none';
+        function loadNotices() {
+            fetch('avisos.txt')
+                .then(response => response.text())
+                .then(text => {
+                    const noticeElement = document.getElementById('current-notice');
+                    if (!isActive) {
                         noticeElement.textContent = 'Avisos desactivados';
                         noticeElement.style.color = '#A9A9A9';
                         noticeElement.style.fontSize = '0.8rem';
-                        isActive = false;
+                        noticeElement.style.animation = 'none';
                         isFooterVisible = false;
-                    } else {
-                        noticeElement.style.color = '#00ff00';
-                        noticeElement.style.animation = 'fadeInOut 14s infinite';
+                        toggleFooterVisibility();
+                        return;
+                    }
+
+                    const notices = text.split('\n').filter(line => line.trim() !== '');
+                    if (notices.length === 0) return;
+
+                    const noticeWrapper = document.querySelector('.notice-wrapper');
+                    const noticeToggleIcon = document.getElementById('notice-toggle-icon');
+                    let currentIndex = 0;
+
+                    function adjustFontSize() {
+                        let fontSize = 1.2;
+                        noticeElement.style.fontSize = `${fontSize}rem`;
+                        while (noticeElement.offsetWidth > noticeWrapper.offsetWidth && fontSize > 0.5) {
+                            fontSize -= 0.1;
+                            noticeElement.style.fontSize = `${fontSize}rem`;
+                        }
+                    }
+
+                    function showNextNotice() {
+                        if (!isActive || isMinimalMode) return;
                         noticeElement.textContent = notices[currentIndex];
                         adjustFontSize();
-                        isActive = true;
-                        isFooterVisible = true;
+                        currentIndex = (currentIndex + 1) % notices.length;
+                        setTimeout(showNextNotice, 14000);
+                    }
+
+                    function toggleNotices() {
+                        if (isMinimalMode) return;
+                        isActive = !isActive;
+                        isFooterVisible = isActive;
+                        toggleFooterVisibility();
+                        saveSettings();
+
+                        if (!isActive) {
+                            noticeElement.style.animation = 'none';
+                            noticeElement.textContent = 'Avisos desactivados';
+                            noticeElement.style.color = '#A9A9A9';
+                            noticeElement.style.fontSize = '0.8rem';
+                        } else {
+                            noticeElement.style.animation = '';
+                            noticeElement.style.color = '#00ff00';
+                            noticeElement.style.fontSize = '';
+                            currentIndex = 0;
+                            showNextNotice();
+                        }
+                    }
+
+                    noticeToggleIcon.addEventListener('click', toggleNotices);
+
+                    if (isActive) {
                         showNextNotice();
                     }
-                    toggleFooterVisibility();
-                    saveSettings();
-                }
-
-                noticeElement.addEventListener('click', toggleNotices);
-                noticeToggleIcon.addEventListener('click', toggleNotices);
-
-                if (!isActive) {
-                    noticeElement.style.animation = 'none';
-                    noticeElement.textContent = 'Avisos desactivados';
-                    noticeElement.style.color = '#A9A9A9';
-                    noticeElement.style.fontSize = '0.8rem';
-                    isFooterVisible = false;
-                    toggleFooterVisibility();
-                } else {
-                    showNextNotice();
-                }
-            })
-            .catch(error => console.error('Error al cargar avisos:', error));
+                })
+                .catch(error => {
+                    console.error('Error al cargar avisos:', error);
+                    document.getElementById('current-notice').textContent = 'Error al cargar avisos';
+                });
+        }
 
         window.addEventListener('load', () => {
-            updateVersion();
             loadSavedSettings();
+            updateVersion();
+            loadNotices();
+            updateButtonStyles();
             adjustButtonPositions();
         });
-
-        window.addEventListener('resize', adjustButtonPositions);
     </script>
 </body>
 </html>
