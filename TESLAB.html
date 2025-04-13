@@ -273,7 +273,7 @@
             width: 20px;
             height: 20px;
             margin-left: 45px;
-            margin-right: 10px; /* Separación de la línea de avisos */
+            margin-right: 10px;
             align-self: center;
             cursor: pointer;
         }
@@ -543,9 +543,124 @@
             return (hours >= 21 || hours < 7 || (hours === 7 && minutes <= 30));
         }
 
-        isDarkMode = checkDarkModeTime();
-        if (isDarkMode) {
-            document.body.classList.add('dark-mode');
+        function saveSettings() {
+            localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+            const toggleStates = {};
+            document.querySelectorAll('.range-toggle').forEach(toggle => {
+                toggleStates[toggle.dataset.rangeStart] = toggle.dataset.state;
+            });
+            localStorage.setItem('toggleStates', JSON.stringify(toggleStates));
+            localStorage.setItem('zoomState', document.getElementById('zoom-button').dataset.zoomState);
+            localStorage.setItem('onOffState', document.getElementById('on-off-toggle').dataset.state);
+        }
+
+        function loadSavedSettings() {
+            // Cargar modo oscuro
+            const savedDarkMode = localStorage.getItem('darkMode');
+            isDarkMode = savedDarkMode ? JSON.parse(savedDarkMode) : checkDarkModeTime();
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            }
+
+            // Cargar estado de zoom
+            const savedZoomState = localStorage.getItem('zoomState');
+            const zoomButton = document.getElementById('zoom-button');
+            if (savedZoomState && zoomButton) {
+                zoomButton.dataset.zoomState = savedZoomState;
+                applyZoom(savedZoomState);
+            }
+
+            // Cargar estado de toggles y on/off después de que los elementos estén creados
+            setTimeout(() => {
+                const savedToggleStates = localStorage.getItem('toggleStates');
+                const savedOnOffState = localStorage.getItem('onOffState');
+                const onOffToggle = document.getElementById('on-off-toggle');
+
+                if (savedToggleStates) {
+                    const toggleStates = JSON.parse(savedToggleStates);
+                    document.querySelectorAll('.range-toggle').forEach(toggle => {
+                        const start = toggle.dataset.rangeStart;
+                        if (toggleStates[start]) {
+                            toggle.dataset.state = toggleStates[start];
+                            const label = toggleRanges.find(r => r.start == start).label;
+                            toggle.innerHTML = `<span class="sign">${toggleStates[start] === 'visible' ? '-' : '+'}</span>${label}`;
+                            for (let i = parseInt(start); i <= parseInt(toggle.dataset.rangeEnd); i++) {
+                                if (cellElements[i]) {
+                                    cellElements[i].classList.toggle('hidden', toggleStates[start] === 'hidden');
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (savedOnOffState && onOffToggle) {
+                    onOffToggle.dataset.state = savedOnOffState;
+                    if (savedOnOffState === 'off') {
+                        updateAllToggles('off');
+                    }
+                }
+
+                updateButtonStyles();
+            }, 0);
+        }
+
+        function applyZoom(state) {
+            const originalWidth = 1080;
+            const adjustedWidth = 1030;
+            const originalCols = 6;
+            const zoomedCols = 4;
+            const gap = 15;
+            const originalCellWidth = (originalWidth - (originalCols - 1) * gap) / originalCols;
+            const zoomedCellWidth = (adjustedWidth - (zoomedCols - 1) * gap) / zoomedCols;
+            const zoomButton = document.getElementById('zoom-button');
+
+            if (state === 'on') {
+                grid.style.gridTemplateColumns = `repeat(${zoomedCols}, ${zoomedCellWidth}px)`;
+                grid.style.gap = `${gap}px`;
+                grid.style.maxWidth = `${adjustedWidth}px`;
+                document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
+                    cell.style.width = `${zoomedCellWidth}px`;
+                    cell.style.height = `${zoomedCellWidth * 9 / 16}px`;
+                });
+                document.querySelectorAll('.bookmark-item img').forEach(img => {
+                    img.style.width = '48px';
+                    img.style.maxWidth = '56px';
+                });
+                document.querySelectorAll('.bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
+                });
+                document.querySelectorAll('.small-bookmark img').forEach(img => {
+                    img.style.width = '48px';
+                    img.style.maxWidth = '56px';
+                });
+                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
+                });
+                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
+            } else {
+                grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(120px, 1fr))`;
+                grid.style.gap = `${gap}px`;
+                grid.style.maxWidth = `${originalWidth}px`;
+                document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
+                    cell.style.width = 'auto';
+                    cell.style.height = 'auto';
+                });
+                document.querySelectorAll('.bookmark-item img').forEach(img => {
+                    img.style.width = '36px';
+                    img.style.maxWidth = '40px';
+                });
+                document.querySelectorAll('.bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
+                });
+                document.querySelectorAll('.small-bookmark img').forEach(img => {
+                    img.style.width = '24px';
+                    img.style.maxWidth = '28px';
+                });
+                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
+                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
+                });
+                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
+            }
         }
 
         function updateButtonStyles() {
@@ -809,6 +924,7 @@
             isDarkMode = !isDarkMode;
             document.body.classList.toggle('dark-mode', isDarkMode);
             updateButtonStyles();
+            saveSettings();
         });
 
         function clamp(min, val, max) {
@@ -839,6 +955,7 @@
                 toggle.dataset.state = 'visible';
             }
             updateButtonStyles();
+            saveSettings();
         }
 
         function updateAllToggles(state) {
@@ -849,8 +966,9 @@
                     updateToggleState(toggle);
                 }
             });
-            onOffToggle.dataset.state = state;
+            document.getElementById('on-off-toggle').dataset.state = state;
             updateButtonStyles();
+            saveSettings();
         }
 
         scrollToggle.addEventListener('click', () => {
@@ -887,64 +1005,10 @@
 
         zoomButton.addEventListener('click', () => {
             const currentState = zoomButton.dataset.zoomState;
-            const originalWidth = 1080;
-            const adjustedWidth = 1030;
-            const originalCols = 6;
-            const zoomedCols = 4;
-            const gap = 15;
-            const originalCellWidth = (originalWidth - (originalCols - 1) * gap) / originalCols;
-            const zoomedCellWidth = (adjustedWidth - (zoomedCols - 1) * gap) / zoomedCols;
-
-            if (currentState === 'off') {
-                grid.style.gridTemplateColumns = `repeat(${zoomedCols}, ${zoomedCellWidth}px)`;
-                grid.style.gap = `${gap}px`;
-                grid.style.maxWidth = `${adjustedWidth}px`;
-                document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
-                    cell.style.width = `${zoomedCellWidth}px`;
-                    cell.style.height = `${zoomedCellWidth * 9 / 16}px`;
-                });
-                document.querySelectorAll('.bookmark-item img').forEach(img => {
-                    img.style.width = '48px';
-                    img.style.maxWidth = '56px';
-                });
-                document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
-                });
-                document.querySelectorAll('.small-bookmark img').forEach(img => {
-                    img.style.width = '48px';
-                    img.style.maxWidth = '56px';
-                });
-                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
-                });
-                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
-                zoomButton.dataset.zoomState = 'on';
-            } else {
-                grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(120px, 1fr))`;
-                grid.style.gap = `${gap}px`;
-                grid.style.maxWidth = `${originalWidth}px`;
-                document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
-                    cell.style.width = 'auto';
-                    cell.style.height = 'auto';
-                });
-                document.querySelectorAll('.bookmark-item img').forEach(img => {
-                    img.style.width = '36px';
-                    img.style.maxWidth = '40px';
-                });
-                document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
-                });
-                document.querySelectorAll('.small-bookmark img').forEach(img => {
-                    img.style.width = '24px';
-                    img.style.maxWidth = '28px';
-                });
-                document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
-                });
-                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
-                zoomButton.dataset.zoomState = 'off';
-            }
+            applyZoom(currentState === 'off' ? 'on' : 'off');
+            zoomButton.dataset.zoomState = currentState === 'off' ? 'on' : 'off';
             updateButtonStyles();
+            saveSettings();
             adjustButtonPositions();
         });
 
@@ -995,7 +1059,7 @@
                         isActive = false;
                     } else {
                         noticeElement.style.color = '#00ff00';
-                        noticeElement.style.animation = 'fadeInOut 14s infinite';
+                        noticeElement.style.animation = 'fadeInOut 14s infinite  infinite';
                         isActive = true;
                         showNextNotice();
                     }
@@ -1027,6 +1091,7 @@
 
         window.addEventListener('load', () => {
             console.log('Página cargada, ajustando posiciones...');
+            loadSavedSettings();
             adjustButtonPositions();
             updateButtonStyles();
         });
