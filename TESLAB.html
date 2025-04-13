@@ -42,6 +42,9 @@
             transition: all 0.3s ease;
             min-height: 400px;
         }
+        body.dark-mode #bookmark-grid {
+            background-color: #D2D2B0; /* Beige oscurecido */
+        }
         #bookmark-grid > div {
             height: auto;
             aspect-ratio: 16 / 9;
@@ -98,7 +101,7 @@
             height: 4rem;
         }
         .title-container {
-            background-color: #000000; /* Negro */
+            background-color: #000000;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             display: inline-block;
@@ -107,7 +110,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            background-color: #000000; /* Negro */
+            background-color: #000000;
         }
         header {
             margin-top: auto;
@@ -122,7 +125,7 @@
             text-align: center;
         }
         .header-container {
-            background-color: #000000; /* Negro */
+            background-color: #000000;
             padding: 0.5rem;
         }
         .footer-subtext {
@@ -257,7 +260,7 @@
             100% { opacity: 0; }
         }
         .notice-off-text {
-            color: #D1D5DB;
+            color: #A9A9A9;
             font-size: 0.6rem;
             margin-left: 45px;
             margin-right: 0;
@@ -292,10 +295,23 @@
         .toggle-sign:hover {
             background-color: #666666;
         }
+        body.dark-mode .toggle-sign:hover {
+            background-color: #4b5563;
+        }
+        body.dark-mode .toggle-sign.range-toggle[data-state="visible"]:hover {
+            background-color: #1f9e4e;
+        }
+        body.dark-mode .toggle-sign.range-toggle[data-state="hidden"]:hover {
+            background-color: #6b7280;
+        }
         .toggle-sign img {
             width: 32px;
             height: 32px;
             object-fit: contain;
+        }
+        #dark-mode-toggle img {
+            width: 48px;
+            height: 48px;
         }
         #on-off-toggle.on {
             color: #000000;
@@ -311,10 +327,6 @@
         #dark-mode-toggle {
             background-color: #FFFFFF;
         }
-        #dark-mode-toggle img {
-            width: 32px;
-            height: 32px;
-        }
         body.dark-mode .bookmark-item {
             filter: brightness(60%);
         }
@@ -329,9 +341,6 @@
         }
         body.dark-mode .toggle-sign {
             background-color: #374151;
-        }
-        body.dark-mode .toggle-sign:hover {
-            background-color: #4b5563;
         }
         body.dark-mode #on-off-toggle.on {
             background-color: #15803d;
@@ -425,7 +434,7 @@
             { name: "Google Fotos", url: "https://photos.google.com" },
             { name: "iCloud", url: "https://www.icloud.com/", favicon: "https://www.google.com/s2/favicons?domain=icloud.com&sz=64" },
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
-            { name: "ElectroMaps", url: "https://map.electromaps.com/es/", favicon: "https://www.google.com/s2/favicons?domain=electromaps.com&sz=64" },
+            { name: "ElectroMaps", url: "https://map.electromaps disappro.com/es/", favicon: "https://www.google.com/s2/favicons?domain=electromaps.com&sz=64" },
             { name: "REVE PdR España", url: "https://www.mapareve.es/mapa-puntos-recarga", favicon: "https://www.google.com/s2/favicons?domain=mapareve.es&sz=64" },
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 18h8v2h-8v-2z'/><path d='M12 14h8v2h-8v-2z'/><path d='M12 10h8v2h-8v-2z'/><path d='M12 6h8v2h-8V6z'/><path d='M4 18h4v-2H4v2zM4 14h4v-2H4v2zM4 10h4v-2H4v2zM4 6h4V4H4v2z'/></svg>" },
             { name: "Google Maps", url: "https://maps.google.com" },
@@ -525,16 +534,20 @@
             darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
 
             if (isDarkMode) {
-                onOffToggle.style.backgroundColor = '';
-                toggleButtons.forEach(toggle => toggle.style.backgroundColor = '');
-                reloadButton.style.backgroundColor = '';
-                homeButton.style.backgroundColor = '';
-                weatherButton.style.backgroundColor = '';
-                zoomButton.style.backgroundColor = '';
+                onOffToggle.style.backgroundColor = onOffToggle.dataset.state === 'on' ? '#15803d' : '#6b7280';
+                toggleButtons.forEach(toggle => {
+                    toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#166534' : '#4B5563';
+                });
+                reloadButton.style.backgroundColor = '#0e7490';
+                homeButton.style.backgroundColor = '#0e7490';
+                weatherButton.style.backgroundColor = '#b45309';
+                zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#7c2d12' : '#c2410c';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
             } else {
                 onOffToggle.style.backgroundColor = onOffToggle.dataset.state === 'on' ? '#32CD32' : '#A9A9A9';
-                toggleButtons.forEach(toggle => toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969');
+                toggleButtons.forEach(toggle => {
+                    toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969';
+                });
                 reloadButton.style.backgroundColor = '#5DA8D6';
                 homeButton.style.backgroundColor = '#5DA8D6';
                 weatherButton.style.backgroundColor = '#FBBF24';
@@ -744,7 +757,7 @@
         homeButton.id = 'home-button';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        homeButton.style.left = `10px`;
+        reloadButton.style.left = `10px`;
         document.body.appendChild(homeButton);
         console.log('Home button creado:', homeButton);
 
