@@ -40,7 +40,7 @@
             width: 100%;
             max-width: 1080px;
             transition: all 0.3s ease;
-            margin-left: 60px;
+            min-height: 400px; /* Asegura visibilidad */
         }
         #bookmark-grid > div {
             height: auto;
@@ -78,7 +78,6 @@
                 grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
                 padding: 1rem;
-                margin-left: 60px;
             }
         }
         @media (max-width: 480px) {
@@ -86,7 +85,6 @@
                 grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
                 padding: 0.5rem;
-                margin-left: 60px;
             }
         }
         .header-container {
@@ -117,6 +115,7 @@
         }
         main {
             margin-top: 0.5rem;
+            background-color: transparent; /* Evita conflictos */
         }
         footer {
             margin-top: 0.5rem;
@@ -371,8 +370,10 @@
         </div>
     </div>
 
-    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
-        <!-- Grid populated by JavaScript -->
+    <main class="max-w-[1080px] w-full">
+        <div id="bookmark-grid">
+            <!-- Grid populated by JavaScript -->
+        </div>
     </main>
 
     <div class="notices-container">
@@ -654,6 +655,7 @@
 
         // Generar el grid de bookmarks
         const cellElements = [];
+        console.log('Generando celdas del grid...');
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
             if (index < bookmarks.length && bookmarks[index] !== null) {
@@ -693,6 +695,7 @@
             grid.appendChild(cell);
             cellElements.push(cell);
         });
+        console.log('Celdas generadas:', cellElements.length);
 
         // Configurar botones de interacción
         const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
@@ -701,27 +704,27 @@
         const desiredGap = 45;
 
         const scrollToggle = document.getElementById('scroll-toggle');
+        console.log('Scroll toggle creado:', scrollToggle);
 
         const darkModeToggle = document.createElement('span');
         darkModeToggle.className = 'toggle-sign';
         darkModeToggle.id = 'dark-mode-toggle';
         darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
         darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-        darkModeToggle.style.left = `${10}px`;
+        darkModeToggle.style.left = `10px`;
         document.body.appendChild(darkModeToggle);
+        console.log('Dark mode toggle creado:', darkModeToggle);
 
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
-        onOffToggle.textContent沿着 el contenido del elemento HTML para el botón `on-off-toggle` para que sea consistente con el diseño existente:
-
-```javascript
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing * 2}px`;
-        onOffToggle.style.left = `${10}px`;
+        onOffToggle.style.left = `10px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
+        console.log('On/off toggle creado:', onOffToggle);
 
         const toggleButtons = toggleRanges.map((range, index) => {
             const toggle = document.createElement('span');
@@ -731,8 +734,9 @@
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
             toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 3)}px`;
-            toggle.style.left = `${10}px`;
+            toggle.style.left = `10px`;
             document.body.appendChild(toggle);
+            console.log(`Toggle ${range.label} creado:`, toggle);
             return toggle;
         });
 
@@ -741,33 +745,37 @@
         reloadButton.id = 'reload-button';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        reloadButton.style.left = `${10}px`;
+        reloadButton.style.left = `10px`;
         document.body.appendChild(reloadButton);
+        console.log('Reload button creado:', reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
         homeButton.id = 'home-button';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-        homeButton.style.left = `${10}px`;
+        homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
+        console.log('Home button creado:', homeButton);
 
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
         weatherButton.id = 'weather-button';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-        weatherButton.style.left = `${10}px`;
+        weatherButton.style.left = `10px`;
         document.body.appendChild(weatherButton);
+        console.log('Weather button creado:', weatherButton);
 
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
         zoomButton.id = 'zoom-button';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
         zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
-        zoomButton.style.left = `${10}px`;
+        zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
+        console.log('Zoom button creado:', zoomButton);
 
         const buttons = [scrollToggle, darkModeToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton];
 
@@ -990,16 +998,15 @@
         }, 9000);
 
         function adjustButtonPositions() {
-            const gridRect = grid.getBoundingClientRect();
-            const newLeft = gridRect.left - buttonWidth - desiredGap;
-            const minLeft = 10;
-
             buttons.forEach(button => {
-                button.style.left = `${Math.max(minLeft, newLeft)}px`;
+                button.style.left = `10px`; // Posición fija para visibilidad
             });
         }
 
-        window.addEventListener('load', adjustButtonPositions);
+        window.addEventListener('load', () => {
+            console.log('Página cargada, ajustando posiciones...');
+            adjustButtonPositions();
+        });
         window.addEventListener('resize', adjustButtonPositions);
 
         // Ejecutar actualización de versión al cargar la página
