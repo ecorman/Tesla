@@ -434,7 +434,7 @@
             { name: "Google Fotos", url: "https://photos.google.com" },
             { name: "iCloud", url: "https://www.icloud.com/", favicon: "https://www.google.com/s2/favicons?domain=icloud.com&sz=64" },
             { name: "ABRP", url: "https://abetterrouteplanner.com" },
-            { name: "ElectroMaps", url: "https://map.electromaps disappro.com/es/", favicon: "https://www.google.com/s2/favicons?domain=electromaps.com&sz=64" },
+            { name: "ElectroMaps", url: "https://map.electromaps.com/es/", favicon: "https://www.google.com/s2/favicons?domain=electromaps.com&sz=64" },
             { name: "REVE PdR España", url: "https://www.mapareve.es/mapa-puntos-recarga", favicon: "https://www.google.com/s2/favicons?domain=mapareve.es&sz=64" },
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 18h8v2h-8v-2z'/><path d='M12 14h8v2h-8v-2z'/><path d='M12 10h8v2h-8v-2z'/><path d='M12 6h8v2h-8V6z'/><path d='M4 18h4v-2H4v2zM4 14h4v-2H4v2zM4 10h4v-2H4v2zM4 6h4V4H4v2z'/></svg>" },
             { name: "Google Maps", url: "https://maps.google.com" },
@@ -629,8 +629,8 @@
         // Generar colores para los bookmarks
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
-            const saturation = 40 + Math.floor(Math.random() * 20);
-            const lightness = 90 + Math.floor(Math.random() * 10);
+            const saturation = 50 + Math.floor(Math.random() * 30); // 50-80%
+            const lightness = 70 + Math.floor(Math.random() * 15); // 70-85%
             return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
         }
 
@@ -757,7 +757,7 @@
         homeButton.id = 'home-button';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        reloadButton.style.left = `10px`;
+        homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
         console.log('Home button creado:', homeButton);
 
