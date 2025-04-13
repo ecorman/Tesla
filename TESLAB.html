@@ -33,17 +33,12 @@
             display: grid;
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
-            padding: 2rem;
-            background-color: #F5F5DC; /* Beige */
+            background-color: transparent; /* Fondo movido a main */
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
             max-width: 1080px;
             transition: all 0.3s ease;
-            min-height: 400px;
-        }
-        body.dark-mode #bookmark-grid {
-            background-color: #D2D2B0; /* Beige oscurecido */
         }
         #bookmark-grid > div {
             height: auto;
@@ -80,14 +75,12 @@
             #bookmark-grid {
                 grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
-                padding: 1rem;
             }
         }
         @media (max-width: 480px) {
             #bookmark-grid {
                 grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
-                padding: 0.5rem;
             }
         }
         .header-container {
@@ -118,7 +111,16 @@
         }
         main {
             margin-top: 0.5rem;
-            background-color: transparent;
+            margin-left: 141px; /* 10px (botones left) + 91px (botones width) + 40px (distancia) */
+            margin-right: 10px;
+            background-color: #F5F5DC; /* Fondo beige movido aquí */
+            border-radius: 0.75rem;
+            padding: 2rem;
+            min-height: 400px;
+            transition: background-color 0.3s ease;
+        }
+        body.dark-mode main {
+            background-color: #D2D2B0; /* Beige oscurecido */
         }
         footer {
             margin-top: 0.5rem;
@@ -313,8 +315,9 @@
             width: 48px;
             height: 48px;
         }
-        #on-off-toggle.on {
-            color: #000000;
+        #on-off-toggle img {
+            width: 48px;
+            height: 48px;
         }
         .hidden {
             display: none;
@@ -326,6 +329,13 @@
         }
         #dark-mode-toggle {
             background-color: #FFFFFF;
+        }
+        #on-off-toggle {
+            background-color: #FFFFFF;
+            color: #FFFFFF; /* Para cualquier texto residual, aunque usamos imágenes */
+        }
+        .range-toggle {
+            color: #FFFFFF;
         }
         body.dark-mode .bookmark-item {
             filter: brightness(60%);
@@ -342,11 +352,8 @@
         body.dark-mode .toggle-sign {
             background-color: #374151;
         }
-        body.dark-mode #on-off-toggle.on {
-            background-color: #15803d;
-        }
-        body.dark-mode #on-off-toggle:not(.on) {
-            background-color: #6b7280;
+        body.dark-mode #on-off-toggle {
+            background-color: #FFFFFF;
         }
         body.dark-mode #dark-mode-toggle {
             background-color: #FFFFFF;
@@ -522,6 +529,18 @@
         // Gestionar el modo oscuro
         let isDarkMode = false;
 
+        function checkDarkModeTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            return (hours >= 21 || hours < 7 || (hours === 7 && minutes <= 30));
+        }
+
+        isDarkMode = checkDarkModeTime();
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        }
+
         function updateButtonStyles() {
             const darkModeToggle = document.getElementById('dark-mode-toggle');
             const onOffToggle = document.getElementById('on-off-toggle');
@@ -532,9 +551,9 @@
             const zoomButton = document.getElementById('zoom-button');
 
             darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
+            onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[48px] h-[48px] object-contain">`;
 
             if (isDarkMode) {
-                onOffToggle.style.backgroundColor = onOffToggle.dataset.state === 'on' ? '#15803d' : '#6b7280';
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#166534' : '#4B5563';
                 });
@@ -544,7 +563,6 @@
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#7c2d12' : '#c2410c';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
             } else {
-                onOffToggle.style.backgroundColor = onOffToggle.dataset.state === 'on' ? '#32CD32' : '#A9A9A9';
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969';
                 });
@@ -626,13 +644,13 @@
             }
         };
 
-// Generar colores para los bookmarks
-function generateBrightColor() {
-    const hue = Math.floor(Math.random() * 360);
-    const saturation = 45 + Math.floor(Math.random() * 30); // 45-75%
-    const lightness = 75 + Math.floor(Math.random() * 15); // 75-90%
-    return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
-}
+        // Generar colores para los bookmarks
+        function generateBrightColor() {
+            const hue = Math.floor(Math.random() * 360);
+            const saturation = 45 + Math.floor(Math.random() * 30); // 45-75%
+            const lightness = 75 + Math.floor(Math.random() * 15); // 75-90%
+            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
+        }
 
         function areColorsSimilar(color1, color2) {
             if (!color1 || !color2) return false;
@@ -712,8 +730,6 @@ function generateBrightColor() {
         // Configurar botones de interacción
         const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
         const buttonSpacing = 58;
-        const buttonWidth = 91;
-        const desiredGap = 45;
 
         const scrollToggle = document.getElementById('scroll-toggle');
         console.log('Scroll toggle creado:', scrollToggle);
@@ -721,7 +737,6 @@ function generateBrightColor() {
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
-        onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
         onOffToggle.style.left = `10px`;
@@ -835,13 +850,7 @@ function generateBrightColor() {
                     updateToggleState(toggle);
                 }
             });
-            onOffToggle.textContent = state === 'on' ? 'On' : 'Off';
             onOffToggle.dataset.state = state;
-            if (state === 'on') {
-                onOffToggle.classList.add('on');
-            } else {
-                onOffToggle.classList.remove('on');
-            }
             updateButtonStyles();
         }
 
@@ -1018,12 +1027,12 @@ function generateBrightColor() {
         window.addEventListener('load', () => {
             console.log('Página cargada, ajustando posiciones...');
             adjustButtonPositions();
+            updateButtonStyles(); // Asegurar que los estilos iniciales se apliquen
         });
         window.addEventListener('resize', adjustButtonPositions);
 
         // Ejecutar actualización de versión al cargar la página
         updateVersion();
-        updateButtonStyles();
     </script>
 </body>
 </html>
