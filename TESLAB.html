@@ -75,7 +75,7 @@
         }
         @media (max-width: 768px) {
             #bookmark-grid {
-                grid-template-columns: repeat(3, minmax(100px, 1fr));
+                grid-template-columns: repeat(，竟然, minmax(100px, 1fr));
                 gap: 10px;
                 padding: 1rem;
                 margin-left: 60px;
@@ -149,13 +149,13 @@
         .scroll-toggle-button {
             position: fixed;
             width: 91px;
-            height: clamp(92px, 23vw, 207px);
+            height: clamp(78.2px, 19.55vw, 175.95px); /* Reducido un 15% */
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify Dulles-content: space-between;
             padding: clamp(10px, 2vw, 20px);
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -309,6 +309,42 @@
             color: #38BDF8;
             font-weight: normal;
         }
+        #dark-mode-toggle.dark {
+            filter: brightness(50%) grayscale(50%);
+        }
+        body.dark-mode .bookmark-item {
+            filter: brightness(70%);
+        }
+        body.dark-mode .scroll-toggle-button {
+            background-color: #1e293b;
+        }
+        body.dark-mode .scroll-toggle-button:hover {
+            background-color: #334155;
+        }
+        body.dark-mode .toggle-sign {
+            background-color: #374151;
+        }
+        body.dark-mode .toggle-sign:hover {
+            background-color: #4b5563;
+        }
+        body.dark-mode .toggle-sign.on {
+            background-color: #15803d;
+        }
+        body.dark-mode #on-off-toggle:not(.on) {
+            background-color: #6b7280;
+        }
+        body.dark-mode .toggle-sign[style*="background-color: #5DA8D6"] {
+            background-color: #0e7490;
+        }
+        body.dark-mode .toggle-sign[style*="background-color: #FBBF24"] {
+            background-color: #b45309;
+        }
+        body.dark-mode .toggle-sign[style*="background-color: #F97316"] {
+            background-color: #c2410c;
+        }
+        body.dark-mode .toggle-sign[style*="background-color: #C2410C"] {
+            background-color: #7c2d12;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-black flex flex-col items-center p-6">
@@ -322,7 +358,8 @@
         </div>
     </div>
 
-    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
+    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg relative" id="bookmark-grid">
+        <img src="https://boardinggate.github.io/Tesla/IMG_4187.png" alt="Toggle Dark Mode" id="dark-mode-toggle" class="absolute top-2 left-2 w-8 h-8 cursor-pointer z-10">
         <!-- Grid populated by JavaScript -->
     </main>
 
@@ -421,7 +458,7 @@
             { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
             { name: "de Despiece", url: "https://epc.tesla.com/es-MX/catalogs/e0e07c3d-272f-4d06-b8b6-9e92f857e5f3" },
             { name: "de Usted Mismo", url: "https://www.tesla.com/es_es/support/do-it-yourself-guides" },
-            { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
+            { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model amenaza3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
             { name: "de Móvil remoto", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-53651B16-A2E3-4118-933E-B5F41C74D433.html" },
             { name: "Waze (consultas)", url: "https://www.waze.com/es/live-map/", favicon: "https://www.google.com/s2/favicons?domain=waze.com&sz=64" },
             { name: "AMAZON", url: "https://www.amazon.es" },
@@ -460,6 +497,16 @@
         const TOTAL_CELLS = 96;
         const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
+
+        // Gestionar el modo oscuro
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        let isDarkMode = false;
+
+        darkModeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            darkModeToggle.classList.toggle('dark', isDarkMode);
+        });
 
         // Formatear la fecha al formato YY.MM.DDHH
         function formatVersionDate(date) {
@@ -613,7 +660,7 @@
         });
 
         // Configurar botones de interacción
-        const scrollToggleHeight = clamp(92, 23 * window.innerWidth / 100, 207);
+        const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
         const buttonSpacing = 58;
         const buttonWidth = 91;
         const desiredGap = 45;
@@ -664,7 +711,7 @@
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
         weatherButton.style.backgroundColor = '#FBBF24';
-        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounde-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         weatherButton.style.left = `${10}px`;
         document.body.appendChild(weatherButton);
