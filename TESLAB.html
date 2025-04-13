@@ -75,7 +75,7 @@
         }
         @media (max-width: 768px) {
             #bookmark-grid {
-                grid-template-columns: repeat(，竟然, minmax(100px, 1fr));
+                grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
                 padding: 1rem;
                 margin-left: 60px;
@@ -149,13 +149,13 @@
         .scroll-toggle-button {
             position: fixed;
             width: 91px;
-            height: clamp(78.2px, 19.55vw, 175.95px); /* Reducido un 15% */
+            height: clamp(78.2px, 19.55vw, 175.95px);
             background-color: #1E3A8A;
             border-radius: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify Dulles-content: space-between;
+            justify-content: space-between;
             padding: clamp(10px, 2vw, 20px);
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -309,11 +309,20 @@
             color: #38BDF8;
             font-weight: normal;
         }
+        #dark-mode-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            z-index: 1100;
+        }
         #dark-mode-toggle.dark {
             filter: brightness(50%) grayscale(50%);
         }
         body.dark-mode .bookmark-item {
-            filter: brightness(70%);
+            filter: brightness(60%); /* Aumentado el oscurecimiento un 10% */
         }
         body.dark-mode .scroll-toggle-button {
             background-color: #1e293b;
@@ -358,8 +367,9 @@
         </div>
     </div>
 
-    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg relative" id="bookmark-grid">
-        <img src="https://boardinggate.github.io/Tesla/IMG_4187.png" alt="Toggle Dark Mode" id="dark-mode-toggle" class="absolute top-2 left-2 w-8 h-8 cursor-pointer z-10">
+    <img src="https://boardinggate.github.io/Tesla/IMG_4187.png" alt="Toggle Dark Mode" id="dark-mode-toggle" class="absolute top-2 left-2 w-8 h-8 cursor-pointer z-10">
+
+    <main class="max-w-[1080px] w-full bg-white rounded-xl shadow-lg" id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
     </main>
 
@@ -458,7 +468,7 @@
             { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
             { name: "de Despiece", url: "https://epc.tesla.com/es-MX/catalogs/e0e07c3d-272f-4d06-b8b6-9e92f857e5f3" },
             { name: "de Usted Mismo", url: "https://www.tesla.com/es_es/support/do-it-yourself-guides" },
-            { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model amenaza3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
+            { name: "de Filtro Cabina", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-DB0A1E3C-926E-498C-A2FD-A27B8421A471.html" },
             { name: "de Móvil remoto", url: "https://service.tesla.com/docs/Public/diy/model3/es_es/GUID-53651B16-A2E3-4118-933E-B5F41C74D433.html" },
             { name: "Waze (consultas)", url: "https://www.waze.com/es/live-map/", favicon: "https://www.google.com/s2/favicons?domain=waze.com&sz=64" },
             { name: "AMAZON", url: "https://www.amazon.es" },
@@ -711,7 +721,7 @@
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
         weatherButton.style.backgroundColor = '#FBBF24';
-        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounde-full">`;
+        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         weatherButton.style.left = `${10}px`;
         document.body.appendChild(weatherButton);
@@ -960,4 +970,4 @@
         updateVersion();
     </script>
 </body>
-</html> 
+</html>
