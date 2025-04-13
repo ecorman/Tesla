@@ -54,6 +54,7 @@
             align-items: center;
             border-radius: 0.5rem;
             transition: all 0.3s ease;
+            background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64); /* 20% transparencia */
         }
         .bookmark-item img {
             width: 36px;
@@ -104,6 +105,8 @@
             flex-direction: column;
             min-height: 100vh;
             background-color: #000000;
+            margin-right: 0;
+            overflow-x: hidden;
         }
         header {
             margin-top: auto;
@@ -111,16 +114,17 @@
         }
         main {
             margin-top: 0.5rem;
-            margin-left: 181px; /* 10px + 91px + 40px + 40px extra */
+            margin-left: 196px; /* 181px + 15px */
             margin-right: 10px;
-            background-color: #ABAB99; /* Beige 30% más oscuro */
+            background-color: #ABAB99;
             border-radius: 0.75rem;
-            padding: 2rem;
+            padding: 1rem; /* Reducido de 2rem */
             min-height: 400px;
             transition: background-color 0.3s ease;
+            max-width: calc(100vw - 206px); /* Ajuste para no salirse */
         }
         body.dark-mode main {
-            background-color: #92927E; /* Beige aún más oscuro */
+            background-color: #92927E;
         }
         footer {
             margin-top: 0.5rem;
@@ -266,6 +270,7 @@
             font-size: 0.6rem;
             margin-left: 45px;
             margin-right: 0;
+            align-self: center;
         }
         .megaphone-icon-end {
             width: auto;
@@ -316,8 +321,8 @@
             height: 48px;
         }
         #on-off-toggle img {
-            width: 48px;
-            height: 48px;
+            width: 56px; /* Más grande */
+            height: 56px;
         }
         .hidden {
             display: none;
@@ -328,10 +333,10 @@
             font-weight: normal;
         }
         #dark-mode-toggle {
-            background-color: #FFFFFF;
+            background-color: #D4D4D4; /* Igual que on-off */
         }
         #on-off-toggle {
-            background-color: #E6E6E6; /* Gris muy claro */
+            background-color: #D4D4D4; /* Más gris */
             color: #FFFFFF;
         }
         .range-toggle {
@@ -353,10 +358,10 @@
             background-color: #374151;
         }
         body.dark-mode #on-off-toggle {
-            background-color: #E6E6E6;
+            background-color: #D4D4D4;
         }
         body.dark-mode #dark-mode-toggle {
-            background-color: #FFFFFF;
+            background-color: #D4D4D4;
         }
         body.dark-mode #reload-button {
             background-color: #0e7490;
@@ -432,7 +437,6 @@
     </div>
 
     <script>
-        // Lista de bookmarks
         const bookmarks = [
             { name: "YouTube", url: "https://www.youtube.com" },
             { name: "Google", url: "https://www.google.com" },
@@ -525,8 +529,6 @@
         const TOTAL_CELLS = 96;
         const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
-
-        // Gestionar el modo oscuro
         let isDarkMode = false;
 
         function checkDarkModeTime() {
@@ -551,7 +553,7 @@
             const zoomButton = document.getElementById('zoom-button');
 
             darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
-            onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[48px] h-[48px] object-contain">`;
+            onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[56px] h-[56px] object-contain">`;
 
             if (isDarkMode) {
                 toggleButtons.forEach(toggle => {
@@ -574,7 +576,6 @@
             }
         }
 
-        // Formatear la fecha al formato YY.MM.DDHH
         function formatVersionDate(date) {
             const year = date.getUTCFullYear().toString().slice(-2);
             const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -583,11 +584,10 @@
             return `${year}.${month}.${day}${hours}`;
         }
 
-        // Obtener la fecha de version.txt
         async function getLastModifiedDate() {
             const cacheKey = 'teslaHtmlLastModified';
             const cacheTimestampKey = 'teslaHtmlLastModifiedTimestamp';
-            const cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
+            const cacheDuration = 24 * 60 * 60 * 1000;
 
             const cachedDate = localStorage.getItem(cacheKey);
             const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
@@ -626,14 +626,12 @@
             }
         }
 
-        // Actualizar el elemento de versión
         async function updateVersion() {
             const lastModifiedDate = await getLastModifiedDate();
             const version = formatVersionDate(lastModifiedDate);
             document.getElementById('version').textContent = `versión: ${version}`;
         }
 
-        // Generar favicons para los bookmarks
         const getFaviconUrl = (bookmark) => {
             try {
                 if (bookmark.favicon) return bookmark.favicon;
@@ -644,12 +642,11 @@
             }
         };
 
-        // Generar colores para los bookmarks
         function generateBrightColor() {
             const hue = Math.floor(Math.random() * 360);
-            const saturation = 40 + Math.floor(Math.random() * 30); // 40-70%
-            const lightness = 80 + Math.floor(Math.random() * 15); // 80-95%
-            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
+            const saturation = 40 + Math.floor(Math.random() * 30);
+            const lightness = 80 + Math.floor(Math.random() * 15);
+            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.64)`; /* 20% transparencia */
         }
 
         function areColorsSimilar(color1, color2) {
@@ -675,7 +672,6 @@
             }
         }
 
-        // Definir rangos para los toggles
         const toggleRanges = [
             { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
             { start: 30, end: 41, name: "GROK", label: "iAs" },
@@ -683,7 +679,6 @@
             { start: 60, end: 95, name: "JOdena", label: "Varios" }
         ];
 
-        // Generar el grid de bookmarks
         const cellElements = [];
         console.log('Generando celdas del grid...');
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
@@ -727,7 +722,6 @@
         });
         console.log('Celdas generadas:', cellElements.length);
 
-        // Configurar botones de interacción
         const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
         const buttonSpacing = 58;
 
@@ -758,29 +752,11 @@
             return toggle;
         });
 
-        const reloadButton = document.createElement('span');
-        reloadButton.className = 'toggle-sign';
-        reloadButton.id = 'reload-button';
-        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-        reloadButton.style.left = `10px`;
-        document.body.appendChild(reloadButton);
-        console.log('Reload button creado:', reloadButton);
-
-        const homeButton = document.createElement('span');
-        homeButton.className = 'toggle-sign';
-        homeButton.id = 'home-button';
-        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        homeButton.style.left = `10px`;
-        document.body.appendChild(homeButton);
-        console.log('Home button creado:', homeButton);
-
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
         weatherButton.id = 'weather-button';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
         weatherButton.style.left = `10px`;
         document.body.appendChild(weatherButton);
         console.log('Weather button creado:', weatherButton);
@@ -789,7 +765,7 @@
         zoomButton.className = 'toggle-sign';
         zoomButton.id = 'zoom-button';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
+        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
@@ -799,12 +775,30 @@
         darkModeToggle.className = 'toggle-sign';
         darkModeToggle.id = 'dark-mode-toggle';
         darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
-        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
+        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         darkModeToggle.style.left = `10px`;
         document.body.appendChild(darkModeToggle);
         console.log('Dark mode toggle creado:', darkModeToggle);
 
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton, darkModeToggle];
+        const reloadButton = document.createElement('span');
+        reloadButton.className = 'toggle-sign';
+        reloadButton.id = 'reload-button';
+        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
+        reloadButton.style.left = `10px`;
+        document.body.appendChild(reloadButton);
+        console.log('Reload button creado:', reloadButton);
+
+        const homeButton = document.createElement('span');
+        homeButton.className = 'toggle-sign';
+        homeButton.id = 'home-button';
+        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
+        homeButton.style.left = `10px`;
+        document.body.appendChild(homeButton);
+        console.log('Home button creado:', homeButton);
+
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, zoomButton, darkModeToggle, reloadButton, homeButton];
 
         darkModeToggle.addEventListener('click', () => {
             isDarkMode = !isDarkMode;
@@ -958,7 +952,6 @@
             window.history.forward();
         });
 
-        // Cargar avisos.txt
         fetch('avisos.txt')
             .then(response => response.text())
             .then(text => {
@@ -1009,7 +1002,6 @@
                 document.getElementById('current-notice').textContent = 'Error al cargar avisos';
             });
 
-        // Ajustar posición de botones y ocultar top-text
         setTimeout(() => {
             const topTextContainer = document.querySelector('.top-text-container');
             topTextContainer.style.display = 'none';
@@ -1031,7 +1023,6 @@
         });
         window.addEventListener('resize', adjustButtonPositions);
 
-        // Ejecutar actualización de versión al cargar la página
         updateVersion();
     </script>
 </body>
