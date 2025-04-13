@@ -34,13 +34,13 @@
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             padding: 2rem;
-            background-color: #4B5563;
+            background-color: #F5F5DC; /* Beige */
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
             max-width: 1080px;
             transition: all 0.3s ease;
-            min-height: 400px; /* Asegura visibilidad */
+            min-height: 400px;
         }
         #bookmark-grid > div {
             height: auto;
@@ -98,7 +98,7 @@
             height: 4rem;
         }
         .title-container {
-            background-color: #4B5563;
+            background-color: #000000; /* Negro */
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             display: inline-block;
@@ -107,7 +107,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            background-color: #4B5563;
+            background-color: #000000; /* Negro */
         }
         header {
             margin-top: auto;
@@ -115,14 +115,14 @@
         }
         main {
             margin-top: 0.5rem;
-            background-color: transparent; /* Evita conflictos */
+            background-color: transparent;
         }
         footer {
             margin-top: 0.5rem;
             text-align: center;
         }
         .header-container {
-            background-color: #4B5563;
+            background-color: #000000; /* Negro */
             padding: 0.5rem;
         }
         .footer-subtext {
@@ -359,7 +359,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#4B5563] flex flex-col items-center p-6">
+<body class="min-h-screen bg-[#000000] flex flex-col items-center p-6">
     <div class="top-text-container">
         <div class="arrow-button" id="back-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -406,7 +406,6 @@
             <div class="counter-container text-center">
                 <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
                 <script type="text/javascript" src="https://counter4.optistats.ovh/private/counter.js?c=g896pbr68y2dejczgbn1ys664xjxdf2d&down=async" async></script>
-                <br><a href="https://www.freecounterstat.com">website counter</a><noscript><a href="https://www.freecounterstat.com" title="website counter"><img src="https://counter4.optistats.ovh/private/freecounterstat.php?c=g896pbr68y2dejczgbn1ys664xjxdf2d" border="0" title="website counter" alt="website counter"></a></noscript>
             </div>
         </div>
     </footer>
@@ -706,21 +705,12 @@
         const scrollToggle = document.getElementById('scroll-toggle');
         console.log('Scroll toggle creado:', scrollToggle);
 
-        const darkModeToggle = document.createElement('span');
-        darkModeToggle.className = 'toggle-sign';
-        darkModeToggle.id = 'dark-mode-toggle';
-        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
-        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-        darkModeToggle.style.left = `10px`;
-        document.body.appendChild(darkModeToggle);
-        console.log('Dark mode toggle creado:', darkModeToggle);
-
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
-        onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing * 2}px`;
+        onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
         onOffToggle.style.left = `10px`;
         onOffToggle.classList.add('on');
         document.body.appendChild(onOffToggle);
@@ -733,7 +723,7 @@
             toggle.dataset.rangeStart = range.start;
             toggle.dataset.rangeEnd = range.end;
             toggle.dataset.state = 'visible';
-            toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 3)}px`;
+            toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
             toggle.style.left = `10px`;
             document.body.appendChild(toggle);
             console.log(`Toggle ${range.label} creado:`, toggle);
@@ -744,7 +734,7 @@
         reloadButton.className = 'toggle-sign';
         reloadButton.id = 'reload-button';
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
+        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
         reloadButton.style.left = `10px`;
         document.body.appendChild(reloadButton);
         console.log('Reload button creado:', reloadButton);
@@ -753,7 +743,7 @@
         homeButton.className = 'toggle-sign';
         homeButton.id = 'home-button';
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
+        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
         homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
         console.log('Home button creado:', homeButton);
@@ -762,7 +752,7 @@
         weatherButton.className = 'toggle-sign';
         weatherButton.id = 'weather-button';
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
+        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
         weatherButton.style.left = `10px`;
         document.body.appendChild(weatherButton);
         console.log('Weather button creado:', weatherButton);
@@ -771,13 +761,22 @@
         zoomButton.className = 'toggle-sign';
         zoomButton.id = 'zoom-button';
         zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
-        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
+        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
         zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
         console.log('Zoom button creado:', zoomButton);
 
-        const buttons = [scrollToggle, darkModeToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton];
+        const darkModeToggle = document.createElement('span');
+        darkModeToggle.className = 'toggle-sign';
+        darkModeToggle.id = 'dark-mode-toggle';
+        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
+        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
+        darkModeToggle.style.left = `10px`;
+        document.body.appendChild(darkModeToggle);
+        console.log('Dark mode toggle creado:', darkModeToggle);
+
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, reloadButton, homeButton, weatherButton, zoomButton, darkModeToggle];
 
         darkModeToggle.addEventListener('click', () => {
             isDarkMode = !isDarkMode;
@@ -999,7 +998,7 @@
 
         function adjustButtonPositions() {
             buttons.forEach(button => {
-                button.style.left = `10px`; // Posición fija para visibilidad
+                button.style.left = `10px`;
             });
         }
 
