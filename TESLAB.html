@@ -34,7 +34,7 @@
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             padding: 2rem;
-            background-color: black !important;
+            background-color: #4B5563;
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
@@ -100,7 +100,7 @@
             height: 4rem;
         }
         .title-container {
-            background-color: black;
+            background-color: #4B5563;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             display: inline-block;
@@ -109,7 +109,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            background-color: black;
+            background-color: #4B5563;
         }
         header {
             margin-top: auto;
@@ -123,7 +123,7 @@
             text-align: center;
         }
         .header-container {
-            background-color: black;
+            background-color: #4B5563;
             padding: 0.5rem;
         }
         .footer-subtext {
@@ -258,7 +258,7 @@
             100% { opacity: 0; }
         }
         .notice-off-text {
-            color: #6B7280;
+            color: #D1D5DB;
             font-size: 0.6rem;
             margin-left: 45px;
             margin-right: 0;
@@ -310,16 +310,16 @@
             font-weight: normal;
         }
         #dark-mode-toggle {
-            background-color: #4B5563;
+            background-color: #FFFFFF;
         }
         #dark-mode-toggle img {
             width: 32px;
             height: 32px;
         }
-        #dark-mode-toggle.dark img {
-            filter: brightness(50%) grayscale(50%);
-        }
         body.dark-mode .bookmark-item {
+            filter: brightness(60%);
+        }
+        body.dark-mode .bg-gray-50.border.border-dashed.border-gray-200.rounded-lg {
             filter: brightness(60%);
         }
         body.dark-mode .scroll-toggle-button {
@@ -341,7 +341,7 @@
             background-color: #6b7280;
         }
         body.dark-mode #dark-mode-toggle {
-            background-color: #1f2937;
+            background-color: #FFFFFF;
         }
         body.dark-mode #reload-button {
             background-color: #0e7490;
@@ -360,7 +360,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-black flex flex-col items-center p-6">
+<body class="min-h-screen bg-[#4B5563] flex flex-col items-center p-6">
     <div class="top-text-container">
         <div class="arrow-button" id="back-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -430,7 +430,7 @@
             { name: "PdR,s", url: "https://www.google.com/maps/search/puntos+recarga+veh%C3%ADculos+el%C3%A9ctricos", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 18h8v2h-8v-2z'/><path d='M12 14h8v2h-8v-2z'/><path d='M12 10h8v2h-8v-2z'/><path d='M12 6h8v2h-8V6z'/><path d='M4 18h4v-2H4v2zM4 14h4v-2H4v2zM4 10h4v-2H4v2zM4 6h4V4H4v2z'/></svg>" },
             { name: "Google Maps", url: "https://maps.google.com" },
             { name: "", url: "https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h" },
-            { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons? IWdomain=tessie.com&sz=64" },
+            { name: "TESSIE", url: "https://dash.tessie.com/signin", favicon: "https://www.google.com/s2/favicons?domain=tessie.com&sz=64" },
             { name: "Mis Updates", url: "https://dash.tessie.com/software", favicon: "https://cdn-icons-png.flaticon.com/512/148/148767.png" },
             { name: "Olas Updates", url: "https://es.stats.tessie.com/", favicon: "https://cdn-icons-png.flaticon.com/512/5815/5815902.png" },
             { name: "NotaTeslaApp", url: "https://www.notateslaapp.com/software-updates/" },
@@ -522,8 +522,9 @@
             const weatherButton = document.getElementById('weather-button');
             const zoomButton = document.getElementById('zoom-button');
 
+            darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
+
             if (isDarkMode) {
-                darkModeToggle.classList.add('dark');
                 onOffToggle.style.backgroundColor = '';
                 toggleButtons.forEach(toggle => toggle.style.backgroundColor = '');
                 reloadButton.style.backgroundColor = '';
@@ -532,7 +533,6 @@
                 zoomButton.style.backgroundColor = '';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
             } else {
-                darkModeToggle.classList.remove('dark');
                 onOffToggle.style.backgroundColor = onOffToggle.dataset.state === 'on' ? '#32CD32' : '#A9A9A9';
                 toggleButtons.forEach(toggle => toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969');
                 reloadButton.style.backgroundColor = '#5DA8D6';
@@ -705,16 +705,17 @@
         const darkModeToggle = document.createElement('span');
         darkModeToggle.className = 'toggle-sign';
         darkModeToggle.id = 'dark-mode-toggle';
-        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4187.png" alt="Toggle Dark Mode">`;
+        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
         darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
         darkModeToggle.style.left = `${10}px`;
         document.body.appendChild(darkModeToggle);
 
-        const onOffset = buttonSpacing;
-
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
+        onOffToggle.textContent沿着 el contenido del elemento HTML para el botón `on-off-toggle` para que sea consistente con el diseño existente:
+
+```javascript
         onOffToggle.textContent = 'On';
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing * 2}px`;
