@@ -118,10 +118,10 @@
             margin-right: 0;
             background-color: #ABAB99;
             border-radius: 0.75rem;
-            padding: 16px 8px 16px 16px;
+            padding: 16px 25px 16px 16px;
             min-height: 400px;
             transition: background-color 0.3s ease;
-            max-width: calc(100vw - 117px);
+            max-width: calc(100vw - 134px);
         }
         body.dark-mode main {
             background-color: #92927E;
@@ -131,7 +131,7 @@
             text-align: center;
             margin-left: 109px;
             margin-right: 0;
-            max-width: calc(100vw - 117px);
+            max-width: calc(100vw - 134px);
         }
         .header-container {
             background-color: #000000;
@@ -235,7 +235,7 @@
             max-width: 1080px;
             margin-left: 109px;
             margin-right: 0;
-            padding: 0.5rem;
+            padding: 0.5rem 25px 0.5rem 0.5rem;
             border: none;
             border-radius: 0.5rem;
             overflow: hidden;
@@ -244,6 +244,7 @@
             justify-content: center;
             gap: 0;
             height: 3rem;
+            max-width: calc(100vw - 134px);
         }
         .notice-wrapper {
             padding: 0.5rem;
@@ -387,6 +388,30 @@
         }
         body.dark-mode #zoom-button.zoomed {
             background-color: #7c2d12;
+        }
+        .minimal-mode {
+            background-color: #000000;
+        }
+        .minimal-mode main,
+        .minimal-mode .notices-container,
+        .minimal-mode footer,
+        .minimal-mode .top-text-container,
+        .minimal-mode .scroll-toggle-button,
+        .minimal-mode .toggle-sign:not(#on-off-toggle) {
+            display: none !important;
+        }
+        .minimal-mode #on-off-toggle {
+            background-color: #4B5563;
+            top: 10px;
+            left: 10px;
+        }
+        .minimal-mode-message {
+            color: #FFFFFF;
+            font-size: 1rem;
+            position: fixed;
+            top: 70px;
+            left: 10px;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -538,6 +563,8 @@
         const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
         let isDarkMode = false;
+        let isMinimalMode = false;
+        let pressStartTime = null;
 
         function checkDarkModeTime() {
             const now = new Date();
@@ -548,6 +575,7 @@
 
         function saveSettings() {
             localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+            localStorage.setItem('minimalMode', JSON.stringify(isMinimalMode));
             const toggleStates = {};
             document.querySelectorAll('.range-toggle').forEach(toggle => {
                 toggleStates[toggle.dataset.rangeStart] = toggle.dataset.state;
@@ -560,14 +588,15 @@
         }
 
         function loadSavedSettings() {
-            // Cargar modo oscuro
             const savedDarkMode = localStorage.getItem('darkMode');
             isDarkMode = savedDarkMode ? JSON.parse(savedDarkMode) : checkDarkModeTime();
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
             }
 
-            // Cargar estado de zoom
+            const savedMinimalMode = localStorage.getItem('minimalMode');
+            isMinimalMode = savedMinimalMode ? JSON.parse(savedMinimalMode) : false;
+
             const savedZoomState = localStorage.getItem('zoomState');
             const zoomButton = document.getElementById('zoom-button');
             if (savedZoomState && zoomButton) {
@@ -575,7 +604,6 @@
                 applyZoom(savedZoomState);
             }
 
-            // Cargar estado de toggles, on/off, avisos y pie después de que los elementos estén creados
             setTimeout(() => {
                 const savedToggleStates = localStorage.getItem('toggleStates');
                 const savedOnOffState = localStorage.getItem('onOffState');
@@ -609,13 +637,36 @@
 
                 if (savedNoticesActive) {
                     isActive = JSON.parse(savedNoticesActive);
-                    isFooterVisible = isActive; // Sincronizar pie con avisos
+                    isFooterVisible = isActive;
                 }
 
-                toggleFooterVisibility(); // Aplicar estado del pie al cargar
+                if (isMinimalMode) {
+                    toggleMinimalMode(true);
+                } else {
+                    toggleFooterVisibility();
+                }
 
                 updateButtonStyles();
             }, 0);
+        }
+
+        function toggleMinimalMode(enable) {
+            if (enable) {
+                document.body.classList.add('minimal-mode');
+                const message = document.createElement('div');
+                message.id = 'minimal-mode-message';
+                message.className = 'minimal-mode-message';
+                message.textContent = 'Pulse durante 3 segundos para reactivar el panel';
+                document.body.appendChild(message);
+            } else {
+                document.body.classList.remove('minimal-mode');
+                const message = document.getElementById('minimal-mode-message');
+                if (message) message.remove();
+                adjustButtonPositions();
+                updateButtonStyles();
+                toggleFooterVisibility();
+            }
+            saveSettings();
         }
 
         function applyZoom(state) {
@@ -689,7 +740,7 @@
             darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
             onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[56px] h-[56px] object-contain">`;
 
-            if (isDarkMode) {
+            if (isDarkMode && !isMinimalMode) {
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#166534' : '#4B5563';
                 });
@@ -698,7 +749,7 @@
                 weatherButton.style.backgroundColor = '#b45309';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#7c2d12' : '#c2410c';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
-            } else {
+            } else if (!isMinimalMode) {
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969';
                 });
@@ -935,6 +986,7 @@
         const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, zoomButton, darkModeToggle, reloadButton, homeButton];
 
         darkModeToggle.addEventListener('click', () => {
+            if (isMinimalMode) return;
             isDarkMode = !isDarkMode;
             document.body.classList.toggle('dark-mode', isDarkMode);
             updateButtonStyles();
@@ -986,6 +1038,7 @@
         }
 
         scrollToggle.addEventListener('click', () => {
+            if (isMinimalMode) return;
             const scrollPosition = window.scrollY;
             const maxScroll = document.body.scrollHeight - window.innerHeight;
             if (scrollPosition < 100) {
@@ -995,29 +1048,53 @@
             }
         });
 
-        onOffToggle.addEventListener('click', () => {
-            const currentState = onOffToggle.dataset.state;
-            updateAllToggles(currentState === 'on' ? 'off' : 'on');
+        onOffToggle.addEventListener('mousedown', () => {
+            pressStartTime = Date.now();
+        });
+
+        onOffToggle.addEventListener('mouseup', () => {
+            const pressDuration = Date.now() - pressStartTime;
+            if (pressDuration >= 3000) {
+                isMinimalMode = !isMinimalMode;
+                toggleMinimalMode(isMinimalMode);
+            } else if (!isMinimalMode) {
+                const currentState = onOffToggle.dataset.state;
+                updateAllToggles(currentState === 'on' ? 'off' : 'on');
+            }
+            pressStartTime = null;
+        });
+
+        onOffToggle.addEventListener('click', (e) => {
+            if (pressStartTime && (Date.now() - pressStartTime) >= 3000) {
+                e.preventDefault();
+            }
         });
 
         toggleButtons.forEach(toggle => {
             toggle.addEventListener('click', () => {
+                if (isMinimalMode) return;
                 updateToggleState(toggle);
             });
         });
 
-        reloadButton.addEventListener('click', () => location.reload());
+        reloadButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
+            location.reload();
+        });
 
         homeButton.addEventListener('click', (e) => {
+            if (isMinimalMode) return;
             e.preventDefault();
             window.history.back();
         });
 
         weatherButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
             window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
         });
 
         zoomButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
             const currentState = zoomButton.dataset.zoomState;
             applyZoom(currentState === 'off' ? 'on' : 'off');
             zoomButton.dataset.zoomState = currentState === 'off' ? 'on' : 'off';
@@ -1029,9 +1106,11 @@
         const backButton = document.getElementById('back-button');
         const forwardButton = document.getElementById('forward-button');
         backButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
             window.history.back();
         });
         forwardButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
             window.history.forward();
         });
 
@@ -1070,7 +1149,7 @@
                 }
 
                 function showNextNotice() {
-                    if (!isActive) return;
+                    if (!isActive || isMinimalMode) return;
                     noticeElement.textContent = notices[currentIndex];
                     adjustFontSize();
                     currentIndex = (currentIndex + 1) % notices.length;
@@ -1078,6 +1157,7 @@
                 }
 
                 function toggleNotices() {
+                    if (isMinimalMode) return;
                     if (isActive) {
                         noticeElement.style.animation = 'none';
                         noticeElement.textContent = 'Avisos desactivados';
@@ -1099,7 +1179,6 @@
                 noticeElement.addEventListener('click', toggleNotices);
                 noticeToggleIcon.addEventListener('click', toggleNotices);
 
-                // Aplicar estado inicial
                 if (!isActive) {
                     noticeElement.style.animation = 'none';
                     noticeElement.textContent = 'Avisos desactivados';
@@ -1107,7 +1186,7 @@
                     noticeElement.style.fontSize = '0.8rem';
                     isFooterVisible = false;
                     toggleFooterVisibility();
-                } else {
+                } else if (!isMinimalMode) {
                     showNextNotice();
                 }
             })
@@ -1125,6 +1204,7 @@
         }, 6000);
 
         function adjustButtonPositions() {
+            if (isMinimalMode) return;
             buttons.forEach(button => {
                 button.style.left = `10px`;
             });
