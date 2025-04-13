@@ -54,7 +54,7 @@
             align-items: center;
             border-radius: 0.5rem;
             transition: all 0.3s ease;
-            background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64); /* 20% transparencia */
+            background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
         }
         .bookmark-item img {
             width: 36px;
@@ -114,14 +114,14 @@
         }
         main {
             margin-top: 0.5rem;
-            margin-left: 196px; /* 181px + 15px */
+            margin-left: 196px;
             margin-right: 10px;
             background-color: #ABAB99;
             border-radius: 0.75rem;
-            padding: 1rem; /* Reducido de 2rem */
+            padding: 1rem;
             min-height: 400px;
             transition: background-color 0.3s ease;
-            max-width: calc(100vw - 206px); /* Ajuste para no salirse */
+            max-width: calc(100vw - 206px);
         }
         body.dark-mode main {
             background-color: #92927E;
@@ -129,6 +129,9 @@
         footer {
             margin-top: 0.5rem;
             text-align: center;
+            margin-left: 196px;
+            margin-right: 10px;
+            max-width: calc(100vw - 206px);
         }
         .header-container {
             background-color: #000000;
@@ -321,7 +324,7 @@
             height: 48px;
         }
         #on-off-toggle img {
-            width: 56px; /* Más grande */
+            width: 56px;
             height: 56px;
         }
         .hidden {
@@ -333,10 +336,10 @@
             font-weight: normal;
         }
         #dark-mode-toggle {
-            background-color: #D4D4D4; /* Igual que on-off */
+            background-color: #E0E0E0; /* Más claro */
         }
         #on-off-toggle {
-            background-color: #D4D4D4; /* Más gris */
+            background-color: #E0E0E0; /* Más claro */
             color: #FFFFFF;
         }
         .range-toggle {
@@ -358,10 +361,10 @@
             background-color: #374151;
         }
         body.dark-mode #on-off-toggle {
-            background-color: #D4D4D4;
+            background-color: #E0E0E0;
         }
         body.dark-mode #dark-mode-toggle {
-            background-color: #D4D4D4;
+            background-color: #E0E0E0;
         }
         body.dark-mode #reload-button {
             background-color: #0e7490;
@@ -646,7 +649,7 @@
             const hue = Math.floor(Math.random() * 360);
             const saturation = 40 + Math.floor(Math.random() * 30);
             const lightness = 80 + Math.floor(Math.random() * 15);
-            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.64)`; /* 20% transparencia */
+            return `hsla(${hue}, ${saturation}%, ${lightness}%, 0.64)`;
         }
 
         function areColorsSimilar(color1, color2) {
