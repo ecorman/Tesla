@@ -29,18 +29,20 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
-        #bookmark-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(120px, 1fr));
-            gap: 15px;
-            background-color: transparent;
-            border-radius: 0.75rem;
-            position: relative;
-            width: 100%;
-            max-width: 984px;
-            margin: 0 auto 0 40px;
-            transition: all 0.3s ease;
-        }
+       
+    #bookmark-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(120px, 1fr));
+    gap: 15px;
+    background-color: transparent;
+    border-radius: 0.75rem;
+    position: relative;
+    width: 100%;
+    max-width: 984px;
+    margin: 0 auto 0 40px;
+    transition: all 0.3s ease;
+}
+    
         #bookmark-grid > div {
             height: auto;
             aspect-ratio: 16 / 9;
@@ -114,13 +116,13 @@
         }
         
         main {
-    margin: 0.5rem auto 0.5rem 40px; /* Añadido margin-left: 40px */
+    margin: 0.5rem auto;
     background-color: #ABAB99;
     border-radius: 0.75rem;
     padding: 16px;
     min-height: 400px;
     transition: background-color 0.3s ease;
-    max-width: 984px; /* Reducido de 1024px */
+    max-width: 1024px;
     width: 100%;
 }
         
