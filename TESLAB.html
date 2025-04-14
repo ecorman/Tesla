@@ -37,7 +37,8 @@
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
-            max-width: 1025px;
+            max-width: 1024px;
+            margin: 0 auto;
             transition: all 0.3s ease;
         }
         #bookmark-grid > div {
@@ -66,8 +67,8 @@
             font-size: clamp(0.85rem, 1.5vw, 1.15rem);
         }
         .small-bookmark img {
-            width: 36px;
-            max-width: auto;
+            width: 24px;
+            max-width: 28px;
         }
         .small-bookmark .bookmark-name {
             font-size: clamp(0.85rem, 1.5vw, 1.15rem);
@@ -105,33 +106,30 @@
             flex-direction: column;
             min-height: 100vh;
             background-color: #000000;
-            margin-right: 0;
+            margin: 0;
             overflow-x: hidden;
         }
         header {
-            margin-top: auto;
             margin-bottom: 0.5rem;
         }
         main {
-            margin-top: 0.5rem;
-            margin-left: 124px;
-            margin-right: 0;
+            margin: 0.5rem auto;
             background-color: #ABAB99;
             border-radius: 0.75rem;
-            padding: 16px 25px 16px 16px;
+            padding: 16px;
             min-height: 400px;
             transition: background-color 0.3s ease;
-            max-width: calc(100vw - 149px);
+            max-width: 1024px;
+            width: 100%;
         }
         body.dark-mode main {
             background-color: #92927E;
         }
         footer {
-            margin-top: 0.5rem;
+            margin: 0.5rem auto;
             text-align: center;
-            margin-left: 124px;
-            margin-right: 0;
-            max-width: calc(100vw - 149px);
+            max-width: 1024px;
+            width: 100%;
         }
         .header-container {
             background-color: #000000;
@@ -232,10 +230,9 @@
         }
         .notices-container {
             width: 100%;
-            max-width: 1025px;
-            margin-left: 124px;
-            margin-right: 0;
-            padding: 0.5rem 25px 0.5rem 0.5rem;
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 0.5rem;
             border: none;
             border-radius: 0.5rem;
             overflow: hidden;
@@ -244,7 +241,6 @@
             justify-content: center;
             gap: 0;
             height: 3rem;
-            max-width: calc(100vw - 149px);
         }
         .notice-wrapper {
             padding: 0.5rem;
@@ -544,7 +540,7 @@
         </div>
     </div>
 
-    <main class="max-w-[1025px] w-full">
+    <main>
         <div id="bookmark-grid">
             <!-- Grid populated by JavaScript -->
         </div>
@@ -779,6 +775,7 @@
 
                 updateButtonStyles();
                 loadReminders();
+                adjustButtonPositions();
             }, 0);
         }
 
@@ -802,7 +799,7 @@
         }
 
         function applyZoom(state) {
-            const originalWidth = 1025;
+            const originalWidth = 1024;
             const adjustedWidth = 975;
             const originalCols = 6;
             const zoomedCols = 4;
@@ -965,7 +962,7 @@
                 const domain = new URL(bookmark.url).hostname;
                 return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
             } catch (e) {
-                return '';
+                return 'https://via.placeholder.com/64';
             }
         };
 
@@ -1026,7 +1023,7 @@
                     img.src = getFaviconUrl(bookmark);
                     img.alt = `Favicon de ${bookmark.name}`;
                     img.loading = "lazy";
-                    img.onerror = () => (img.style.display = 'none');
+                    img.onerror = () => (img.src = 'https://via.placeholder.com/64');
 
                     if (bookmark.name === "Mis Updates") img.classList.add('favicon-red');
                     else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
@@ -1266,6 +1263,7 @@
             const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
             const buttonSpacing = 58;
 
+            scrollToggle.style.top = `10px`;
             onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
             toggleButtons.forEach((toggle, index) => {
                 toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
@@ -1438,81 +1436,36 @@
             const notificationsContainer = document.getElementById('reminder-notifications');
             notificationsContainer.innerHTML = '';
             reminders.forEach(reminder => {
-                if (!reminder.isCancelled) {
-                    showReminder(reminder);
+                if (!reminder.isCancelled) {                    showReminder(reminder);
                 }
             });
+            updateButtonStyles();
         }
 
         function loadReminders() {
-            if (isMinimalMode) return;
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const now = new Date();
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
             reminders.forEach(reminder => {
-                if (!reminder.isCancelled && !reminder.time) {
+                if (!reminder.isCancelled && reminder.time && reminder.time === currentTime) {
                     showReminder(reminder);
                 }
             });
             updateButtonStyles();
         }
 
-        function checkScheduledReminders() {
-            if (isMinimalMode) return;
-            const now = new Date();
-            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            reminders.forEach(reminder => {
-                if (!reminder.isCancelled && reminder.time === currentTime) {
-                    showReminder(reminder);
-                }
-            });
-        }
-
-        function updateNotice() {
-            if (!isActive || isMinimalMode) return;
-            const noticeElement = document.getElementById('current-notice');
-            noticeElement.textContent = notices[currentNoticeIndex];
-            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-        }
-
         function toggleFooterVisibility() {
-            const headerContainer = document.querySelector('.header-container');
-            const footerLine = document.querySelector('.footer-line');
-            const footerSubtext = document.querySelector('.footer-subtext');
+            const footer = document.querySelector('footer');
             const noticesContainer = document.querySelector('.notices-container');
-
-            if (headerContainer && footerLine && footerSubtext && noticesContainer) {
-                headerContainer.classList.toggle('footer-hidden', !isFooterVisible);
-                footerLine.classList.toggle('footer-hidden', !isFooterVisible);
-                footerSubtext.classList.toggle('footer-hidden', !isFooterVisible);
-                noticesContainer.classList.toggle('hidden', !isFooterVisible);
+            if (isActive && isFooterVisible) {
+                footer.classList.remove('footer-hidden');
+                noticesContainer.classList.remove('hidden');
+            } else {
+                footer.classList.add('footer-hidden');
+                noticesContainer.classList.add('hidden');
             }
-            saveSettings();
         }
-
-        const noticeToggleIcon = document.getElementById('notice-toggle-icon');
-        noticeToggleIcon.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            isActive = !isActive;
-            isFooterVisible = isActive;
-            toggleFooterVisibility();
-            saveSettings();
-        });
-
-        setInterval(updateNotice, 14000);
-        updateNotice();
-
-        setInterval(checkScheduledReminders, 60000);
-
-        const backButton = document.getElementById('back-button');
-        const forwardButton = document.getElementById('forward-button');
-        backButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.back();
-        });
-        forwardButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.forward();
-        });
 
         function initializeServiceWorker() {
             if ('serviceWorker' in navigator) {
@@ -1539,10 +1492,25 @@
         function showNotification(reminder) {
             if ('Notification' in window && Notification.permission === 'granted' && !isMinimalMode) {
                 new Notification('Recordatorio', {
-                    body: reminder.text                    icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
+                    body: reminder.text,
+                    icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
                 });
             }
         }
+
+        document.getElementById('notice-toggle-icon').addEventListener('click', () => {
+            if (isMinimalMode) return;
+            isActive = !isActive;
+            toggleFooterVisibility();
+            saveSettings();
+        });
+
+        document.getElementById('current-notice').textContent = notices[0];
+        setInterval(() => {
+            if (isMinimalMode || !isActive) return;
+            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
+            document.getElementById('current-notice').textContent = notices[currentNoticeIndex];
+        }, 14000);
 
         window.addEventListener('resize', adjustButtonPositions);
         window.addEventListener('load', () => {
@@ -1556,6 +1524,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             adjustButtonPositions();
             updateButtonStyles();
+            grid.style.display = 'grid'; // Asegurar que el grid sea visible
+            buttons.forEach(button => button.classList.remove('hidden')); // Asegurar que los botones sean visibles
         });
     </script>
 </body>
