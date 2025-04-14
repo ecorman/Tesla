@@ -337,8 +337,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: #000080;
             position: relative;
+            background-color: #5DA8D6; /* Igual que reload en modo claro */
         }
         #reminder-button img {
             width: 48px;
@@ -398,7 +398,7 @@
         body.dark-mode #reload-button {
             background-color: #0e7490;
         }
-        body.dark-mode #home-button {
+        body.dark-mode # complement-button {
             background-color: #0e7490;
         }
         body.dark-mode #weather-button {
@@ -879,7 +879,7 @@
                 weatherButton.style.backgroundColor = '#b45309';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#7c2d12' : '#c2410c';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
-                reminderButton.style.backgroundColor = '#000080';
+                reminderButton.style.backgroundColor = '#0e7490';
             } else if (!isMinimalMode) {
                 toggleButtons.forEach(toggle => {
                     toggle.style.backgroundColor = toggle.dataset.state === 'visible' ? '#006400' : '#696969';
@@ -889,7 +889,7 @@
                 weatherButton.style.backgroundColor = '#FBBF24';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#C2410C' : '#F97316';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
-                reminderButton.style.backgroundColor = '#000080';
+                reminderButton.style.backgroundColor = '#5DA8D6';
             }
         }
 
@@ -1496,6 +1496,13 @@
                 footerSubtext.classList.toggle('footer-hidden', !isFooterVisible);
             }
             isFooterVisible = !isFooterVisible;
+            saveSettings();
+        }
+
+        const noticeToggleIcon = document.getElementById('notice-toggle-icon');
+        noticeToggleIcon.addEventListener('click', () => {
+            if (isMinimalMode) return;
+            isFooterVisible;
             saveSettings();
         }
 
