@@ -412,7 +412,7 @@
         }
         .minimal-mode main,
         .minimal-mode .notices-container,
-        .minimal-mode footer,
+        .minimal-mode .footer-content,
         .minimal-mode .top-text-container,
         .minimal-mode .scroll-toggle-button,
         .minimal-mode .toggle-sign:not(#on-off-toggle),
@@ -528,6 +528,22 @@
             background-color: #F59E0B;
             color: #FFFFFF;
         }
+        .notices-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1024px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .counter-wrapper {
+            margin: 0.5rem auto;
+            text-align: center;
+            max-width: 1024px;
+            width: 100%;
+            display: block;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-[#000000] flex flex-col items-center p-6">
@@ -547,16 +563,18 @@
         </div>
     </main>
 
-    <div class="notices-container">
+    <div class="notices-icon-container">
         <img src="https://boardinggate.github.io/Tesla/IMG_4194.jpeg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon">
-        <div class="notice-wrapper">
-            <span class="notice" id="current-notice"></span>
+        <div class="notices-container">
+            <div class="notice-wrapper">
+                <span class="notice" id="current-notice"></span>
+            </div>
         </div>
         <img src="./avisos.png" alt="Megáfono Fin" class="megaphone-icon-end">
     </div>
 
     <footer>
-        <div class="footer-content mt-8 text-center">
+        <div class="footer-content">
             <div class="header-container">
                 <img src="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" alt="Logo de Tesla" class="header-logo">
                 <div class="title-container">
@@ -572,12 +590,15 @@
                 <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
             </div>
             <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
-            <div class="counter-container text-center">
-                <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
-                <script type="text/javascript" src="https://counter4.optistats.ovh/private/counter.js?c=g896pbr68y2dejczgbn1ys664xjxdf2d&down=async" async></script>
-            </div>
         </div>
     </footer>
+
+    <div class="counter-wrapper">
+        <div class="counter-container">
+            <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
+            <script type="text/javascript" src="https://counter4.optistats.ovh/private/counter.js?c=g896pbr68y2dejczgbn1ys664xjxdf2d&down=async" async></script>
+        </div>
+    </div>
 
     <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -1304,234 +1325,214 @@
                     <label for="reminder-text">Texto del recordatorio:</label>
                     <textarea id="reminder-text" required rows="4">${reminder ? reminder.text : ''}</textarea>
                     <label for="reminder-time">Hora (opcional):</label>
-                    <input type="time" id="reminder-time" value="${reminder && reminder.time ? reminder.time : ''}">
+                    <input type="time" id="reminder-time" value="${reminder &&reminder.time ? reminder.time : ''}">
                     <div class="button-group">
                         <button type="button" id="cancel-reminder">Cancelar</button>
-                        <button type="submit">Guardar</button>
+                        <button type="submit">${reminder ? 'Modificar' : 'Añadir'}</button>
                     </div>
                 </form>
             `;
             document.body.appendChild(modal);
 
             const form = modal.querySelector('#reminder-form');
-            const cancelButton = modal.querySelector('#cancel-reminder');
-
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const text = modal.querySelector('#reminder-text').value.trim();
+                const text = modal.querySelector('#reminder-text').value;
                 let time = modal.querySelector('#reminder-time').value;
+
                 if (!time) {
                     time = extractTimeFromText(text);
                 }
-                if (text) {
-                    if (reminder) {
-                        updateReminder(reminder.id, text, time);
-                    } else {
-                        saveReminder(text, time);
-                    }
-                    document.body.removeChild(modal);
+
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                if (reminder) {
+                    const index = reminders.findIndex(r => r.id === reminder.id);
+                    reminders[index] = { ...reminders[index], text, time, isCancelled: false };
+                } else {
+                    const newReminder = {
+                        id: Date.now(),
+                        text,
+                        time,
+                        isCancelled: false
+                    };
+                    reminders.push(newReminder);
                 }
+
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                modal.remove();
+                updateButtonStyles();
+                loadReminders();
+            });
+
+            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+
+        function showReminderNotification(reminder) {
+            const notifications = document.getElementById('reminder-notifications');
+            const notification = document.createElement('div');
+            notification.className = 'reminder-notification';
+            notification.innerHTML = `
+                <p>${reminder.text}</p>
+                ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
+                <div class="button-group">
+                    <button class="cancel">Cancelar</button>
+                    <button class="modify">Modificar</button>
+                    <button class="postpone">Aplazar</button>
+                </div>
+            `;
+            notifications.appendChild(notification);
+
+            notification.querySelector('.cancel').addEventListener('click', () => {
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                const index = reminders.findIndex(r => r.id === reminder.id);
+                if (index !== -1) {
+                    reminders[index].isCancelled = true;
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                }
+                notification.remove();
                 updateButtonStyles();
             });
 
-            cancelButton.addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-
-            document.addEventListener('keydown', function closeOnEsc(e) {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(modal);
-                    document.removeEventListener('keydown', closeOnEsc);
-                }
-            });
-        }
-
-        function saveReminder(text, time) {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const reminder = {
-                id: Date.now(),
-                text,
-                time: time || null,
-                isCancelled: false
-            };
-            reminders.push(reminder);
-            localStorage.setItem('reminders', JSON.stringify(reminders));
-            if (!time) {
-                showReminder(reminder);
-            }
-            updateButtonStyles();
-        }
-
-        function updateReminder(id, text, time) {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const updatedReminders = reminders.map(r => 
-                r.id === id ? { ...r, text, time: time || null, isCancelled: false } : r
-            );
-            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-            const notification = document.querySelector(`#reminder-notifications .reminder-notification[data-id="${id}"]`);
-            if (notification) notification.remove();
-            const updatedReminder = updatedReminders.find(r => r.id === id);
-            if (!time) {
-                showReminder(updatedReminder);
-            }
-            updateButtonStyles();
-        }
-
-        function showReminder(reminder) {
-            if (reminder.isCancelled || isMinimalMode) return;
-            const notificationsContainer = document.getElementById('reminder-notifications');
-            const notification = document.createElement('div');
-            notification.className = 'reminder-notification';
-            notification.dataset.id = reminder.id;
-            notification.innerHTML = `
-                <p>${reminder.text}</p>
-                <div class="button-group">
-                    <button class="postpone" onclick="postponeReminder(${reminder.id})">Posponer</button>
-                    <button class="modify" onclick="modifyReminder(${reminder.id})">Modificar</button>
-                    <button class="cancel" onclick="cancelReminder(${reminder.id})">Descartar</button>
-                </div>
-            `;
-            notificationsContainer.appendChild(notification);
-            showNotification(reminder);
-            updateButtonStyles();
-        }
-
-        function cancelReminder(id) {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const updatedReminders = reminders.map(r => 
-                r.id === id ? { ...r, isCancelled: true } : r
-            );
-            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-            const notification = document.querySelector(`#reminder-notifications .reminder-notification[data-id="${id}"]`);
-            if (notification) notification.remove();
-            updateButtonStyles();
-        }
-
-        function modifyReminder(id) {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const reminder = reminders.find(r => r.id === id);
-            if (reminder) {
+            notification.querySelector('.modify').addEventListener('click', () => {
+                notification.remove();
                 showReminderModal(reminder);
-            }
-        }
-
-        function postponeReminder(id) {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const reminder = reminders.find(r => r.id === id);
-            if (reminder) {
-                let newTime = reminder.time;
-                if (!newTime) {
-                    const now = new Date();
-                    newTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                }
-                const [hours, minutes] = newTime.split(':').map(Number);
-                const newDate = new Date();
-                newDate.setDate(newDate.getDate() + 1);
-                newDate.setHours(hours);
-                newDate.setMinutes(minutes);
-                const updatedTime = `${newDate.getHours().toString().padStart(2, '0')}:${newDate.getMinutes().toString().padStart(2, '0')}`;
-                updateReminder(id, reminder.text, updatedTime);
-            }
-        }
-
-        function showAllReminders() {
-            if (isMinimalMode) return;
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const notificationsContainer = document.getElementById('reminder-notifications');
-            notificationsContainer.innerHTML = '';
-            reminders.forEach(reminder => {
-                if (!reminder.isCancelled) {
-                    showReminder(reminder);
-                }
             });
-            updateButtonStyles();
+
+            notification.querySelector('.postpone').addEventListener('click', () => {
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                const index = reminders.findIndex(r => r.id === reminder.id);
+                if (index !== -1) {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() + 10);
+                    reminders[index].time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                }
+                notification.remove();
+                updateButtonStyles();
+            });
         }
 
         function loadReminders() {
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
             const now = new Date();
-            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
             reminders.forEach(reminder => {
-                if (!reminder.isCancelled && reminder.time && reminder.time === currentTime) {
-                    showReminder(reminder);
+                if (reminder.time && !reminder.isCancelled) {
+                    const [hours, minutes] = reminder.time.split(':').map(Number);
+                    const reminderDate = new Date(now);
+                    reminderDate.setHours(hours, minutes, 0, 0);
+                    if (reminderDate <= now && now - reminderDate < 60000) {
+                        showReminderNotification(reminder);
+                    }
                 }
             });
             updateButtonStyles();
         }
 
-        function toggleFooterVisibility() {
-            const footer = document.querySelector('footer');
-            const noticesContainer = document.querySelector('.notices-container');
-            if (!isMinimalMode && isActive && isFooterVisible) {
-                footer.classList.remove('footer-hidden');
-                noticesContainer.classList.remove('hidden');
+        function showAllReminders() {
+            if (isMinimalMode) return;
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.innerHTML = `
+                <h2>Todos los Recordatorios</h2>
+                <div id="reminder-list"></div>
+                <div class="button-group">
+                    <button id="close-reminders">Cerrar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const list = modal.querySelector('#reminder-list');
+            if (reminders.length === 0) {
+                list.innerHTML = '<p>No hay recordatorios.</p>';
             } else {
-                footer.classList.add('footer-hidden');
+                reminders.forEach(reminder => {
+                    const item = document.createElement('div');
+                    item.innerHTML = `
+                        <p>${reminder.text}</p>
+                        ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
+                        <p>Estado: ${reminder.isCancelled ? 'Cancelado' : 'Activo'}</p>
+                        <hr>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+
+            modal.querySelector('#close-reminders').addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+
+        function toggleFooterVisibility() {
+            const noticesContainer = document.querySelector('.notices-container');
+            const footerContent = document.querySelector('.footer-content');
+
+            if (!isMinimalMode && isActive && isFooterVisible) {
+                noticesContainer.classList.remove('hidden');
+                footerContent.classList.remove('footer-hidden');
+            } else {
                 noticesContainer.classList.add('hidden');
+                footerContent.classList.add('footer-hidden');
             }
             saveSettings();
         }
 
-        function initializeServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registrado con éxito:', registration);
-                    })
-                    .catch(error => {
-                        console.error('Error al registrar el Service Worker:', error);
-                    });
-            }
+        function updateNotice() {
+            if (!isActive || isMinimalMode) return;
+            const noticeElement = document.getElementById('current-notice');
+            noticeElement.textContent = notices[currentNoticeIndex];
+            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
         }
 
-        function requestNotificationPermission() {
-            if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        console.log('Permiso de notificaciones concedido');
-                    }
-                });
-            }
+        function startNoticeRotation() {
+            updateNotice();
+            setInterval(updateNotice, 14000);
         }
 
-        function showNotification(reminder) {
-            if ('Notification' in window && Notification.permission === 'granted' && !isMinimalMode) {
-                new Notification('Recordatorio', {
-                    body: reminder.text,
-                    icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
-                });
-            }
-        }
-
+        // Evento para el icono de alternar avisos
         document.getElementById('notice-toggle-icon').addEventListener('click', () => {
             if (isMinimalMode) return;
             isActive = !isActive;
+            isFooterVisible = isActive; // Sincronizar visibilidad del footer con los avisos
             toggleFooterVisibility();
-            saveSettings();
         });
 
-        document.getElementById('current-notice').textContent = notices[0];
-        setInterval(() => {
-            if (isMinimalMode || !isActive) return;
-            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-            document.getElementById('current-notice').textContent = notices[currentNoticeIndex];
-        }, 14000);
-
-        window.addEventListener('resize', adjustButtonPositions);
+        // Inicialización
         window.addEventListener('load', () => {
-            adjustButtonPositions();
-            updateVersion();
             loadSavedSettings();
-            initializeServiceWorker();
-            requestNotificationPermission();
+            startNoticeRotation();
+            updateVersion();
+            adjustButtonPositions();
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            adjustButtonPositions();
-            updateButtonStyles();
-            grid.style.display = 'grid';
-            buttons.forEach(button => button.classList.remove('hidden'));
+        // Ajustar posiciones al redimensionar
+        window.addEventListener('resize', adjustButtonPositions);
+
+        // Navegación con deslizamiento
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const deltaX = touchEndX - touchStartX;
+            if (deltaX > 100) {
+                window.history.forward();
+            } else if (deltaX < -100) {
+                window.history.back();
+            }
+        });
+
+        // Navegación con botones
+        document.getElementById('back-button').addEventListener('click', () => {
+            window.history.back();
+        });
+
+        document.getElementById('forward-button').addEventListener('click', () => {
+            window.history.forward();
         });
     </script>
 </body>
