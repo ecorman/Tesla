@@ -891,7 +891,7 @@
             onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[56px] h-[56px] object-contain">`;
 
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const pendingCount = reminders.filter(r => !r.isCancelled).length;
+            const pendingCount = reminders.length;
             reminderButton.innerHTML = `
                 <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpeg" alt="Recordatorio" class="w-[48px] h-[48px] object-contain">
                 ${pendingCount > 0 ? `<span class="reminder-count">${pendingCount}</span>` : ''}
@@ -1221,7 +1221,7 @@
 
         function handleReminderLongPress() {
             const pressDuration = Date.now() - reminderPressStartTime;
-            if (pressDuration >= 3000) {
+            if (pressDuration >= 1000) { // Reducido a 1 segundo para mejor UX
                 showAllReminders();
             } else if (!isMinimalMode) {
                 showReminderModal();
@@ -1406,6 +1406,16 @@
                     <textarea id="reminder-text" required rows="4">${reminder ? reminder.text : ''}</textarea>
                     <label for="reminder-time">Hora (opcional):</label>
                     <input type="time" id="reminder-time" value="${reminder && reminder.time ? reminder.time : ''}">
+                    <label>Días de repetición (opcional):</label>
+                    <div class="repeat-days" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                        <label><input type="checkbox" name="repeat" value="1" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(1) ? 'checked' : ''}> Lunes</label>
+                        <label><input type="checkbox" name="repeat" value="2" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(2) ? 'checked' : ''}> Martes</label>
+                        <label><input type="checkbox" name="repeat" value="3" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(3) ? 'checked' : ''}> Miércoles</label>
+                        <label><input type="checkbox" name="repeat" value="4" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(4) ? 'checked' : ''}> Jueves</label>
+                        <label><input type="checkbox" name="repeat" value="5" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(5) ? 'checked' : ''}> Viernes</label>
+                        <label><input type="checkbox" name="repeat" value="6" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(6) ? 'checked' : ''}> Sábado</label>
+                        <label><input type="checkbox" name="repeat" value="0" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(0) ? 'checked' : ''}> Domingo</label>
+                    </div>
                     <div class="button-group">
                         <button type="button" id="cancel-reminder">Cancelar</button>
                         <button type="submit">${reminder ? 'Modificar' : 'Añadir'}</button>
@@ -1419,6 +1429,7 @@
                 e.preventDefault();
                 const text = modal.querySelector('#reminder-text').value;
                 let time = modal.querySelector('#reminder-time').value;
+                const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
 
                 let parsedTime = null;
                 if (!time) {
@@ -1427,214 +1438,192 @@
                 }
 
                 const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const now = new Date();
-                if (reminder) {
-                    const index = reminders.findIndex(r => r.id === reminder.id);
-                    reminders[index] = {
-                        ...reminders[index],
-                        text,
-                        time,
-                        isCancelled: false,
-                        timestamp: time ? (parsedTime && parsedTime.isTimer ? new Date(now.getTime()).setHours(...time.split(':').map(Number), 0, 0) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...time.split(':').map(Number), 0, 0).getTime()) : null
-                    };
-                } else {
-                    const newReminder = {
-                        id: Date.now(),
-                        text,
-                        time,
-                        isCancelled: false,
-                        timestamp: time ? (parsedTime && parsedTime.isTimer ? new Date(now.getTime()).setHours(...time.split(':').map(Number), 0, 0) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...time.split(':').map(Number), 0, 0).getTime()) : null
-                    };
-                    reminders.push(newReminder);
-                }
+            const newReminder = {
+                id: reminder ? reminder.id : Date.now(),
+                text,
+                time,
+                repeatDays: repeatDays.length > 0 ? repeatDays : null,
+                date: time ? new Date().toISOString().split('T')[0] : null,
+                isCancelled: false
+            };
 
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                modal.remove();
-                updateButtonStyles();
-                loadReminders();
-            });
-
-            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
-                modal.remove();
-            });
-        }
-
-        function showReminderNotification(reminder) {
-            const notifications = document.getElementById('reminder-notifications');
-            const notification = document.createElement('div');
-            notification.className = 'reminder-notification';
-            notification.innerHTML = `
-                <p>${reminder.time ? `<span style="font-size: 0.9rem; color: #555;">${reminder.time} </span>` : ''}${reminder.text}</p>
-                <div class="button-group">
-                    <button class="cancel">Cancelar</button>
-                    <button class="modify">Modificar</button>
-                    <button class="postpone">Para mañana</button>
-                </div>
-            `;
-            notifications.appendChild(notification);
-
-            notification.querySelector('.cancel').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            if (reminder) {
                 const index = reminders.findIndex(r => r.id === reminder.id);
-                if (index !== -1) {
-                    reminders[index].isCancelled = true;
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                }
-                notification.remove();
-                updateButtonStyles();
-            });
-
-            notification.querySelector('.modify').addEventListener('click', () => {
-                notification.remove();
-                showReminderModal(reminder);
-            });
-
-            notification.querySelector('.postpone').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const index = reminders.findIndex(r => r.id === reminder.id);
-                if (index !== -1) {
-                    if (reminders[index].time) {
-                        // Reprogramar para el mismo horario del día siguiente
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const [hours, minutes] = reminders[index].time.split(':').map(Number);
-                        tomorrow.setHours(hours, minutes, 0, 0);
-                        reminders[index].timestamp = tomorrow.getTime();
-                        reminders[index].time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                    } else {
-                        // Si no tiene hora, establecer para mañana a las 00:00
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        tomorrow.setHours(0, 0, 0, 0);
-                        reminders[index].timestamp = tomorrow.getTime();
-                        reminders[index].time = '00:00';
-                    }
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                }
-                notification.remove();
-                updateButtonStyles();
-            });
-        }
-
-        function loadReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const now = new Date();
-            const notifications = document.getElementById('reminder-notifications');
-            notifications.innerHTML = ''; // Limpiar notificaciones previas
-
-            reminders.forEach(reminder => {
-                if (reminder.isCancelled) return;
-
-                if (!reminder.time) {
-                    // Mostrar recordatorios sin hora de inmediato
-                    showReminderNotification(reminder);
-                } else {
-                    // Comprobar recordatorios con hora
-                    const [hours, minutes] = reminder.time.split(':').map(Number);
-                    const reminderDate = new Date();
-                    reminderDate.setHours(hours, minutes, 0, 0);
-                    reminder.timestamp = reminderDate.getTime();
-
-                    // Mostrar si está vencido (hora anterior a ahora)
-                    if (reminderDate <= now) {
-                        showReminderNotification(reminder);
-                    }
-                }
-            });
-
-            updateButtonStyles();
-        }
-
-        function checkRemindersPeriodically() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const now = new Date();
-            const nowTime = now.getTime();
-
-            reminders.forEach(reminder => {
-                if (reminder.isCancelled || !reminder.time || !reminder.timestamp) return;
-
-                const reminderDate = new Date(reminder.timestamp);
-                const diff = nowTime - reminderDate.getTime();
-
-                // Mostrar si la hora coincide (dentro de 1 minuto)
-                if (diff >= 0 && diff < 60000) {
-                    showReminderNotification(reminder);
-                }
-            });
-        }
-
-        function showAllReminders() {
-            if (isMinimalMode) return;
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.innerHTML = `
-                <h2>Todos los Recordatorios</h2>
-                <div id="reminder-list"></div>
-                <div class="button-group">
-                    <button id="close-reminders">Cerrar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            const list = modal.querySelector('#reminder-list');
-            if (reminders.length === 0) {
-                list.innerHTML = '<p>No hay recordatorios.</p>';
+                reminders[index] = newReminder;
             } else {
-                reminders.forEach(reminder => {
-                    const item = document.createElement('div');
-                    item.innerHTML = `
-                        <p>${reminder.time ? `<span style="font-size: 0.9rem; color: #555;">${reminder.time} </span>` : ''}${reminder.text}</p>
-                        <p>Estado: ${reminder.isCancelled ? 'Cancelado' : 'Activo'}</p>
-                        <hr>
-                    `;
-                    list.appendChild(item);
-                });
+                reminders.push(newReminder);
             }
 
-            modal.querySelector('#close-reminders').addEventListener('click', () => {
-                modal.remove();
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            updateButtonStyles(); // Actualizar contador en reminder-button
+            modal.remove();
+            checkReminders();
+        });
+
+        modal.querySelector('#cancel-reminder').addEventListener('click', () => {
+            modal.remove();
+        });
+    }
+
+    function showReminderNotification(reminder) {
+        const notificationsContainer = document.getElementById('reminder-notifications');
+        const notification = document.createElement('div');
+        notification.className = 'reminder-notification';
+        notification.innerHTML = `
+            <p>${reminder.text}</p>
+            <span style="font-size: 0.8rem; color: gray;">${reminder.time || 'Sin hora específica'}</span>
+            <div class="button-group">
+                <button class="cancel">Cancelar</button>
+                <button class="modify">Modificar</button>
+                <button class="postpone">Para mañana</button>
+            </div>
+        `;
+        notificationsContainer.appendChild(notification);
+
+        notification.querySelector('.cancel').addEventListener('click', () => {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const updatedReminders = reminders.filter(r => r.id !== reminder.id);
+            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+            notification.remove();
+            updateButtonStyles();
+        });
+
+        notification.querySelector('.modify').addEventListener('click', () => {
+            showReminderModal(reminder);
+            notification.remove();
+        });
+
+        notification.querySelector('.postpone').addEventListener('click', () => {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const index = reminders.findIndex(r => r.id === reminder.id);
+            if (index !== -1) {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                reminders[index].date = tomorrow.toISOString().split('T')[0];
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                notification.remove();
+                updateButtonStyles();
+            }
+        });
+
+        // Auto-eliminar después de 30 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 30000);
+    }
+
+    function showAllReminders() {
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const modal = document.createElement('div');
+        modal.className = 'reminder-modal';
+        modal.innerHTML = `
+            <h2>Todos los Recordatorios</h2>
+            <div id="reminders-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;"></div>
+            <div class="button-group">
+                <button id="close-reminders">Cerrar</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const list = modal.querySelector('#reminders-list');
+        if (reminders.length === 0) {
+            list.innerHTML = '<p>No hay recordatorios.</p>';
+        } else {
+            reminders.forEach(reminder => {
+                const item = document.createElement('div');
+                item.style.padding = '0.5rem';
+                item.style.borderBottom = '1px solid #D1D5DB';
+                item.innerHTML = `
+                    <p><strong>${reminder.text}</strong></p>
+                    <p style="font-size: 0.9rem; color: gray;">
+                        ${reminder.time ? `Hora: ${reminder.time}` : 'Sin hora específica'}
+                        ${reminder.date ? ` | Fecha: ${reminder.date}` : ''}
+                        ${reminder.repeatDays ? ` | Días: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}` : ''}
+                    </p>
+                    <button class="modify" style="margin-right: 0.5rem;">Modificar</button>
+                    <button class="cancel">Eliminar</button>
+                `;
+                item.querySelector('.modify').addEventListener('click', () => {
+                    modal.remove();
+                    showReminderModal(reminder);
+                });
+                item.querySelector('.cancel').addEventListener('click', () => {
+                    const updatedReminders = reminders.filter(r => r.id !== reminder.id);
+                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                    item.remove();
+                    updateButtonStyles();
+                    if (updatedReminders.length === 0) {
+                        list.innerHTML = '<p>No hay recordatorios.</p>';
+                    }
+                });
+                list.appendChild(item);
             });
         }
 
-        // Inicialización
-        window.addEventListener('load', () => {
-            loadSavedSettings();
-            startNoticeRotation();
-            updateVersion();
-            adjustButtonPositions();
-            loadReminders();
-            // Comprobar recordatorios cada minuto
-            setInterval(checkRemindersPeriodically, 60000);
+        modal.querySelector('#close-reminders').addEventListener('click', () => {
+            modal.remove();
         });
+    }
 
-        // Ajustar posiciones al redimensionar
-        window.addEventListener('resize', adjustButtonPositions);
+    function checkReminders() {
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentDate = now.toISOString().split('T')[0];
+        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-        // Navegación con deslizamiento
-        let touchStartX = 0;
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
+        reminders.forEach(reminder => {
+            if (reminder.isCancelled) return;
 
-        document.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].screenX;
-            const deltaX = touchEndX - touchStartX;
-            if (deltaX > 100) {
-                window.history.forward();
-            } else if (deltaX < -100) {
-                window.history.back();
+            // Recordatorios sin hora pero con días de repetición
+            if (!reminder.time && reminder.repeatDays && reminder.repeatDays.includes(currentDay)) {
+                showReminderNotification(reminder);
+            }
+
+            // Recordatorios con hora y fecha
+            if (reminder.time && reminder.date === currentDate && reminder.time <= currentTime) {
+                showReminderNotification(reminder);
+            }
+
+            // Recordatorios con hora y días de repetición
+            if (reminder.time && reminder.repeatDays && reminder.repeatDays.includes(currentDay) && reminder.time <= currentTime) {
+                showReminderNotification(reminder);
             }
         });
 
-        // Navegación con botones
-        document.getElementById('back-button').addEventListener('click', () => {
-            window.history.back();
+        // Mostrar recordatorios sin fecha o vencidos al cargar
+        reminders.forEach(reminder => {
+            if (!reminder.date || new Date(reminder.date) < new Date(currentDate)) {
+                showReminderNotification(reminder);
+            }
         });
+    }
 
-        document.getElementById('forward-button').addEventListener('click', () => {
-            window.history.forward();
-        });
-    </script>
+    function loadReminders() {
+        checkReminders();
+        setInterval(checkReminders, 60000); // Comprobar cada minuto
+    }
+
+    // Inicialización
+    window.addEventListener('load', () => {
+        loadSavedSettings();
+        updateVersion();
+        startNoticeRotation();
+        adjustButtonPositions();
+        updateButtonStyles();
+        window.addEventListener('resize', adjustButtonPositions);
+    });
+
+    // Navegación con flechas
+    document.getElementById('back-button').addEventListener('click', () => {
+        window.history.back();
+    });
+
+    document.getElementById('forward-button').addEventListener('click', () => {
+        window.history.forward();
+    });
+</script>
 </body>
-</html>
+</html>             
