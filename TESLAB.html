@@ -35,11 +35,27 @@
             gap: 15px;
             background-color: transparent;
             border-radius: 0.75rem;
+            position: relative;
             width: 100%;
             max-width: clamp(768px, 80vw, 1024px);
             margin: 0 auto;
             transition: all 0.3s ease;
-            visibility: visible; /* Asegurar visibilidad */
+        }
+        /* Nuevo pseudo-elemento para el fondo extendido */
+        #bookmark-grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: calc(-1 * clamp(64px, 15vw, 101px)); /* Cubrir botones a la izquierda */
+            width: calc(100% + clamp(64px, 15vw, 101px)); /* Extenderse hacia la izquierda */
+            height: 100%;
+            background-color: #ABAB99; /* Igual que main */
+            border-radius: 0.75rem;
+            z-index: -1; /* Detrás del grid y botones */
+            transition: all 0.3s ease;
+        }
+        body.dark-mode #bookmark-grid::before {
+            background-color: #92927E; /* Igual que main en modo oscuro */
         }
         #bookmark-grid > div {
             height: auto;
@@ -93,12 +109,20 @@
                 gap: 10px;
                 max-width: clamp(300px, 90vw, 600px);
             }
+            #bookmark-grid::before {
+                left: calc(-1 * clamp(64px, 15vw, 101px));
+                width: calc(100% + clamp(64px, 15vw, 101px));
+            }
         }
         @media (max-width: 480px) {
             #bookmark-grid {
                 grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
                 max-width: clamp(160px, 95vw, 400px);
+            }
+            #bookmark-grid::before {
+                left: calc(-1 * clamp(64px, 15vw, 101px));
+                width: calc(100% + clamp(64px, 15vw, 101px));
             }
         }
         .scroll-toggle-button {
@@ -118,7 +142,6 @@
             transition: background-color 0.2s ease;
             left: 10px;
             top: 10px;
-            visibility: visible; /* Asegurar visibilidad */
         }
         .scroll-toggle-button:hover {
             background-color: #1e40af;
@@ -142,7 +165,6 @@
             z-index: 1000;
             transition: background-color 0.2s ease;
             left: 10px;
-            visibility: visible; /* Asegurar visibilidad */
         }
         .toggle-sign img {
             width: clamp(32px, 8vw, 48px);
@@ -410,7 +432,7 @@
             { name: "Inicio Tesla" },
             { name: "Twitter", url: "https://x.com" },
             { name: "Maesal Detailer", url: "https://www.maesaldetailer.es/" },
-            { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938%2C29.703668286784747%2C-16.64676239931062" },
+            { name: "Superchargers", url: "https://www.tesla.com/es_es/findus?bounds=45.41107111786193%2C19.27853056943938 -16.64676239931062" },
             { name: "TESLA web", url: "https://www.tesla.com/es_es" },
             { name: "Manual M3", url: "https://www.tesla.com/ownersmanual/model3/es_es/" },
             { name: "de Servicio", url: "https://service.tesla.com/docs/Model3/ServiceManual/2024/es-es/" },
@@ -619,25 +641,23 @@
             const gap = clamp(8, viewportWidth * 0.02, 15);
             const cellWidth = (maxGridWidth - (cols - 1) * gap) / cols;
 
-            grid.style.display = 'grid'; // Asegurar que el grid esté visible
             grid.style.maxWidth = `${maxGridWidth}px`;
-            grid.style.gridTemplateColumns = `repeat(${cols}, minmax(${clamp(80, cellWidth, 120)}px, 1fr))`;
+            grid.style.gridTemplateColumns = `repeat(${cols}, minmax(${clamp(80, viewportWidth * 0.12, 120)}px, 1fr))`;
             grid.style.gap = `${gap}px`;
 
             document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
                 cell.style.width = 'auto';
                 cell.style.height = `${cellWidth * 9 / 16}px`;
-                cell.style.display = 'flex'; // Asegurar que las celdas sean visibles
             });
 
             buttons.forEach((button, index) => {
                 const topPosition = 10 + index * (clamp(60, viewportWidth * 0.15, 91) + 10);
                 button.style.top = `${topPosition}px`;
-                button.style.left = '10px';
                 button.style.width = `${clamp(54, viewportWidth * 0.15, 91)}px`;
                 button.style.height = button.id === 'scroll-toggle' ? `${clamp(78.2, viewportWidth * 0.1955, 175.95)}px` : `${clamp(54, viewportWidth * 0.15, 91)}px`;
-                button.style.display = 'flex'; // Asegurar que los botones sean visibles
-                button.style.visibility = 'visible';
+                if (button.id !== 'scroll-toggle') {
+                    button.style.borderRadius = '20px';
+                }
             });
 
             updateButtonStyles();
@@ -1045,11 +1065,7 @@
             }
         });
 
-        onOffToggle.addEventListener('mousedown', () => {
-            pressStartTime = Date.now();
-        });
-
-        onOffToggle.addEventListener('mouseup', () => {
+        function handleOnOffLongPress() {
             const pressDuration = Date.now() - pressStartTime;
             if (pressDuration >= 3000) {
                 isMinimalMode = !isMinimalMode;
@@ -1087,6 +1103,20 @@
                 updateButtonStyles();
                 saveSettings();
             }
+        }
+
+        onOffToggle.addEventListener('mousedown', () => {
+            pressStartTime = Date.now();
+        });
+
+        onOffToggle.addEventListener('mouseup', handleOnOffLongPress);
+        onOffToggle.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            pressStartTime = Date.now();
+        });
+        onOffToggle.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleOnOffLongPress();
         });
 
         toggleButtons.forEach(toggle => {
@@ -1109,7 +1139,7 @@
 
         weatherButton.addEventListener('click', () => {
             if (isMinimalMode) return;
-            window.open('https://www.accuweather.com/es/free-weather-widgets', '_blank');
+            window.open('https://www.accuweather.com/es/free-weather-widgets', '_blank', 'noopener,noreferrer');
         });
 
         reminderButton.addEventListener('mousedown', () => {
@@ -1126,10 +1156,26 @@
             }
         });
 
+        reminderButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            reminderPressStartTime = Date.now();
+        });
+
+        reminderButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const pressDuration = Date.now() - reminderPressStartTime;
+            if (isMinimalMode) return;
+            if (pressDuration >= 3000) {
+                showAllReminders();
+            } else {
+                showReminderModal();
+            }
+        });
+
         zoomButton.addEventListener('click', () => {
             if (isMinimalMode) return;
-            const state = zoomButton.dataset.zoomState;
-            zoomButton.dataset.zoomState = state === 'on' ? 'off' : 'on';
+            const currentState = zoomButton.dataset.zoomState;
+            zoomButton.dataset.zoomState = currentState === 'on' ? 'off' : 'on';
             const maxWidth = clamp(768, window.innerWidth * 0.8, 1024);
             const cols = window.innerWidth <= 480 ? 2 : window.innerWidth <= 768 ? 3 : zoomButton.dataset.zoomState === 'on' ? 4 : 6;
             const gap = clamp(8, window.innerWidth * 0.02, 15);
