@@ -338,7 +338,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            background-color: #5DA8D6; /* Igual que reload en modo claro */
+            background-color: #5DA8D6;
         }
         #reminder-button img {
             width: 48px;
@@ -408,7 +408,7 @@
             background-color: #7c2d12;
         }
         body.dark-mode #reminder-button {
-            background-color: #0e7490; /* Igual que reload en modo oscuro */
+            background-color: #0e7490;
         }
         .minimal-mode {
             background-color: #000000;
@@ -686,6 +686,16 @@
         let isMinimalMode = false;
         let pressStartTime = null;
         let reminderPressStartTime = null;
+        let isActive = true;
+        let isFooterVisible = true;
+        const notices = [
+            "¡Explora los nuevos enlaces de carga eléctrica!",
+            "Personaliza tu experiencia con el modo oscuro",
+            "Añade recordatorios para no olvidar nada",
+            "Usa el zoom para una mejor visualización",
+            "Visita nuestros enlaces de referidos y ahorra"
+        ];
+        let currentNoticeIndex = 0;
 
         function checkDarkModeTime() {
             const now = new Date();
@@ -997,7 +1007,6 @@
         ];
 
         const cellElements = [];
-        console.log('Generando celdas del grid...');
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
             const cell = document.createElement('div');
             if (index < bookmarks.length && bookmarks[index] !== null) {
@@ -1037,13 +1046,8 @@
             grid.appendChild(cell);
             cellElements.push(cell);
         });
-        console.log('Celdas generadas:', cellElements.length);
-
-        const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
-        const buttonSpacing = 58;
 
         const scrollToggle = document.getElementById('scroll-toggle');
-        console.log('Scroll toggle creado:', scrollToggle);
 
         const onOffToggle = document.createElement('span');
         onOffToggle.className = 'toggle-sign';
@@ -1051,7 +1055,6 @@
         onOffToggle.dataset.state = 'on';
         onOffToggle.style.left = `10px`;
         document.body.appendChild(onOffToggle);
-        console.log('On/off toggle creado:', onOffToggle);
 
         const toggleButtons = toggleRanges.map((range, index) => {
             const toggle = document.createElement('span');
@@ -1062,7 +1065,6 @@
             toggle.dataset.state = 'visible';
             toggle.style.left = `10px`;
             document.body.appendChild(toggle);
-            console.log(`Toggle ${range.label} creado:`, toggle);
             return toggle;
         });
 
@@ -1072,14 +1074,12 @@
         weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
         weatherButton.style.left = `10px`;
         document.body.appendChild(weatherButton);
-        console.log('Weather button creado:', weatherButton);
 
         const reminderButton = document.createElement('span');
         reminderButton.className = 'toggle-sign';
         reminderButton.id = 'reminder-button';
         reminderButton.style.left = `10px`;
         document.body.appendChild(reminderButton);
-        console.log('Reminder button creado:', reminderButton);
 
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
@@ -1088,7 +1088,6 @@
         zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
-        console.log('Zoom button creado:', zoomButton);
 
         const darkModeToggle = document.createElement('span');
         darkModeToggle.className = 'toggle-sign';
@@ -1096,7 +1095,6 @@
         darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
         darkModeToggle.style.left = `10px`;
         document.body.appendChild(darkModeToggle);
-        console.log('Dark mode toggle creado:', darkModeToggle);
 
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
@@ -1104,7 +1102,6 @@
         reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
         reloadButton.style.left = `10px`;
         document.body.appendChild(reloadButton);
-        console.log('Reload button creado:', reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
@@ -1112,7 +1109,6 @@
         homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
         homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
-        console.log('Home button creado:', homeButton);
 
         const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, reminderButton, zoomButton, darkModeToggle, reloadButton, homeButton];
 
@@ -1394,6 +1390,7 @@
                 </div>
             `;
             notificationsContainer.appendChild(notification);
+            showNotification(reminder);
             updateButtonStyles();
         }
 
@@ -1470,31 +1467,14 @@
             });
         }
 
-        setInterval(checkScheduledReminders, 60000);
-
-        const backButton = document.getElementById('back-button');
-        const forwardButton = document.getElementById('forward-button');
-        backButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.back();
-        });
-        forwardButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.forward();
-        });
-
-        let isActive = true;
-        let isFooterVisible = true;
+        function updateNotice() {
+            if (!isActive || isMinimalMode) return;
+            const noticeElement = document.getElementById('current-notice');
+            noticeElement.textContent = notices[currentNoticeIndex];
+            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
+        }
 
         function toggleFooterVisibility() {
-            const headerContainer = document.querySelector('.header-container');
-            const footerLine = document.querySelector('.footer-line');
-            const footerSubtext = document.querySelector('.footer-subtext');
-
-            if (headerContainer && footerLine && footerSubtext) {
-                headerContainer.classList.toggle('footer-hidden', !isFooterVisible);
-                footerLine.classList.toggle('footer-hidden', !isFooterVisible);
-                footerSubtext.classList.toggle('footer        function toggleFooterVisibility() {
             const headerContainer = document.querySelector('.header-container');
             const footerLine = document.querySelector('.footer-line');
             const footerSubtext = document.querySelector('.footer-subtext');
@@ -1516,6 +1496,22 @@
             isFooterVisible = isActive;
             toggleFooterVisibility();
             saveSettings();
+        });
+
+        setInterval(updateNotice, 14000);
+        updateNotice();
+
+        setInterval(checkScheduledReminders, 60000);
+
+        const backButton = document.getElementById('back-button');
+        const forwardButton = document.getElementById('forward-button');
+        backButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
+            window.history.back();
+        });
+        forwardButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
+            window.history.forward();
         });
 
         function initializeServiceWorker() {
@@ -1543,80 +1539,24 @@
         function showNotification(reminder) {
             if ('Notification' in window && Notification.permission === 'granted' && !isMinimalMode) {
                 new Notification('Recordatorio', {
-                    body: reminder.text,
-                    icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
+                    body: reminder.text                    icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
                 });
             }
         }
 
-        function initializeApp() {
-            loadSavedSettings();
-            updateVersion();
+        window.addEventListener('resize', adjustButtonPositions);
+        window.addEventListener('load', () => {
             adjustButtonPositions();
+            updateVersion();
+            loadSavedSettings();
             initializeServiceWorker();
             requestNotificationPermission();
-
-            window.addEventListener('resize', adjustButtonPositions);
-
-            const notices = [
-                "¡Explora los nuevos enlaces de carga eléctrica!",
-                "Personaliza tu experiencia con el modo oscuro",
-                "Añade recordatorios para no olvidar nada",
-                "Usa el zoom para una mejor visualización",
-                "¡Guarda tus ajustes favoritos!"
-            ];
-            let currentNoticeIndex = 0;
-
-            function updateNotice() {
-                if (!isActive || isMinimalMode) return;
-                const noticeElement = document.getElementById('current-notice');
-                noticeElement.textContent = notices[currentNoticeIndex];
-                currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-            }
-
-            if (isActive) {
-                updateNotice();
-                setInterval(updateNotice, 14000);
-            }
-        }
-
-        initializeApp();
-
-        // Asegurar que los botones se reposicionen al cargar
-        document.addEventListener('DOMContentLoaded', adjustButtonPositions);
-    </script>
-
-    <!-- Service Worker para notificaciones y caché -->
-    <script>
-        // Este código debería estar en un archivo separado 'service-worker.js'
-        // Lo incluyo aquí como referencia para completitud
-        /*
-        self.addEventListener('install', event => {
-            console.log('Service Worker instalado');
-            self.skipWaiting();
         });
 
-        self.addEventListener('activate', event => {
-            console.log('Service Worker activado');
-            event.waitUntil(self.clients.claim());
+        document.addEventListener('DOMContentLoaded', () => {
+            adjustButtonPositions();
+            updateButtonStyles();
         });
-
-        self.addEventListener('fetch', event => {
-            event.respondWith(
-                caches.match(event.request).then(response => {
-                    return response || fetch(event.request);
-                })
-            );
-        });
-
-        self.addEventListener('push', event => {
-            const data = event.data.json();
-            self.registration.showNotification(data.title, {
-                body: data.body,
-                icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
-            });
-        });
-        */
     </script>
 </body>
 </html>
