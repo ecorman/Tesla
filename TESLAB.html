@@ -37,7 +37,7 @@
             border-radius: 0.75rem;
             position: relative;
             width: 100%;
-            max-width: 1024px;
+            max-width: clamp(768px, 80vw, 1024px); /* Adaptado para escalar con la pantalla */
             margin: 0 auto;
             transition: all 0.3s ease;
         }
@@ -58,17 +58,17 @@
             background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
         }
         .bookmark-item img {
-            width: 36px;
+            width: clamp(32px, 4vw, 36px); /* Escala con la resolución */
             height: auto;
-            max-width: 40px;
+            max-width: clamp(36px, 5vw, 40px);
             border-radius: 0.25rem;
         }
         .bookmark-name {
             font-size: clamp(0.85rem, 1.5vw, 1.15rem);
         }
         .small-bookmark img {
-            width: 24px;
-            max-width: 28px;
+            width: clamp(20px, 3vw, 24px);
+            max-width: clamp(24px, 4vw, 28px);
         }
         .small-bookmark .bookmark-name {
             font-size: clamp(0.85rem, 1.5vw, 1.15rem);
@@ -77,12 +77,14 @@
             #bookmark-grid {
                 grid-template-columns: repeat(3, minmax(100px, 1fr));
                 gap: 10px;
+                max-width: clamp(300px, 90vw, 600px);
             }
         }
         @media (max-width: 480px) {
             #bookmark-grid {
                 grid-template-columns: repeat(2, minmax(80px, 1fr));
                 gap: 8px;
+                max-width: clamp(160px, 95vw, 400px);
             }
         }
         .header-container {
@@ -119,7 +121,7 @@
             padding: 16px;
             min-height: 400px;
             transition: background-color 0.3s ease;
-            max-width: 1024px;
+            max-width: clamp(768px, 80vw, 1024px); /* Alineado con el grid */
             width: 100%;
         }
         body.dark-mode main {
@@ -128,7 +130,7 @@
         footer {
             margin: 0.5rem auto;
             text-align: center;
-            max-width: 1024px;
+            max-width: clamp(768px, 80vw, 1024px); /* Alineado con el grid */
             width: 100%;
             display: block;
         }
@@ -231,7 +233,7 @@
         }
         .notices-container {
             width: 100%;
-            max-width: 1024px;
+            max-width: clamp(768px, 80vw, 1024px); /* Alineado con el grid */
             margin: 0 auto;
             padding: 0.5rem;
             border: none;
@@ -533,14 +535,14 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 1024px;
+            max-width: clamp(768px, 80vw, 1024px); /* Alineado con el grid */
             margin: 0 auto;
             position: relative;
         }
         .counter-wrapper {
             margin: 0.5rem auto;
             text-align: center;
-            max-width: 1024px;
+            max-width: clamp(768px, 80vw, 1024px); /* Alineado con el grid */
             width: 100%;
             display: block;
         }
@@ -795,7 +797,7 @@
 
                 updateButtonStyles();
                 loadReminders();
-                adjustButtonPositions();
+                adjustGridAndButtons();
             }, 0);
         }
 
@@ -811,7 +813,7 @@
                 document.body.classList.remove('minimal-mode');
                 const message = document.getElementById('minimal-mode-message');
                 if (message) message.remove();
-                adjustButtonPositions();
+                adjustGridAndButtons();
                 updateButtonStyles();
                 toggleFooterVisibility();
             }
@@ -819,8 +821,8 @@
         }
 
         function applyZoom(state) {
-            const originalWidth = 1024;
-            const adjustedWidth = 975;
+            const originalWidth = clamp(768, window.innerWidth * 0.8, 1024);
+            const adjustedWidth = clamp(600, window.innerWidth * 0.75, 975);
             const originalCols = 6;
             const zoomedCols = 4;
             const gap = 15;
@@ -837,22 +839,22 @@
                     cell.style.height = `${zoomedCellWidth * 9 / 16}px`;
                 });
                 document.querySelectorAll('.bookmark-item img').forEach(img => {
-                    img.style.width = '48px';
-                    img.style.maxWidth = '56px';
+                    img.style.width = clamp(40, window.innerWidth * 0.05, 48) + 'px';
+                    img.style.maxWidth = clamp(48, window.innerWidth * 0.06, 56) + 'px';
                 });
                 document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
+                    name.style.fontSize = clamp(1.05, window.innerWidth * 0.018, 1.35) + 'rem';
                 });
                 document.querySelectorAll('.small-bookmark img').forEach(img => {
-                    img.style.width = '48px';
-                    img.style.maxWidth = '56px';
+                    img.style.width = clamp(40, window.innerWidth * 0.05, 48) + 'px';
+                    img.style.maxWidth = clamp(48, window.innerWidth * 0.06, 56) + 'px';
                 });
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
+                    name.style.fontSize = clamp(1.05, window.innerWidth * 0.018, 1.35) + 'rem';
                 });
                 zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
             } else {
-                grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(120px, 1fr))`;
+                grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(${clamp(100, window.innerWidth * 0.12, 120)}px, 1fr))`;
                 grid.style.gap = `${gap}px`;
                 grid.style.maxWidth = `${originalWidth}px`;
                 document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
@@ -860,18 +862,18 @@
                     cell.style.height = 'auto';
                 });
                 document.querySelectorAll('.bookmark-item img').forEach(img => {
-                    img.style.width = '36px';
-                    img.style.maxWidth = '40px';
+                    img.style.width = clamp(32, window.innerWidth * 0.04, 36) + 'px';
+                    img.style.maxWidth = clamp(36, window.innerWidth * 0.05, 40) + 'px';
                 });
                 document.querySelectorAll('.bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
+                    name.style.fontSize = clamp(0.85, window.innerWidth * 0.015, 1.15) + 'rem';
                 });
                 document.querySelectorAll('.small-bookmark img').forEach(img => {
-                    img.style.width = '24px';
-                    img.style.maxWidth = '28px';
+                    img.style.width = clamp(20, window.innerWidth * 0.03, 24) + 'px';
+                    img.style.maxWidth = clamp(24, window.innerWidth * 0.04, 28) + 'px';
                 });
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
-                    name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
+                    name.style.fontSize = clamp(0.85, window.innerWidth * 0.015, 1.15) + 'rem';
                 });
                 zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
             }
@@ -1196,53 +1198,32 @@
             if (pressDuration >= 3000) {
                 isMinimalMode = !isMinimalMode;
                 toggleMinimalMode(isMinimalMode);
-            } else if (!isMinimalMode) {
-                const currentState = onOffToggle.dataset.state;
-                updateAllToggles(currentState === 'on' ? 'off' : 'on');
+            } else if (pressDuration < 3000) {
+                const state = onOffToggle.dataset.state;
+                updateAllToggles(state === 'on' ? 'off' : 'on');
             }
-            pressStartTime = null;
-        }
+        });
 
         onOffToggle.addEventListener('mousedown', () => {
-            pressStartTime = Date.now();
+            if (isMinimalMode) {
+                pressStartTime = Date.now();
+            } else {
+                pressStartTime = Date.now();
+            }
         });
 
         onOffToggle.addEventListener('mouseup', handleOnOffLongPress);
-
         onOffToggle.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            pressStartTime = Date.now();
+            if (isMinimalMode) {
+                pressStartTime = Date.now();
+            } else {
+                pressStartTime = Date.now();
+            }
         });
-
         onOffToggle.addEventListener('touchend', (e) => {
             e.preventDefault();
             handleOnOffLongPress();
-        });
-
-        function handleReminderLongPress() {
-            const pressDuration = Date.now() - reminderPressStartTime;
-            if (pressDuration >= 3000) {
-                showAllReminders();
-            } else if (!isMinimalMode) {
-                showReminderModal();
-            }
-            reminderPressStartTime = null;
-        }
-
-        reminderButton.addEventListener('mousedown', () => {
-            reminderPressStartTime = Date.now();
-        });
-
-        reminderButton.addEventListener('mouseup', handleReminderLongPress);
-
-        reminderButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            reminderPressStartTime = Date.now();
-        });
-
-        reminderButton.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            handleReminderLongPress();
         });
 
         toggleButtons.forEach(toggle => {
@@ -1254,212 +1235,274 @@
 
         reloadButton.addEventListener('click', () => {
             if (isMinimalMode) return;
-            location.reload();
+            window.location.reload();
         });
 
-        homeButton.addEventListener('click', (e) => {
+        homeButton.addEventListener('click', () => {
             if (isMinimalMode) return;
-            e.preventDefault();
-            window.history.back();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         weatherButton.addEventListener('click', () => {
             if (isMinimalMode) return;
-            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
+            window.open('https://www.accuweather.com/es/free-weather-widgets', '_blank', 'noopener,noreferrer');
         });
 
         zoomButton.addEventListener('click', () => {
             if (isMinimalMode) return;
             const currentState = zoomButton.dataset.zoomState;
-            applyZoom(currentState === 'off' ? 'on' : 'off');
-            zoomButton.dataset.zoomState = currentState === 'off' ? 'on' : 'off';
+            zoomButton.dataset.zoomState = currentState === 'on' ? 'off' : 'on';
+            applyZoom(zoomButton.dataset.zoomState);
             updateButtonStyles();
             saveSettings();
-            adjustButtonPositions();
         });
 
-        function adjustButtonPositions() {
-            const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
-            const buttonSpacing = 58;
+        reminderButton.addEventListener('mousedown', () => {
+            reminderPressStartTime = Date.now();
+        });
 
-            scrollToggle.style.top = `10px`;
-            onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-            toggleButtons.forEach((toggle, index) => {
-                toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
-            });
-            weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-            reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-            zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-            darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-            reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
-            homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 7)}px`;
+        reminderButton.addEventListener('mouseup', () => {
+            const pressDuration = Date.now() - reminderPressStartTime;
+            if (isMinimalMode) return;
+            if (pressDuration >= 3000) {
+                showAllReminders();
+            } else {
+                showReminderModal();
+            }
+        });
 
-            buttons.forEach(button => {
-                button.style.left = '10px';
+        reminderButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            reminderPressStartTime = Date.now();
+        });
+
+        reminderButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const pressDuration = Date.now() - reminderPressStartTime;
+            if (isMinimalMode) return;
+            if (pressDuration >= 3000) {
+                showAllReminders();
+            } else {
+                showReminderModal();
+            }
+        });
+
+        function adjustGridAndButtons() {
+            const viewportWidth = window.innerWidth;
+            const maxGridWidth = clamp(768, viewportWidth * 0.8, 1024);
+            const minGridWidth = clamp(300, viewportWidth * 0.9, 600);
+            const cols = viewportWidth <= 480 ? 2 : viewportWidth <= 768 ? 3 : 6;
+            const gap = clamp(8, viewportWidth * 0.02, 15);
+            const cellWidth = (maxGridWidth - (cols - 1) * gap) / cols;
+
+            grid.style.maxWidth = `${maxGridWidth}px`;
+            grid.style.gridTemplateColumns = `repeat(${cols}, minmax(${clamp(80, viewportWidth * 0.12, 120)}px, 1fr))`;
+            grid.style.gap = `${gap}px`;
+
+            document.querySelectorAll('#bookmark-grid > div').forEach(cell => {
+                cell.style.width = 'auto';
+                cell.style.height = `${cellWidth * 9 / 16}px`;
             });
+
+            buttons.forEach((button, index) => {
+                const topPosition = 10 + index * (clamp(60, viewportWidth * 0.15, 91) + 10);
+                button.style.top = `${topPosition}px`;
+                button.style.width = `${clamp(54, viewportWidth * 0.15, 91)}px`;
+                button.style.height = button.id === 'scroll-toggle' ? `${clamp(78.2, viewportWidth * 0.1955, 175.95)}px` : `${clamp(54, viewportWidth * 0.15, 91)}px`;
+                if (button.id !== 'scroll-toggle') {
+                    button.style.borderRadius = '20px';
+                }
+            });
+
+            updateButtonStyles();
         }
 
         function toggleFooterVisibility() {
             const noticesContainer = document.querySelector('.notices-container');
             const footerContent = document.querySelector('.footer-content');
+            const noticeIcon = document.getElementById('notice-toggle-icon');
 
-            if (!isMinimalMode && isActive && isFooterVisible) {
-                noticesContainer.classList.remove('hidden');
-                footerContent.classList.remove('footer-hidden');
-            } else {
+            if (!isActive || !isFooterVisible) {
                 noticesContainer.classList.add('hidden');
                 footerContent.classList.add('footer-hidden');
+                noticeIcon.src = 'https://boardinggate.github.io/Tesla/IMG_4195.jpeg';
+            } else {
+                noticesContainer.classList.remove('hidden');
+                footerContent.classList.remove('footer-hidden');
+                noticeIcon.src = 'https://boardinggate.github.io/Tesla/IMG_4194.jpeg';
             }
-            saveSettings();
         }
 
-        function updateNotice() {
-            if (!isActive || isMinimalMode) return;
-            const noticeElement = document.getElementById('current-notice');
-            noticeElement.textContent = notices[currentNoticeIndex];
-            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-        }
-
-        function startNoticeRotation() {
-            updateNotice();
-            setInterval(updateNotice, 14000);
-        }
-
-        // Evento para el icono de alternar avisos
         document.getElementById('notice-toggle-icon').addEventListener('click', () => {
-            if (isMinimalMode) return;
             isActive = !isActive;
-            isFooterVisible = isActive;
+            isFooterVisible = !isFooterVisible;
             toggleFooterVisibility();
+            saveSettings();
         });
 
-        // Sistema de recordatorios
-        function parseTimeOrTimerFromText(text) {
-            const now = new Date();
-            
-            // Detectar hora explícita (numérica como "14:30" o textual como "dos y media")
-            const timeRegex = /\b(\d{1,2})(?::(\d{2}))?(?:\s*(?:h|pm|am))?\b|\b(?:las\s+)?((?:una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)(?:\s*y\s*(?:media|cuarto))?)(?:\s*(?:de\s+la\s+(?:mañana|tarde|noche)))?\b/i;
-            const timeMatch = text.match(timeRegex);
-            if (timeMatch) {
-                let hours, minutes = 0;
-                if (timeMatch[1]) {
-                    hours = parseInt(timeMatch[1]);
-                    minutes = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-                    if (text.toLowerCase().includes('pm') && hours < 12) hours += 12;
-                    if (text.toLowerCase().includes('am') && hours === 12) hours = 0;
-                } else if (timeMatch[3]) {
-                    const timeText = timeMatch[3].toLowerCase();
-                    const hourMap = {
-                        'una': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5,
-                        'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10,
-                        'once': 11, 'doce': 12
-                    };
-                    for (let word in hourMap) {
-                        if (timeText.includes(word)) {
-                            hours = hourMap[word];
-                            break;
-                        }
-                    }
-                    if (timeText.includes('media')) minutes = 30;
-                    else if (timeText.includes('cuarto')) minutes = 15;
-                    if (timeText.includes('tarde') || timeText.includes('noche')) {
-                        if (hours < 12) hours += 12;
-                    } else if (timeText.includes('mañana') && hours === 12) {
-                        hours = 0;
-                    }
+        function startNoticeRotation() {
+            const noticeElement = document.getElementById('current-notice');
+            if (!noticeElement) return;
+
+            function showNextNotice() {
+                if (!isActive || isMinimalMode) {
+                    noticeElement.style.opacity = '0';
+                    return;
                 }
+                noticeElement.textContent = notices[currentNoticeIndex];
+                noticeElement.style.animation = 'none';
+                noticeElement.offsetHeight;
+                noticeElement.style.animation = 'fadeInOut 14s infinite';
+                currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
+            }
+
+            showNextNotice();
+            setInterval(showNextNotice, 14000);
+        }
+
+        function parseTimeOrTimerFromText(text) {
+            text = text.toLowerCase().trim();
+            const timeRegex = /\b(\d{1,2})(?::(\d{2}))?(?:\s*(?:h|pm|am))?\b/;
+            const textTimeRegex = /\b(?:las\s+)?((?:una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)(?:\s*y\s*(?:media|cuarto))?)(?:\s*(?:de\s+la\s+(?:mañana|tarde|noche)))?\b/;
+            const timerRegex = /\b(?:en\s+)?(\d+|una|media|un)\s*(minuto|minutos|hora|horas)\b/;
+
+            let match = text.match(timeRegex);
+            if (match) {
+                let hours = parseInt(match[1]);
+                const minutes = match[2] ? parseInt(match[2]) : 0;
+                if (text.includes('pm') && hours < 12) hours += 12;
+                if (text.includes('am') && hours === 12) hours = 0;
                 return { time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`, isTimer: false };
             }
 
-            // Detectar temporizador (e.g., "10 minutos", "media hora")
-            const timerRegex = /\b(?:en\s+)?(\d+|una|media|un)\s*(minuto|minutos|hora|horas)\b/i;
-            const timerMatch = text.match(timerRegex);
-            if (timerMatch) {
-                let minutesToAdd = 0;
-                const amount = timerMatch[1].toLowerCase();
-                const unit = timerMatch[2].toLowerCase();
-                if (amount === 'una' || amount === 'un') {
-                    minutesToAdd = unit.includes('hora') ? 60 : 1;
-                } else if (amount === 'media') {
-                    minutesToAdd = unit.includes('hora') ? 30 : 0;
-                } else {
-                    minutesToAdd = parseInt(amount) * (unit.includes('hora') ? 60 : 1);
-                }
-                if (minutesToAdd > 0) {
-                    now.setMinutes(now.getMinutes() + minutesToAdd);
-                    return { time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`, isTimer: true };
-                }
+            match = text.match(textTimeRegex);
+            if (match) {
+                const timeStr = match[1];
+                let hours = 0;
+                let minutes = 0;
+                if (timeStr.includes('una')) hours = 1;
+                else if (timeStr.includes('dos')) hours = 2;
+                else if (timeStr.includes('tres')) hours = 3;
+                else if (timeStr.includes('cuatro')) hours = 4;
+                else if (timeStr.includes('cinco')) hours = 5;
+                else if (timeStr.includes('seis')) hours = 6;
+                else if (timeStr.includes('siete')) hours = 7;
+                else if (timeStr.includes('ocho')) hours = 8;
+                else if (timeStr.includes('nueve')) hours = 9;
+                else if (timeStr.includes('diez')) hours = 10;
+                else if (timeStr.includes('once')) hours = 11;
+                else if (timeStr.includes('doce')) hours = 12;
+
+                if (timeStr.includes('media')) minutes = 30;
+                else if (timeStr.includes('cuarto')) minutes = 15;
+
+                if (text.includes('tarde') && hours < 12) hours += 12;
+                else if (text.includes('noche') && hours <= 12) hours = hours === 12 ? 0 : hours + 12;
+                else if (text.includes('mañana') && hours === 12) hours = 0;
+
+                return { time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`, isTimer: false };
             }
 
-            return null;
+            match = text.match(timerRegex);
+            if (match) {
+                let amount = match[1] === 'una' || match[1] === 'un' ? 1 : match[1] === 'media' ? 0.5 : parseInt(match[1]);
+                const unit = match[2];
+                const now = new Date();
+                let minutes = 0;
+
+                if (unit.includes('minuto')) {
+                    minutes = amount;
+                } else if (unit.includes('hora')) {
+                    minutes = amount * 60;
+                }
+
+                now.setMinutes(now.getMinutes() + minutes);
+                const hours = now.getHours();
+                const mins = now.getMinutes();
+                return { time: `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`, isTimer: true };
+            }
+
+            return { time: null, isTimer: false };
         }
 
-        function showReminderModal(reminder = null) {
+        function showReminderModal(existingReminder = null) {
             if (isMinimalMode) return;
             const modal = document.createElement('div');
             modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', reminder ? 'Modificar recordatorio' : 'Añadir nuevo recordatorio');
             modal.innerHTML = `
-                <h2>${reminder ? 'Modificar' : 'Añadir'} Recordatorio</h2>
-                <form id="reminder-form">
-                    <label for="reminder-text">Texto del recordatorio:</label>
-                    <textarea id="reminder-text" required rows="4">${reminder ? reminder.text : ''}</textarea>
-                    <label for="reminder-time">Hora (opcional):</label>
-                    <input type="time" id="reminder-time" value="${reminder && reminder.time ? reminder.time : ''}">
-                    <div class="button-group">
-                        <button type="button" id="cancel-reminder">Cancelar</button>
-                        <button type="submit">${reminder ? 'Modificar' : 'Añadir'}</button>
-                    </div>
-                </form>
+                <h2>${existingReminder ? 'Modificar Recordatorio' : 'Nuevo Recordatorio'}</h2>
+                <label for="reminder-text">Texto:</label>
+                <textarea id="reminder-text" rows="3">${existingReminder ? existingReminder.text : ''}</textarea>
+                <label for="reminder-time">Hora (HH:MM, opcional):</label>
+                <input type="time" id="reminder-time" value="${existingReminder && existingReminder.time ? existingReminder.time : ''}">
+                <div class="button-group">
+                    <button type="button" id="cancel-reminder">Cancelar</button>
+                    <button type="submit" id="save-reminder">Guardar</button>
+                </div>
             `;
             document.body.appendChild(modal);
-
-            const form = modal.querySelector('#reminder-form');
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const text = modal.querySelector('#reminder-text').value;
-                let time = modal.querySelector('#reminder-time').value;
-
-                let parsedTime = null;
-                if (!time) {
-                    parsedTime = parseTimeOrTimerFromText(text);
-                    time = parsedTime ? parsedTime.time : null;
-                }
-
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const now = new Date();
-                if (reminder) {
-                    const index = reminders.findIndex(r => r.id === reminder.id);
-                    reminders[index] = {
-                        ...reminders[index],
-                        text,
-                        time,
-                        isCancelled: false,
-                        timestamp: time ? (parsedTime && parsedTime.isTimer ? new Date(now.getTime()).setHours(...time.split(':').map(Number), 0, 0) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...time.split(':').map(Number), 0, 0).getTime()) : null
-                    };
-                } else {
-                    const newReminder = {
-                        id: Date.now(),
-                        text,
-                        time,
-                        isCancelled: false,
-                        timestamp: time ? (parsedTime && parsedTime.isTimer ? new Date(now.getTime()).setHours(...time.split(':').map(Number), 0, 0) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...time.split(':').map(Number), 0, 0).getTime()) : null
-                    };
-                    reminders.push(newReminder);
-                }
-
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                modal.remove();
-                updateButtonStyles();
-                loadReminders();
-            });
 
             modal.querySelector('#cancel-reminder').addEventListener('click', () => {
                 modal.remove();
             });
+
+            modal.querySelector('#save-reminder').addEventListener('click', () => {
+                const text = modal.querySelector('#reminder-text').value.trim();
+                let time = modal.querySelector('#reminder-time').value;
+
+                if (!text) {
+                    alert('Por favor, introduce un texto para el recordatorio.');
+                    return;
+                }
+
+                let parsedTime = { time: null, isTimer: false };
+                if (!time) {
+                    parsedTime = parseTimeOrTimerFromText(text);
+                    time = parsedTime.time;
+                }
+
+                const reminder = {
+                    id: existingReminder ? existingReminder.id : Date.now(),
+                    text,
+                    time,
+                    timestamp: null,
+                    isCancelled: false
+                };
+
+                if (time) {
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const now = new Date();
+                    const reminderDate = new Date();
+                    reminderDate.setHours(hours, minutes, 0, 0);
+
+                    if (parsedTime.isTimer) {
+                        reminder.timestamp = reminderDate.getTime();
+                    } else if (reminderDate <= now) {
+                        reminderDate.setDate(reminderDate.getDate() + 1);
+                        reminder.timestamp = reminderDate.getTime();
+                    } else {
+                        reminder.timestamp = reminderDate.getTime();
+                    }
+                }
+
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                if (existingReminder) {
+                    const index = reminders.findIndex(r => r.id === existingReminder.id);
+                    if (index !== -1) {
+                        reminders[index] = reminder;
+                    }
+                } else {
+                    reminders.push(reminder);
+                }
+
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                modal.remove();
+                loadReminders();
+            });
         }
 
         function showReminderNotification(reminder) {
+            if (isMinimalMode) return;
             const notifications = document.getElementById('reminder-notifications');
             const notification = document.createElement('div');
             notification.className = 'reminder-notification';
@@ -1485,8 +1528,8 @@
             });
 
             notification.querySelector('.modify').addEventListener('click', () => {
-                notification.remove();
                 showReminderModal(reminder);
+                notification.remove();
             });
 
             notification.querySelector('.postpone').addEventListener('click', () => {
@@ -1494,7 +1537,6 @@
                 const index = reminders.findIndex(r => r.id === reminder.id);
                 if (index !== -1) {
                     if (reminders[index].time) {
-                        // Reprogramar para el mismo horario del día siguiente
                         const tomorrow = new Date();
                         tomorrow.setDate(tomorrow.getDate() + 1);
                         const [hours, minutes] = reminders[index].time.split(':').map(Number);
@@ -1502,7 +1544,6 @@
                         reminders[index].timestamp = tomorrow.getTime();
                         reminders[index].time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                     } else {
-                        // Si no tiene hora, establecer para mañana a las 00:00
                         const tomorrow = new Date();
                         tomorrow.setDate(tomorrow.getDate() + 1);
                         tomorrow.setHours(0, 0, 0, 0);
@@ -1520,22 +1561,19 @@
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
             const now = new Date();
             const notifications = document.getElementById('reminder-notifications');
-            notifications.innerHTML = ''; // Limpiar notificaciones previas
+            notifications.innerHTML = '';
 
             reminders.forEach(reminder => {
                 if (reminder.isCancelled) return;
 
                 if (!reminder.time) {
-                    // Mostrar recordatorios sin hora de inmediato
                     showReminderNotification(reminder);
                 } else {
-                    // Comprobar recordatorios con hora
                     const [hours, minutes] = reminder.time.split(':').map(Number);
                     const reminderDate = new Date();
                     reminderDate.setHours(hours, minutes, 0, 0);
                     reminder.timestamp = reminderDate.getTime();
 
-                    // Mostrar si está vencido (hora anterior a ahora)
                     if (reminderDate <= now) {
                         showReminderNotification(reminder);
                     }
@@ -1556,7 +1594,6 @@
                 const reminderDate = new Date(reminder.timestamp);
                 const diff = nowTime - reminderDate.getTime();
 
-                // Mostrar si la hora coincide (dentro de 1 minuto)
                 if (diff >= 0 && diff < 60000) {
                     showReminderNotification(reminder);
                 }
@@ -1602,14 +1639,13 @@
             loadSavedSettings();
             startNoticeRotation();
             updateVersion();
-            adjustButtonPositions();
+            adjustGridAndButtons();
             loadReminders();
-            // Comprobar recordatorios cada minuto
             setInterval(checkRemindersPeriodically, 60000);
         });
 
-        // Ajustar posiciones al redimensionar
-        window.addEventListener('resize', adjustButtonPositions);
+        // Ajustar grid y botones al redimensionar
+        window.addEventListener('resize', adjustGridAndButtons);
 
         // Navegación con deslizamiento
         let touchStartX = 0;
