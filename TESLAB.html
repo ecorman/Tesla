@@ -1490,7 +1490,7 @@
             });
 
             notification.querySelector('.postpone').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('remindersconst reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
                 const index = reminders.findIndex(r => r.id === reminder.id);
                 if (index !== -1) {
                     if (reminders[index].time) {
