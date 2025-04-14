@@ -398,9 +398,6 @@
         body.dark-mode #reload-button {
             background-color: #0e7490;
         }
-        body.dark-mode # complement-button {
-            background-color: #0e7490;
-        }
         body.dark-mode #weather-button {
             background-color: #b45309;
         }
@@ -409,6 +406,9 @@
         }
         body.dark-mode #zoom-button.zoomed {
             background-color: #7c2d12;
+        }
+        body.dark-mode #reminder-button {
+            background-color: #0e7490; /* Igual que reload en modo oscuro */
         }
         .minimal-mode {
             background-color: #000000;
@@ -1485,6 +1485,7 @@
 
         let isActive = true;
         let isFooterVisible = true;
+
         function toggleFooterVisibility() {
             const headerContainer = document.querySelector('.header-container');
             const footerLine = document.querySelector('.footer-line');
@@ -1493,16 +1494,18 @@
             if (headerContainer && footerLine && footerSubtext) {
                 headerContainer.classList.toggle('footer-hidden', !isFooterVisible);
                 footerLine.classList.toggle('footer-hidden', !isFooterVisible);
-                footerSubtext.classList.toggle('footer-hidden', !isFooterVisible);
-            }
-            isFooterVisible = !isFooterVisible;
-            saveSettings();
-        }
+                footerSubtext.classList.toggle('footer        function toggleFooterVisibility() {
+            const headerContainer = document.querySelector('.header-container');
+            const footerLine = document.querySelector('.footer-line');
+            const footerSubtext = document.querySelector('.footer-subtext');
+            const noticesContainer = document.querySelector('.notices-container');
 
-        const noticeToggleIcon = document.getElementById('notice-toggle-icon');
-        noticeToggleIcon.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            isFooterVisible;
+            if (headerContainer && footerLine && footerSubtext && noticesContainer) {
+                headerContainer.classList.toggle('footer-hidden', !isFooterVisible);
+                footerLine.classList.toggle('footer-hidden', !isFooterVisible);
+                footerSubtext.classList.toggle('footer-hidden', !isFooterVisible);
+                noticesContainer.classList.toggle('hidden', !isFooterVisible);
+            }
             saveSettings();
         }
 
@@ -1510,53 +1513,110 @@
         noticeToggleIcon.addEventListener('click', () => {
             if (isMinimalMode) return;
             isActive = !isActive;
-            updateNoticeVisibility();
+            isFooterVisible = isActive;
             toggleFooterVisibility();
             saveSettings();
-        });
-
-        function updateNoticeVisibility() {
-            const noticeWrapper = document.querySelector('.notice-wrapper');
-            noticeWrapper.style.display = isActive ? 'flex' : 'none';
-        }
-
-        const notices =        [
-            "¡Nuevos puntos de recarga añadidos a ElectroMaps!",
-            "Actualización de software Tesla disponible",
-            "Consulta el estado de tu batería en Tessie",
-            "Ofertas en cargadores en Amazon",
-            "Evento de Tesla este fin de semana"
-        ];
-        let currentNoticeIndex = 0;
-
-        function updateNotice() {
-            if (!isActive || isMinimalMode) return;
-            const noticeElement = document.getElementById('current-notice');
-            noticeElement.textContent = notices[currentNoticeIndex];
-            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-        }
-
-        updateNotice();
-        setInterval(updateNotice, 14000);
-
-        window.addEventListener('resize', adjustButtonPositions);
-        window.addEventListener('load', () => {
-            loadSavedSettings();
-            adjustButtonPositions();
-            updateVersion();
-            updateNoticeVisibility();
-            loadReminders();
         });
 
         function initializeServiceWorker() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('Service Worker registrado:', reg))
-                    .catch(err => console.error('Error al registrar Service Worker:', err));
+                    .then(registration => {
+                        console.log('Service Worker registrado con éxito:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Error al registrar el Service Worker:', error);
+                    });
             }
         }
 
-        initializeServiceWorker();
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log('Permiso de notificaciones concedido');
+                    }
+                });
+            }
+        }
+
+        function showNotification(reminder) {
+            if ('Notification' in window && Notification.permission === 'granted' && !isMinimalMode) {
+                new Notification('Recordatorio', {
+                    body: reminder.text,
+                    icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
+                });
+            }
+        }
+
+        function initializeApp() {
+            loadSavedSettings();
+            updateVersion();
+            adjustButtonPositions();
+            initializeServiceWorker();
+            requestNotificationPermission();
+
+            window.addEventListener('resize', adjustButtonPositions);
+
+            const notices = [
+                "¡Explora los nuevos enlaces de carga eléctrica!",
+                "Personaliza tu experiencia con el modo oscuro",
+                "Añade recordatorios para no olvidar nada",
+                "Usa el zoom para una mejor visualización",
+                "¡Guarda tus ajustes favoritos!"
+            ];
+            let currentNoticeIndex = 0;
+
+            function updateNotice() {
+                if (!isActive || isMinimalMode) return;
+                const noticeElement = document.getElementById('current-notice');
+                noticeElement.textContent = notices[currentNoticeIndex];
+                currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
+            }
+
+            if (isActive) {
+                updateNotice();
+                setInterval(updateNotice, 14000);
+            }
+        }
+
+        initializeApp();
+
+        // Asegurar que los botones se reposicionen al cargar
+        document.addEventListener('DOMContentLoaded', adjustButtonPositions);
+    </script>
+
+    <!-- Service Worker para notificaciones y caché -->
+    <script>
+        // Este código debería estar en un archivo separado 'service-worker.js'
+        // Lo incluyo aquí como referencia para completitud
+        /*
+        self.addEventListener('install', event => {
+            console.log('Service Worker instalado');
+            self.skipWaiting();
+        });
+
+        self.addEventListener('activate', event => {
+            console.log('Service Worker activado');
+            event.waitUntil(self.clients.claim());
+        });
+
+        self.addEventListener('fetch', event => {
+            event.respondWith(
+                caches.match(event.request).then(response => {
+                    return response || fetch(event.request);
+                })
+            );
+        });
+
+        self.addEventListener('push', event => {
+            const data = event.data.json();
+            self.registration.showNotification(data.title, {
+                body: data.body,
+                icon: 'https://boardinggate.github.io/Tesla/IMG_4197.jpeg'
+            });
+        });
+        */
     </script>
 </body>
 </html>
