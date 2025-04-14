@@ -130,6 +130,7 @@
             text-align: center;
             max-width: 1024px;
             width: 100%;
+            display: block;
         }
         .header-container {
             background-color: #000000;
@@ -334,7 +335,7 @@
             justify-content: center;
             align-items: center;
             position: fixed;
-            background-color: #4DA7A7; /* Color actualizado */
+            background-color: #4DA7A7;
         }
         #reminder-button img {
             width: 48px;
@@ -404,7 +405,7 @@
             background-color: #7c2d12;
         }
         body.dark-mode #reminder-button {
-            background-color: #4DA7A7; /* Color actualizado para modo oscuro */
+            background-color: #4DA7A7;
         }
         .minimal-mode {
             background-color: #000000;
@@ -762,10 +763,10 @@
                     }
                 }
 
-                if (savedNoticesActive) {
-                    isActive = JSON.parse(savedNoticesActive);
-                    isFooterVisible = isActive;
-                }
+                isActive = savedNoticesActive ? JSON.parse(savedNoticesActive) : true;
+                isFooterVisible = savedFooterVisible ? JSON.parse(savedFooterVisible) : true;
+
+                console.log('Estado inicial:', { isActive, isFooterVisible, isMinimalMode });
 
                 if (isMinimalMode) {
                     toggleMinimalMode(true);
@@ -876,7 +877,7 @@
                 <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpeg" alt="Recordatorio" class="w-[48px] h-[48px] object-contain">
                 ${pendingCount > 0 ? `<span class="reminder-count">${pendingCount}</span>` : ''}
             `;
-            reminderButton.style.backgroundColor = '#4DA7A7'; // Color fijo para recordatorios
+            reminderButton.style.backgroundColor = '#4DA7A7';
 
             if (isDarkMode && !isMinimalMode) {
                 toggleButtons.forEach(toggle => {
@@ -1268,13 +1269,12 @@
                 toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
             });
             weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-            reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`; // Justo encima de zoom
+            reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
             zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
             darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
             reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
             homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 7)}px`;
 
-            // Asegurar alineación izquierda
             buttons.forEach(button => {
                 button.style.left = '10px';
             });
@@ -1463,13 +1463,13 @@
         function toggleFooterVisibility() {
             const footer = document.querySelector('footer');
             const noticesContainer = document.querySelector('.notices-container');
-            if (isActive && isFooterVisible) {
+            if (!isMinimalMode && isActive && isFooterVisible) {
                 footer.classList.remove('footer-hidden');
                 noticesContainer.classList.remove('hidden');
             } else {
                 footer.classList.add('footer-hidden');
                 noticesContainer.classList.add('hidden');
-            } 
+            }
             saveSettings();
         }
 
@@ -1530,8 +1530,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             adjustButtonPositions();
             updateButtonStyles();
-            grid.style.display = 'grid'; // Asegurar que el grid sea visible
-            buttons.forEach(button => button.classList.remove('hidden')); // Asegurar que los botones sean visibles
+            grid.style.display = 'grid';
+            buttons.forEach(button => button.classList.remove('hidden'));
         });
     </script>
 </body>
