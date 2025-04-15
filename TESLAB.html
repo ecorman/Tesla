@@ -1467,7 +1467,7 @@
                 e.preventDefault();
                 const text = modal.querySelector('#reminder-text').value.trim();
                 let time = modal.querySelector('#reminder-time').value;
-                const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
+                const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
 
                 if (!text) {
                     alert('El texto del recordatorio es obligatorio.');
