@@ -98,8 +98,8 @@
         background-color: #92927E;
     }
     .header-logo {
-        width: 50px;
-        height: 30px;
+        width: 100px;
+        height: 70px;
         opacity: 0.7;
     }
     .title-container {
@@ -262,10 +262,18 @@
     .favicon-blue {
         filter: hue-rotate(200deg) saturate(150%) brightness(90%);
     }
-    .notices-container {
+    .notices-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
         max-width: 984px;
-        margin: 0 auto 0 60px;
+        margin: 0 auto;
+        margin-left: 60px;
+        position: relative;
+    }
+    .notices-container {
+        flex-grow: 1;
         padding: 0.5rem;
         border: none;
         border-radius: 0.5rem;
@@ -300,14 +308,12 @@
         90% { opacity: 1; }
         100% { opacity: 0; }
     }
-    .notices-icon-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        max-width: 984px;
-        margin: 0 auto 0 60px;
-        position: relative;
+    .notice-off-icon-container {
+        position: absolute;
+        left: 60px;
+        width: 30px;
+        height: 30px;
+        z-index: 1000;
     }
     .notice-off-icon {
         width: 30px;
@@ -440,8 +446,6 @@
         background-color: #5C5C47;
     }
     .minimal-mode {
-        background szkoły
-
         background-color: #ABAB99;
     }
     body.dark-mode.minimal-mode {
@@ -591,8 +595,10 @@
         </div>
     </main>
 
-    <div class="notices-icon-container">
+    <div class="notice-off-icon-container">
         <img src="https://boardinggate.github.io/Tesla/IMG_4194.jpeg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon">
+    </div>
+    <div class="notices-icon-container">
         <div class="notices-container">
             <div class="notice-wrapper">
                 <span class="notice" id="current-notice"></span>
@@ -1343,14 +1349,14 @@
         }
 
         function toggleFooterVisibility() {
-            const noticesContainer = document.querySelector('.notices-container');
+            const noticesIconContainer = document.querySelector('.notices-icon-container');
             const footerContent = document.querySelector('.footer-content');
 
             if (!isMinimalMode && isActive && isFooterVisible) {
-                noticesContainer.classList.remove('hidden');
+                noticesIconContainer.classList.remove('hidden');
                 footerContent.classList.remove('footer-hidden');
             } else {
-                noticesContainer.classList.add('hidden');
+                noticesIconContainer.classList.add('hidden');
                 footerContent.classList.add('footer-hidden');
             }
             saveSettings();
@@ -1455,18 +1461,17 @@
                         <label><input type="checkbox" name="repeat" value="0" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(0) ? 'checked' : ''}> Domingo</label>
                     </div>
                     <div class="button-group">
+                                                <button type="submit">Guardar</button>
                         <button type="button" id="cancel-reminder">Cancelar</button>
-                        <button type="submit">Guardar</button>
                     </div>
                 </form>
             `;
             document.body.appendChild(modal);
 
-            const form = modal.querySelector('#reminder-form');
-            form.addEventListener('submit', (e) => {
+            modal.querySelector('#reminder-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const text = modal.querySelector('#reminder-text').value.trim();
-                let time = modal.querySelector('#reminder-time').value;
+                const time = modal.querySelector('#reminder-time').value;
                 const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
 
                 if (!text) {
