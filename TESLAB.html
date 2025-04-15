@@ -35,11 +35,10 @@
             gap: 15px;
             background-color: transparent;
             border-radius: 0.75rem;
-            border: 2px solid #8B4513; /* Marco marrón de 2px */
             position: relative;
             width: 100%;
             max-width: 984px;
-            margin: 0 auto 0 40px;
+            margin: 0 auto 0 60px; /* Margen izquierdo ajustado a 60px */
             transition: all 0.3s ease;
         }
         #bookmark-grid > div {
@@ -106,19 +105,19 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            background-color: #ABAB99; /* Fondo beige */
+            background-color: #ABAB99;
             margin: 0;
             overflow-x: hidden;
         }
         body.dark-mode {
-            background-color: #92927E; /* Beige oscuro en modo oscuro */
+            background-color: #92927E;
         }
         header {
             margin-bottom: 0.5rem;
         }
         main {
-            margin: 0.5rem auto 0.5rem 40px;
-            background-color: transparent; /* Fondo transparente */
+            margin: 0.5rem auto 0.5rem 60px; /* Alineado con el grid */
+            background-color: transparent;
             border-radius: 0.75rem;
             padding: 16px;
             min-height: 400px;
@@ -127,7 +126,7 @@
             width: 100%;
         }
         footer {
-            margin: 0.5rem auto 0 40px;
+            margin: 0.5rem auto; /* Centrado horizontalmente */
             text-align: center;
             max-width: 984px;
             width: 100%;
@@ -189,6 +188,7 @@
             font-size: clamp(0.6rem, 1.5vw, 0.75rem);
             color: #38BDF8;
             margin-top: 0.25rem;
+            margin-left: 60px; /* Alineado con el grid */
             gap: 0.5rem;
             animation: fadeOut 6s forwards;
         }
@@ -233,7 +233,7 @@
         .notices-container {
             width: 100%;
             max-width: 984px;
-            margin: 0 auto 0 40px;
+            margin: 0 auto 0 60px; /* Alineado con el grid */
             padding: 0.5rem;
             border: none;
             border-radius: 0.5rem;
@@ -271,16 +271,16 @@
         .notices-icon-container {
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Alinea iconos en los extremos */
+            justify-content: space-between;
             width: 100%;
             max-width: 984px;
-            margin: 0 auto 0 40px;
+            margin: 0 auto 0 60px; /* Alineado con el grid */
             position: relative;
         }
         .notice-off-icon {
             width: 30px;
             height: 30px;
-            margin-left: 0; /* Sin margen adicional */
+            margin-left: 0;
             margin-right: 0;
             align-self: center;
             cursor: pointer;
@@ -290,7 +290,7 @@
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
             margin-left: 0;
-            margin-right: 0; /* Sin margen adicional */
+            margin-right: 0;
             transform: scaleX(-1);
             opacity: 0.6;
         }
@@ -418,10 +418,10 @@
             background-color: #4DA7A7;
         }
         .minimal-mode {
-            background-color: #ABAB99; /* Mantener beige en modo mínimo */
+            background-color: #ABAB99;
         }
         body.dark-mode.minimal-mode {
-            background-color: #92927E; /* Beige oscuro en modo mínimo oscuro */
+            background-color: #92927E;
         }
         .minimal-mode main,
         .minimal-mode .notices-container,
@@ -542,7 +542,7 @@
             color: #FFFFFF;
         }
         .counter-wrapper {
-            margin: 0.5rem auto 0 40px;
+            margin: 0.5rem auto 0 60px; /* Alineado con el grid */
             text-align: center;
             max-width: 984px;
             width: 100%;
@@ -1467,158 +1467,147 @@
             });
         }
 
-        function showReminderNotification(reminder) {
-            const notificationsContainer = document.getElementById('reminder-notifications');
-            const notification = document.createElement('div');
-            notification.className = 'reminder-notification';
-            notification.innerHTML = `
-                <p>${reminder.text}</p>
-                <span style="font-size: 0.8rem; color: gray;">${reminder.time || 'Sin hora específica'}</span>
-                <div class="button-group">
-                    <button class="cancel">Cancelar</button>
-                    <button class="modify">Modificar</button>
-                    <button class="postpone">Para mañana</button>
-                </div>
-            `;
-            notificationsContainer.appendChild(notification);
-
-            notification.querySelector('.cancel').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const updatedReminders = reminders.filter(r => r.id !== reminder.id);
-                localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-                notification.remove();
-                updateButtonStyles();
-            });
-
-            notification.querySelector('.modify').addEventListener('click', () => {
-                showReminderModal(reminder);
-                notification.remove();
-            });
-
-            notification.querySelector('.postpone').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const index = reminders.findIndex(r => r.id === reminder.id);
-                if (index !== -1) {
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    reminders[index].date = tomorrow.toISOString().split('T')[0];
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                    notification.remove();
-                    updateButtonStyles();
-                }
-            });
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 30000);
-        }
-
         function showAllReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.innerHTML = `
-                <h2>Todos los Recordatorios</h2>
-                <div id="reminders-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;"></div>
-                <div class="button-group">
-                    <button id="close-reminders">Cerrar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    const modal = document.createElement('div');
+    modal.className = 'reminder-modal';
+    modal.setAttribute('aria-label', 'Ver todos los recordatorios');
+    modal.innerHTML = `
+        <h2>Todos los Recordatorios</h2>
+        <div id="reminder-list" style="max-height: 300px; overflow-y: auto;">
+            ${reminders.length === 0 ? '<p>No hay recordatorios.</p>' : ''}
+        </div>
+        <div class="button-group">
+            <button type="button" id="close-reminder-list">Cerrar</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
 
-            const list = modal.querySelector('#reminders-list');
-            if (reminders.length === 0) {
-                list.innerHTML = '<p>No hay recordatorios.</p>';
-            } else {
-                reminders.forEach(reminder => {
-                    const item = document.createElement('div');
-                    item.style.padding = '0.5rem';
-                    item.style.borderBottom = '1px solid #D1D5DB';
-                    item.innerHTML = `
-                        <p><strong>${reminder.text}</strong></p>
-                        <p style="font-size: 0.9rem; color: gray;">
-                            ${reminder.time ? `Hora: ${reminder.time}` : 'Sin hora específica'}
-                            ${reminder.date ? ` | Fecha: ${reminder.date}` : ''}
-                            ${reminder.repeatDays ? ` | Días: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}` : ''}
-                        </p>
-                        <button class="modify" style="margin-right: 0.5rem;">Modificar</button>
-                        <button class="cancel">Eliminar</button>
-                    `;
-                    item.querySelector('.modify').addEventListener('click', () => {
-                        modal.remove();
-                        showReminderModal(reminder);
-                    });
-                    item.querySelector('.cancel').addEventListener('click', () => {
-                        const updatedReminders = reminders.filter(r => r.id !== reminder.id);
-                        localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-                        item.remove();
-                        updateButtonStyles();
-                        if (updatedReminders.length === 0) {
-                            list.innerHTML = '<p>No hay recordatorios.</p>';
-                        }
-                    });
-                    list.appendChild(item);
-                });
-            }
+    const reminderList = modal.querySelector('#reminder-list');
+    reminders.forEach(reminder => {
+        const reminderItem = document.createElement('div');
+        reminderItem.style.marginBottom = '1rem';
+        reminderItem.innerHTML = `
+            <p><strong>${reminder.text}</strong></p>
+            <p>Hora: ${reminder.time || 'Sin hora específica'}</p>
+            ${reminder.date ? `<p>Fecha: ${reminder.date}</p>` : ''}
+            ${reminder.repeatDays ? `<p>Repetir: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}</p>` : ''}
+            <button class="modify" data-id="${reminder.id}">Modificar</button>
+            <button class="cancel" data-id="${reminder.id}">Eliminar</button>
+        `;
+        reminderList.appendChild(reminderItem);
+    });
 
-            modal.querySelector('#close-reminders').addEventListener('click', () => {
-                modal.remove();
-            });
+    modal.querySelectorAll('.modify').forEach(button => {
+        button.addEventListener('click', () => {
+            const reminder = reminders.find(r => r.id === parseInt(button.dataset.id));
+            modal.remove();
+            showReminderModal(reminder);
+        });
+    });
+
+    modal.querySelectorAll('.cancel').forEach(button => {
+        button.addEventListener('click', () => {
+            const reminderId = parseInt(button.dataset.id);
+            const updatedReminders = reminders.filter(r => r.id !== reminderId);
+            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+            modal.remove();
+            showAllReminders();
+        });
+    });
+
+    modal.querySelector('#close-reminder-list').addEventListener('click', () => {
+        modal.remove();
+    });
+}
+
+function checkReminders() {
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentDate = now.toISOString().split('T')[0];
+    const currentDay = now.getDay();
+
+    reminders.forEach(reminder => {
+        const isTimeMatch = reminder.time && reminder.time === currentTime;
+        const isDateMatch = reminder.date && reminder.date === currentDate;
+        const isDayMatch = reminder.repeatDays && reminder.repeatDays.includes(currentDay);
+        const shouldNotify = (isTimeMatch && (!reminder.date || isDateMatch)) || (isTimeMatch && isDayMatch);
+
+        if (shouldNotify) {
+            showReminderNotification(reminder);
         }
+    });
+}
 
-        function checkReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+function showReminderNotification(reminder) {
+    const notificationsContainer = document.getElementById('reminder-notifications');
+    const notification = document.createElement('div');
+    notification.className = 'reminder-notification';
+    notification.innerHTML = `
+        <p>${reminder.text}</p>
+        <div class="button-group">
+            <button class="cancel" data-id="${reminder.id}">Eliminar</button>
+            <button class="modify" data-id="${reminder.id}">Modificar</button>
+            <button class="postpone" data-id="${reminder.id}">Aplazar</button>
+        </div>
+    `;
+    notificationsContainer.appendChild(notification);
+
+    notification.querySelector('.cancel').addEventListener('click', () => {
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const updatedReminders = reminders.filter(r => r.id !== reminder.id);
+        localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+        notification.remove();
+        updateButtonStyles();
+    });
+
+    notification.querySelector('.modify').addEventListener('click', () => {
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const currentReminder = reminders.find(r => r.id === reminder.id);
+        notification.remove();
+        showReminderModal(currentReminder);
+    });
+
+    notification.querySelector('.postpone').addEventListener('click', () => {
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const index = reminders.findIndex(r => r.id === reminder.id);
+        if (index !== -1) {
             const now = new Date();
-            const currentDay = now.getDay();
-            const currentDate = now.toISOString().split('T')[0];
-            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-            reminders.forEach(reminder => {
-                if (reminder.isCancelled) return;
-
-                if (!reminder.time && reminder.repeatDays && reminder.repeatDays.includes(currentDay)) {
-                    showReminderNotification(reminder);
-                }
-
-                if (reminder.time && reminder.date === currentDate && reminder.time <= currentTime) {
-                    showReminderNotification(reminder);
-                }
-
-                if (reminder.time && reminder.repeatDays && reminder.repeatDays.includes(currentDay) && reminder.time <= currentTime) {
-                    showReminderNotification(reminder);
-                }
-            });
-
-            reminders.forEach(reminder => {
-                if (!reminder.date || new Date(reminder.date) < new Date(currentDate)) {
-                    showReminderNotification(reminder);
-                }
-            });
+            now.setMinutes(now.getMinutes() + 30);
+            reminders[index].time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            reminders[index].date = now.toISOString().split('T')[0];
+            localStorage.setItem('reminders', JSON.stringify(reminders));
         }
+        notification.remove();
+        updateButtonStyles();
+    });
+}
 
-        function loadReminders() {
-            checkReminders();
-            setInterval(checkReminders, 60000);
-        }
+function loadReminders() {
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    updateButtonStyles();
+    checkReminders();
+}
 
-        window.addEventListener('load', () => {
-            loadSavedSettings();
-            updateVersion();
-            startNoticeRotation();
-            adjustButtonPositions();
-            updateButtonStyles();
-            window.addEventListener('resize', adjustButtonPositions);
-        });
+window.addEventListener('load', () => {
+    adjustButtonPositions();
+    loadSavedSettings();
+    updateVersion();
+    startNoticeRotation();
+    setInterval(checkReminders, 60000);
+    setInterval(adjustButtonPositions, 100);
+});
 
-        document.getElementById('back-button').addEventListener('click', () => {
-            window.history.back();
-        });
+window.addEventListener('resize', adjustButtonPositions);
 
-        document.getElementById('forward-button').addEventListener('click', () => {
-            window.history.forward();
-        });
-    </script>
+document.getElementById('back-button').addEventListener('click', () => {
+    window.history.back();
+});
+
+document.getElementById('forward-button').addEventListener('click', () => {
+    window.history.forward();
+});
+</script>
 </body>
 </html>
