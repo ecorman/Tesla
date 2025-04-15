@@ -1444,7 +1444,7 @@
                     id: reminder ? reminder.id : Date.now(),
                     text,
                     time: time || null,
-                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[0] : null,
+                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[0] : null,
                     repeatDays: repeatDays.length > 0 ? repeatDays : null
                 };
 
