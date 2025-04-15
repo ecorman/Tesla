@@ -319,13 +319,7 @@
         margin-right: 10px;
         align-self: center;
         cursor: pointer;
-        transition: width 0.3s ease, max-width 0.3s ease;
-    }
-    .notice-off-icon.full-width {
-        width: 100%;
-        max-width: 984px;
-        height: auto;
-        margin: 0;
+        transition: opacity 0.3s ease;
     }
     .toggle-sign {
         position: fixed;
@@ -367,6 +361,9 @@
     }
     .toggle-image:hover {
         opacity: 0.8;
+    }
+    body.dark-mode .toggle-image {
+        opacity: 0.4;
     }
     #reminder-button {
         display: flex;
@@ -1378,11 +1375,9 @@
 
             if (!isMinimalMode && isActive && isFooterVisible) {
                 noticesContainer.classList.remove('hidden');
-                noticeIcon.classList.remove('full-width');
                 footerChildren.forEach(child => child.classList.remove('footer-hidden'));
             } else {
                 noticesContainer.classList.add('hidden');
-                noticeIcon.classList.add('full-width');
                 footerChildren.forEach(child => child.classList.add('footer-hidden'));
             }
             saveSettings();
@@ -1521,7 +1516,7 @@
                 updateButtonStyles();
             });
 
-            modal.querySelector('#cancel-reminder').addEventListener('click',            () => {
+            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
                 document.body.removeChild(modal);
             });
         }
@@ -1529,7 +1524,7 @@
         function showReminderNotification(reminder) {
             const notification = document.createElement('div');
             notification.className = 'reminder-notification';
-            notification.setAttribute('aria-label', 'Notificación de recordatorio');
+            notification.setAttribute('aria-label', 'Notificación de            recordatorio');
             notification.innerHTML = `
                 <p>${reminder.text}</p>
                 ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
