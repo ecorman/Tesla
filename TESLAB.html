@@ -34,10 +34,12 @@
             grid-template-columns: repeat(6, minmax(120px, 1fr));
             gap: 15px;
             background-color: transparent;
+            border-radius: 0.75rem;
+            border: 2px solid #8B4513; /* Marco marrón de 2px */
             position: relative;
             width: 100%;
             max-width: 984px;
-            margin: 0 auto 0 60px;
+            margin: 0 auto 0 40px;
             transition: all 0.3s ease;
         }
         #bookmark-grid > div {
@@ -125,7 +127,7 @@
             width: 100%;
         }
         footer {
-            margin: 0.5rem auto 0 60px;
+            margin: 0.5rem auto 0 40px;
             text-align: center;
             max-width: 984px;
             width: 100%;
@@ -266,11 +268,20 @@
             90% { opacity: 1; }
             100% { opacity: 0; }
         }
+        .notices-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Alinea iconos en los extremos */
+            width: 100%;
+            max-width: 984px;
+            margin: 0 auto 0 40px;
+            position: relative;
+        }
         .notice-off-icon {
             width: 30px;
             height: 30px;
-            margin-left: 45px;
-            margin-right: 10px;
+            margin-left: 0; /* Sin margen adicional */
+            margin-right: 0;
             align-self: center;
             cursor: pointer;
             opacity: 0.6;
@@ -279,7 +290,7 @@
             width: auto;
             height: clamp(2rem, 5vw, 3rem);
             margin-left: 0;
-            margin-right: 45px;
+            margin-right: 0; /* Sin margen adicional */
             transform: scaleX(-1);
             opacity: 0.6;
         }
@@ -529,15 +540,6 @@
         .reminder-notification button.postpone {
             background-color: #F59E0B;
             color: #FFFFFF;
-        }
-        .notices-icon-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            max-width: 984px;
-            margin: 0 auto 0 40px;
-            position: relative;
         }
         .counter-wrapper {
             margin: 0.5rem auto 0 40px;
@@ -1410,7 +1412,7 @@
                         <label><input type="checkbox" name="repeat" value="2" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(2) ? 'checked' : ''}> Martes</label>
                         <label><input type="checkbox" name="repeat" value="3" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(3) ? 'checked' : ''}> Miércoles</label>
                         <label><input type="checkbox" name="repeat" value="4" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(4) ? 'checked' : ''}> Jueves</label>
-                                                <label><input type="checkbox" name="repeat" value="5" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(5) ? 'checked' : ''}> Viernes</label>
+                        <label><input type="checkbox" name="repeat" value="5" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(5) ? 'checked' : ''}> Viernes</label>
                         <label><input type="checkbox" name="repeat" value="6" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(6) ? 'checked' : ''}> Sábado</label>
                         <label><input type="checkbox" name="repeat" value="0" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(0) ? 'checked' : ''}> Domingo</label>
                     </div>
@@ -1442,7 +1444,7 @@
                     id: reminder ? reminder.id : Date.now(),
                     text,
                     time: time || null,
-                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[0] : null,
+                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[0] : null,
                     repeatDays: repeatDays.length > 0 ? repeatDays : null
                 };
 
