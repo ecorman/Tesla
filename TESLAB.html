@@ -6,6 +6,7 @@
     <title>BoardingGate Lanzador</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
     .bookmark-item {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -90,18 +91,24 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        background-color: #000000;
+        background-color: #ABAB99; /* Beige en modo claro */
         padding: 0.5rem;
+    }
+    body.dark-mode .header-container {
+        background-color: #92927E; /* Beige más oscuro en modo oscuro */
     }
     .header-logo {
         width: 74px;
         height: 4rem;
     }
     .title-container {
-        background-color: #000000;
+        background-color: #ABAB99; /* Beige en modo claro */
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
         display: inline-block;
+    }
+    body.dark-mode .title-container {
+        background-color: #92927E; /* Beige más oscuro en modo oscuro */
     }
     .header-container h1 {
         color: #5C5C47; /* Gris oscuro para el título */
@@ -141,9 +148,14 @@
         max-width: 984px;
         width: 100%;
         display: block;
+        background-color: #ABAB99; /* Beige en modo claro */
+    }
+    body.dark-mode footer {
+        background-color: #92927E; /* Beige más oscuro en modo oscuro */
     }
     .footer-content {
         color: #5C5C47; /* Gris oscuro para textos principales */
+        padding: 0.5rem;
     }
     .footer-subtext {
         font-size: 0.75rem;
@@ -151,12 +163,12 @@
         margin-top: 0.25rem;
     }
     .footer-link-green {
-        color: #D9A066; /* Naranja cálido para enlaces */
+        color: #5C5C47; /* Gris oscuro para enlaces, coherente con la paleta */
         text-decoration: none;
         transition: color 0.2s ease;
     }
     .footer-link-green:hover {
-        color: #E6E6DC; /* Crema claro al pasar el ratón */
+        color: #668B8B; /* Verde-azul al pasar el ratón */
     }
     .footer-line {
         display: flex;
@@ -183,13 +195,13 @@
         left: 10px;
         top: 10px;
     }
+    .scroll-toggle-button:hover {
+        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+    }
     .scroll-toggle-button svg {
         width: clamp(24px, 4vw, 32px);
         height: clamp(24px, 4vw, 32px);
         stroke: #E6E6DC; /* Crema claro para los íconos */
-    }
-    .scroll-toggle-button:hover {
-        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
     }
     .top-text-container {
         display: flex;
@@ -217,7 +229,7 @@
     .arrow-button {
         width: clamp(36px, 6vw, 48px);
         height: clamp(36px, 6vw, 48px);
-        background-color: #668B8B; /* Verde-azul para botones */
+        background-color: #D9A066; /* Naranja cálido para botones */
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -227,7 +239,7 @@
         transition: background-color 0.2s ease;
     }
     .arrow-button:hover {
-        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+        background-color: #5C5C47; /* Gris oscuro al pasar el ratón */
     }
     .arrow-button svg {
         stroke: #E6E6DC; /* Crema claro para las flechas */
