@@ -39,7 +39,7 @@
         position: relative;
         width: 100%;
         max-width: 984px;
-        margin: 0 auto 0 60px; /* Margen izquierdo ajustado a 60px */
+        margin: 0 auto 0 60px;
         transition: all 0.3s ease;
     }
     #bookmark-grid > div {
@@ -91,33 +91,32 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        background-color: #ABAB99; /* Beige en modo claro */
+        background-color: #ABAB99;
         padding: 0.5rem;
     }
     body.dark-mode .header-container {
-        background-color: #92927E; /* Beige más oscuro en modo oscuro */
+        background-color: #92927E;
     }
     .header-logo {
-    width: 100px;
-    height: 70px;
-    opacity: 0.5;    
-    object-fit: contain;
+        width: 50px;
+        height: 30px;
+        opacity: 0.7;
     }
     .title-container {
-        background-color: #ABAB99; /* Beige en modo claro */
+        background-color: #ABAB99;
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
         display: inline-block;
     }
     body.dark-mode .title-container {
-        background-color: #92927E; /* Beige más oscuro en modo oscuro */
+        background-color: #92927E;
     }
     .header-container h1 {
-        color: #5C5C47; /* Gris oscuro para el título */
+        color: #5C5C47;
     }
     .version-text {
         font-size: 0.75rem;
-        color: #5C5C47; /* Verde-azul para la versión */
+        color: #5C5C47;
         font-weight: normal;
     }
     body {
@@ -135,7 +134,7 @@
         margin-bottom: 0.5rem;
     }
     main {
-        margin: 0.5rem auto 0.5rem 60px; /* Alineado con el grid */
+        margin: 0.5rem auto 0.5rem 60px;
         background-color: transparent;
         border-radius: 0.75rem;
         padding: 16px;
@@ -145,32 +144,32 @@
         width: 100%;
     }
     footer {
-        margin: 0.5rem auto; /* Centrado horizontalmente */
+        margin: 0.5rem auto;
         text-align: center;
         max-width: 984px;
         width: 100%;
         display: block;
-        background-color: #ABAB99; /* Beige en modo claro */
+        background-color: #ABAB99;
     }
     body.dark-mode footer {
-        background-color: #92927E; /* Beige más oscuro en modo oscuro */
+        background-color: #92927E;
     }
     .footer-content {
-        color: #5C5C47; /* Gris oscuro para textos principales */
+        color: #5C5C47;
         padding: 0.5rem;
     }
     .footer-subtext {
         font-size: 0.75rem;
-        color: #5C5C47; /* Verde-azul para subtexto */
+        color: #5C5C47;
         margin-top: 0.25rem;
     }
     .footer-link-green {
-        color: #5C5C47; /* Gris oscuro para enlaces, coherente con la paleta */
+        color: #5C5C47;
         text-decoration: none;
         transition: color 0.2s ease;
     }
     .footer-link-green:hover {
-        color: #5C5C47; /* Verde-azul al pasar el ratón */
+        color: #5C5C47;
     }
     .footer-line {
         display: flex;
@@ -183,7 +182,7 @@
         position: fixed;
         width: 91px;
         height: clamp(78.2px, 19.55vw, 175.95px);
-        background-color: #668B8B; /* Verde-azul en modo claro */
+        background-color: #668B8B;
         border-radius: 60px;
         display: flex;
         flex-direction: column;
@@ -198,20 +197,20 @@
         top: 10px;
     }
     .scroll-toggle-button:hover {
-        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+        background-color: #D9A066;
     }
     .scroll-toggle-button svg {
         width: clamp(24px, 4vw, 32px);
         height: clamp(24px, 4vw, 32px);
-        stroke: #E6E6DC; /* Crema claro para los íconos */
+        stroke: #E6E6DC;
     }
     .top-text-container {
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: clamp(0.6rem, 1.5vw, 0.75rem);
-        color: #5C5C47; /* Gris oscuro para el texto */
-        background-color: #E6E6DC; /* Crema claro de fondo */
+        color: #5C5C47;
+        background-color: #D1D5DB;
         margin-top: 0.25rem;
         margin-left: 60px;
         gap: 0.5rem;
@@ -219,8 +218,11 @@
         border-radius: 0.25rem;
         animation: fadeOut 6s forwards;
     }
+    body.dark-mode .top-text-container {
+        background-color: #6B7280;
+    }
     .top-text-container span {
-        color: #D9A066; /* Naranja cálido para el texto destacado */
+        color: #D9A066;
         font-size: clamp(0.9rem, 2vw, 1.2rem);
     }
     @keyframes fadeOut {
@@ -231,7 +233,7 @@
     .arrow-button {
         width: clamp(36px, 6vw, 48px);
         height: clamp(36px, 6vw, 48px);
-        background-color: #D9A066; /* Naranja cálido para botones */
+        background-color: #D9A066;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -241,10 +243,10 @@
         transition: background-color 0.2s ease;
     }
     .arrow-button:hover {
-        background-color: #5C5C47; /* Gris oscuro al pasar el ratón */
+        background-color: #5C5C47;
     }
     .arrow-button svg {
-        stroke: #E6E6DC; /* Crema claro para las flechas */
+        stroke: #E6E6DC;
     }
     .counter-container {
         display: flex;
@@ -263,7 +265,7 @@
     .notices-container {
         width: 100%;
         max-width: 984px;
-        margin: 0 auto 0 60px; /* Alineado con el grid */
+        margin: 0 auto 0 60px;
         padding: 0.5rem;
         border: none;
         border-radius: 0.5rem;
@@ -304,7 +306,7 @@
         justify-content: space-between;
         width: 100%;
         max-width: 984px;
-        margin: 0 auto 0 60px; /* Alineado con el grid */
+        margin: 0 auto 0 60px;
         position: relative;
     }
     .notice-off-icon {
@@ -329,13 +331,13 @@
         width: 91px;
         height: 54px;
         border-radius: 20px;
-        background-color: #668B8B; /* Verde-azul para botones */
+        background-color: #668B8B;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
         font-size: 1.25rem;
-        color: #E6E6DC; /* Crema claro para el texto */
+        color: #E6E6DC;
         text-align: center;
         cursor: pointer;
         z-index: 1000;
@@ -347,7 +349,7 @@
         margin-right: 2px;
     }
     .toggle-sign:hover {
-        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+        background-color: #D9A066;
     }
     .toggle-sign img {
         width: 32px;
@@ -368,7 +370,7 @@
         justify-content: center;
         align-items: center;
         position: fixed;
-        background-color: #668B8B; /* Verde-azul para el botón de recordatorios */
+        background-color: #668B8B;
     }
     #reminder-button img {
         width: 48px;
@@ -380,7 +382,7 @@
         top: 4px;
         left: 4px;
         font-size: 0.65rem;
-        color: #5C5C47; /* Gris oscuro para el contador */
+        color: #5C5C47;
         font-weight: bold;
     }
     .hidden {
@@ -396,48 +398,50 @@
         filter: brightness(60%);
     }
     body.dark-mode .scroll-toggle-button {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode .scroll-toggle-button:hover {
-        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+        background-color: #D9A066;
     }
     body.dark-mode .toggle-sign {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode .toggle-sign:hover {
-        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+        background-color: #D9A066;
     }
     body.dark-mode .toggle-sign.range-toggle[data-state="visible"] {
-        background-color: #668B8B; /* Verde-azul para botones visibles */
+        background-color: #668B8B;
     }
     body.dark-mode .toggle-sign.range-toggle[data-state="hidden"] {
-        background-color: #5C5C47; /* Gris oscuro para botones ocultos */
+        background-color: #5C5C47;
     }
     body.dark-mode #on-off-toggle {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #dark-mode-toggle {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #reload-button {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #home-button {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #weather-button {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #zoom-button:not(.zoomed) {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #zoom-button.zoomed {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     body.dark-mode #reminder-button {
-        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+        background-color: #5C5C47;
     }
     .minimal-mode {
+        background szkoły
+
         background-color: #ABAB99;
     }
     body.dark-mode.minimal-mode {
@@ -562,7 +566,7 @@
         color: #FFFFFF;
     }
     .counter-wrapper {
-        margin: 0.5rem auto 0 60px; /* Alineado con el grid */
+        margin: 0.5rem auto 0 60px;
         text-align: center;
         max-width: 984px;
         width: 100%;
@@ -597,22 +601,17 @@
         <img src="./avisos.png" alt="Megáfono Fin" class="megaphone-icon-end">
     </div>
 
-   <footer>
-    <div class="footer-content">
-        <div class="header-container">
-            <img src="https://boardinggate.github.io/Tesla/Generated Image April 15, 2025 - 6_00PM.jpeg" alt="Logo de Tesla" class="header-logo">
-            <div class="title-container">
-                <h1 class="text-2xl font-bold inline">
-                    <span class="text-2xl">BoardingGate</span>
-                    <span class="text-base">Lanzador</span>
-                    <span id="version" class="version-text"></span>
-                </h1>
-            </div>
-        </div>
-        <!-- Resto del footer sin cambios -->
-    </div>
-</footer>
-                
+    <footer>
+        <div class="footer-content">
+            <div class="header-container">
+                <img src="https://boardinggate.github.io/Tesla/Generated Image April 15, 2025 - 6_00PM.jpeg" alt="Logo de Tesla" class="header-logo">
+                <div class="title-container">
+                    <h1 class="text-2xl font-bold inline">
+                        <span class="text-2xl">BoardingGate</span>
+                        <span class="text-base">Lanzador</span>
+                        <span id="version" class="version-text"></span>
+                    </h1>
+                </div>
             </div>
             <div class="footer-line">
                 <a href="https://x.com/boardinggate?s=21" class="footer-link-green" target="_blank" rel="noopener noreferrer">@BoardingGate</a>
@@ -736,14 +735,28 @@
         let reminderPressStartTime = null;
         let isActive = true;
         let isFooterVisible = true;
-        const notices = [
-            "¡Explora los nuevos enlaces de carga eléctrica!",
-            "Personaliza tu experiencia con el modo oscuro",
-            "Añade recordatorios para no olvidar nada",
-            "Usa el zoom para una mejor visualización",
-            "Visita nuestros enlaces de referidos y ahorra"
-        ];
+        let notices = [];
         let currentNoticeIndex = 0;
+
+        async function loadNotices() {
+            try {
+                const response = await fetch('https://boardinggate.github.io/Tesla/avisos.txt', {
+                    cache: 'no-cache'
+                });
+                if (!response.ok) {
+                    throw new Error('No se pudo cargar avisos.txt');
+                }
+                const text = await response.text();
+                notices = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                if (notices.length === 0) {
+                    notices = ['No hay avisos disponibles.'];
+                }
+            } catch (error) {
+                console.error('Error al cargar avisos.txt:', error);
+                notices = ['Error al cargar los avisos.'];
+            }
+            updateNotice();
+        }
 
         function checkDarkModeTime() {
             const now = new Date();
@@ -1351,7 +1364,6 @@
         }
 
         function startNoticeRotation() {
-            updateNotice();
             setInterval(updateNotice, 14000);
         }
 
@@ -1455,185 +1467,202 @@
                 e.preventDefault();
                 const text = modal.querySelector('#reminder-text').value.trim();
                 let time = modal.querySelector('#reminder-time').value;
-                const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
+                const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
 
-                if (!text) return;
+                if (!text) {
+                    alert('El texto del recordatorio es obligatorio.');
+                    return;
+                }
 
-                let parsedTime = parseTimeOrTimerFromText(text);
+                let parsedTime = time ? { time, isTimer: false } : parseTimeOrTimerFromText(text);
                 if (parsedTime) {
                     time = parsedTime.time;
                 }
 
                 const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const now = new Date();
-                const newReminder = {
-                    id: reminder ? reminder.id : Date.now(),
-                    text,
-                    time: time || null,
-                    date: parsedTime && parsedTime.isTimer ? now.toISOString().split('T')[0] : null,
-                    repeatDays: repeatDays.length > 0 ? repeatDays : null
-                };
-
                 if (reminder) {
                     const index = reminders.findIndex(r => r.id === reminder.id);
                     if (index !== -1) {
-                        reminders[index] = newReminder;
+                        reminders[index] = { id: reminder.id, text, time, repeatDays };
                     }
                 } else {
-                    reminders.push(newReminder);
+                    reminders.push({ id: Date.now(), text, time, repeatDays });
                 }
 
                 localStorage.setItem('reminders', JSON.stringify(reminders));
-                modal.remove();
                 updateButtonStyles();
+                document.body.removeChild(modal);
+                checkReminders();
             });
 
             modal.querySelector('#cancel-reminder').addEventListener('click', () => {
-                modal.remove();
+                document.body.removeChild(modal);
+            });
+        }
+
+        function showReminderNotification(reminder) {
+            const notification = document.createElement('div');
+            notification.className = 'reminder-notification';
+            notification.innerHTML = `
+                <p>${reminder.text}${reminder.time ? ` (${reminder.time})` : ''}</p>
+                <div class="button-group">
+                    <button class="cancel">Eliminar</button>
+                    <button class="modify">Modificar</button>
+                    <button class="postpone">Aplazar 10 min</button>
+                </div>
+            `;
+            document.getElementById('reminder-notifications').appendChild(notification);
+
+            notification.querySelector('.cancel').addEventListener('click', () => {
+                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                reminders = reminders.filter(r => r.id !== reminder.id);
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                notification.remove();
+                updateButtonStyles();
+            });
+
+            notification.querySelector('.modify').addEventListener('click', () => {
+                showReminderModal(reminder);
+                notification.remove();
+            });
+
+            notification.querySelector('.postpone').addEventListener('click', () => {
+                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                const index = reminders.findIndex(r => r.id === reminder.id);
+                if (index !== -1) {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() + 10);
+                    reminders[index].time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                }
+                notification.remove();
+                updateButtonStyles();
             });
         }
 
         function showAllReminders() {
-    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-    const modal = document.createElement('div');
-    modal.className = 'reminder-modal';
-    modal.setAttribute('aria-label', 'Ver todos los recordatorios');
-    modal.innerHTML = `
-        <h2>Todos los Recordatorios</h2>
-        <div id="reminder-list" style="max-height: 300px; overflow-y: auto;">
-            ${reminders.length === 0 ? '<p>No hay recordatorios.</p>' : ''}
-        </div>
-        <div class="button-group">
-            <button type="button" id="close-reminder-list">Cerrar</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            if (reminders.length === 0) {
+                alert('No hay recordatorios activos.');
+                return;
+            }
 
-    const reminderList = modal.querySelector('#reminder-list');
-    reminders.forEach(reminder => {
-        const reminderItem = document.createElement('div');
-        reminderItem.style.marginBottom = '1rem';
-        reminderItem.innerHTML = `
-            <p><strong>${reminder.text}</strong></p>
-            <p>Hora: ${reminder.time || 'Sin hora específica'}</p>
-            ${reminder.date ? `<p>Fecha: ${reminder.date}</p>` : ''}
-            ${reminder.repeatDays ? `<p>Repetir: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}</p>` : ''}
-            <button class="modify" data-id="${reminder.id}">Modificar</button>
-            <button class="cancel" data-id="${reminder.id}">Eliminar</button>
-        `;
-        reminderList.appendChild(reminderItem);
-    });
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.setAttribute('aria-label', 'Lista de recordatorios');
+            modal.innerHTML = `
+                <h2>Recordatorios Activos</h2>
+                <ul style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
+                    ${reminders.map(r => `
+                        <li style="padding: 0.5rem; border-bottom: 1px solid #D1D5DB;">
+                            ${r.text}${r.time ? ` (${r.time})` : ''}
+                            ${r.repeatDays && r.repeatDays.length ? ` [${r.repeatDays.map(d => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][d]).join(', ')}]` : ''}
+                            <button class="modify" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem;" data-id="${r.id}">Modificar</button>
+                            <button class="cancel" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem;" data-id="${r.id}">Eliminar</button>
+                        </li>
+                    `).join('')}
+                </ul>
+                <div class="button-group">
+                    <button id="close-reminders">Cerrar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
 
-    modal.querySelectorAll('.modify').forEach(button => {
-        button.addEventListener('click', () => {
-            const reminder = reminders.find(r => r.id === parseInt(button.dataset.id));
-            modal.remove();
-            showReminderModal(reminder);
-        });
-    });
+            modal.querySelectorAll('.modify').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = parseInt(button.dataset.id);
+                    const reminder = reminders.find(r => r.id === id);
+                    if (reminder) {
+                        showReminderModal(reminder);
+                    }
+                    document.body.removeChild(modal);
+                });
+            });
 
-    modal.querySelectorAll('.cancel').forEach(button => {
-        button.addEventListener('click', () => {
-            const reminderId = parseInt(button.dataset.id);
-            const updatedReminders = reminders.filter(r => r.id !== reminderId);
-            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-            modal.remove();
-            showAllReminders();
-        });
-    });
+            modal.querySelectorAll('.cancel').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = parseInt(button.dataset.id);
+                    let updatedReminders = reminders.filter(r => r.id !== id);
+                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                    document.body.removeChild(modal);
+                    updateButtonStyles();
+                    showAllReminders();
+                });
+            });
 
-    modal.querySelector('#close-reminder-list').addEventListener('click', () => {
-        modal.remove();
-    });
-}
-
-function checkReminders() {
-    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-    const now = new Date();
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    const currentDate = now.toISOString().split('T')[0];
-    const currentDay = now.getDay();
-
-    reminders.forEach(reminder => {
-        const isTimeMatch = reminder.time && reminder.time === currentTime;
-        const isDateMatch = reminder.date && reminder.date === currentDate;
-        const isDayMatch = reminder.repeatDays && reminder.repeatDays.includes(currentDay);
-        const shouldNotify = (isTimeMatch && (!reminder.date || isDateMatch)) || (isTimeMatch && isDayMatch);
-
-        if (shouldNotify) {
-            showReminderNotification(reminder);
+            modal.querySelector('#close-reminders').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
         }
-    });
-}
 
-function showReminderNotification(reminder) {
-    const notificationsContainer = document.getElementById('reminder-notifications');
-    const notification = document.createElement('div');
-    notification.className = 'reminder-notification';
-    notification.innerHTML = `
-        <p>${reminder.text}</p>
-        <div class="button-group">
-            <button class="cancel" data-id="${reminder.id}">Eliminar</button>
-            <button class="modify" data-id="${reminder.id}">Modificar</button>
-            <button class="postpone" data-id="${reminder.id}">Aplazar</button>
-        </div>
-    `;
-    notificationsContainer.appendChild(notification);
-
-    notification.querySelector('.cancel').addEventListener('click', () => {
-        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-        const updatedReminders = reminders.filter(r => r.id !== reminder.id);
-        localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-        notification.remove();
-        updateButtonStyles();
-    });
-
-    notification.querySelector('.modify').addEventListener('click', () => {
-        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-        const currentReminder = reminders.find(r => r.id === reminder.id);
-        notification.remove();
-        showReminderModal(currentReminder);
-    });
-
-    notification.querySelector('.postpone').addEventListener('click', () => {
-        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-        const index = reminders.findIndex(r => r.id === reminder.id);
-        if (index !== -1) {
+        function checkReminders() {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
             const now = new Date();
-            now.setMinutes(now.getMinutes() + 30);
-            reminders[index].time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            reminders[index].date = now.toISOString().split('T')[0];
-            localStorage.setItem('reminders', JSON.stringify(reminders));
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const currentDay = now.getDay();
+
+            reminders.forEach(reminder => {
+                if (reminder.time && reminder.time === currentTime) {
+                    if (!reminder.repeatDays || reminder.repeatDays.length === 0 || reminder.repeatDays.includes(currentDay)) {
+                        showReminderNotification(reminder);
+                    }
+                }
+            });
+
+            updateButtonStyles();
         }
-        notification.remove();
-        updateButtonStyles();
-    });
-}
 
-function loadReminders() {
-    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-    updateButtonStyles();
-    checkReminders();
-}
+        function loadReminders() {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            updateButtonStyles();
+        }
 
-window.addEventListener('load', () => {
-    adjustButtonPositions();
-    loadSavedSettings();
-    updateVersion();
-    startNoticeRotation();
-    setInterval(checkReminders, 60000);
-    setInterval(adjustButtonPositions, 100);
-});
+        const backButton = document.getElementById('back-button');
+        const forwardButton = document.getElementById('forward-button');
 
-window.addEventListener('resize', adjustButtonPositions);
+        backButton.addEventListener('click', () => {
+            window.history.back();
+        });
 
-document.getElementById('back-button').addEventListener('click', () => {
-    window.history.back();
-});
+        forwardButton.addEventListener('click', () => {
+            window.history.forward();
+        });
 
-document.getElementById('forward-button').addEventListener('click', () => {
-    window.history.forward();
-});
-</script>
+        window.addEventListener('resize', adjustButtonPositions);
+
+        window.addEventListener('load', () => {
+            loadNotices().then(() => {
+                startNoticeRotation();
+            });
+            adjustButtonPositions();
+            loadSavedSettings();
+            updateVersion();
+            setInterval(checkReminders, 60000);
+            setInterval(adjustButtonPositions, 100);
+        });
+
+        window.addEventListener('beforeunload', saveSettings);
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 100;
+            if (touchStartX - touchEndX > swipeThreshold) {
+                window.history.forward();
+            } else if (touchEndX - touchStartX > swipeThreshold) {
+                window.history.back();
+            }
+        }
+    </script>
 </body>
 </html>
