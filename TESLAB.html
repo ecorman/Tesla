@@ -100,6 +100,10 @@
     .header-logo {
         width: 100px;
         height: 70px;
+        transition: opacity 0.2s ease;
+    }
+    body.dark-mode .header-logo {
+        opacity: 0.6;
     }
     .title-container {
         background-color: #ABAB99;
@@ -321,6 +325,9 @@
         cursor: pointer;
         transition: opacity 0.3s ease;
     }
+    body.dark-mode .notice-off-icon {
+        opacity: 0.6;
+    }
     .toggle-sign {
         position: fixed;
         width: 91px;
@@ -336,7 +343,7 @@
         text-align: center;
         cursor: pointer;
         z-index: 1000;
-        transition: background-color 0.2s ease;
+        transition: background-color 0.2s ease, opacity 0.2s ease;
         left: 10px;
     }
     .toggle-sign .sign {
@@ -351,6 +358,9 @@
         max-height: 48px;
         object-fit: contain;
     }
+    body.dark-mode .toggle-sign#config-button {
+        opacity: 0.6;
+    }
     .toggle-image {
         position: fixed;
         width: 91px;
@@ -363,7 +373,7 @@
         opacity: 0.8;
     }
     body.dark-mode .toggle-image {
-        opacity: 0.4;
+        opacity: 0.6;
     }
     #reminder-button {
         display: flex;
@@ -449,16 +459,23 @@
     .minimal-mode .top-text-container,
     .minimal-mode .scroll-toggle-button,
     .minimal-mode .toggle-sign,
-    .minimal-mode #reminder-notifications {
+    .minimal-mode #reminder-notifications,
+    .minimal-mode .counter-wrapper,
+    .minimal-mode .notice-off-icon {
         display: none !important;
     }
-    .minimal-mode #on-off-toggle,
-    .minimal-mode #dark-mode-toggle {
+    .minimal-mode #dark-mode-toggle,
+    .minimal-mode .header-container,
+    .minimal-mode .header-logo {
+        display: none !important;
+    }
+    .minimal-mode #on-off-toggle {
         opacity: 0.3;
     }
     .minimal-mode-message {
-        color: #9CA3AF;
-        font-size: 0.75rem;
+        color: #000000;
+        font-size: 1rem;
+        font-weight: bold;
         position: fixed;
         top: 70px;
         left: 10px;
@@ -1486,26 +1503,38 @@
                 const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
 
                 if (!text) {
-                    alert('El texto del recordatorio es obligatorio.');
+                    alert('El texto del recordatorio es                obligatorio.');
                     return;
                 }
 
-                let parsedTime = time ? { time, isTimer: false } : parseTimeOrTimerFromText(text);
-                if (parsedTime) {
-                    time = parsedTime.time;
+                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                let parsedTime = time || null;
+
+                if (!parsedTime) {
+                    const timeInfo = parseTimeOrTimerFromText(text);
+                    if (timeInfo) {
+                        parsedTime = timeInfo.time;
+                        if (timeInfo.isTimer && repeatDays.length > 0) {
+                            repeatDays.length = 0;
+                        }
+                    }
                 }
 
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
                 if (reminder) {
                     const index = reminders.findIndex(r => r.id === reminder.id);
                     if (index !== -1) {
-                        reminders[index] = { ...reminder, text, time, repeatDays };
+                        reminders[index] = {
+                            ...reminders[index],
+                            text,
+                            time: parsedTime,
+                            repeatDays
+                        };
                     }
                 } else {
                     const newReminder = {
                         id: Date.now(),
                         text,
-                        time,
+                        time: parsedTime,
                         repeatDays
                     };
                     reminders.push(newReminder);
@@ -1524,7 +1553,7 @@
         function showReminderNotification(reminder) {
             const notification = document.createElement('div');
             notification.className = 'reminder-notification';
-            notification.setAttribute('aria-label', 'Notificación de            recordatorio');
+            notification.setAttribute('aria-label', 'Notificación de recordatorio');
             notification.innerHTML = `
                 <p>${reminder.text}</p>
                 ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
