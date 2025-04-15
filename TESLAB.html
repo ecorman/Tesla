@@ -353,14 +353,14 @@
         background-color: #D9A066;
     }
     .toggle-sign img {
-        width: 32px;
-        height: 32px;
+        max-width: 80px;
+        max-height: 48px;
         object-fit: contain;
     }
     .toggle-image {
         position: fixed;
-        width: 32px;
-        height: 32px;
+        width: 91px;
+        height: 54px;
         cursor: pointer;
         z-index: 1000;
         transition: opacity 0.2s ease;
@@ -377,8 +377,8 @@
         background-color: #668B8B;
     }
     #reminder-button img {
-        width: 32px;
-        height: 32px;
+        max-width: 80px;
+        max-height: 48px;
         object-fit: contain;
     }
     #reminder-button .reminder-count {
@@ -436,6 +436,9 @@
     }
     body.dark-mode #reminder-button {
         background-color: #5C5C47;
+    }
+    body.dark-mode #config-button {
+        background-color: #92927E;
     }
     .minimal-mode {
         background-color: #ABAB99;
@@ -887,7 +890,7 @@
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
                 });
-                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
+                zoomButton.innerHTML = `<img src="./zoon+.png" alt="Zoom" class="max-w-[80px] max-h-[48px] object-contain">`;
             } else {
                 grid.style.gridTemplateColumns = `repeat(${originalCols}, minmax(120px, 1fr))`;
                 grid.style.gap = `${gap}px`;
@@ -910,7 +913,7 @@
                 document.querySelectorAll('.small-bookmark .bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(0.85rem, 1.5vw, 1.15rem)';
                 });
-                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
+                zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="max-w-[80px] max-h-[48px] object-contain">`;
             }
         }
 
@@ -923,6 +926,7 @@
             const weatherButton = document.getElementById('weather-button');
             const zoomButton = document.getElementById('zoom-button');
             const reminderButton = document.getElementById('reminder-button');
+            const configButton = document.getElementById('config-button');
 
             onOffToggle.src = `https://boardinggate.github.io/Tesla/${
                 onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpg' : 'IMG_4191.jpg'
@@ -937,7 +941,7 @@
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
             const pendingCount = reminders.length;
             reminderButton.innerHTML = `
-                <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio" class="w-[52px] h-[52px] object-contain">
+                <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio" class="max-w-[80px] max-h-[48px] object-contain">
                 ${pendingCount > 0 ? `<span class="reminder-count">${pendingCount}</span>` : ''}
             `;
             reminderButton.style.backgroundColor = '#4DA7A7';
@@ -950,6 +954,7 @@
                 homeButton.style.backgroundColor = '#0e7490';
                 weatherButton.style.backgroundColor = '#b45309';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#7c2d12' : '#c2410c';
+                configButton.style.backgroundColor = '#92927E';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
             } else if (!isMinimalMode) {
                 toggleButtons.forEach(toggle => {
@@ -959,6 +964,7 @@
                 homeButton.style.backgroundColor = '#5DA8D6';
                 weatherButton.style.backgroundColor = '#FBBF24';
                 zoomButton.style.backgroundColor = zoomButton.dataset.zoomState === 'on' ? '#C2410C' : '#F97316';
+                configButton.style.backgroundColor = '#ABAB99';
                 zoomButton.classList.toggle('zoomed', zoomButton.dataset.zoomState === 'on');
             }
         }
@@ -1133,7 +1139,7 @@
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
         weatherButton.id = 'weather-button';
-        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        weatherButton.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=accuweather.com&sz=64" alt="Tiempo" class="max-w-[80px] max-h-[48px] object-contain">`;
         weatherButton.style.left = `10px`;
         document.body.appendChild(weatherButton);
 
@@ -1146,7 +1152,7 @@
         const zoomButton = document.createElement('span');
         zoomButton.className = 'toggle-sign';
         zoomButton.id = 'zoom-button';
-        zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        zoomButton.innerHTML = `<img src="./zoon-.png" alt="Zoom" class="max-w-[80px] max-h-[48px] object-contain">`;
         zoomButton.style.left = `10px`;
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
@@ -1162,18 +1168,26 @@
         const reloadButton = document.createElement('span');
         reloadButton.className = 'toggle-sign';
         reloadButton.id = 'reload-button';
-        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="max-w-[80px] max-h-[48px] object-contain">`;
         reloadButton.style.left = `10px`;
         document.body.appendChild(reloadButton);
 
         const homeButton = document.createElement('span');
         homeButton.className = 'toggle-sign';
         homeButton.id = 'home-button';
-        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="w-[32px] h-[32px] object-contain rounded-full">`;
+        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="max-w-[80px] max-h-[48px] object-contain">`;
         homeButton.style.left = `10px`;
         document.body.appendChild(homeButton);
 
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, reminderButton, zoomButton, darkModeToggle, reloadButton, homeButton];
+        const configButton = document.createElement('span');
+        configButton.className = 'toggle-sign';
+        configButton.id = 'config-button';
+        configButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración" class="max-w-[80px] max-h-[48px] object-contain">`;
+        configButton.style.left = `10px`;
+        configButton.style.backgroundColor = '#ABAB99';
+        document.body.appendChild(configButton);
+
+        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, reminderButton, zoomButton, darkModeToggle, reloadButton, homeButton, configButton];
 
         darkModeToggle.addEventListener('click', () => {
             if (isMinimalMode) return;
@@ -1181,6 +1195,15 @@
             document.body.classList.toggle('dark-mode', isDarkMode);
             updateButtonStyles();
             saveSettings();
+        });
+
+        configButton.addEventListener('click', () => {
+            if (isMinimalMode) return;
+            if (confirm('¿Desea personalizar los botones del grid o borrar la caché?\n\nAceptar: Borrar la caché\nCancelar: Personalizar')) {
+                localStorage.clear();
+                location.reload();
+            }
+            // Personalizar no hace nada por ahora
         });
 
         function clamp(min, val, max) {
@@ -1340,6 +1363,7 @@
             darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
             reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
             homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 7)}px`;
+            configButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 8)}px`;
 
             buttons.forEach(button => {
                 button.style.left = '10px';
@@ -1479,7 +1503,7 @@
                 const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
                 if (reminder) {
                     const index = reminders.findIndex(r => r.id === reminder.id);
-                    if (index !==                     -1) {
+                    if (index !== -1) {
                         reminders[index] = { ...reminder, text, time, repeatDays };
                     }
                 } else {
@@ -1497,7 +1521,7 @@
                 updateButtonStyles();
             });
 
-            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
+            modal.querySelector('#cancel-reminder').addEventListener('click',            () => {
                 document.body.removeChild(modal);
             });
         }
