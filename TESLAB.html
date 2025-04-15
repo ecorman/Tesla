@@ -149,7 +149,7 @@
         width: 100%;
         display: block;
         background-color: #ABAB99;
-        margin-left: 60px; /* Alineado con el grid */
+        margin-left: 60px;
     }
     body.dark-mode footer {
         background-color: #92927E;
@@ -258,7 +258,6 @@
         flex-direction: column;
         margin-top: 1rem;
         text-align: center;
-        
     }
     .favicon-red {
         filter: hue-rotate(0deg) saturate(200%) brightness(80%);
@@ -286,7 +285,7 @@
         align-items: center;
         justify-content: center;
         gap: 0;
-        margin-left: 60px
+        margin-left: 60px;
         height: 3rem;
     }
     .notice-wrapper {
@@ -350,14 +349,6 @@
         height: 32px;
         object-fit: contain;
     }
-    #dark-mode-toggle img {
-        width: 48px;
-        height: 48px;
-    }
-    #on-off-toggle img {
-        width: 56px;
-        height: 56px;
-    }
     #reminder-button {
         display: flex;
         flex-direction: column;
@@ -367,8 +358,8 @@
         background-color: #668B8B;
     }
     #reminder-button img {
-        width: 48px;
-        height: 48px;
+        width: 32px;
+        height: 32px;
         object-fit: contain;
     }
     #reminder-button .reminder-count {
@@ -922,13 +913,18 @@
             const zoomButton = document.getElementById('zoom-button');
             const reminderButton = document.getElementById('reminder-button');
 
-            darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpeg' : 'IMG_4190.jpeg'}" alt="Toggle Dark Mode">`;
-            onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpeg' : 'IMG_4191.jpeg'}" alt="Toggle On/Off" class="w-[56px] h-[56px] object-contain">`;
+            onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${
+                onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpg' : 'IMG_4191.jpg'
+            }" alt="Toggle On/Off" class="w-[32px] h-[32px] object-contain">`;
+
+            darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${
+                isDarkMode ? 'IMG_4189.jpg' : 'IMG_4190.jpg'
+            }" alt="Toggle Dark Mode" class="w-[32px] h-[32px] object-contain">`;
 
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
             const pendingCount = reminders.length;
             reminderButton.innerHTML = `
-                <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpeg" alt="Recordatorio" class="w-[48px] h-[48px] object-contain">
+                <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio" class="w-[32px] h-[32px] object-contain">
                 ${pendingCount > 0 ? `<span class="reminder-count">${pendingCount}</span>` : ''}
             `;
             reminderButton.style.backgroundColor = '#4DA7A7';
@@ -1104,6 +1100,7 @@
         onOffToggle.className = 'toggle-sign';
         onOffToggle.id = 'on-off-toggle';
         onOffToggle.dataset.state = 'on';
+        onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4192.jpg" alt="Toggle On/Off" class="w-[32px] h-[32px] object-contain">`;
         onOffToggle.style.left = `10px`;
         document.body.appendChild(onOffToggle);
 
@@ -1143,7 +1140,7 @@
         const darkModeToggle = document.createElement('span');
         darkModeToggle.className = 'toggle-sign';
         darkModeToggle.id = 'dark-mode-toggle';
-        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpeg" alt="Toggle Dark Mode">`;
+        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpg" alt="Toggle Dark Mode" class="w-[32px] h-[32px] object-contain">`;
         darkModeToggle.style.left = `10px`;
         document.body.appendChild(darkModeToggle);
 
@@ -1340,9 +1337,7 @@
             const footerContent = document.querySelector('.footer-content');
 
             if (!isMinimalMode && isActive && isFooterVisible) {
-
-
-                            noticesContainer.classList.remove('hidden');
+                noticesContainer.classList.remove('hidden');
                 megaphoneIcon.classList.remove('hidden');
                 footerContent.classList.remove('footer-hidden');
             } else {
@@ -1542,34 +1537,33 @@
                     ${reminders.map(r => `
                         <li style="padding: 0.5rem; border-bottom: 1px solid #D1D5DB;">
                             ${r.text}${r.time ? ` (${r.time})` : ''}
-                            ${r.repeatDays && r.repeatDays.length ? ` [${r.repeatDays.map(d => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][d]).join(', ')}]` : ''}
-                            <button class="modify" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem;" data-id="${r.id}">Modificar</button>
-                            <button class="cancel" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem;" data-id="${r.id}">Eliminar</button>
+                            ${r.repeatDays && r.repeatDays.length ? ` [                            Repite: ${r.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}]` : ''}
+                            <button class="modify-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #10B981; color: #FFFFFF; border-radius: 0.25rem;">Modificar</button>
+                            <button class="delete-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #EF4444; color: #FFFFFF; border-radius: 0.25rem;">Eliminar</button>
                         </li>
                     `).join('')}
                 </ul>
                 <div class="button-group">
-                    <button id="close-reminders">Cerrar</button>
+                    <button type="button" id="close-reminders">Cerrar</button>
                 </div>
             `;
             document.body.appendChild(modal);
 
-            modal.querySelectorAll('.modify').forEach(button => {
+            modal.querySelectorAll('.modify-reminder').forEach(button => {
                 button.addEventListener('click', () => {
                     const id = parseInt(button.dataset.id);
                     const reminder = reminders.find(r => r.id === id);
-                    if (reminder) {
-                        showReminderModal(reminder);
-                    }
                     document.body.removeChild(modal);
+                    showReminderModal(reminder);
                 });
             });
 
-            modal.querySelectorAll('.cancel').forEach(button => {
+            modal.querySelectorAll('.delete-reminder').forEach(button => {
                 button.addEventListener('click', () => {
                     const id = parseInt(button.dataset.id);
-                    let updatedReminders = reminders.filter(r => r.id !== id);
-                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                    let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                    reminders = reminders.filter(r => r.id !== id);
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
                     document.body.removeChild(modal);
                     updateButtonStyles();
                     showAllReminders();
@@ -1589,66 +1583,64 @@
 
             reminders.forEach(reminder => {
                 if (reminder.time && reminder.time === currentTime) {
-                    if (!reminder.repeatDays || reminder.repeatDays.length === 0 || reminder.repeatDays.includes(currentDay)) {
+                    if (reminder.repeatDays && reminder.repeatDays.length > 0) {
+                        if (reminder.repeatDays.includes(currentDay)) {
+                            showReminderNotification(reminder);
+                        }
+                    } else {
                         showReminderNotification(reminder);
                     }
                 }
             });
-
-            updateButtonStyles();
         }
 
         function loadReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            updateButtonStyles();
+            setInterval(checkReminders, 60000);
+            checkReminders();
         }
 
-        const backButton = document.getElementById('back-button');
-        const forwardButton = document.getElementById('forward-button');
-
-        backButton.addEventListener('click', () => {
+        document.getElementById('back-button').addEventListener('click', () => {
+            if (isMinimalMode) return;
             window.history.back();
         });
 
-        forwardButton.addEventListener('click', () => {
+        document.getElementById('forward-button').addEventListener('click', () => {
+            if (isMinimalMode) return;
             window.history.forward();
         });
-
-        window.addEventListener('resize', adjustButtonPositions);
-
-        window.addEventListener('load', () => {
-            loadNotices().then(() => {
-                startNoticeRotation();
-            });
-            adjustButtonPositions();
-            loadSavedSettings();
-            updateVersion();
-            setInterval(checkReminders, 60000);
-            setInterval(adjustButtonPositions, 100);
-        });
-
-        window.addEventListener('beforeunload', saveSettings);
 
         let touchStartX = 0;
         let touchEndX = 0;
 
-        document.addEventListener('touchstart', (e) => {
+        document.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
         });
 
-        document.addEventListener('touchend', (e) => {
+        document.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         });
 
         function handleSwipe() {
-            const swipeThreshold = 100;
-            if (touchStartX - touchEndX > swipeThreshold) {
-                window.history.forward();
-            } else if (touchEndX - touchStartX > swipeThreshold) {
+            const swipeDistance = touchEndX - touchStartX;
+            const minSwipeDistance = 100;
+
+            if (swipeDistance > minSwipeDistance) {
                 window.history.back();
+            } else if (swipeDistance < -minSwipeDistance) {
+                window.history.forward();
             }
         }
+
+        window.addEventListener('resize', adjustButtonPositions);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateVersion();
+            loadSavedSettings();
+            await loadNotices();
+            startNoticeRotation();
+            adjustButtonPositions();
+        });
     </script>
 </body>
 </html>
