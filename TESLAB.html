@@ -6,549 +6,555 @@
     <title>BoardingGate Lanzador</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .bookmark-item {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-        .bookmark-item:hover {
-            transform: scale(1.1) translateY(-2px);
-            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
-        }
-        .bookmark-item img {
-            image-rendering: crisp-edges;
-        }
-        .bookmark-name {
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
+<style>
+    .bookmark-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    .bookmark-item:hover {
+        transform: scale(1.1) translateY(-2px);
+        box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+    }
+    .bookmark-item img {
+        image-rendering: crisp-edges;
+    }
+    .bookmark-name {
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    #bookmark-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(120px, 1fr));
+        gap: 15px;
+        background-color: transparent;
+        border-radius: 0.75rem;
+        position: relative;
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto 0 60px; /* Margen izquierdo ajustado a 60px */
+        transition: all 0.3s ease;
+    }
+    #bookmark-grid > div {
+        height: auto;
+        aspect-ratio: 16 / 9;
+        transition: all 0.3s ease;
+    }
+    .bookmark-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
+    }
+    .bookmark-item img {
+        width: 36px;
+        height: auto;
+        max-width: 40px;
+        border-radius: 0.25rem;
+    }
+    .bookmark-name {
+        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    }
+    .small-bookmark img {
+        width: 24px;
+        max-width: 28px;
+    }
+    .small-bookmark .bookmark-name {
+        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    }
+    @media (max-width: 768px) {
         #bookmark-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(120px, 1fr));
-            gap: 15px;
-            background-color: transparent;
-            border-radius: 0.75rem;
-            position: relative;
-            width: 100%;
-            max-width: 984px;
-            margin: 0 auto 0 60px; /* Margen izquierdo ajustado a 60px */
-            transition: all 0.3s ease;
-        }
-        #bookmark-grid > div {
-            height: auto;
-            aspect-ratio: 16 / 9;
-            transition: all 0.3s ease;
-        }
-        .bookmark-item {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-            background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
-        }
-        .bookmark-item img {
-            width: 36px;
-            height: auto;
-            max-width: 40px;
-            border-radius: 0.25rem;
-        }
-        .bookmark-name {
-            font-size: clamp(0.85rem, 1.5vw, 1.15rem);
-        }
-        .small-bookmark img {
-            width: 24px;
-            max-width: 28px;
-        }
-        .small-bookmark .bookmark-name {
-            font-size: clamp(0.85rem, 1.5vw, 1.15rem);
-        }
-        @media (max-width: 768px) {
-            #bookmark-grid {
-                grid-template-columns: repeat(3, minmax(100px, 1fr));
-                gap: 10px;
-            }
-        }
-        @media (max-width: 480px) {
-            #bookmark-grid {
-                grid-template-columns: repeat(2, minmax(80px, 1fr));
-                gap: 8px;
-            }
-        }
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .header-logo {
-            width: 74px;
-            height: 4rem;
-        }
-        .title-container {
-            background-color: #000000;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            display: inline-block;
-        }
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-color: #ABAB99;
-            margin: 0;
-            overflow-x: hidden;
-        }
-        body.dark-mode {
-            background-color: #92927E;
-        }
-        header {
-            margin-bottom: 0.5rem;
-        }
-        main {
-            margin: 0.5rem auto 0.5rem 60px; /* Alineado con el grid */
-            background-color: transparent;
-            border-radius: 0.75rem;
-            padding: 16px;
-            min-height: 400px;
-            transition: background-color 0.3s ease;
-            max-width: 984px;
-            width: 100%;
-        }
-        footer {
-            margin: 0.5rem auto; /* Centrado horizontalmente */
-            text-align: center;
-            max-width: 984px;
-            width: 100%;
-            display: block;
-        }
-        .header-container {
-            background-color: #000000;
-            padding: 0.5rem;
-        }
-        .footer-subtext {
-            font-size: 0.75rem;
-            color: #9CA3AF;
-            margin-top: 0.25rem;
-        }
-        .footer-link-green {
-            color: #90EE90;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        .footer-link-green:hover {
-            color: #cdc776;
-        }
-        .footer-line {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .scroll-toggle-button {
-            position: fixed;
-            width: 91px;
-            height: clamp(78.2px, 19.55vw, 175.95px);
-            background-color: #1E3A8A;
-            border-radius: 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: clamp(10px, 2vw, 20px);
-            cursor: pointer;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            transition: background-color 0.2s ease;
-            left: 10px;
-            top: 10px;
-        }
-        .scroll-toggle-button svg {
-            width: clamp(24px, 4vw, 32px);
-            height: clamp(24px, 4vw, 32px);
-        }
-        .scroll-toggle-button:hover {
-            background-color: #1e40af;
-        }
-        .top-text-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(0.6rem, 1.5vw, 0.75rem);
-            color: #38BDF8;
-            margin-top: 0.25rem;
-            margin-left: 60px; /* Alineado con el grid */
-            gap: 0.5rem;
-            animation: fadeOut 6s forwards;
-        }
-        .top-text-container span {
-            color: #FFFFFF;
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
-        }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; display: none; }
-        }
-        .arrow-button {
-            width: clamp(36px, 6vw, 48px);
-            height: clamp(36px, 6vw, 48px);
-            background-color: #1E3A8A;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.2s ease;
-        }
-        .arrow-button:hover {
-            background-color: #1e40af;
-        }
-        .counter-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            margin-top: 1rem;
-            text-align: center;
-        }
-        .favicon-red {
-            filter: hue-rotate(0deg) saturate(200%) brightness(80%);
-        }
-        .favicon-blue {
-            filter: hue-rotate(200deg) saturate(150%) brightness(90%);
-        }
-        .notices-container {
-            width: 100%;
-            max-width: 984px;
-            margin: 0 auto 0 60px; /* Alineado con el grid */
-            padding: 0.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
-            height: 3rem;
-        }
-        .notice-wrapper {
-            padding: 0.5rem;
-            height: 1.5rem;
-            flex-grow: 1;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .notice {
-            color: #00ff00;
-            font-weight: bold;
-            white-space: nowrap;
-            text-align: center;
-            opacity: 0;
-            animation: fadeInOut 14s infinite;
-        }
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        .notices-icon-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 984px;
-            margin: 0 auto 0 60px; /* Alineado con el grid */
-            position: relative;
-        }
-        .notice-off-icon {
-            width: 30px;
-            height: 30px;
-            margin-left: 0;
-            margin-right: 0;
-            align-self: center;
-            cursor: pointer;
-            opacity: 0.6;
-        }
-        .megaphone-icon-end {
-            width: auto;
-            height: clamp(2rem, 5vw, 3rem);
-            margin-left: 0;
-            margin-right: 0;
-            transform: scaleX(-1);
-            opacity: 0.6;
-        }
-        .toggle-sign {
-            position: fixed;
-            width: 91px;
-            height: 54px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.25rem;
-            text-align: center;
-            cursor: pointer;
-            z-index: 1000;
-            transition: background-color 0.2s ease;
-            left: 10px;
-        }
-        .toggle-sign .sign {
-            font-size: 1.5rem;
-            margin-right: 2px;
-        }
-        .toggle-sign:hover {
-            background-color: #666666;
-        }
-        body.dark-mode .toggle-sign:hover {
-            background-color: #4b5563;
-        }
-        body.dark-mode .toggle-sign.range-toggle[data-state="visible"]:hover {
-            background-color: #1f9e4e;
-        }
-        body.dark-mode .toggle-sign.range-toggle[data-state="hidden"]:hover {
-            background-color: #6b7280;
-        }
-        .toggle-sign img {
-            width: 32px;
-            height: 32px;
-            object-fit: contain;
-        }
-        #dark-mode-toggle img {
-            width: 48px;
-            height: 48px;
-        }
-        #on-off-toggle img {
-            width: 56px;
-            height: 56px;
-        }
-        #reminder-button {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: fixed;
-            background-color: #4DA7A7;
-        }
-        #reminder-button img {
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-        }
-        #reminder-button .reminder-count {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            font-size: 0.65rem;
-            color: #000000;
-            font-weight: bold;
-        }
-        .hidden {
-            display: none;
-        }
-        .footer-hidden {
-            display: none;
-        }
-        .version-text {
-            font-size: 0.75rem;
-            color: #38BDF8;
-            font-weight: normal;
-        }
-        #dark-mode-toggle {
-            background-color: #F0F0F0;
-        }
-        #on-off-toggle {
-            background-color: #E0E0E0;
-            color: #FFFFFF;
-        }
-        .range-toggle {
-            color: #FFFFFF;
-        }
-        body.dark-mode .bookmark-item {
-            filter: brightness(60%);
-        }
-        body.dark-mode .bg-gray-50.border.border-dashed.border-gray-200.rounded-lg {
-            filter: brightness(60%);
-        }
-        body.dark-mode .scroll-toggle-button {
-            background-color: #1e293b;
-        }
-        body.dark-mode .scroll-toggle-button:hover {
-            background-color: #334155;
-        }
-        body.dark-mode .toggle-sign {
-            background-color: #374151;
-        }
-        body.dark-mode #on-off-toggle {
-            background-color: #E0E0E0;
-        }
-        body.dark-mode #dark-mode-toggle {
-            background-color: #F0F0F0;
-        }
-        body.dark-mode #reload-button {
-            background-color: #0e7490;
-        }
-        body.dark-mode #weather-button {
-            background-color: #b45309;
-        }
-        body.dark-mode #zoom-button:not(.zoomed) {
-            background-color: #c2410c;
-        }
-        body.dark-mode #zoom-button.zoomed {
-            background-color: #7c2d12;
-        }
-        body.dark-mode #reminder-button {
-            background-color: #4DA7A7;
-        }
-        .minimal-mode {
-            background-color: #ABAB99;
-        }
-        body.dark-mode.minimal-mode {
-            background-color: #92927E;
-        }
-        .minimal-mode main,
-        .minimal-mode .notices-container,
-        .minimal-mode .footer-content,
-        .minimal-mode .top-text-container,
-        .minimal-mode .scroll-toggle-button,
-        .minimal-mode .toggle-sign:not(#on-off-toggle),
-        .minimal-mode #reminder-notifications {
-            display: none !important;
-        }
-        .minimal-mode #on-off-toggle {
-            background-color: #D1D5DB;
-            opacity: 0.3;
-            top: 10px;
-            left: 10px;
-        }
-        .minimal-mode-message {
-            color: #9CA3AF;
-            font-size: 0.75rem;
-            position: fixed;
-            top: 70px;
-            left: 10px;
-            z-index: 1000;
-        }
-        .reminder-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #F3F4F6;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 2000;
-            max-width: 400px;
-            width: 90%;
-        }
-        .reminder-modal h2 {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-        .reminder-modal label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .reminder-modal input,
-        .reminder-modal textarea {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #D1D5DB;
-            border-radius: 0.25rem;
-        }
-        .reminder-modal .button-group {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-        .reminder-modal button {
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-        }
-        .reminder-modal button[type="submit"] {
-            background-color: #2563EB;
-            color: #FFFFFF;
-        }
-        .reminder-modal button[type="button"] {
-            background-color: #D1D5DB;
-            color: #111827;
-        }
-        #reminder-notifications {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1500;
-            max-width: 300px;
-            width: 90%;
-        }
-        .reminder-notification {
-            background-color: #FFFF99;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.25rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .reminder-notification p {
-            margin: 0;
-            font-size: 1.25rem;
-            color: #0000FF;
-        }
-        .reminder-notification .button-group {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-        .reminder-notification button {
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .reminder-notification button.cancel {
-            background-color: #EF4444;
-            color: #FFFFFF;
-        }
-        .reminder-notification button.modify {
-            background-color: #10B981;
-            color: #FFFFFF;
-        }
-        .reminder-notification button.postpone {
-            background-color: #F59E0B;
-            color: #FFFFFF;
-        }
-        .counter-wrapper {
-            margin: 0.5rem auto 0 60px; /* Alineado con el grid */
-            text-align: center;
-            max-width: 984px;
-            width: 100%;
-            display: block;
-        }
-    </style>
+            grid-template-columns: repeat(3, minmax(100px, 1fr));
+            gap: 10px;
+        }
+    }
+    @media (max-width: 480px) {
+        #bookmark-grid {
+            grid-template-columns: repeat(2, minmax(80px, 1fr));
+            gap: 8px;
+        }
+    }
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: #000000;
+        padding: 0.5rem;
+    }
+    .header-logo {
+        width: 74px;
+        height: 4rem;
+    }
+    .title-container {
+        background-color: #000000;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+    }
+    .header-container h1 {
+        color: #5C5C47; /* Gris oscuro para el título */
+    }
+    .version-text {
+        font-size: 0.75rem;
+        color: #668B8B; /* Verde-azul para la versión */
+        font-weight: normal;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #ABAB99;
+        margin: 0;
+        overflow-x: hidden;
+    }
+    body.dark-mode {
+        background-color: #92927E;
+    }
+    header {
+        margin-bottom: 0.5rem;
+    }
+    main {
+        margin: 0.5rem auto 0.5rem 60px; /* Alineado con el grid */
+        background-color: transparent;
+        border-radius: 0.75rem;
+        padding: 16px;
+        min-height: 400px;
+        transition: background-color 0.3s ease;
+        max-width: 984px;
+        width: 100%;
+    }
+    footer {
+        margin: 0.5rem auto; /* Centrado horizontalmente */
+        text-align: center;
+        max-width: 984px;
+        width: 100%;
+        display: block;
+    }
+    .footer-content {
+        color: #5C5C47; /* Gris oscuro para textos principales */
+    }
+    .footer-subtext {
+        font-size: 0.75rem;
+        color: #668B8B; /* Verde-azul para subtexto */
+        margin-top: 0.25rem;
+    }
+    .footer-link-green {
+        color: #D9A066; /* Naranja cálido para enlaces */
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .footer-link-green:hover {
+        color: #E6E6DC; /* Crema claro al pasar el ratón */
+    }
+    .footer-line {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .scroll-toggle-button {
+        position: fixed;
+        width: 91px;
+        height: clamp(78.2px, 19.55vw, 175.95px);
+        background-color: #668B8B; /* Verde-azul en modo claro */
+        border-radius: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: clamp(10px, 2vw, 20px);
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+        left: 10px;
+        top: 10px;
+    }
+    .scroll-toggle-button svg {
+        width: clamp(24px, 4vw, 32px);
+        height: clamp(24px, 4vw, 32px);
+        stroke: #E6E6DC; /* Crema claro para los íconos */
+    }
+    .scroll-toggle-button:hover {
+        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+    }
+    .top-text-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+        color: #5C5C47; /* Gris oscuro para el texto */
+        background-color: #E6E6DC; /* Crema claro de fondo */
+        margin-top: 0.25rem;
+        margin-left: 60px;
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        animation: fadeOut 6s forwards;
+    }
+    .top-text-container span {
+        color: #D9A066; /* Naranja cálido para el texto destacado */
+        font-size: clamp(0.9rem, 2vw, 1.2rem);
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; display: none; }
+    }
+    .arrow-button {
+        width: clamp(36px, 6vw, 48px);
+        height: clamp(36px, 6vw, 48px);
+        background-color: #668B8B; /* Verde-azul para botones */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.2s ease;
+    }
+    .arrow-button:hover {
+        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+    }
+    .arrow-button svg {
+        stroke: #E6E6DC; /* Crema claro para las flechas */
+    }
+    .counter-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-top: 1rem;
+        text-align: center;
+    }
+    .favicon-red {
+        filter: hue-rotate(0deg) saturate(200%) brightness(80%);
+    }
+    .favicon-blue {
+        filter: hue-rotate(200deg) saturate(150%) brightness(90%);
+    }
+    .notices-container {
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto 0 60px; /* Alineado con el grid */
+        padding: 0.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        height: 3rem;
+    }
+    .notice-wrapper {
+        padding: 0.5rem;
+        height: 1.5rem;
+        flex-grow: 1;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .notice {
+        color: #00ff00;
+        font-weight: bold;
+        white-space: nowrap;
+        text-align: center;
+        opacity: 0;
+        animation: fadeInOut 14s infinite;
+    }
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    .notices-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto 0 60px; /* Alineado con el grid */
+        position: relative;
+    }
+    .notice-off-icon {
+        width: 30px;
+        height: 30px;
+        margin-left: 0;
+        margin-right: 0;
+        align-self: center;
+        cursor: pointer;
+        opacity: 0.6;
+    }
+    .megaphone-icon-end {
+        width: auto;
+        height: clamp(2rem, 5vw, 3rem);
+        margin-left: 0;
+        margin-right: 0;
+        transform: scaleX(-1);
+        opacity: 0.6;
+    }
+    .toggle-sign {
+        position: fixed;
+        width: 91px;
+        height: 54px;
+        border-radius: 20px;
+        background-color: #668B8B; /* Verde-azul para botones */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.25rem;
+        color: #E6E6DC; /* Crema claro para el texto */
+        text-align: center;
+        cursor: pointer;
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+        left: 10px;
+    }
+    .toggle-sign .sign {
+        font-size: 1.5rem;
+        margin-right: 2px;
+    }
+    .toggle-sign:hover {
+        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+    }
+    .toggle-sign img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+    }
+    #dark-mode-toggle img {
+        width: 48px;
+        height: 48px;
+    }
+    #on-off-toggle img {
+        width: 56px;
+        height: 56px;
+    }
+    #reminder-button {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        background-color: #668B8B; /* Verde-azul para el botón de recordatorios */
+    }
+    #reminder-button img {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+    #reminder-button .reminder-count {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        font-size: 0.65rem;
+        color: #5C5C47; /* Gris oscuro para el contador */
+        font-weight: bold;
+    }
+    .hidden {
+        display: none;
+    }
+    .footer-hidden {
+        display: none;
+    }
+    body.dark-mode .bookmark-item {
+        filter: brightness(60%);
+    }
+    body.dark-mode .bg-gray-50.border.border-dashed.border-gray-200.rounded-lg {
+        filter: brightness(60%);
+    }
+    body.dark-mode .scroll-toggle-button {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode .scroll-toggle-button:hover {
+        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+    }
+    body.dark-mode .toggle-sign {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode .toggle-sign:hover {
+        background-color: #D9A066; /* Naranja cálido al pasar el ratón */
+    }
+    body.dark-mode .toggle-sign.range-toggle[data-state="visible"] {
+        background-color: #668B8B; /* Verde-azul para botones visibles */
+    }
+    body.dark-mode .toggle-sign.range-toggle[data-state="hidden"] {
+        background-color: #5C5C47; /* Gris oscuro para botones ocultos */
+    }
+    body.dark-mode #on-off-toggle {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #dark-mode-toggle {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #reload-button {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #home-button {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #weather-button {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #zoom-button:not(.zoomed) {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #zoom-button.zoomed {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    body.dark-mode #reminder-button {
+        background-color: #5C5C47; /* Gris oscuro en modo oscuro */
+    }
+    .minimal-mode {
+        background-color: #ABAB99;
+    }
+    body.dark-mode.minimal-mode {
+        background-color: #92927E;
+    }
+    .minimal-mode main,
+    .minimal-mode .notices-container,
+    .minimal-mode .footer-content,
+    .minimal-mode .top-text-container,
+    .minimal-mode .scroll-toggle-button,
+    .minimal-mode .toggle-sign:not(#on-off-toggle),
+    .minimal-mode #reminder-notifications {
+        display: none !important;
+    }
+    .minimal-mode #on-off-toggle {
+        background-color: #D1D5DB;
+        opacity: 0.3;
+        top: 10px;
+        left: 10px;
+    }
+    .minimal-mode-message {
+        color: #9CA3AF;
+        font-size: 0.75rem;
+        position: fixed;
+        top: 70px;
+        left: 10px;
+        z-index: 1000;
+    }
+    .reminder-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #F3F4F6;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 2000;
+        max-width: 400px;
+        width: 90%;
+    }
+    .reminder-modal h2 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .reminder-modal label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .reminder-modal input,
+    .reminder-modal textarea {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.25rem;
+    }
+    .reminder-modal .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    .reminder-modal button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .reminder-modal button[type="submit"] {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    .reminder-modal button[type="button"] {
+        background-color: #D1D5DB;
+        color: #111827;
+    }
+    #reminder-notifications {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1500;
+        max-width: 300px;
+        width: 90%;
+    }
+    .reminder-notification {
+        background-color: #FFFF99;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .reminder-notification p {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #0000FF;
+    }
+    .reminder-notification .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    .reminder-notification button {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    .reminder-notification button.cancel {
+        background-color: #EF4444;
+        color: #FFFFFF;
+    }
+    .reminder-notification button.modify {
+        background-color: #10B981;
+        color: #FFFFFF;
+    }
+    .reminder-notification button.postpone {
+        background-color: #F59E0B;
+        color: #FFFFFF;
+    }
+    .counter-wrapper {
+        margin: 0.5rem auto 0 60px; /* Alineado con el grid */
+        text-align: center;
+        max-width: 984px;
+        width: 100%;
+        display: block;
+    }
+</style>
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
     <div class="top-text-container">
