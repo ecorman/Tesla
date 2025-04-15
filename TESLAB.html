@@ -159,6 +159,7 @@
         padding: 0.5rem;
         margin: 0 auto;
         max-width: 100%;
+        position: relative;
     }
     .footer-subtext {
         font-size: 0.75rem;
@@ -318,6 +319,13 @@
         margin-right: 10px;
         align-self: center;
         cursor: pointer;
+        transition: width 0.3s ease, max-width 0.3s ease;
+    }
+    .notice-off-icon.full-width {
+        width: 100%;
+        max-width: 984px;
+        height: auto;
+        margin: 0;
     }
     .toggle-sign {
         position: fixed;
@@ -348,6 +356,17 @@
         width: 32px;
         height: 32px;
         object-fit: contain;
+    }
+    .toggle-image {
+        position: fixed;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        z-index: 1000;
+        transition: opacity 0.2s ease;
+    }
+    .toggle-image:hover {
+        opacity: 0.8;
     }
     #reminder-button {
         display: flex;
@@ -400,12 +419,6 @@
     body.dark-mode .toggle-sign.range-toggle[data-state="hidden"] {
         background-color: #5C5C47;
     }
-    body.dark-mode #on-off-toggle {
-        background-color: #5C5C47;
-    }
-    body.dark-mode #dark-mode-toggle {
-        background-color: #5C5C47;
-    }
     body.dark-mode #reload-button {
         background-color: #5C5C47;
     }
@@ -435,15 +448,13 @@
     .minimal-mode .footer-content,
     .minimal-mode .top-text-container,
     .minimal-mode .scroll-toggle-button,
-    .minimal-mode .toggle-sign:not(#on-off-toggle),
+    .minimal-mode .toggle-sign,
     .minimal-mode #reminder-notifications {
         display: none !important;
     }
-    .minimal-mode #on-off-toggle {
-        background-color: #D1D5DB;
+    .minimal-mode #on-off-toggle,
+    .minimal-mode #dark-mode-toggle {
         opacity: 0.3;
-        top: 10px;
-        left: 10px;
     }
     .minimal-mode-message {
         color: #9CA3AF;
@@ -913,13 +924,15 @@
             const zoomButton = document.getElementById('zoom-button');
             const reminderButton = document.getElementById('reminder-button');
 
-            onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${
+            onOffToggle.src = `https://boardinggate.github.io/Tesla/${
                 onOffToggle.dataset.state === 'on' ? 'IMG_4192.jpg' : 'IMG_4191.jpg'
-            }" alt="Toggle On/Off" class="w-[32px] h-[32px] object-contain">`;
+            }`;
+            onOffToggle.alt = `Toggle ${onOffToggle.dataset.state === 'on' ? 'On' : 'Off'}`;
 
-            darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${
+            darkModeToggle.src = `https://boardinggate.github.io/Tesla/${
                 isDarkMode ? 'IMG_4189.jpg' : 'IMG_4190.jpg'
-            }" alt="Toggle Dark Mode" class="w-[32px] h-[32px] object-contain">`;
+            }`;
+            darkModeToggle.alt = `Toggle ${isDarkMode ? 'Oscuro' : 'Claro'}`;
 
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
             const pendingCount = reminders.length;
@@ -1096,11 +1109,12 @@
 
         const scrollToggle = document.getElementById('scroll-toggle');
 
-        const onOffToggle = document.createElement('span');
-        onOffToggle.className = 'toggle-sign';
+        const onOffToggle = document.createElement('img');
+        onOffToggle.className = 'toggle-image';
         onOffToggle.id = 'on-off-toggle';
         onOffToggle.dataset.state = 'on';
-        onOffToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4192.jpg" alt="Toggle On/Off" class="w-[32px] h-[32px] object-contain">`;
+        onOffToggle.src = `https://boardinggate.github.io/Tesla/IMG_4192.jpg`;
+        onOffToggle.alt = 'Toggle On';
         onOffToggle.style.left = `10px`;
         document.body.appendChild(onOffToggle);
 
@@ -1137,10 +1151,11 @@
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
 
-        const darkModeToggle = document.createElement('span');
-        darkModeToggle.className = 'toggle-sign';
+        const darkModeToggle = document.createElement('img');
+        darkModeToggle.className = 'toggle-image';
         darkModeToggle.id = 'dark-mode-toggle';
-        darkModeToggle.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4190.jpg" alt="Toggle Dark Mode" class="w-[32px] h-[32px] object-contain">`;
+        darkModeToggle.src = `https://boardinggate.github.io/Tesla/IMG_4190.jpg`;
+        darkModeToggle.alt = 'Toggle Claro';
         darkModeToggle.style.left = `10px`;
         document.body.appendChild(darkModeToggle);
 
@@ -1333,17 +1348,18 @@
 
         function toggleFooterVisibility() {
             const noticesContainer = document.querySelector('.notices-container');
-            const megaphoneIcon = document.querySelector('.megaphone-icon-end');
+            const noticeIcon = document.querySelector('#notice-toggle-icon');
             const footerContent = document.querySelector('.footer-content');
+            const footerChildren = footerContent.querySelectorAll(':scope > *:not(#notice-toggle-icon)');
 
             if (!isMinimalMode && isActive && isFooterVisible) {
                 noticesContainer.classList.remove('hidden');
-                megaphoneIcon.classList.remove('hidden');
-                footerContent.classList.remove('footer-hidden');
+                noticeIcon.classList.remove('full-width');
+                footerChildren.forEach(child => child.classList.remove('footer-hidden'));
             } else {
                 noticesContainer.classList.add('hidden');
-                megaphoneIcon.classList.add('hidden');
-                footerContent.classList.add('footer-hidden');
+                noticeIcon.classList.add('full-width');
+                footerChildren.forEach(child => child.classList.add('footer-hidden'));
             }
             saveSettings();
         }
@@ -1463,17 +1479,22 @@
                 const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
                 if (reminder) {
                     const index = reminders.findIndex(r => r.id === reminder.id);
-                    if (index !== -1) {
-                        reminders[index] = { id: reminder.id, text, time, repeatDays };
+                    if (index !==                     -1) {
+                        reminders[index] = { ...reminder, text, time, repeatDays };
                     }
                 } else {
-                    reminders.push({ id: Date.now(), text, time, repeatDays });
+                    const newReminder = {
+                        id: Date.now(),
+                        text,
+                        time,
+                        repeatDays
+                    };
+                    reminders.push(newReminder);
                 }
 
                 localStorage.setItem('reminders', JSON.stringify(reminders));
-                updateButtonStyles();
                 document.body.removeChild(modal);
-                checkReminders();
+                updateButtonStyles();
             });
 
             modal.querySelector('#cancel-reminder').addEventListener('click', () => {
@@ -1484,60 +1505,64 @@
         function showReminderNotification(reminder) {
             const notification = document.createElement('div');
             notification.className = 'reminder-notification';
+            notification.setAttribute('aria-label', 'Notificación de recordatorio');
             notification.innerHTML = `
-                <p>${reminder.text}${reminder.time ? ` (${reminder.time})` : ''}</p>
+                <p>${reminder.text}</p>
+                ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
+                ${reminder.repeatDays && reminder.repeatDays.length > 0 ? `
+                    <p>Repite: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}</p>
+                ` : ''}
                 <div class="button-group">
-                    <button class="cancel">Eliminar</button>
+                    <button class="cancel">Descartar</button>
                     <button class="modify">Modificar</button>
-                    <button class="postpone">Aplazar 10 min</button>
+                    <button class="postpone">Aplazar</button>
                 </div>
             `;
             document.getElementById('reminder-notifications').appendChild(notification);
 
             notification.querySelector('.cancel').addEventListener('click', () => {
+                document.getElementById('reminder-notifications').removeChild(notification);
                 let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
                 reminders = reminders.filter(r => r.id !== reminder.id);
                 localStorage.setItem('reminders', JSON.stringify(reminders));
-                notification.remove();
                 updateButtonStyles();
             });
 
             notification.querySelector('.modify').addEventListener('click', () => {
+                document.getElementById('reminder-notifications').removeChild(notification);
                 showReminderModal(reminder);
-                notification.remove();
             });
 
             notification.querySelector('.postpone').addEventListener('click', () => {
+                document.getElementById('reminder-notifications').removeChild(notification);
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + 10);
+                const newTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                 let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
                 const index = reminders.findIndex(r => r.id === reminder.id);
                 if (index !== -1) {
-                    const now = new Date();
-                    now.setMinutes(now.getMinutes() + 10);
-                    reminders[index].time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    reminders[index].time = newTime;
+                    reminders[index].repeatDays = [];
                     localStorage.setItem('reminders', JSON.stringify(reminders));
                 }
-                notification.remove();
                 updateButtonStyles();
             });
         }
 
         function showAllReminders() {
             const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            if (reminders.length === 0) {
-                alert('No hay recordatorios activos.');
-                return;
-            }
-
             const modal = document.createElement('div');
             modal.className = 'reminder-modal';
             modal.setAttribute('aria-label', 'Lista de recordatorios');
             modal.innerHTML = `
-                <h2>Recordatorios Activos</h2>
+                <h2>Recordatorios</h2>
                 <ul style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
-                    ${reminders.map(r => `
-                        <li style="padding: 0.5rem; border-bottom: 1px solid #D1D5DB;">
-                            ${r.text}${r.time ? ` (${r.time})` : ''}
-                            ${r.repeatDays && r.repeatDays.length ? ` [                            Repite: ${r.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}]` : ''}
+                    ${reminders.length === 0 ? '<li>No hay recordatorios.</li>' : reminders.map(r => `
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #D1D5DB;">
+                            ${r.text}
+                            ${r.time ? `<br>Hora: ${r.time}` : ''}
+                            ${r.repeatDays && r.repeatDays.length > 0 ? `<br>
+                            Repite: ${r.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}` : ''}
                             <button class="modify-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #10B981; color: #FFFFFF; border-radius: 0.25rem;">Modificar</button>
                             <button class="delete-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #EF4444; color: #FFFFFF; border-radius: 0.25rem;">Eliminar</button>
                         </li>
