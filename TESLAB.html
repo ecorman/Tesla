@@ -785,13 +785,14 @@
             localStorage.setItem('minimalMode', JSON.stringify(isMinimalMode));
             const toggleStates = {};
             document.querySelectorAll('.range-toggle').forEach(toggle => {
-                toggleStates[toggle.dataset.rangeStart] = toggle.dataset.state;
+                toggleStates[toggle.dataset.rangeId] = toggle.dataset.state;
             });
             localStorage.setItem('toggleStates', JSON.stringify(toggleStates));
             localStorage.setItem('zoomState', document.getElementById('zoom-button').dataset.zoomState);
             localStorage.setItem('onOffState', document.getElementById('on-off-toggle').dataset.state);
             localStorage.setItem('noticesActive', JSON.stringify(isActive));
             localStorage.setItem('footerVisible', JSON.stringify(isFooterVisible));
+            localStorage.setItem('toggleRanges', JSON.stringify(toggleRanges));
         }
 
         function loadSavedSettings() {
@@ -816,19 +817,37 @@
                 const savedOnOffState = localStorage.getItem('onOffState');
                 const savedNoticesActive = localStorage.getItem('noticesActive');
                 const savedFooterVisible = localStorage.getItem('footerVisible');
+                const savedToggleRanges = localStorage.getItem('toggleRanges');
                 const onOffToggle = document.getElementById('on-off-toggle');
+
+                if (savedToggleRanges) {
+                    const parsedRanges = JSON.parse(savedToggleRanges);
+                    parsedRanges.forEach((range, index) => {
+                        if (range.label && range.items) {
+                            toggleRanges[index] = {
+                                id: range.id,
+                                label: range.label,
+                                items: range.items,
+                                name: range.name
+                            };
+                        }
+                    });
+                    updateToggleButtons();
+                }
 
                 if (savedToggleStates) {
                     const toggleStates = JSON.parse(savedToggleStates);
                     document.querySelectorAll('.range-toggle').forEach(toggle => {
-                        const start = toggle.dataset.rangeStart;
-                        if (toggleStates[start]) {
-                            toggle.dataset.state = toggleStates[start];
-                            const label = toggleRanges.find(r => r.start == start).label;
-                            toggle.innerHTML = `<span class="sign">${toggleStates[start] === 'visible' ? '-' : '+'}</span>${label}`;
-                            for (let i = parseInt(start); i <= parseInt(toggle.dataset.rangeEnd); i++) {
-                                if (cellElements[i]) {
-                                    cellElements[i].classList.toggle('hidden', toggleStates[start] === 'hidden');
+                        const id = toggle.dataset.rangeId;
+                        if (toggleStates[id]) {
+                            toggle.dataset.state = toggleStates[id];
+                            const range = toggleRanges.find(r => r.id == id);
+                            toggle.innerHTML = `<span class="sign">${toggleStates[id] === 'visible' ? '-' : '+'}</span>${range.label}`;
+                            if (onOffToggle.dataset.state !== 'on') {
+                                for (let i of range.items) {
+                                    if (cellElements[i]) {
+                                        cellElements[i].classList.toggle('hidden', toggleStates[id] === 'hidden');
+                                    }
                                 }
                             }
                         }
@@ -837,8 +856,20 @@
 
                 if (savedOnOffState && onOffToggle) {
                     onOffToggle.dataset.state = savedOnOffState;
-                    if (savedOnOffState === 'off') {
-                        updateAllToggles('off');
+                    if (savedOnOffState === 'on') {
+                        cellElements.forEach(cell => cell.classList.remove('hidden'));
+                    } else {
+                        document.querySelectorAll('.range-toggle').forEach(toggle => {
+                            const id = toggle.dataset.rangeId;
+                            const range = toggleRanges.find(r => r.id == id);
+                            if (toggle.dataset.state === 'hidden') {
+                                for (let i of range.items) {
+                                    if (cellElements[i]) {
+                                        cellElements[i].classList.add('hidden');
+                                    }
+                                }
+                            }
+                        });
                     }
                 }
 
@@ -1001,7 +1032,7 @@
             const cacheDuration = 24 * 60 * 60 * 1000;
 
             const cachedDate = localStorage.getItem(cacheKey);
-            const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+            const cacheTimestamp = localStorage.getItem(cacheTimestampKey);
             const now = new Date().getTime();
 
             if (cachedDate && cachedTimestamp && now - cachedTimestamp < cacheDuration) {
@@ -1083,12 +1114,14 @@
             }
         }
 
-        const toggleRanges = [
-            { start: 18, end: 29, name: "ELECTROVERSE", label: "PdR,s" },
-            { start: 30, end: 41, name: "GROK", label: "iAs" },
-            { start: 42, end: 59, name: "TradingView", label: "Útil" },
-            { start: 60, end: 95, name: "JOdena", label: "Varios" }
+        const defaultToggleRanges = [
+            { id: 'range1', name: "ELECTROVERSE", label: "PdR,s", items: Array.from({length: 12}, (_, i) => 18 + i) },
+            { id: 'range2', name: "GROK", label: "iAs", items: Array.from({length: 12}, (_, i) => 30 + i) },
+            { id: 'range3', name: "TradingView", label: "Útil", items: Array.from({length: 18}, (_, i) => 42 + i) },
+            { id: 'range4', name: "JOdena", label: "Varios", items: Array.from({length: 36}, (_, i) => 60 + i) }
         ];
+
+        let toggleRanges = JSON.parse(localStorage.getItem('toggleRanges')) || defaultToggleRanges;
 
         const cellElements = [];
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
@@ -1142,17 +1175,29 @@
         onOffToggle.style.left = `10px`;
         document.body.appendChild(onOffToggle);
 
-        const toggleButtons = toggleRanges.map((range, index) => {
-            const toggle = document.createElement('span');
-            toggle.className = 'toggle-sign range-toggle';
-            toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
-            toggle.dataset.rangeStart = range.start;
-            toggle.dataset.rangeEnd = range.end;
-            toggle.dataset.state = 'visible';
-            toggle.style.left = `10px`;
-            document.body.appendChild(toggle);
-            return toggle;
-        });
+        function updateToggleButtons() {
+            document.querySelectorAll('.range-toggle').forEach(toggle => toggle.remove());
+            toggleButtons.length = 0;
+            toggleRanges.forEach((range, index) => {
+                const toggle = document.createElement('span');
+                toggle.className = 'toggle-sign range-toggle';
+                toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
+                toggle.dataset.rangeId = range.id;
+                toggle.dataset.state = 'visible';
+                toggle.style.left = `10px`;
+                document.body.appendChild(toggle);
+                toggleButtons.push(toggle);
+                toggle.addEventListener('click', () => {
+                    if (isMinimalMode) return;
+                    updateToggleState(toggle);
+                });
+            });
+            adjustButtonPositions();
+            updateButtonStyles();
+        }
+
+        const toggleButtons = [];
+        updateToggleButtons();
 
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
@@ -1215,13 +1260,65 @@
             saveSettings();
         });
 
+        function showConfigModal() {
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.setAttribute('aria-label', 'Configuración de botones de ocultación');
+            modal.innerHTML = `
+                <h2>Configurar Botones de Ocultación</h2>
+                <form id="config-form">
+                    ${toggleRanges.map((range, index) => `
+                        <div style="margin-bottom: 1rem;">
+                            <label for="label-${index}">Etiqueta (máx. 6 letras):</label>
+                            <input type="text" id="label-${index}" maxlength="6" value="${range.label}" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
+                            <label for="items-${index}">Ítems (números separados por espacio):</label>
+                            <input type="text" id="items-${index}" value="${range.items.join(' ')}" style="width: 100%; padding: 0.5rem;">
+                        </div>
+                    `).join('')}
+                    <div class="button-group">
+                        <button type="submit">Guardar</button>
+                        <button type="button" id="cancel-config">Cancelar</button>
+                    </div>
+                </form>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('#config-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newRanges = toggleRanges.map((range, index) => {
+                    const labelInput = modal.querySelector(`#label-${index}`).value.trim();
+                    const itemsInput = modal.querySelector(`#items-${index}`).value.trim();
+                    const items = itemsInput
+                        .split(' ')
+                        .map(i => parseInt(i))
+                        .filter(i => !isNaN(i) && i >= 0 && i < TOTAL_CELLS);
+                    return {
+                        id: range.id,
+                        name: range.name,
+                        label: labelInput.length > 0 ? labelInput.slice(0, 6) : range.label,
+                        items: items.length > 0 ? items : range.items
+                    };
+                });
+                toggleRanges.length = 0;
+                toggleRanges.push(...newRanges);
+                updateToggleButtons();
+                saveSettings();
+                document.body.removeChild(modal);
+            });
+
+            modal.querySelector('#cancel-config').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        }
+
         configButton.addEventListener('click', () => {
             if (isMinimalMode) return;
             if (confirm('¿Desea personalizar los botones del grid o borrar la caché?\n\nAceptar: Borrar la caché\nCancelar: Personalizar')) {
                 localStorage.clear();
                 location.reload();
+            } else {
+                showConfigModal();
             }
-            // Personalizar no hace nada por ahora
         });
 
         function clamp(min, val, max) {
@@ -1229,26 +1326,27 @@
         }
 
         function updateToggleState(toggle) {
-            const start = parseInt(toggle.dataset.rangeStart);
-            const end = parseInt(toggle.dataset.rangeEnd);
+            const id = toggle.dataset.rangeId;
+            const range = toggleRanges.find(r => r.id == id);
             const state = toggle.dataset.state;
-            const label = toggleRanges.find(r => r.start === start).label;
 
-            for (let i = start; i <= end; i++) {
-                if (cellElements[i]) {
-                    if (state === 'visible') {
-                        cellElements[i].classList.add('hidden');
-                    } else {
-                        cellElements[i].classList.remove('hidden');
+            if (document.getElementById('on-off-toggle').dataset.state !== 'on') {
+                for (let i of range.items) {
+                    if (cellElements[i]) {
+                        if (state === 'visible') {
+                            cellElements[i].classList.add('hidden');
+                        } else {
+                            cellElements[i].classList.remove('hidden');
+                        }
                     }
                 }
             }
 
             if (state === 'visible') {
-                toggle.innerHTML = `<span class="sign">+</span>${label}`;
+                toggle.innerHTML = `<span class="sign">+</span>${range.label}`;
                 toggle.dataset.state = 'hidden';
             } else {
-                toggle.innerHTML = `<span class="sign">-</span>${label}`;
+                toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
                 toggle.dataset.state = 'visible';
             }
             updateButtonStyles();
@@ -1257,8 +1355,12 @@
 
         function updateAllToggles(state) {
             toggleButtons.forEach(toggle => {
-                if (state === 'on' && toggle.dataset.state === 'hidden') {
-                    updateToggleState(toggle);
+                const id = toggle.dataset.rangeId;
+                const range = toggleRanges.find(r => r.id == id);
+                if (state === 'on') {
+                    toggle.dataset.state = 'visible';
+                    toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
+                    cellElements.forEach(cell => cell.classList.remove('hidden'));
                 } else if (state === 'off' && toggle.dataset.state === 'visible') {
                     updateToggleState(toggle);
                 }
@@ -1333,13 +1435,6 @@
             handleReminderLongPress();
         });
 
-        toggleButtons.forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                if (isMinimalMode) return;
-                updateToggleState(toggle);
-            });
-        });
-
         reloadButton.addEventListener('click', () => {
             if (isMinimalMode) return;
             location.reload();
@@ -1368,7 +1463,7 @@
 
         function adjustButtonPositions() {
             const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
-            const buttonSpacing = 58;
+            const buttonSpacing = 28; // Reduced from 58 to 28 to bring buttons 30px closer
 
             scrollToggle.style.top = `10px`;
             onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
@@ -1433,41 +1528,35 @@
 
         function parseTimeOrTimerFromText(text) {
             const timeRegex = /(\d{1,2}):(\d{2})\s*(am|pm)?/i;
-            const timerRegex = /(\d+)\s*(minutos?|mins?|m|horas?|hrs?|h)/i;
+            const timerRegex = /(\d+)\s*(minutos?|mins?|min|hora|hr|hrs)?/i;
 
-            let match = text.match(timeRegex);
-            if (match) {
-                let hours = parseInt(match[1]);
-                const minutes = match[2];
-                const period = match[3] ? match[3].toLowerCase() : null;
-
+            const timeMatch = text.match(timeRegex);
+            if (timeMatch) {
+                let [_, hours, minutes, period] = timeMatch;
+                hours = parseInt(hours);
+                minutes = parseInt(minutes);
                 if (period) {
-                    if (period === 'pm' && hours < 12) hours += 12;
+                    period = period.toLowerCase();
+                    if (period === 'pm' && hours !== 12) hours += 12;
                     if (period === 'am' && hours === 12) hours = 0;
+                } else if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                    return null;
                 }
-
-                return {
-                    time: `${hours.toString().padStart(2, '0')}:${minutes}`,
-                    isTimer: false
-                };
+                const now = new Date();
+                const target = new Date(now);
+                target.setHours(hours, minutes, 0, 0);
+                if (target <= now) {
+                    target.setDate(target.getDate() + 1);
+                }
+                return target;
             }
 
-            match = text.match(timerRegex);
-            if (match) {
-                const value = parseInt(match[1]);
-                const unit = match[2].toLowerCase();
-                let minutes = value;
-
-                if (unit.startsWith('h')) {
-                    minutes = value * 60;
-                }
-
+            const timerMatch = text.match(timerRegex);
+            if (timerMatch) {
+                const minutes = parseInt(timerMatch[1]);
+                if (minutes <= 0) return null;
                 const now = new Date();
-                now.setMinutes(now.getMinutes() + minutes);
-                return {
-                    time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`,
-                    isTimer: true
-                };
+                return new Date(now.getTime() + minutes * 60 * 1000);
             }
 
             return null;
@@ -1476,248 +1565,198 @@
         function showReminderModal(reminder = null) {
             const modal = document.createElement('div');
             modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', 'Formulario de recordatorio');
+            modal.setAttribute('aria-label', reminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio');
             modal.innerHTML = `
                 <h2>${reminder ? 'Editar' : 'Nuevo'} Recordatorio</h2>
                 <form id="reminder-form">
-                    <label for="reminder-text">Texto del recordatorio:</label>
-                    <textarea id="reminder-text" rows="3" required>${reminder ? reminder.text : ''}</textarea>
-                    <label for="reminder-time">Hora (opcional, formato HH:MM):</label>
-                    <input type="time" id="reminder-time" value="${reminder && reminder.time ? reminder.time : ''}">
-                    <label>Días de repetición:</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        ${['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((day, i) => `
-                            <label style="flex: 1 0 30%;">
-                                <input type="checkbox" name="repeat" value="${i}" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(i) ? 'checked' : ''}> ${day}
-                            </label>
-                        `).join('')}
-                    </div>
+                    <label for="reminder-title">Título:</label>
+                    <input type="text" id="reminder-title" value="${reminder ? reminder.title : ''}" required>
+                    <label for="reminder-time">Hora o Temporizador (ej. 14:30 o 10 min):</label>
+                    <input type="text" id="reminder-time" value="${reminder && reminder.time ? new Date(reminder.time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''}" required>
+                    <label for="reminder-description">Descripción:</label>
+                    <textarea id="reminder-description">${reminder ? reminder.description : ''}</textarea>
                     <div class="button-group">
-                        <button type="submit">Guardar</button>
+                        <button type="submit">${reminder ? 'Actualizar' : 'Crear'}</button>
                         <button type="button" id="cancel-reminder">Cancelar</button>
                     </div>
                 </form>
             `;
             document.body.appendChild(modal);
 
-            modal.querySelector('#reminder-form').addEventListener                ('submit', (e) => {
-                    e.preventDefault();
-                    const text = modal.querySelector('#reminder-text').value.trim();
-                    const time = modal.querySelector('#reminder-time').value;
-                    const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
+            modal.querySelector('#reminder-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const title = modal.querySelector('#reminder-title').value.trim();
+                const timeInput = modal.querySelector('#reminder-time').value.trim();
+                const description = modal.querySelector('#reminder-description').value.trim();
 
-                    if (!text) {
-                        alert('El texto del recordatorio es obligatorio.');
-                        return;
-                    }
+                const time = parseTimeOrTimerFromText(timeInput);
+                if (!time) {
+                    alert('Por favor, introduce una hora válida (ej. 14:30) o un temporizador (ej. 10 min).');
+                    return;
+                }
 
-                    let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                    let parsedTime = time || null;
-
-                    if (!parsedTime) {
-                        const timeInfo = parseTimeOrTimerFromText(text);
-                        if (timeInfo) {
-                            parsedTime = timeInfo.time;
-                            if (timeInfo.isTimer && repeatDays.length > 0) {
-                                repeatDays.length = 0;
-                            }
-                        }
-                    }
-
-                    if (reminder) {
-                        const index = reminders.findIndex(r => r.id === reminder.id);
-                        if (index !== -1) {
-                            reminders[index] = {
-                                ...reminders[index],
-                                text,
-                                time: parsedTime,
-                                repeatDays
-                            };
-                        }
-                    } else {
-                        const newReminder = {
-                            id: Date.now(),
-                            text,
-                            time: parsedTime,
-                            repeatDays
-                        };
-                        reminders.push(newReminder);
-                    }
-
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                    document.body.removeChild(modal);
-                    updateButtonStyles();
-                });
-
-                modal.querySelector('#cancel-reminder').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                });
-            }
-
-            function showReminderNotification(reminder) {
-                const notification = document.createElement('div');
-                notification.className = 'reminder-notification';
-                notification.setAttribute('aria-label', 'Notificación de recordatorio');
-                notification.innerHTML = `
-                    <p>${reminder.text}</p>
-                    ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
-                    ${reminder.repeatDays && reminder.repeatDays.length > 0 ? `
-                        <p>Repite: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}</p>
-                    ` : ''}
-                    <div class="button-group">
-                        <button class="cancel">Descartar</button>
-                        <button class="modify">Modificar</button>
-                        <button class="postpone">Aplazar</button>
-                    </div>
-                `;
-                document.getElementById('reminder-notifications').appendChild(notification);
-
-                notification.querySelector('.cancel').addEventListener('click', () => {
-                    document.getElementById('reminder-notifications').removeChild(notification);
-                    let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                    reminders = reminders.filter(r => r.id !== reminder.id);
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                    updateButtonStyles();
-                });
-
-                notification.querySelector('.modify').addEventListener('click', () => {
-                    document.getElementById('reminder-notifications').removeChild(notification);
-                    showReminderModal(reminder);
-                });
-
-                notification.querySelector('.postpone').addEventListener('click', () => {
-                    document.getElementById('reminder-notifications').removeChild(notification);
-                    const now = new Date();
-                    now.setMinutes(now.getMinutes() + 10);
-                    const newTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                    let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                if (reminder) {
                     const index = reminders.findIndex(r => r.id === reminder.id);
                     if (index !== -1) {
-                        reminders[index].time = newTime;
-                        reminders[index].repeatDays = [];
-                        localStorage.setItem('reminders', JSON.stringify(reminders));
+                        reminders[index] = { id: reminder.id, title, time: time.getTime(), description };
                     }
-                    updateButtonStyles();
-                });
-            }
-
-            function showAllReminders() {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const modal = document.createElement('div');
-                modal.className = 'reminder-modal';
-                modal.setAttribute('aria-label', 'Lista de recordatorios');
-                modal.innerHTML = `
-                    <h2>Recordatorios</h2>
-                    <ul style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
-                        ${reminders.length === 0 ? '<li>No hay recordatorios.</li>' : reminders.map(r => `
-                            <li style="padding: 0.5rem 0; border-bottom: 1px solid #D1D5DB;">
-                                ${r.text}
-                                ${r.time ? `<br>Hora: ${r.time}` : ''}
-                                ${r.repeatDays && r.repeatDays.length > 0 ? `<br>
-                                Repite: ${r.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}` : ''}
-                                <button class="modify-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #10B981; color: #FFFFFF; border-radius: 0.25rem;">Modificar</button>
-                                <button class="delete-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #EF4444; color: #FFFFFF; border-radius: 0.25rem;">Eliminar</button>
-                            </li>
-                        `).join('')}
-                    </ul>
-                    <div class="button-group">
-                        <button type="button" id="close-reminders">Cerrar</button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-
-                modal.querySelectorAll('.modify-reminder').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const id = parseInt(button.dataset.id);
-                        const reminder = reminders.find(r => r.id === id);
-                        document.body.removeChild(modal);
-                        showReminderModal(reminder);
-                    });
-                });
-
-                modal.querySelectorAll('.delete-reminder').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const id = parseInt(button.dataset.id);
-                        let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                        reminders = reminders.filter(r => r.id !== id);
-                        localStorage.setItem('reminders', JSON.stringify(reminders));
-                        document.body.removeChild(modal);
-                        updateButtonStyles();
-                        showAllReminders();
-                    });
-                });
-
-                modal.querySelector('#close-reminders').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                });
-            }
-
-            function checkReminders() {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const now = new Date();
-                const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                const currentDay = now.getDay();
-
-                reminders.forEach(reminder => {
-                    if (reminder.time && reminder.time === currentTime) {
-                        if (reminder.repeatDays && reminder.repeatDays.length > 0) {
-                            if (reminder.repeatDays.includes(currentDay)) {
-                                showReminderNotification(reminder);
-                            }
-                        } else {
-                            showReminderNotification(reminder);
-                        }
-                    }
-                });
-            }
-
-            function loadReminders() {
-                setInterval(checkReminders, 60000);
-                checkReminders();
-            }
-
-            document.getElementById('back-button').addEventListener('click', () => {
-                if (isMinimalMode) return;
-                window.history.back();
-            });
-
-            document.getElementById('forward-button').addEventListener('click', () => {
-                if (isMinimalMode) return;
-                window.history.forward();
-            });
-
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            document.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
-
-            document.addEventListener('touchend', e => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-
-            function handleSwipe() {
-                const swipeDistance = touchEndX - touchStartX;
-                const minSwipeDistance = 100;
-
-                if (swipeDistance > minSwipeDistance) {
-                    window.history.back();
-                } else if (swipeDistance < -minSwipeDistance) {
-                    window.history.forward();
+                } else {
+                    reminders.push({ id: Date.now(), title, time: time.getTime(), description });
                 }
-            }
-
-            window.addEventListener('resize', adjustButtonPositions);
-
-            document.addEventListener('DOMContentLoaded', async () => {
-                await updateVersion();
-                loadSavedSettings();
-                await loadNotices();
-                startNoticeRotation();
-                adjustButtonPositions();
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                document.body.removeChild(modal);
+                updateButtonStyles();
+                scheduleReminderNotifications();
             });
-        </script>
-    </body>
+
+            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        }
+
+        function showReminderNotification(reminder) {
+            const notification = document.createElement('div');
+            notification.className = 'reminder-notification';
+            notification.setAttribute('aria-label', `Recordatorio: ${reminder.title}`);
+            notification.innerHTML = `
+                <p>${reminder.title}</p>
+                ${reminder.description ? `<span>${reminder.description}</span>` : ''}
+                <div class="button-group">
+                    <button class="cancel">Eliminar</button>
+                    <button class="modify">Modificar</button>
+                    <button class="postpone">Aplazar 10 min</button>
+                </div>
+            `;
+            document.getElementById('reminder-notifications').appendChild(notification);
+
+            notification.querySelector('.cancel').addEventListener('click', () => {
+                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                reminders = reminders.filter(r => r.id !== reminder.id);
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                notification.remove();
+                updateButtonStyles();
+            });
+
+            notification.querySelector('.modify').addEventListener('click', () => {
+                notification.remove();
+                showReminderModal(reminder);
+            });
+
+            notification.querySelector('.postpone').addEventListener('click', () => {
+                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                const index = reminders.findIndex(r => r.id === reminder.id);
+                if (index !== -1) {
+                    reminders[index].time = new Date(reminders[index].time).getTime() + 10 * 60 * 1000;
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                }
+                notification.remove();
+                updateButtonStyles();
+                scheduleReminderNotifications();
+            });
+
+            setTimeout(() => {
+                if (notification.isConnected) {
+                    notification.remove();
+                }
+            }, 30000);
+        }
+
+        function scheduleReminderNotifications() {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders.forEach(reminder => {
+                const time = new Date(reminder.time);
+                const now = new Date();
+                if (time > now) {
+                    setTimeout(() => {
+                        showReminderNotification(reminder);
+                    }, time - now);
+                } else if (time <= now && now - time < 60 * 1000) {
+                    showReminderNotification(reminder);
+                }
+            });
+        }
+
+        function showAllReminders() {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.setAttribute('aria-label', 'Lista de Recordatorios');
+            modal.innerHTML = `
+                <h2>Recordatorios</h2>
+                <div style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
+                    ${
+                        reminders.length === 0
+                            ? '<p>No hay recordatorios.</p>'
+                            : reminders.map(rem => `
+                                <div style="border-bottom: 1px solid #D1D5DB; padding: 0.5rem 0;">
+                                    <p><strong>${rem.title}</strong></p>
+                                    <p>Hora: ${new Date(rem.time).toLocaleString('es-ES')}</p>
+                                    ${rem.description ? `<p>${rem.description}</p>` : ''}
+                                    <button class="edit-reminder" data-id="${rem.id}" style="margin-right: 0.5rem;">Editar</button>
+                                    <button class="delete-reminder" data-id="${rem.id}">Eliminar</button>
+                                </div>
+                            `).join('')
+                    }
+                </div>
+                <div class="button-group">
+                    <button id="close-reminders">Cerrar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelectorAll('.edit-reminder').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = parseInt(button.dataset.id);
+                    const reminder = reminders.find(r => r.id === id);
+                    document.body.removeChild(modal);
+                    showReminderModal(reminder);
+                });
+            });
+
+            modal.querySelectorAll('.delete-reminder').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = parseInt(button.dataset.id);
+                    let updatedReminders = reminders.filter(r => r.id !== id);
+                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                    document.body.removeChild(modal);
+                    updateButtonStyles();
+                    showAllReminders();
+                });
+            });
+
+            modal.querySelector('#close-reminders').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        }
+
+        function loadReminders() {
+            scheduleReminderNotifications();
+            updateButtonStyles();
+        }
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            if (isMinimalMode) return;
+            window.history.back();
+        });
+
+        document.getElementById('forward-button').addEventListener('click', () => {
+            if (isMinimalMode) return;
+            window.history.forward();
+        });
+
+        window.addEventListener('resize', adjustButtonPositions);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNotices().then(() => {
+                startNoticeRotation();
+                updateNotice();
+            });
+            loadSavedSettings();
+            updateVersion();
+            adjustButtonPositions();
+        });
+    </script>
+</body>
 </html>
+            
