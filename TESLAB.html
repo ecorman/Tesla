@@ -298,4 +298,362 @@
         height: 1.5rem;
         flex-grow: 1;
         overflow: hidden;
-        position
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .notice {
+        color: #00ff00;
+        font-weight: bold;
+        white-space: nowrap;
+        text-align: center;
+        opacity: 0;
+        animation: fadeInOut 14s infinite;
+    }
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    .notice-off-icon {
+        width: auto;  
+        height: clamp(2rem, 5vw, 3rem);
+        margin-right: 10px;
+        align-self: center;
+        cursor: pointer;
+        transition: filter 0.3s ease;
+    }
+    body.dark-mode .notice-off-icon {
+        filter: brightness(85%);
+    }
+    .toggle-sign {
+        position: fixed;
+        width: 91px;
+        height: 54px;
+        border-radius: 20px;
+        background-color: #668B8B;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.25rem;
+        color: #E6E6DC;
+        text-align: center;
+        cursor: pointer;
+        z-index: 1000;
+        transition: background-color 0.2s ease, filter 0.2s ease;
+        left: 10px;
+    }
+    .toggle-sign .sign {
+        font-size: 1.5rem;
+        margin-right: 2px;
+    }
+    .toggle-sign:hover {
+        background-color: #D9A066;
+    }
+    .toggle-sign img {
+        max-width: 80px;
+        max-height: 48px;
+        object-fit: contain;
+    }
+    body.dark-mode .toggle-sign#config-button {
+        filter: brightness(85%);
+    }
+    body.dark-mode .toggle-sign#config-button img {
+        filter: brightness(85%);
+    }
+    .toggle-image {
+        position: fixed;
+        width: 91px;
+        height: 54px;
+        cursor: pointer;
+        z-index: 1000;
+        transition: filter 0.2s ease;
+    }
+    .toggle-image:hover {
+        filter: brightness(80%);
+    }
+    body.dark-mode .toggle-image#on-off-toggle {
+        filter: brightness(85%);
+    }
+    #reminder-button {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        background-color: #668B8B;
+    }
+    #reminder-button img {
+        max-width: 80px;
+        max-height: 48px;
+        object-fit: contain;
+    }
+    #reminder-button .reminder-count {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        font-size: 0.65rem;
+        color: #5C5C47;
+        font-weight: bold;
+    }
+    .hidden {
+        display: none;
+    }
+    .footer-hidden {
+        display: none;
+    }
+    body.dark-mode .bookmark-item {
+        filter: brightness(60%);
+    }
+    body.dark-mode .bg-gray-50.border.border-dashed.border-gray-200.rounded-lg {
+        filter: brightness(60%);
+    }
+    body.dark-mode .scroll-toggle-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode .scroll-toggle-button:hover {
+        background-color: #D9A066;
+    }
+    body.dark-mode .toggle-sign {
+        background-color: #5C5C47;
+    }
+    body.dark-mode .toggle-sign:hover {
+        background-color: #D9A066;
+    }
+    body.dark-mode .toggle-sign.range-toggle[data-state="visible"] {
+        background-color: #668B8B;
+    }
+    body.dark-mode .toggle-sign.range-toggle[data-state="hidden"] {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #reload-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #home-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #weather-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #zoom-button:not(.zoomed) {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #zoom-button.zoomed {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #reminder-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #config-button {
+        background-color: #92927E;
+    }
+    .minimal-mode {
+        background-color: #ABAB99;
+    }
+    body.dark-mode.minimal-mode {
+        background-color: #92927E;
+    }
+    .minimal-mode main,
+    .minimal-mode .notices-container,
+    .minimal-mode .footer-content,
+    .minimal-mode .top-text-container,
+    .minimal-mode .scroll-toggle-button,
+    .minimal-mode .toggle-sign,
+    .minimal-mode #reminder-notifications,
+    .minimal-mode .counter-wrapper,
+    .minimal-mode .notice-off-icon {
+        display: none !important;
+    }
+    .minimal-mode #dark-mode-toggle,
+    .minimal-mode .header-container,
+    .minimal-mode .header-logo {
+        display: none !important;
+    }
+    .minimal-mode #on-off-toggle {
+        filter: none;
+        opacity: 0.3;
+    }
+    .minimal-mode-message {
+        color: #000000;
+        font-size: 1rem;
+        font-weight: bold;
+        position: fixed;
+        top: 70px;
+        left: 10px;
+        z-index: 1000;
+    }
+    .reminder-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #F3F4F6;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 2000;
+        max-width: 400px;
+        width: 90%;
+    }
+    .reminder-modal h2 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .reminder-modal label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .reminder-modal input,
+    .reminder-modal textarea {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.25rem;
+    }
+    .reminder-modal .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    .reminder-modal button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .reminder-modal button[type="submit"] {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    .reminder-modal button[type="button"] {
+        background-color: #D1D5DB;
+        color: #111827;
+    }
+    #reminder-notifications {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1500;
+        max-width: 300px;
+        width: 90%;
+    }
+    .reminder-notification {
+        background-color: #FFFF99;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .reminder-notification p {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #0000FF;
+    }
+    .reminder-notification .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    .reminder-notification button {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    .reminder-notification button.cancel {
+        background-color: #EF4444;
+        color: #FFFFFF;
+    }
+    .reminder-notification button.modify {
+        background-color: #10B981;
+        color: #FFFFFF;
+    }
+    .reminder-notification button.postpone {
+        background-color: #F59E0B;
+        color: #FFFFFF;
+    }
+    .counter-wrapper {
+        margin: 0.5rem auto 0 60px;
+        text-align: center;
+        max-width: 984px;
+        width: 100%;
+        display: block;
+        opacity: 0.5;
+    }
+</style>
+</head>
+<body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
+    <div class="top-text-container">
+        <div class="arrow-button" id="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </div>
+        <span>[ Web anterior o posterior arrastre hacia los bordes ]</span>
+        <div class="arrow-button" id="forward-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+    </div>
+
+    <main>
+        <div id="bookmark-grid">
+            <!-- Grid populated by JavaScript -->
+        </div>
+    </main>
+
+    <div class="notices-icon-container">
+        <img src="https://boardinggate.github.io/Tesla/IMG_4194.jpg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon">
+        <div class="notices-container">
+            <div class="notice-wrapper">
+                <span class="notice" id="current-notice"></span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="header-container">
+                <img src="https://boardinggate.github.io/Tesla/LOGOTESLA.jpg" class="header-logo">
+                <div class="title-container">
+                    <h1 class="text-2xl font-bold inline">
+                        <span class="text-2xl">BoardingGate</span>
+                        <span class="text-base">Lanzador</span>
+                        <span id="version" class="version-text"></span>
+                    </h1>
+                </div>
+            </div>
+            <div class="footer-line">
+                <a href="https://x.com/boardinggate?s=21" class="footer-link-green" target="_blank" rel="noopener noreferrer">@BoardingGate</a>
+                <span class="text-green-200" style="font-size: 1.5rem;">🤝</span>
+                <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
+            </div>
+            <p class="footer-subtext">La inteligencia tiene ciertas limitaciones. La locura, casi ninguna 🫶 🤟</p>
+        </div>
+    </footer>
+
+    <div class="counter-wrapper">
+        <div class="counter-container">
+            <div id="sfcg896pbr68y2dejczgbn1ys664xjxdf2d"></div>
+            <script type="text/javascript" src="https://counter4.optistats.ovh/private/counter.js?c=g896pbr68y2dejczgbn1ys664xjxdf2d&down=async" async></script>
+        </div>
+    </div>
+
+    <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+    </div>
+
+    <div id="reminder-notifications"></div>
+
+    <script>
+        const bookmarks = [
+            { name: "YouTube", url: "https://www.youtube.com" },
+            { name: "Google", url: "https://www.google.com" },
+            { name: "GDrive", url: "https://drive.google.com", favicon: "./IMG_417
+    
