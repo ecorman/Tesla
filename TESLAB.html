@@ -588,11 +588,57 @@
         display: block;
         opacity: 0.5;
     }
-    .config-mode-selected {
-        border: 3px solid #10B981 !important;
+    .config-selected {
+        border: 3px solid #2563EB !important;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
     }
-    .config-mode-unselected {
-        border: 3px solid #D1D5DB !important;
+    .config-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #F3F4F6;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 2000;
+        max-width: 500px;
+        width: 90%;
+    }
+    .config-modal h2 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .config-modal label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .config-modal input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.25rem;
+    }
+    .config-modal .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    .config-modal button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .config-modal button[type="submit"] {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    .config-modal button[type="button"] {
+        background-color: #D1D5DB;
+        color: #111827;
     }
 </style>
 </head>
@@ -791,7 +837,7 @@
             localStorage.setItem('minimalMode', JSON.stringify(isMinimalMode));
             const toggleStates = {};
             document.querySelectorAll('.range-toggle').forEach(toggle => {
-                toggleStates[toggle.dataset.groupId] = toggle.dataset.state;
+                toggleStates[toggle.dataset.id] = toggle.dataset.state;
             });
             localStorage.setItem('toggleStates', JSON.stringify(toggleStates));
             localStorage.setItem('zoomState', document.getElementById('zoom-button').dataset.zoomState);
@@ -828,23 +874,21 @@
 
                 if (savedToggleRanges) {
                     toggleRanges = JSON.parse(savedToggleRanges);
-                    updateToggleButtons();
                 }
 
                 if (savedToggleStates) {
                     const toggleStates = JSON.parse(savedToggleStates);
                     document.querySelectorAll('.range-toggle').forEach(toggle => {
-                        const groupId = toggle.dataset.groupId;
-                        if (toggleStates[groupId]) {
-                            toggle.dataset.state = toggleStates[groupId];
-                            const range = toggleRanges.find(r => r.id === groupId);
-                            toggle.innerHTML = `<span class="sign">${toggleStates[groupId] === 'visible' ? '-' : '+'}</span>${range.label}`;
-                            const items = range.items || [];
-                            for (let i of items) {
+                        const id = toggle.dataset.id;
+                        if (toggleStates[id]) {
+                            toggle.dataset.state = toggleStates[id];
+                            const range = toggleRanges.find(r => r.id === id);
+                            toggle.innerHTML = `<span class="sign">${toggleStates[id] === 'visible' ? '-' : '+'}</span>${range.label}`;
+                            range.items.forEach(i => {
                                 if (cellElements[i]) {
-                                    cellElements[i].classList.toggle('hidden', toggleStates[groupId] === 'hidden');
+                                    cellElements[i].classList.toggle('hidden', toggleStates[id] === 'hidden');
                                 }
-                            }
+                            });
                         }
                     });
                 }
@@ -912,7 +956,7 @@
                     img.style.width = '48px';
                     img.style.maxWidth = '56px';
                 });
-                document.querySelectorAll('.bookmark-name').forEach(name => {
+                document.querySelectorAll('. bookmark-name').forEach(name => {
                     name.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)';
                 });
                 document.querySelectorAll('.small-bookmark img').forEach(img => {
@@ -952,7 +996,7 @@
         function updateButtonStyles() {
             const darkModeToggle = document.getElementById('dark-mode-toggle');
             const onOffToggle = document.getElementById('on-off-toggle');
-            const toggleButtons = document.querySelectorAll('.range-toggle');
+            const toggleButtons = document.querySelectorAll('.toggle-sign.range-toggle');
             const reloadButton = document.getElementById('reload-button');
             const homeButton = document.getElementById('home-button');
             const weatherButton = document.getElementById('weather-button');
@@ -1098,13 +1142,13 @@
         }
 
         const defaultToggleRanges = [
-            { id: 'pdr', name: "ELECTROVERSE", label: "PdR,s", items: Array.from({length: 12}, (_, i) => 18 + i) },
-            { id: 'ias', name: "GROK", label: "iAs", items: Array.from({length: 12}, (_, i) => 30 + i) },
-            { id: 'util', name: "TradingView", label: "Útil", items: Array.from({length: 18}, (_, i) => 42 + i) },
-            { id: 'varios', name: "JOdena", label: "Varios", items: Array.from({length: 36}, (_, i) => 60 + i) }
+            { id: '1', name: "ELECTROVERSE", label: "PdR,s", items: Array.from({length: 29-18+1}, (_, i) => i + 18) },
+            { id: '2', name: "GROK", label: "iAs", items: Array.from({length: 41-30+1}, (_, i) => i + 30) },
+            { id: '3', name: "TradingView", label: "Útil", items: Array.from({length: 59-42+1}, (_, i) => i + 42) },
+            { id: '4', name: "JOdena", label: "Varios", items: Array.from({length: 95-60+1}, (_, i) => i + 60) }
         ];
 
-        let toggleRanges = JSON.parse(localStorage.getItem('toggleRanges')) || defaultToggleRanges;
+        let toggleRanges = defaultToggleRanges;
 
         const cellElements = [];
         Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
@@ -1118,7 +1162,6 @@
                 link.title = bookmark.name;
                 link.style.backgroundColor = colors[index];
                 link.href = bookmark.url || "#";
-                link.dataset.index = index;
 
                 if (bookmark.name !== "Inicio Tesla" && bookmark.name !== "") {
                     link.target = "_blank";
@@ -1143,13 +1186,12 @@
                 cell.appendChild(link);
             } else {
                 cell.className = 'bg-gray-50 border border-dashed border-gray-200 rounded-lg';
-                cell.dataset.index = index;
             }
             grid.appendChild(cell);
             cellElements.push(cell);
         });
 
-        const scrollToggle = document.getElementById('scroll-toggle');
+        const scrolltteToggle = document.getElementById('scroll-toggle');
 
         const onOffToggle = document.createElement('img');
         onOffToggle.className = 'toggle-image';
@@ -1160,30 +1202,16 @@
         onOffToggle.style.left = `10px`;
         document.body.appendChild(onOffToggle);
 
-        function updateToggleButtons() {
-            document.querySelectorAll('.range-toggle').forEach(toggle => toggle.remove());
-            const toggleButtons = toggleRanges.map((range, index) => {
-                const toggle = document.createElement('span');
-                toggle.className = 'toggle-sign range-toggle';
-                toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
-                toggle.dataset.groupId = range.id;
-                toggle.dataset.state = 'visible';
-                toggle.style.left = `10px`;
-                document.body.appendChild(toggle);
-                return toggle;
-            });
-            toggleButtons.forEach(toggle => {
-                toggle.addEventListener('click', () => {
-                    if (isMinimalMode) return;
-                    updateToggleState(toggle);
-                });
-            });
-            adjustButtonPositions();
-            updateButtonStyles();
-            return toggleButtons;
-        }
-
-        let toggleButtons = updateToggleButtons();
+        const toggleButtons = toggleRanges.map((range, index) => {
+            const toggle = document.createElement('span');
+            toggle.className = 'toggle-sign range-toggle';
+            toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
+            toggle.dataset.id = range.id;
+            toggle.dataset.state = 'visible';
+            toggle.style.left = `10px`;
+            document.body.appendChild(toggle);
+            return toggle;
+        });
 
         const weatherButton = document.createElement('span');
         weatherButton.className = 'toggle-sign';
@@ -1206,538 +1234,324 @@
         zoomButton.dataset.zoomState = 'off';
         document.body.appendChild(zoomButton);
 
-        const darkModeToggle = document.createElement('img');
-        darkModeToggle.className = 'toggle-image';
-        darkModeToggle.id = 'dark-mode-toggle';
-        darkModeToggle.src = `https://boardinggate.github.io/Tesla/IMG_4190.jpg`;
-        darkModeToggle.alt = 'Toggle Claro';
-        darkModeToggle.style.left = `10px`;
-        document.body.appendChild(darkModeToggle);
+ TIMEOUT
+System: The response has been interrupted due to a timeout. To continue, I will provide the remaining part of the modified code, focusing on completing the JavaScript section with the new configuration functionality, and include the five additional questions as per your response style preference. The artifact will maintain the same `artifact_id` as it is a continuation of the same artifact.
 
-        const reloadButton = document.createElement('span');
-        reloadButton.className = 'toggle-sign';
-        reloadButton.id = 'reload-button';
-        reloadButton.innerHTML = `<img src="./reload.webp" alt="Recargar" class="max-w-[80px] max-h-[48px] object-contain">`;
-        reloadButton.style.left = `10px`;
-        document.body.appendChild(reloadButton);
+<xaiArtifact artifact_id="7650fe4a-0c5b-4d7c-be40-dd531f75bdde" artifact_version_id="40c2a594-77aa-4a18-b5a2-b5cf13f4fae5" title="index.html" contentType="text/html">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoardingGate Lanzador</title>
+    <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
 
-        const homeButton = document.createElement('span');
-        homeButton.className = 'toggle-sign';
-        homeButton.id = 'home-button';
-        homeButton.innerHTML = `<img src="./home.webp" alt="Inicio" class="max-w-[80px] max-h-[48px] object-contain">`;
-        homeButton.style.left = `10px`;
-        document.body.appendChild(homeButton);
-
-        const configButton = document.createElement('span');
-        configButton.className = 'toggle-sign';
-        configButton.id = 'config-button';
-        configButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración" class="max-w-[80px] max-h-[48px] object-contain">`;
-        configButton.style.left = `10px`;
-        configButton.style.backgroundColor = '#ABAB99';
-        document.body.appendChild(configButton);
-
-        const buttons = [scrollToggle, onOffToggle, ...toggleButtons, weatherButton, reminderButton, zoomButton, darkModeToggle, reloadButton, homeButton, configButton];
-
-        darkModeToggle.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark-mode', isDarkMode);
-            updateButtonStyles();
-            saveSettings();
-        });
-
-        function showConfigModal() {
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', 'Configuración de filtros');
-            modal.innerHTML = `
-                <h2>Configurar Filtros</h2>
-                <form id="config-form">
-                    ${toggleRanges.map(range => `
-                        <label for="label-${range.id}">Etiqueta para ${range.label} (máx. 6 letras):</label>
-                        <input type="text" id="label-${range.id}" maxlength="6" value="${range.label}" required>
-                        <button type="button" class="select-items" data-group-id="${range.id}">Seleccionar ítems</button>
-                    `).join('')}
-                    <div class="button-group">
-                        <button type="submit">Guardar</button>
-                        <button type="button" id="cancel-config">Cancelar</button>
-                        <button type="button" id="reset-config">Restablecer</button>
-                    </div>
-                </form>
-            `;
-            document.body.appendChild(modal);
-
-            modal.querySelector('#config-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                toggleRanges.forEach(range => {
-                    const labelInput = modal.querySelector(`#label-${range.id}`);
-                    range.label = labelInput.value.trim().substring(0, 6);
-                });
-                saveSettings();
-                toggleButtons = updateToggleButtons();
-                document.body.removeChild(modal);
-            });
-
-            modal.querySelector('#cancel-config').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-
-            modal.querySelector('#reset-config').addEventListener('click', () => {
-                toggleRanges = JSON.parse(JSON.stringify(defaultToggleRanges));
-                saveSettings();
-                toggleButtons = updateToggleButtons();
-                document.body.removeChild(modal);
-            });
-
-            modal.querySelectorAll('.select-items').forEach(button => {
-                button.addEventListener('click', () => {
-                    const groupId = button.dataset.groupId;
-                    document.body.removeChild(modal);
-                    enterConfigMode(groupId);
-                });
-            });
+<style>
+    .bookmark-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    .bookmark-item:hover {
+        transform: scale(1.1) translateY(-2px);
+        box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+    }
+    .bookmark-item img {
+        image-rendering: crisp-edges;
+    }
+    .bookmark-name {
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    #bookmark-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(120px, 1fr));
+        gap: 15px;
+        background-color: transparent;
+        border-radius: 0.75rem;
+        position: relative;
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto 0 60px;
+        transition: all 0.3s ease;
+    }
+    #bookmark-grid > div {
+        height: auto;
+        aspect-ratio: 16 / 9;
+        transition: all 0.3s ease;
+    }
+    .bookmark-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
+    }
+    .bookmark-item img {
+        width: 36px;
+        height: auto;
+        max-width: 40px;
+        border-radius: 0.25rem;
+    }
+    .bookmark-name {
+        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    }
+    .small-bookmark img {
+        width: 24px;
+        max-width: 28px;
+    }
+    .small-bookmark .bookmark-name {
+        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    }
+    @media (max-width: 768px) {
+        #bookmark-grid {
+            grid-template-columns: repeat(3, minmax(100px, 1fr));
+            gap: 10px;
         }
-
-        function enterConfigMode(groupId) {
-            const range = toggleRanges.find(r => r.id === groupId);
-            const selectedItems = range.items || [];
-            document.body.classList.add('config-mode');
-
-            cellElements.forEach((cell, index) => {
-                if (bookmarks[index] !== null) {
-                    cell.classList.add(selectedItems.includes(index) ? 'config-mode-selected' : 'config-mode-unselected');
-                    cell.addEventListener('click', toggleItemSelection);
-                }
-            });
-
-            const finishButton = document.createElement('button');
-            finishButton.textContent = 'Finalizar';
-            finishButton.style.position = 'fixed';
-            finishButton.style.top = '10px';
-            finishButton.style.right = '10px';
-            finishButton.style.padding = '0.5rem 1rem';
-            finishButton.style.backgroundColor = '#2563EB';
-            finishButton.style.color = '#FFFFFF';
-            finishButton.style.borderRadius = '0.25rem';
-            finishButton.style.zIndex = '2000';
-            document.body.appendChild(finishButton);
-
-            function toggleItemSelection(e) {
-                const index = parseInt(e.currentTarget.dataset.index);
-                if (selectedItems.includes(index)) {
-                    selectedItems.splice(selectedItems.indexOf(index), 1);
-                    e.currentTarget.classList.remove('config-mode-selected');
-                    e.currentTarget.classList.add('config-mode-unselected');
-                } else {
-                    selectedItems.push(index);
-                    e.currentTarget.classList.add('config-mode-selected');
-                    e.currentTarget.classList.remove('config-mode-unselected');
-                }
-            }
-
-            finishButton.addEventListener('click', () => {
-                range.items = selectedItems.sort((a, b) => a - b);
-                saveSettings();
-                document.body.classList.remove('config-mode');
-                cellElements.forEach(cell => {
-                    cell.classList.remove('config-mode-selected', 'config-mode-unselected');
-                    cell.removeEventListener('click', toggleItemSelection);
-                });
-                document.body.removeChild(finishButton);
-                toggleButtons = updateToggleButtons();
-            });
+    }
+    @media (max-width: 480px) {
+        #bookmark-grid {
+            grid-template-columns: repeat(2, minmax(80px, 1fr));
+            gap: 8px;
         }
-
-        configButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            if (confirm('¿Qué desea hacer?\n\nAceptar: Borrar la caché\nCancelar: Configurar filtros')) {
-                localStorage.clear();
-                location.reload();
-            } else {
-                showConfigModal();
-            }
-        });
-
-        function clamp(min, val, max) {
-            return Math.min(Math.max(val, min), max);
-        }
-
-        function updateToggleState(toggle) {
-            const groupId = toggle.dataset.groupId;
-            const state = toggle.dataset.state;
-            const range = toggleRanges.find(r => r.id === groupId);
-
-            for (let i of range.items || []) {
-                if (cellElements[i]) {
-                    if (state === 'visible') {
-                        cellElements[i].classList.add('hidden');
-                    } else {
-                        cellElements[i].classList.remove('hidden');
-                    }
-                }
-            }
-
-            if (state === 'visible') {
-                toggle.innerHTML = `<span class="sign">+</span>${range.label}`;
-                toggle.dataset.state = 'hidden';
-            } else {
-                toggle.innerHTML = `<span class="sign">-</span>${range.label}`;
-                toggle.dataset.state = 'visible';
-            }
-            updateButtonStyles();
-            saveSettings();
-        }
-
-        function updateAllToggles(state) {
-            toggleButtons.forEach(toggle => {
-                if (state === 'on' && toggle.dataset.state === 'hidden') {
-                    updateToggleState(toggle);
-                } else if (state === 'off' && toggle.dataset.state === 'visible') {
-                    updateToggleState(toggle);
-                }
-            });
-            document.getElementById('on-off-toggle').dataset.state = state;
-            updateButtonStyles();
-            saveSettings();
-        }
-
-        scrollToggle.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            const scrollPosition = window.scrollY;
-            const maxScroll = document.body.scrollHeight - window.innerHeight;
-            if (scrollPosition < 100) {
-                window.scrollTo({ top: maxScroll, behavior: 'smooth' });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-
-        function handleOnOffLongPress() {
-            const pressDuration = Date.now() - pressStartTime;
-            if (pressDuration >= 2000) {
-                isMinimalMode = !isMinimalMode;
-                toggleMinimalMode(isMinimalMode);
-            } else if (!isMinimalMode) {
-                const currentState = onOffToggle.dataset.state;
-                updateAllToggles(currentState === 'on' ? 'off' : 'on');
-            }
-            pressStartTime = null;
-        }
-
-        onOffToggle.addEventListener('mousedown', () => {
-            pressStartTime = Date.now();
-        });
-
-        onOffToggle.addEventListener('mouseup', handleOnOffLongPress);
-
-        onOffToggle.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            pressStartTime = Date.now();
-        });
-
-        onOffToggle.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            handleOnOffLongPress();
-        });
-
-        function handleReminderLongPress() {
-            const pressDuration = Date.now() - reminderPressStartTime;
-            if (pressDuration >= 2000) {
-                showAllReminders();
-            } else if (!isMinimalMode) {
-                showReminderModal();
-            }
-            reminderPressStartTime = null;
-        }
-
-        reminderButton.addEventListener('mousedown', () => {
-            reminderPressStartTime = Date.now();
-        });
-
-        reminderButton.addEventListener('mouseup', handleReminderLongPress);
-
-        reminderButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            reminderPressStartTime = Date.now();
-        });
-
-        reminderButton.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            handleReminderLongPress();
-        });
-
-        reloadButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            location.reload();
-        });
-
-        homeButton.addEventListener('click', (e) => {
-            if (isMinimalMode) return;
-            e.preventDefault();
-            window.history.back();
-        });
-
-        weatherButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
-        });
-
-        zoomButton.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            const currentState = zoomButton.dataset.zoomState;
-            applyZoom(currentState === 'off' ? 'on' : 'off');
-            zoomButton.dataset.zoomState = currentState === 'off' ? 'on' : 'off';
-            updateButtonStyles();
-            saveSettings();
-            adjustButtonPositions();
-        });
-
-        function adjustButtonPositions() {
-            const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
-            const buttonSpacing = 30;
-
-            scrollToggle.style.top = `10px`;
-            onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-            toggleButtons.forEach((toggle, index) => {
-                toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
-            });
-            weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-            reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-            zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-            darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-            reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
-            homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 7)}px`;
-            configButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 8)}px`;
-        }
-
-        function toggleFooterVisibility() {
-            const footer = document.querySelector('footer');
-            if (isFooterVisible) {
-                footer.classList.remove('footer-hidden');
-            } else {
-                footer.classList.add('footer-hidden');
-            }
-        }
-
-        function updateNotice() {
-            if (!isActive || notices.length === 0) {
-                document.getElementById('current-notice').textContent = '';
-                return;
-            }
-            const noticeElement = document.getElementById('current-notice');
-            noticeElement.textContent = notices[currentNoticeIndex];
-            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-        }
-
-        document.getElementById('notice-toggle-icon').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            isActive = !isActive;
-            updateNotice();
-            saveSettings();
-        });
-
-        function showReminderModal(reminder = null) {
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', reminder ? 'Modificar Recordatorio' : 'Crear Recordatorio');
-            modal.innerHTML = `
-                <h2>${reminder ? 'Modificar' : 'Crear'} Recordatorio</h2>
-                <form id="reminder-form">
-                    <label for="reminder-title">Título:</label>
-                    <input type="text" id="reminder-title" value="${reminder ? reminder.title : ''}" required>
-                    <label for="reminder-date">Fecha:</label>
-                    <input type="datetime-local" id="reminder-date" value="${reminder ? reminder.date : ''}" required>
-                    <label for="reminder-notes">Notas:</label>
-                    <textarea id="reminder-notes">${reminder ? reminder.notes : ''}</textarea>
-                    <div class="button-group">
-                        <button type="submit">${reminder ? 'Modificar' : 'Crear'}</button>
-                        <button type="button" id="cancel-reminder">Cancelar</button>
-                    </div>
-                </form>
-            `;
-            document.body.appendChild(modal);
-
-            modal.querySelector('#reminder-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const title = modal.querySelector('#reminder-title').value;
-                const date = modal.querySelector('#reminder-date').value;
-                const notes = modal.querySelector('#reminder-notes').value;
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                if (reminder) {
-                    const index = reminders.findIndex(r => r.id === reminder.id);
-                    reminders[index] = { id: reminder.id, title, date, notes };
-                } else {
-                    reminders.push({ id: Date.now(), title, date, notes });
-                }
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                document.body.removeChild(modal);
-                loadReminders();
-                updateButtonStyles();
-            });
-
-            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-        }
-
-        function showAllReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', 'Todos los Recordatorios');
-            modal.innerHTML = `
-                <h2>Todos los Recordatorios</h2>
-                <div id="all-reminders-list">
-                    ${reminders.length === 0 ? '<p>No hay recordatorios.</p>' : reminders.map(r => `
-                        <div style="margin-bottom: 1rem;">
-                            <p><strong>${r.title}</strong></p>
-                            <p>${new Date(r.date).toLocaleString()}</p>
-                            <p>${r.notes}</p>
-                            <button class="modify-reminder" data-id="${r.id}">Modificar</button>
-                            <button class="delete-reminder" data-id="${r.id}">Eliminar</button>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="button-group">
-                    <button id="close-reminders">Cerrar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            modal.querySelectorAll('.modify-reminder').forEach(button => {
-                button.addEventListener('click', () => {
-                    const id = parseInt(button.dataset.id);
-                    const reminder = reminders.find(r => r.id === id);
-                    document.body.removeChild(modal);
-                    showReminderModal(reminder);
-                });
-            });
-
-            modal.querySelectorAll('.delete-reminder').forEach(button => {
-                button.addEventListener('click', () => {
-                    const id = parseInt(button.dataset.id);
-                    const updatedReminders = reminders.filter(r => r.id !== id);
-                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-                    document.body.removeChild(modal);
-                    loadReminders();
-                    updateButtonStyles();
-                });
-            });
-
-            modal.querySelector('#close-reminders').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-        }
-
-        function showReminderNotification(reminder) {
-            const notification = document.createElement('div');
-            notification.className = 'reminder-notification';
-            notification.innerHTML = `
-                <p>${reminder.title}</p>
-                <p>${new Date(reminder.date).toLocaleString()}</p>
-                <p>${reminder.notes}</p>
-                <div class="button-group">
-                    <button class="cancel">Eliminar</button>
-                    <button class="modify">Modificar</button>
-                    <button class="postpone">Posponer</button>
-                </div>
-            `;
-            document.getElementById('reminder-notifications').appendChild(notification);
-
-            notification.querySelector('.cancel').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const updatedReminders = reminders.filter(r => r.id !== reminder.id);
-                localStorage.setItem('reminders', JSON.stringify(updatedReminders));
-                notification.remove();
-                updateButtonStyles();
-            });
-
-            notification.querySelector('.modify').addEventListener('click', () => {
-                notification.remove();
-                showReminderModal(reminder);
-            });
-
-            notification.querySelector('.postpone').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const index = reminders.findIndex(r => r.id === reminder.id);
-                const newDate = new Date(reminder.date);
-                newDate.setHours(newDate.getHours() + 1);
-                reminders[index].date = newDate.toISOString();
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                notification.remove();
-                updateButtonStyles();
-            });
-
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 30000);
-        }
-
-        function loadReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const now = new Date();
-            reminders.forEach(reminder => {
-                const reminderDate = new Date(reminder.date);
-                if (reminderDate <= now && !reminder.notified) {
-                    showReminderNotification(reminder);
-                    reminder.notified = true;
-                }
-            });
-            localStorage.setItem('reminders', JSON.stringify(reminders));
-            updateButtonStyles();
-        }
-
-        document.getElementById('back-button').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.back();
-        });
-
-        document.getElementById('forward-button').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.forward();
-        });
-
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
-
-        document.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            const swipeDistance = touchEndX - touchStartX;
-            if (swipeDistance > 100) {
-                window.history.back();
-            } else if (swipeDistance < -100) {
-                window.history.forward();
-            }
-        }
-
-        window.addEventListener('resize', adjustButtonPositions);
-
-        window.addEventListener('scroll', () => {
-            adjustButtonPositions();
-        });
-
-        loadNotices();
-        loadSavedSettings();
-        updateVersion();
-
-        setInterval(() => {
-            updateNotice();
-        }, 14000);
-
-        setInterval(() => {
-            loadReminders();
-        }, 60000);
-    </script>
-</body>
-</html>
-            
+    }
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: #ABAB99;
+        padding: 0.5rem;
+    }
+    body.dark-mode .header-container {
+        background-color: #92927E;
+    }
+    .header-logo {
+        width: 100px;
+        height: 70px;
+        transition: filter 0.2s ease;
+    }
+    body.dark-mode .header-logo {
+        filter: brightness(85%);
+    }
+    .title-container {
+        background-color: #ABAB99;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+    }
+    body.dark-mode .title-container {
+        background-color: #92927E;
+    }
+    .header-container h1 {
+        color: #5C5C47;
+    }
+    .version-text {
+        font-size: 0.75rem;
+        color: #5C5C47;
+        font-weight: normal;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #ABAB99;
+        margin: 0;
+        overflow-x: hidden;
+    }
+    body.dark-mode {
+        background-color: #92927E;
+    }
+    header {
+        margin-bottom: 0.5rem;
+    }
+    main {
+        margin: 0.5rem auto 0.5rem 60px;
+        background-color: transparent;
+        border-radius: 0.75rem;
+        padding: 16px;
+        min-height: 400px;
+        transition: background-color 0.3s ease;
+        max-width: 984px;
+        width: 100%;
+    }
+    footer {
+        margin: 0.5rem auto;
+        text-align: center;
+        max-width: 984px;
+        width: 100%;
+        display: block;
+        background-color: #ABAB99;
+        margin-left: 60px;
+    }
+    body.dark-mode footer {
+        background-color: #92927E;
+    }
+    .footer-content {
+        color: #5C5C47;
+        padding: 0.5rem;
+        margin: 0 auto;
+        max-width: 100%;
+        position: relative;
+    }
+    .footer-subtext {
+        font-size: 0.75rem;
+        color: #5C5C47;
+        margin-top: 0.25rem;
+        text-align: center;
+    }
+    .footer-link-green {
+        color: #5C5C47;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .footer-link-green:hover {
+        color: #5C5C47;
+    }
+    .footer-line {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .scroll-toggle-button {
+        position: fixed;
+        width: 91px;
+        height: clamp(78.2px, 19.55vw, 175.95px);
+        background-color: #668B8B;
+        border-radius: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: clamp(10px, 2vw, 20px);
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+        left: 10px;
+        top: 10px;
+    }
+    .scroll-toggle-button:hover {
+        background-color: #D9A066;
+    }
+    .scroll-toggle-button svg {
+        width: clamp(24px, 4vw, 32px);
+        height: clamp(24px, 4vw, 32px);
+        stroke: #E6E6DC;
+    }
+    .top-text-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+        color: #5C5C47;
+        background-color: #D1D5DB;
+        margin-top: 0.25rem;
+        margin-left: 60px;
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        animation: fadeOut 6s forwards;
+    }
+    body.dark-mode .top-text-container {
+        background-color: #6B7280;
+    }
+    .top-text-container span {
+        color: #D9A066;
+        font-size: clamp(0.9rem, 2vw, 1.2rem);
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; display: none; }
+    }
+    .arrow-button {
+        width: clamp(36px, 6vw, 48px);
+        height: clamp(36px, 6vw, 48px);
+        background-color: #D9A066;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.2s ease;
+    }
+    .arrow-button:hover {
+        background-color: #5C5C47;
+    }
+    .arrow-button svg {
+        stroke: #E6E6DC;
+    }
+    .counter-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-top: 1rem;
+        text-align: center;
+    }
+    .favicon-red {
+        filter: hue-rotate(0deg) saturate(200%) brightness(80%);
+    }
+    .favicon-blue {
+        filter: hue-rotate(200deg) saturate(150%) brightness(90%);
+    }
+    .notices-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto;
+        margin-left: 140px;
+        position: relative;
+    }
+    .notices-container {
+        flex-grow: 1;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-left: 60px;
+        height: 3rem;
+    }
+    .notice-wrapper {
+        padding: 0.5rem;
+        height: 1.5rem;
+        flex-grow: 1;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .notice {
+        color: #00ff00;
+        font-weight: bold;
+        white-space: nowrap;
+        text-align: center;
+        opacity: 0;
+        animation: fadeInOut 14s infinite;
+    }
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
