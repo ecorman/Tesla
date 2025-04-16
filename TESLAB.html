@@ -1555,3 +1555,421 @@ System: The response has been interrupted due to a timeout. To continue, I will 
         0% { opacity: 0; }
         10% { opacity: 1; }
         90% { opacity: 1; }
+        document.body.appendChild(zoomButton);
+
+        const configButton = document.createElement('span');
+        configButton.className = 'toggle-sign';
+        configButton.id = 'config-button';
+        configButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4195.jpg" alt="Configuración" class="max-w-[80px] max-h-[48px] object-contain">`;
+        configButton.style.left = `10px`;
+        document.body.appendChild(configButton);
+
+        const darkModeToggle = document.createElement('img');
+        darkModeToggle.className = 'toggle-image';
+        darkModeToggle.id = 'dark-mode-toggle';
+        darkModeToggle.src = `https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpg' : 'IMG_4190.jpg'}`;
+        darkModeToggle.alt = `Toggle ${isDarkMode ? 'Oscuro' : 'Claro'}`;
+        darkModeToggle.style.left = `10px`;
+        document.body.appendChild(darkModeToggle);
+
+        const homeButton = document.createElement('span');
+        homeButton.className = 'toggle-sign';
+        homeButton.id = 'home-button';
+        homeButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4196.jpg" alt="Inicio" class="max-w-[80px] max-h-[48px] object-contain">`;
+        homeButton.style.left = `10px`;
+        document.body.appendChild(homeButton);
+
+        const reloadButton = document.createElement('span');
+        reloadButton.className = 'toggle-sign';
+        reloadButton.id = 'reload-button';
+        reloadButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/IMG_4193.jpg" alt="Recargar" class="max-w-[80px] max-h-[48px] object-contain">`;
+        reloadButton.style.left = `10px`;
+        document.body.appendChild(reloadButton);
+
+        function adjustButtonPositions() {
+            const buttons = [
+                scrolltteToggle,
+                darkModeToggle,
+                onOffToggle,
+                ...toggleButtons,
+                weatherButton,
+                homeButton,
+                reloadButton,
+                zoomButton,
+                reminderButton,
+                configButton
+            ].filter(Boolean);
+            buttons.forEach((button, index) => {
+                if (button) {
+                    button.style.top = `${10 + index * 64}px`;
+                }
+            });
+        }
+
+        function toggleRange(id) {
+            const toggle = document.querySelector(`.range-toggle[data-id="${id}"]`);
+            const range = toggleRanges.find(r => r.id === id);
+            if (!toggle || !range) return;
+
+            const newState = toggle.dataset.state === 'visible' ? 'hidden' : 'visible';
+            toggle.dataset.state = newState;
+            toggle.innerHTML = `<span class="sign">${newState === 'visible' ? '-' : '+'}</span>${range.label}`;
+
+            range.items.forEach(i => {
+                if (cellElements[i]) {
+                    cellElements[i].classList.toggle('hidden', newState === 'hidden');
+                }
+            });
+
+            saveSettings();
+            updateButtonStyles();
+        }
+
+        function updateAllToggles(state) {
+            toggleButtons.forEach(toggle => {
+                const id = toggle.dataset.id;
+                const range = toggleRanges.find(r => r.id === id);
+                if (!range) return;
+                toggle.dataset.state = state === 'on' ? 'visible' : 'hidden';
+                toggle.innerHTML = `<span class="sign">${state === 'on' ? '-' : '+'}</span>${range.label}`;
+                range.items.forEach(i => {
+                    if (cellElements[i]) {
+                        cellElements[i].classList.toggle('hidden', state === 'off');
+                    }
+                });
+            });
+            saveSettings();
+            updateButtonStyles();
+        }
+
+        function showConfigModal() {
+            const modal = document.createElement('div');
+            modal.className = 'config-modal';
+            modal.innerHTML = `
+                <h2>Configurar Botones de Ocultación</h2>
+                <div id="config-buttons"></div>
+                <div class="button-group">
+                    <button type="button" id="cancel-config">Cancelar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const configButtons = document.getElementById('config-buttons');
+            toggleRanges.forEach(range => {
+                const button = document.createElement('button');
+                button.textContent = `Configurar ${range.label}`;
+                button.onclick = () => configureRange(range.id);
+                configButtons.appendChild(button);
+            });
+
+            document.getElementById('cancel-config').onclick = () => {
+                modal.remove();
+            };
+        }
+
+        function configureRange(rangeId) {
+            const range = toggleRanges.find(r => r.id === rangeId);
+            if (!range) return;
+
+            const modal = document.querySelector('.config-modal');
+            modal.innerHTML = `
+                <h2>Configurar ${range.label}</h2>
+                <label>Nombre del botón (máx. 6 letras):</label>
+                <input type="text" id="range-label" value="${range.label}" maxlength="6">
+                <p>Seleccione los ítems en el grid:</p>
+                <div class="button-group">
+                    <button type="submit" id="save-range">Guardar</button>
+                    <button type="button" id="cancel-range">Cancelar</button>
+                </div>
+            `;
+
+            cellElements.forEach((cell, index) => {
+                if (bookmarks[index] !== null && cell.querySelector('.bookmark-item')) {
+                    cell.classList.toggle('config-selected', range.items.includes(index));
+                    cell.onclick = () => {
+                        const isSelected = cell.classList.toggle('config-selected');
+                        if (isSelected) {
+                            if (!range.items.includes(index)) range.items.push(index);
+                        } else {
+                            range.items = range.items.filter(i => i !== index);
+                        }
+                    };
+                }
+            });
+
+            document.getElementById('save-range').onclick = () => {
+                const newLabel = document.getElementById('range-label').value.trim();
+                if (newLabel.length > 0 && newLabel.length <= 6) {
+                    range.label = newLabel;
+                    const toggle = document.querySelector(`.range-toggle[data-id="${rangeId}"]`);
+                    toggle.innerHTML = `<span class="sign">${toggle.dataset.state === 'visible' ? '-' : '+'}</span>${newLabel}`;
+                    range.items.sort((a, b) => a - b);
+                    saveSettings();
+                    updateButtonStyles();
+                }
+                cellElements.forEach(cell => {
+                    cell.classList.remove('config-selected');
+                    cell.onclick = null;
+                });
+                modal.remove();
+            };
+
+            document.getElementById('cancel-range').onclick = () => {
+                cellElements.forEach(cell => {
+                    cell.classList.remove('config-selected');
+                    cell.onclick = null;
+                });
+                modal.remove();
+                showConfigModal();
+            };
+        }
+
+        scrolltteToggle.addEventListener('click', (e) => {
+            const rect = scrolltteToggle.getBoundingClientRect();
+            const clickY = e.clientY - rect.top;
+            if (clickY < rect.height / 2) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        });
+
+        toggleButtons.forEach(toggle => {
+            toggle.addEventListener('click', () => toggleRange(toggle.dataset.id));
+        });
+
+        darkModeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            darkModeToggle.src = `https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpg' : 'IMG_4190.jpg'}`;
+            darkModeToggle.alt = `Toggle ${isDarkMode ? 'Oscuro' : 'Claro'}`;
+            saveSettings();
+            updateButtonStyles();
+        });
+
+        onOffToggle.addEventListener('click', () => {
+            const newState = onOffToggle.dataset.state === 'on' ? 'off' : 'on';
+            onOffToggle.dataset.state = newState;
+            onOffToggle.src = `https://boardinggate.github.io/Tesla/${newState === 'on' ? 'IMG_4192.jpg' : 'IMG_4191.jpg'}`;
+            onOffToggle.alt = `Toggle ${newState === 'on' ? 'On' : 'Off'}`;
+            updateAllToggles(newState);
+        });
+
+        weatherButton.addEventListener('click', () => {
+            window.open('https://www.accuweather.com/es/free-weather-widgets', '_blank');
+        });
+
+        homeButton.addEventListener('click', () => {
+            window.location.href = 'https://boardinggate.github.io/Tesla/';
+        });
+
+        reloadButton.addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        zoomButton.addEventListener('click', () => {
+            const newState = zoomButton.dataset.zoomState === 'off' ? 'on' : 'off';
+            zoomButton.dataset.zoomState = newState;
+            applyZoom(newState);
+            saveSettings();
+            updateButtonStyles();
+        });
+
+        reminderButton.addEventListener('mousedown', () => {
+            reminderPressStartTime = Date.now();
+        });
+
+        reminderButton.addEventListener('mouseup', () => {
+            const pressDuration = Date.now() - reminderPressStartTime;
+            if (pressDuration >= 2000) {
+                showReminderModal();
+            } else {
+                showPendingReminders();
+            }
+            reminderPressStartTime = null;
+        });
+
+        configButton.addEventListener('mousedown', () => {
+            pressStartTime = Date.now();
+        });
+
+        configButton.addEventListener('mouseup', () => {
+            const pressDuration = Date.now() - pressStartTime;
+            if (pressDuration >= 2000) {
+                localStorage.removeItem('toggleRanges');
+                toggleRanges = defaultToggleRanges;
+                toggleButtons.forEach(toggle => {
+                    const range = toggleRanges.find(r => r.id === toggle.dataset.id);
+                    toggle.innerHTML = `<span class="sign">${toggle.dataset.state === 'visible' ? '-' : '+'}</span>${range.label}`;
+                    range.items.forEach(i => {
+                        if (cellElements[i]) {
+                            cellElements[i].classList.toggle('hidden', toggle.dataset.state === 'hidden');
+                        }
+                    });
+                });
+                saveSettings();
+                updateButtonStyles();
+            } else {
+                showConfigModal();
+            }
+            pressStartTime = null;
+        });
+
+        function showReminderModal() {
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.innerHTML = `
+                <h2>Nuevo Recordatorio</h2>
+                <label for="reminder-title">Título:</label>
+                <input type="text" id="reminder-title">
+                <label for="reminder-description">Descripción:</label>
+                <textarea id="reminder-description"></textarea>
+                <div class="button-group">
+                    <button type="submit" id="save-reminder">Guardar</button>
+                    <button type="button" id="cancel-reminder">Cancelar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('save-reminder').onclick = () => {
+                const title = document.getElementById('reminder-title').value.trim();
+                const description = document.getElementById('reminder-description').value.trim();
+                if (title) {
+                    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                    reminders.push({ id: Date.now(), title, description });
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                    updateButtonStyles();
+                    showPendingReminders();
+                }
+                modal.remove();
+            };
+
+            document.getElementById('cancel-reminder').onclick = () => {
+                modal.remove();
+            };
+        }
+
+        function showPendingReminders() {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const container = document.getElementById('reminder-notifications');
+            container.innerHTML = '';
+
+            reminders.forEach(reminder => {
+                const notification = document.createElement('div');
+                notification.className = 'reminder-notification';
+                notification.innerHTML = `
+                    <p>${reminder.title}</p>
+                    ${reminder.description ? `<p>${reminder.description}</p>` : ''}
+                    <div class="button-group">
+                        <button class="cancel">Cancelar</button>
+                        <button class="modify">Modificar</button>
+                        <button class="postpone">Aplazar</button>
+                    </div>
+                `;
+                container.appendChild(notification);
+
+                notification.querySelector('.cancel').onclick = () => {
+                    const updatedReminders = reminders.filter(r => r.id !== reminder.id);
+                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                    showPendingReminders();
+                    updateButtonStyles();
+                };
+
+                notification.querySelector('.modify').onclick = () => {
+                    const modal = document.createElement('div');
+                    modal.className = 'reminder-modal';
+                    modal.innerHTML = `
+                        <h2>Modificar Recordatorio</h2>
+                        <label for="reminder-title">Título:</label>
+                        <input type="text" id="reminder-title" value="${reminder.title}">
+                        <label for="reminder-description">Descripción:</label>
+                        <textarea id="reminder-description">${reminder.description || ''}</textarea>
+                        <div class="button-group">
+                            <button type="submit" id="save-reminder">Guardar</button>
+                            <button type="button" id="cancel-reminder">Cancelar</button>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    document.getElementById('save-reminder').onclick = () => {
+                        const title = document.getElementById('reminder-title').value.trim();
+                        const description = document.getElementById('reminder-description').value.trim();
+                        if (title) {
+                            const updatedReminders = reminders.map(r =>
+                                r.id === reminder.id ? { ...r, title, description } : r
+                            );
+                            localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                            showPendingReminders();
+                            updateButtonStyles();
+                        }
+                        modal.remove();
+                    };
+
+                    document.getElementById('cancel-reminder').onclick = () => {
+                        modal.remove();
+                    };
+                };
+
+                notification.querySelector('.postpone').onclick = () => {
+                    const updatedReminders = reminders.filter(r => r.id !== reminder.id);
+                    setTimeout(() => {
+                        updatedReminders.push(reminder);
+                        localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                        showPendingReminders();
+                        updateButtonStyles();
+                    }, 5 * 60 * 1000);
+                    localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+                    showPendingReminders();
+                    updateButtonStyles();
+                };
+            });
+        }
+
+        function loadReminders() {
+            showPendingReminders();
+        }
+
+        function toggleFooterVisibility() {
+            const footer = document.querySelector('footer');
+            if (isFooterVisible) {
+                footer.classList.remove('footer-hidden');
+            } else {
+                footer.classList.add('footer-hidden');
+            }
+        }
+
+        function updateNotice() {
+            if (!isActive || notices.length === 0) {
+                document.getElementById('current-notice').textContent = '';
+                return;
+            }
+            document.getElementById('current-notice').textContent = notices[currentNoticeIndex];
+            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
+        }
+
+        document.getElementById('notice-toggle-icon').addEventListener('click', () => {
+            isActive = !isActive;
+            saveSettings();
+            updateNotice();
+        });
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            window.history.back();
+        });
+
+        document.getElementById('forward-button').addEventListener('click', () => {
+            window.history.forward();
+        });
+
+        window.addEventListener('resize', adjustButtonPositions);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedSettings();
+            loadNotices();
+            updateVersion();
+            setInterval(updateNotice, 14000);
+            adjustButtonPositions();
+        });
+    </script>
+</body>
+</html>
