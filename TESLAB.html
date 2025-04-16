@@ -1,496 +1,438 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoardingGate Lanzador</title>
-    <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
-    <script src="https://cdn.tailwindcss.com"></script>
+// Añade estas variables globales al inicio del script
+let customToggleConfigs = {}; // Objeto para guardar las configuraciones personalizadas
+let isConfigMode = false;     // Flag para saber si estamos en modo configuración
+let currentConfiguringToggle = null; // Qué toggle estamos configurando
+let currentConfigIndices = []; // Índices seleccionados temporalmente
 
-<style>
-    .bookmark-item {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
-        position: relative;
+// Modifica la definición de toggleRanges para incluir un id único
+const toggleRanges = [
+    { id: "toggle-pdr", start: 18, end: 29, defaultLabel: "PdR,s" },
+    { id: "toggle-ias", start: 30, end: 41, defaultLabel: "iAs" },
+    { id: "toggle-util", start: 42, end: 59, defaultLabel: "Útil" },
+    { id: "toggle-varios", start: 60, end: 95, defaultLabel: "Varios" }
+];
+
+// *** EN LA FUNCIÓN loadSavedSettings ***
+// Añade esto DENTRO de la función loadSavedSettings, antes de crear los botones toggle
+loadCustomToggleConfigs();
+// Asegúrate de que los botones toggle se crean DESPUÉS de cargar las configs
+
+
+// *** REEMPLAZA el listener de configButton ***
+configButton.addEventListener('click', () => {
+    if (isMinimalMode || isConfigMode) return;
+    showConfigMenu();
+});
+
+// *** AÑADE estas NUEVAS FUNCIONES ***
+
+function loadCustomToggleConfigs() {
+    const savedConfigs = localStorage.getItem('customToggleConfigs');
+    if (savedConfigs) {
+        try {
+            customToggleConfigs = JSON.parse(savedConfigs);
+            // Validar un poco la estructura si es necesario
+            if (typeof customToggleConfigs !== 'object' || customToggleConfigs === null) {
+                 customToggleConfigs = {};
+            }
+        } catch (e) {
+            console.error("Error parsing customToggleConfigs from localStorage", e);
+            customToggleConfigs = {};
+        }
+    } else {
+        customToggleConfigs = {};
     }
-    .bookmark-item:hover {
-        transform: scale(1.1) translateY(-2px);
-        box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+    console.log("Loaded custom configs:", customToggleConfigs);
+}
+
+function saveCustomToggleConfigs() {
+    localStorage.setItem('customToggleConfigs', JSON.stringify(customToggleConfigs));
+    console.log("Saved custom configs:", customToggleConfigs);
+}
+
+function showConfigMenu() {
+    isConfigMode = true;
+    document.body.classList.add('config-mode');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'config-overlay';
+    overlay.id = 'config-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'config-modal';
+
+    modal.innerHTML = `
+        <h2>Configuración</h2>
+        <p>Seleccione una opción:</p>
+        <button id="config-customize-toggles">Personalizar Filtros</button>
+        <button id="config-clear-cache">Borrar Caché y Recargar</button>
+        <button id="config-reset-toggles">Restaurar Filtros Predeterminados</button>
+        <hr style="margin: 1rem 0;">
+        <button id="config-cancel" class="cancel-button">Cancelar</button>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    document.getElementById('config-customize-toggles').onclick = showToggleSelectionMenu;
+    document.getElementById('config-clear-cache').onclick = () => {
+        localStorage.clear();
+        location.reload();
+    };
+    document.getElementById('config-reset-toggles').onclick = () => {
+        if (confirm('¿Está seguro de que desea restaurar todos los filtros a sus valores predeterminados?')) {
+            customToggleConfigs = {};
+            saveCustomToggleConfigs();
+            alert('Filtros restaurados. Recargando...');
+            location.reload();
+        }
+    };
+    document.getElementById('config-cancel').onclick = exitConfigurationMode;
+}
+
+function showToggleSelectionMenu() {
+    const modal = document.querySelector('.config-modal');
+    if (!modal) return;
+
+    let toggleButtonsHTML = toggleRanges.map(range => {
+        const currentConfig = customToggleConfigs[range.id] || {};
+        const currentLabel = currentConfig.label || range.defaultLabel;
+        return `<button class="config-toggle-button" data-toggle-id="${range.id}">${currentLabel}</button>`;
+    }).join('');
+
+    modal.innerHTML = `
+        <h2>Personalizar Filtros</h2>
+        <p>Seleccione el filtro que desea modificar:</p>
+        <div>${toggleButtonsHTML}</div>
+        <hr style="margin: 1rem 0;">
+        <button id="config-back" class="cancel-button">Volver</button>
+    `;
+
+    modal.querySelectorAll('.config-toggle-button').forEach(button => {
+        button.onclick = () => startToggleConfiguration(button.dataset.toggleId);
+    });
+    document.getElementById('config-back').onclick = showConfigMenu; // Vuelve al menú anterior
+}
+
+function startToggleConfiguration(toggleId) {
+    currentConfiguringToggle = toggleId;
+    const rangeInfo = toggleRanges.find(r => r.id === toggleId);
+    const currentConfig = customToggleConfigs[toggleId] || {};
+    const currentLabel = currentConfig.label || rangeInfo.defaultLabel;
+    const currentIndices = currentConfig.itemIndices || getDefaultIndices(rangeInfo);
+
+    currentConfigIndices = [...currentIndices]; // Copia para edición
+
+    const modal = document.querySelector('.config-modal');
+    if (!modal) return;
+
+    // 1. Pedir nueva etiqueta
+    const newLabel = prompt(`Ingrese la nueva etiqueta para "${currentLabel}" (máx 6 letras):`, currentLabel);
+
+    if (newLabel === null) return; // El usuario canceló el prompt
+
+    const validatedLabel = newLabel.trim().substring(0, 6);
+    if (!validatedLabel) {
+        alert("La etiqueta no puede estar vacía.");
+        return;
     }
-    .bookmark-item img {
-        image-rendering: crisp-edges;
+
+    // 2. Preparar interfaz de selección de items
+    modal.innerHTML = `
+        <h2>Configurando: ${validatedLabel}</h2>
+        <p>Pulse sobre los iconos del grid para añadirlos o quitarlos de este grupo.</p>
+        <p>Los elementos seleccionados se marcarán con un borde azul.</p>
+        <div style="margin-top: 1rem;">
+             <button id="config-save-group">Guardar Grupo "${validatedLabel}"</button>
+             <button id="config-cancel-group" class="cancel-button">Cancelar Cambios</button>
+        </div>
+    `;
+
+    document.body.classList.add('selecting-items-mode');
+    grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); // Muestra el grid
+
+    // Resaltar los items actualmente seleccionados y añadir listeners
+    cellElements.forEach((cell, index) => {
+        cell.classList.remove('config-selected'); // Limpia selecciones previas
+        // Solo permite seleccionar celdas que no estén vacías
+        const isEmpty = cell.classList.contains('bg-gray-50') || cell.children.length === 0;
+        if (!isEmpty) {
+            if (currentConfigIndices.includes(index)) {
+                cell.classList.add('config-selected');
+            }
+            // Añadir listener (si no existe ya uno para este modo)
+            cell.removeEventListener('click', handleGridItemClickInConfig); // Previene duplicados
+            cell.addEventListener('click', handleGridItemClickInConfig);
+            cell.dataset.gridIndex = index; // Guardamos el índice para fácil acceso
+        } else {
+            cell.style.opacity = '0.2'; // Hace las celdas vacías casi invisibles
+            cell.style.cursor = 'not-allowed';
+        }
+    });
+
+    document.getElementById('config-save-group').onclick = () => saveToggleConfiguration(toggleId, validatedLabel);
+    document.getElementById('config-cancel-group').onclick = () => {
+        // Simplemente vuelve a la pantalla de selección de toggles sin guardar
+        exitItemSelectionMode();
+        showToggleSelectionMenu();
+    };
+}
+
+function handleGridItemClickInConfig(event) {
+    // Asegurarse de que no se navegue si hay un link dentro
+    event.preventDefault();
+    event.stopPropagation();
+
+    const cell = event.currentTarget;
+    const index = parseInt(cell.dataset.gridIndex);
+
+    if (isNaN(index)) return;
+
+    cell.classList.toggle('config-selected');
+
+    // Actualizar el array temporal de índices
+    const isSelected = cell.classList.contains('config-selected');
+    if (isSelected && !currentConfigIndices.includes(index)) {
+        currentConfigIndices.push(index);
+    } else if (!isSelected && currentConfigIndices.includes(index)) {
+        currentConfigIndices = currentConfigIndices.filter(i => i !== index);
     }
-    .bookmark-name {
-        font-weight: bold;
-        color: #333;
-        text-align: center;
-        margin-top: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+    console.log("Indices seleccionados:", currentConfigIndices);
+}
+
+function saveToggleConfiguration(toggleId, newLabel) {
+    // Guardar la configuración
+    customToggleConfigs[toggleId] = {
+        label: newLabel,
+        itemIndices: [...currentConfigIndices].sort((a, b) => a - b) // Guarda copia ordenada
+    };
+    saveCustomToggleConfigs();
+
+    // Limpiar y volver
+    exitItemSelectionMode();
+    applyToggleConfiguration(toggleId); // Aplica inmediatamente la nueva config al botón
+    showToggleSelectionMenu(); // Vuelve a la pantalla de selección
+    alert(`Filtro "${newLabel}" guardado.`);
+}
+
+function exitItemSelectionMode() {
+     document.body.classList.remove('selecting-items-mode');
+     // Quitar listeners y estilos de selección de los items del grid
+     cellElements.forEach(cell => {
+         cell.removeEventListener('click', handleGridItemClickInConfig);
+         cell.classList.remove('config-selected');
+         cell.style.opacity = ''; // Restaura opacidad
+         cell.style.cursor = ''; // Restaura cursor
+         delete cell.dataset.gridIndex;
+     });
+     currentConfiguringToggle = null;
+     currentConfigIndices = [];
+}
+
+function exitConfigurationMode() {
+    if (document.body.classList.contains('selecting-items-mode')) {
+        exitItemSelectionMode();
     }
-    #bookmark-grid {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(120px, 1fr));
-        gap: 15px;
-        background-color: transparent;
-        border-radius: 0.75rem;
-        position: relative;
-        width: 100%;
-        max-width: 984px;
-        margin: 0 auto 0 60px;
-        transition: all 0.3s ease;
+    const overlay = document.getElementById('config-overlay');
+    if (overlay) {
+        document.body.removeChild(overlay);
     }
-    #bookmark-grid > div {
-        height: auto;
-        aspect-ratio: 16 / 9;
-        transition: all 0.3s ease;
-    }
-    .bookmark-item {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        border-radius: 0.5rem;
-        transition: all 0.3s ease;
-        background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
-    }
-    .bookmark-item img {
-        width: 36px;
-        height: auto;
-        max-width: 40px;
-        border-radius: 0.25rem;
-    }
-    .bookmark-name {
-        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
-    }
-    .small-bookmark img {
-        width: 24px;
-        max-width: 28px;
-    }
-    .small-bookmark .bookmark-name {
-        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
-    }
-    @media (max-width: 768px) {
-        #bookmark-grid {
-            grid-template-columns: repeat(3, minmax(100px, 1fr));
-            gap: 10px;
+    document.body.classList.remove('config-mode');
+    isConfigMode = false;
+}
+
+function getDefaultIndices(rangeInfo) {
+    const indices = [];
+    if (rangeInfo && typeof rangeInfo.start !== 'undefined' && typeof rangeInfo.end !== 'undefined') {
+        for (let i = rangeInfo.start; i <= rangeInfo.end; i++) {
+            // Opcional: verificar si la celda existe y no está vacía
+             if (cellElements[i] && !cellElements[i].classList.contains('bg-gray-50')) {
+                 indices.push(i);
+             }
         }
     }
-    @media (max-width: 480px) {
-        #bookmark-grid {
-            grid-template-columns: repeat(2, minmax(80px, 1fr));
-            gap: 8px;
-        }
+    return indices;
+}
+
+// Nueva función para aplicar la configuración a un botón específico
+function applyToggleConfiguration(toggleId) {
+    const toggleButton = document.querySelector(`.range-toggle[data-toggle-id='${toggleId}']`);
+    if (!toggleButton) {
+        console.warn("Could not find toggle button for id:", toggleId);
+        return;
     }
-    .header-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        background-color: #ABAB99;
-        padding: 0.5rem;
+
+    const rangeInfo = toggleRanges.find(r => r.id === toggleId);
+    const config = customToggleConfigs[toggleId];
+
+    let label, itemIndices;
+
+    if (config && config.label && config.itemIndices) {
+        // Usar configuración personalizada
+        label = config.label;
+        itemIndices = config.itemIndices;
+        console.log(`Applying custom config for ${toggleId}: Label=${label}, Indices=${itemIndices.join(',')}`);
+    } else {
+        // Usar configuración predeterminada
+        label = rangeInfo.defaultLabel;
+        itemIndices = getDefaultIndices(rangeInfo);
+         console.log(`Applying default config for ${toggleId}: Label=${label}, Indices=${itemIndices.join(',')}`);
     }
-    body.dark-mode .header-container {
-        background-color: #92927E;
-    }
-    .header-logo {
-        width: 100px;
-        height: 70px;
-        transition: filter 0.2s ease;
-    }
-    body.dark-mode .header-logo {
-        filter: brightness(85%);
-    }
-    .title-container {
-        background-color: #ABAB99;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        display: inline-block;
-    }
-    body.dark-mode .title-container {
-        background-color: #92927E;
-    }
-    .header-container h1 {
-        color: #5C5C47;
-    }
-    .version-text {
-        font-size: 0.75rem;
-        color: #5C5C47;
-        font-weight: normal;
-    }
-    body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        background-color: #ABAB99;
-        margin: 0;
-        overflow-x: hidden;
-    }
-    body.dark-mode {
-        background-color: #92927E;
-    }
-    header {
-        margin-bottom: 0.5rem;
-    }
-    main {
-        margin: 0.5rem auto 0.5rem 60px;
-        background-color: transparent;
-        border-radius: 0.75rem;
-        padding: 16px;
-        min-height: 400px;
-        transition: background-color 0.3s ease;
-        max-width: 984px;
-        width: 100%;
-    }
-    footer {
-        margin: 0.5rem auto;
-        text-align: center;
-        max-width: 984px;
-        width: 100%;
-        display: block;
-        background-color: #ABAB99;
-        margin-left: 60px;
-    }
-    body.dark-mode footer {
-        background-color: #92927E;
-    }
-    .footer-content {
-        color: #5C5C47;
-        padding: 0.5rem;
-        margin: 0 auto;
-        max-width: 100%;
-        position: relative;
-    }
-    .footer-subtext {
-        font-size: 0.75rem;
-        color: #5C5C47;
-        margin-top: 0.25rem;
-        text-align: center;
-    }
-    .footer-link-green {
-        color: #5C5C47;
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-    .footer-link-green:hover {
-        color: #5C5C47;
-    }
-    .footer-line {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-    .scroll-toggle-button {
-        position: fixed;
-        width: 91px;
-        height: clamp(78.2px, 19.55vw, 175.95px);
-        background-color: #668B8B;
-        border-radius: 60px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        padding: clamp(10px, 2vw, 20px);
-        cursor: pointer;
-        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        transition: background-color 0.2s ease;
-        left: 10px;
-        top: 10px;
-    }
-    .scroll-toggle-button:hover {
-        background-color: #D9A066;
-    }
-    .scroll-toggle-button svg {
-        width: clamp(24px, 4vw, 32px);
-        height: clamp(24px, 4vw, 32px);
-        stroke: #E6E6DC;
-    }
-    .top-text-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: clamp(0.6rem, 1.5vw, 0.75rem);
-        color: #5C5C47;
-        background-color: #D1D5DB;
-        margin-top: 0.25rem;
-        margin-left: 60px;
-        gap: 0.5rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        animation: fadeOut 6s forwards;
-    }
-    body.dark-mode .top-text-container {
-        background-color: #6B7280;
-    }
-    .top-text-container span {
-        color: #DButtonStyles();
-            saveSettings();
+
+    // Almacenar los índices que controla este botón (como string separado por comas)
+    toggleButton.dataset.itemIndices = itemIndices.join(',');
+    toggleButton.dataset.label = label; // Guardar la etiqueta base
+
+    // Actualizar el texto visible del botón (dependiendo del estado actual)
+    const currentState = toggleButton.dataset.state || 'visible'; // Asume visible si no está definido
+    const sign = currentState === 'visible' ? '-' : '+';
+    toggleButton.innerHTML = `<span class="sign">${sign}</span>${label}`;
+
+    // Asegurarse de que la visibilidad de los items sea la correcta según el estado actual
+    const hideItems = currentState === 'hidden';
+     itemIndices.forEach(index => {
+         if (cellElements[index]) {
+             cellElements[index].classList.toggle('hidden', hideItems);
+         }
+     });
+}
+
+// *** MODIFICA la función que crea los botones toggle ***
+// Debes encontrar dónde se crean los botones (parece que es dinámico después de `toggleRanges`)
+// Y asegurarte de que se les asigna el `data-toggle-id` y se llama a `applyToggleConfiguration`
+
+// EJEMPLO de cómo modificar la creación (ajusta a tu código existente):
+/*
+        // Dentro del bucle o map donde creas los toggleButtons
+        const range = toggleRanges[index]; // O cómo obtengas la info del rango
+        const toggle = document.createElement('span');
+        toggle.className = 'toggle-sign range-toggle';
+        toggle.dataset.toggleId = range.id; // *** AÑADIR ESTO ***
+        // toggle.dataset.rangeStart = range.start; // Ya no es estrictamente necesario si usamos itemIndices
+        // toggle.dataset.rangeEnd = range.end; // Ya no es estrictamente necesario si usamos itemIndices
+        toggle.dataset.state = 'visible'; // Estado inicial
+
+        // *** LLAMAR A ESTO para establecer label e índices iniciales ***
+        applyToggleConfiguration(range.id);
+
+        toggle.style.left = `10px`;
+        document.body.appendChild(toggle);
+
+        // Listener (modificado para llamar a updateToggleState con el botón mismo)
+         toggle.addEventListener('click', () => {
+            if (isMinimalMode || isConfigMode) return;
+            updateToggleState(toggle); // Pasar el elemento del botón
         });
 
-        function adjustButtonPositions() {
-            if (isMinimalMode) return;
+        return toggle;
+        // Fin del ejemplo de modificación
+*/
 
-            const buttonHeight = 54;
-            const scrollToggleHeight = clamp(78.2, window.innerWidth * 0.1955, 175.95);
-            const gap = 10;
-            let currentTop = 10;
+// *** MODIFICA la función updateToggleState ***
+// function updateToggleState(toggle) { // Ahora recibe el elemento del botón
+function updateToggleState(toggle) {
+    // const start = parseInt(toggle.dataset.rangeStart); // Ya no se usa
+    // const end = parseInt(toggle.dataset.rangeEnd); // Ya no se usa
+    const currentState = toggle.dataset.state;
+    const itemIndicesString = toggle.dataset.itemIndices || ''; // Obtiene los índices del data attribute
+    const itemIndices = itemIndicesString.split(',').filter(s => s !== '').map(Number); // Convierte a array de números
+    const label = toggle.dataset.label; // Obtiene la etiqueta base
 
-            scrollToggle.style.top = `${currentTop}px`;
-            currentTop += scrollToggleHeight + gap;
+    const newState = currentState === 'visible' ? 'hidden' : 'visible';
+    const hideItems = newState === 'hidden';
+    const sign = newState === 'visible' ? '-' : '+';
 
-            if (isActive && isFooterVisible) {
-                const orderedButtons = [
-                    onOffToggle,
-                    ...toggleButtons,
-                    weatherButton,
-                    reminderButton,
-                    zoomButton,
-                    darkModeToggle,
-                    reloadButton,
-                    homeButton,
-                    configButton
-                ];
+     console.log(`Toggling ${label} to ${newState}. Indices: ${itemIndices.join(',')}`);
 
-                orderedButtons.forEach(button => {
-                    button.style.top = `${currentTop}px`;
-                    currentTop += buttonHeight + gap;
-                });
-            } else {
-                onOffToggle.style.top = `${currentTop}px`;
-            }
+    itemIndices.forEach(index => {
+        if (cellElements[index]) {
+             // console.log(`Item ${index}: Toggling hidden to ${hideItems}`);
+            cellElements[index].classList.toggle('hidden', hideItems);
+        } else {
+            console.warn(`Item at index ${index} not found for toggle ${label}`);
         }
+    });
 
-        function toggleFooterVisibility() {
-            const footer = document.querySelector('footer');
-            if (isFooterVisible) {
-                footer.classList.remove('footer-hidden');
-            } else {
-                footer.classList.add('footer-hidden');
+    toggle.dataset.state = newState;
+    toggle.innerHTML = `<span class="sign">${sign}</span>${label}`;
+
+    updateButtonStyles(); // Asume que esto actualiza colores basados en data-state
+    saveSettings(); // Guarda el estado visible/oculto del toggle
+}
+
+// *** MODIFICA saveSettings y loadSavedSettings ***
+// Asegúrate de que `saveSettings` guarda el `data-state` de los toggles
+// y que `loadSavedSettings` restaura ese `data-state` y luego llama
+// a `applyToggleConfiguration` para cada toggle para establecer la
+// etiqueta correcta y asegurar la visibilidad inicial de los items.
+
+// Ejemplo DENTRO de saveSettings:
+/*
+    const toggleStates = {};
+    document.querySelectorAll('.range-toggle').forEach(toggle => {
+        // Guardar por ID para asegurar consistencia
+        toggleStates[toggle.dataset.toggleId] = toggle.dataset.state;
+    });
+    localStorage.setItem('toggleStates', JSON.stringify(toggleStates));
+*/
+
+// Ejemplo DENTRO de loadSavedSettings (después de crear los botones y cargar customConfigs):
+/*
+    const savedToggleStates = localStorage.getItem('toggleStates');
+    if (savedToggleStates) {
+        const toggleStates = JSON.parse(savedToggleStates);
+        document.querySelectorAll('.range-toggle').forEach(toggle => {
+            const toggleId = toggle.dataset.toggleId;
+            if (toggleStates[toggleId]) {
+                toggle.dataset.state = toggleStates[toggleId];
             }
-            adjustButtonPositions();
-        }
-
-        window.addEventListener('resize', adjustButtonPositions);
-
-        function updateNotice() {
-            if (!isActive || notices.length === 0) {
-                document.getElementById('current-notice').textContent = '';
-                return;
-            }
-            document.getElementById('current-notice').textContent = notices[currentNoticeIndex];
-            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-            setTimeout(updateNotice, 14000);
-        }
-
-        document.getElementById('notice-toggle-icon').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            isActive = !isActive;
-            const noticesContainer = document.querySelector('.notices-container');
-            noticesContainer.style.display = isActive ? 'flex' : 'none';
-            if (isActive) {
-                updateNotice();
-            } else {
-                document.getElementById('current-notice').textContent = '';
-            }
-            saveSettings();
-            adjustButtonPositions();
+             // Aplicar la configuración (label, indices) y la visibilidad inicial
+            applyToggleConfiguration(toggleId);
         });
+    } else {
+         // Si no hay estados guardados, aplicar config inicial a todos
+         document.querySelectorAll('.range-toggle').forEach(toggle => {
+             applyToggleConfiguration(toggle.dataset.toggleId);
+         });
+    }
+    // ... resto de loadSavedSettings ...
+    updateButtonStyles(); // Actualizar colores al final
+*/
 
-        document.querySelector('.notices-container').style.display = isActive ? 'flex' : 'none';
+// *** Asegúrate de que la creación inicial de botones y la carga de ajustes
+//    llamen a applyToggleConfiguration para cada botón después de crearlo
+//    y después de cargar los estados guardados. ***
 
-        function showReminderModal(reminder = { title: '', description: '', date: '', time: '' }, index = -1) {
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', 'Añadir o modificar recordatorio');
-            const dateValue = reminder.date || new Date().toISOString().split('T')[0];
-            const timeValue = reminder.time || new Date().toTimeString().slice(0, 5);
-            modal.innerHTML = `
-                <h2>${index === -1 ? 'Añadir' : 'Modificar'} Recordatorio</h2>
-                <form id="reminder-form">
-                    <label for="reminder-title">Título:</label>
-                    <input type="text" id="reminder-title" value="${reminder.title}" required>
-                    <label for="reminder-description">Descripción:</label>
-                    <textarea id="reminder-description">${reminder.description}</textarea>
-                    <label for="reminder-date">Fecha:</label>
-                    <input type="date" id="reminder-date" value="${dateValue}" required>
-                    <label for="reminder-time">Hora:</label>
-                    <input type="time" id="reminder-time" value="${timeValue}" required>
-                    <div class="button-group">
-                        <button type="submit">${index === -1 ? 'Añadir' : 'Modificar'}</button>
-                        <button type="button" id="cancel-reminder">Cancelar</button>
-                    </div>
-                </form>
-            `;
-            document.body.appendChild(modal);
+// En la creación dinámica de los botones toggle (reemplaza el código existente si es necesario)
+const toggleButtonsContainer = document.body; // O donde sea que los añadas
+const createdToggleButtons = []; // Para mantener referencia si es necesario
 
-            modal.querySelector('#reminder-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const title = modal.querySelector('#reminder-title').value;
-                const description = modal.querySelector('#reminder-description').value;
-                const date = modal.querySelector('#reminder-date').value;
-                const time = modal.querySelector('#reminder-time').value;
+// Limpia botones toggle existentes si esta función se llama múltiples veces (ej. al recargar config)
+document.querySelectorAll('.range-toggle').forEach(btn => btn.remove());
 
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const newReminder = { title, description, date, time };
+toggleRanges.forEach((range) => {
+    const toggle = document.createElement('span');
+    toggle.className = 'toggle-sign range-toggle';
+    toggle.dataset.toggleId = range.id; // Asigna el ID único
+    toggle.dataset.state = 'visible';   // Estado inicial por defecto
 
-                if (index === -1) {
-                    reminders.push(newReminder);
-                } else {
-                    reminders[index] = newReminder;
-                }
+    // Aplica la configuración inicial (cargará custom o default)
+    applyToggleConfiguration(range.id);
 
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                document.body.removeChild(modal);
-                updateButtonStyles();
-                checkReminders();
-            });
+    toggle.style.left = `10px`; // Posición (ajustar con adjustButtonPositions)
+    toggleButtonsContainer.appendChild(toggle);
 
-            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-        }
+    // Añade el listener
+    toggle.addEventListener('click', () => {
+        if (isMinimalMode || isConfigMode) return;
+        updateToggleState(toggle); // Pasa el elemento del botón
+    });
 
-        function showReminderNotification(reminder, index) {
-            const notification = document.createElement('div');
-            notification.className = 'reminder-notification';
-            notification.innerHTML = `
-                <p>${reminder.title}</p>
-                <p>${reminder.description}</p>
-                <p>${reminder.date} ${reminder.time}</p>
-                <div class="button-group">
-                    <button class="cancel">Cancelar</button>
-                    <button class="modify">Modificar</button>
-                    <button class="postpone">Aplazar</button>
-                </div>
-            `;
-            document.getElementById('reminder-notifications').appendChild(notification);
+    createdToggleButtons.push(toggle); // Guarda referencia si es necesario
+});
 
-            notification.querySelector('.cancel').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                reminders.splice(index, 1);
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                notification.remove();
-                updateButtonStyles();
-            });
-
-            notification.querySelector('.modify').addEventListener('click', () => {
-                notification.remove();
-                showReminderModal(reminder, index);
-            });
-
-            notification.querySelector('.postpone').addEventListener('click', () => {
-                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const date = new Date(`${reminder.date}T${reminder.time}`);
-                date.setMinutes(date.getMinutes() + 30);
-                reminders[index] = {
-                    ...reminder,
-                    date: date.toISOString().split('T')[0],
-                    time: date.toTimeString().slice(0, 5)
-                };
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                notification.remove();
-                updateButtonStyles();
-            });
-
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 30000);
-        }
-
-        function checkReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const now = new Date();
-
-            reminders.forEach((reminder, index) => {
-                const reminderDateTime = new Date(`${reminder.date}T${reminder.time}`);
-                if (reminderDateTime <= now) {
-                    showReminderNotification(reminder, index);
-                }
-            });
-
-            setTimeout(checkReminders, 60000);
-        }
-
-        function showAllReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', 'Lista de recordatorios');
-            modal.innerHTML = `
-                <h2>Recordatorios</h2>
-                <div id="reminders-list">
-                    ${reminders.length === 0 ? '<p>No hay recordatorios.</p>' : ''}
-                </div>
-                <div class="button-group">
-                    <button type="button" id="close-reminders">Cerrar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            const list = modal.querySelector('#reminders-list');
-            reminders.forEach((reminder, index) => {
-                const item = document.createElement('div');
-                item.className = 'reminder-item';
-                item.style.marginBottom = '1rem';
-                item.innerHTML = `
-                    <p><strong>${reminder.title}</strong></p>
-                    <p>${reminder.description}</p>
-                    <p>${reminder.date} ${reminder.time}</p>
-                    <div class="button-group">
-                        <button class="modify">Modificar</button>
-                        <button class="delete">Eliminar</button>
-                    </div>
-                `;
-                list.appendChild(item);
-
-                item.querySelector('.modify').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                    showReminderModal(reminder, index);
-                });
-
-                item.querySelector('.delete').addEventListener('click', () => {
-                    if (confirm(`¿Eliminar el recordatorio "${reminder.title}"?`)) {
-                        reminders.splice(index, 1);
-                        localStorage.setItem('reminders', JSON.stringify(reminders));
-                        item.remove();
-                        updateButtonStyles();
-                        if (list.children.length === 0) {
-                            list.innerHTML = '<p>No hay recordatorios.</p>';
-                        }
-                    }
-                });
-            });
-
-            modal.querySelector('#close-reminders').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-        }
-
-        loadNotices();
-        loadSavedSettings();
-        updateVersion();
-        checkReminders();
-        adjustButtonPositions();
-
-        document.getElementById('back-button').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.back();
-        });
-
-        document.getElementById('forward-button').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.forward();
-        });
-
-    </script>
-</body>
-</html>
+// Es crucial llamar a adjustButtonPositions DESPUÉS de añadir todos los botones al DOM
+// y después de llamar a loadSavedSettings para que las posiciones y estilos sean correctos.
+// Asegúrate que en tu `DOMContentLoaded` o al final de `loadSavedSettings` haces algo como:
+// adjustButtonPositions();
+// updateButtonStyles();
