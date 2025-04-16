@@ -6,58 +6,197 @@
     <title>BoardingGate Lanzador</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
-    /* Base Styles */
-    body { display: flex; flex-direction: column; min-height: 100vh; background-color: #ABAB99; margin: 0; overflow-x: hidden; }
-    body.dark-mode { background-color: #92927E; }
+    /* --- Estilos Base y Layout --- */
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #ABAB99; /* Light mode default */
+        margin: 0;
+        overflow-x: hidden; /* Evita scroll horizontal */
+        padding: 6px; /* Pequeño padding general */
+        box-sizing: border-box;
+    }
+    body.dark-mode {
+        background-color: #92927E; /* Dark mode background */
+    }
 
-    /* Layout: Grid, Main, Footer, etc. */
-    main { margin: 0.5rem auto 0.5rem 60px; background-color: transparent; border-radius: 0.75rem; padding: 16px; min-height: 400px; transition: background-color 0.3s ease; max-width: 984px; width: calc(100% - 80px); box-sizing: border-box; }
-    #bookmark-grid { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 15px; background-color: transparent; border-radius: 0.75rem; position: relative; width: 100%; max-width: 984px; /* margin-left: 60px; */ /* Grid is inside main now */ transition: all 0.3s ease; }
-    #bookmark-grid > div { height: auto; aspect-ratio: 16 / 9; transition: all 0.3s ease; border: 2px solid transparent; display: flex; align-items: stretch; justify-content: stretch; }
-    footer { margin: 0.5rem auto; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; background-color: #ABAB99; margin-left: 60px; box-sizing: border-box; border-radius: 0.5rem; }
-    body.dark-mode footer { background-color: #92927E; }
-    .footer-content { color: #5C5C47; padding: 0.5rem; margin: 0 auto; max-width: 100%; position: relative; }
-    .counter-wrapper { margin: 0.5rem auto 0 60px; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; opacity: 0.5; box-sizing: border-box; }
-    .top-text-container { display: flex; align-items: center; justify-content: center; font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: #5C5C47; background-color: #D1D5DB; margin-top: 0.25rem; margin-left: 60px; gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; animation: fadeOut 6s forwards; max-width: 984px; width: calc(100% - 80px); box-sizing: border-box; }
-    body.dark-mode .top-text-container { background-color: #6B7280; }
+    main {
+        /* Ocupa el espacio principal, margen izquierdo para botones */
+        margin: 0.5rem auto 0.5rem 60px;
+        max-width: 984px; /* Ancho máximo del contenido */
+        width: calc(100% - 70px); /* Ancho menos margen botones y algo de espacio */
+        padding: 16px; /* Padding interno */
+        box-sizing: border-box;
+        /* background-color: transparent; */ /* Hereda del body o puede tener el suyo */
+        border-radius: 0.75rem;
+        min-height: 400px; /* Asegura altura mínima */
+    }
 
-    /* Grid Items */
-    .bookmark-item { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 0.5rem; transition: all 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; background-color: hsla(var(--hue, 0), var(--saturation, 80%), var(--lightness, 90%), 0.64); padding: 4px; box-sizing: border-box; box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1); position: relative; }
-    .bookmark-item:hover { transform: scale(1.05) translateY(-2px); box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15); z-index: 10; } /* Elevate on hover */
-    .bookmark-item img { width: 36px; height: 36px; max-width: 40px; max-height: 40px; object-fit: contain; border-radius: 0.25rem; margin-bottom: 4px; image-rendering: crisp-edges; -ms-interpolation-mode: nearest-neighbor; }
-    .bookmark-name { font-weight: bold; color: #333; text-align: center; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-size: clamp(0.85rem, 1.5vw, 1.15rem); }
-    body.dark-mode .bookmark-name { color: #E5E7EB; } /* Light text in dark mode */
-    .small-bookmark img { width: 24px; height: 24px; max-width: 28px; max-height: 28px; }
-    #bookmark-grid > div.config-empty-cell { background-color: rgba(249, 250, 251, 0.8); border: 1px dashed #E5E7EB; } /* Lighter style for empty */
-    body.dark-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(55, 65, 81, 0.6); border-color: #4B5563; filter: brightness(60%); }
+    /* --- Grid de Marcadores --- */
+    #bookmark-grid {
+        display: grid;
+        /* Grid por defecto, se ajusta por JS/responsive */
+        grid-template-columns: repeat(6, minmax(120px, 1fr));
+        gap: 15px;
+        width: 100%; /* Ocupa el ancho de main */
+        transition: all 0.3s ease;
+    }
+    /* Contenedor de cada celda */
+    #bookmark-grid > div {
+        height: auto;
+        aspect-ratio: 16 / 9; /* Mantiene proporción */
+        transition: all 0.3s ease;
+        border: 2px solid transparent; /* Borde para modo config */
+        display: flex; /* Para que el link interno ocupe todo */
+        align-items: stretch;
+        justify-content: stretch;
+        overflow: hidden; /* Evita que contenido desborde */
+        border-radius: 0.5rem; /* Redondeo de la celda */
+    }
+    /* Link dentro de la celda */
+    .bookmark-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        /* border-radius: 0.5rem; */ /* Redondeo ahora en el div padre */
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        background-color: hsla(var(--hue, 0), var(--saturation, 80%), var(--lightness, 90%), 0.64); /* Color base con variables CSS */
+        padding: 4px;
+        box-sizing: border-box;
+        text-decoration: none; /* Quita subrayado de links */
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.1); /* Sombra Neumorfica suave */
+        position: relative; /* Para z-index en hover */
+    }
+    .bookmark-item:hover {
+        transform: scale(1.03) translateY(-1px); /* Efecto hover sutil */
+        box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.15);
+        z-index: 10;
+    }
+    /* Icono */
+    .bookmark-item img {
+        width: 36px;
+        height: 36px; /* Altura fija para consistencia */
+        max-width: 40px;
+        object-fit: contain; /* Escala manteniendo aspecto */
+        border-radius: 0.25rem;
+        margin-bottom: 4px;
+        image-rendering: crisp-edges; /* Estilo pixelado */
+        -ms-interpolation-mode: nearest-neighbor;
+    }
+    /* Nombre */
+    .bookmark-name {
+        font-weight: bold;
+        color: #333; /* Color texto light mode */
+        text-align: center;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: calc(100% - 8px); /* Evita que toque bordes */
+        font-size: clamp(0.80rem, 1.4vw, 1.10rem); /* Tamaño ajustado */
+        line-height: 1.2; /* Ajuste interlineado */
+    }
+    body.dark-mode .bookmark-name {
+        color: #E5E7EB; /* Color texto dark mode */
+    }
+    /* Estilos para marcadores pequeños (sección Varios) */
+    .small-bookmark img {
+        width: 24px;
+        height: 24px;
+        max-width: 28px;
+    }
+    /* Celdas vacías */
+    #bookmark-grid > div.config-empty-cell {
+        background-color: rgba(200, 200, 200, 0.3); /* Gris claro transparente */
+        border: 1px dashed rgba(150, 150, 150, 0.5);
+        box-shadow: none; /* Sin sombra */
+    }
+    body.dark-mode #bookmark-grid > div.config-empty-cell {
+        background-color: rgba(80, 80, 80, 0.3); /* Gris oscuro transparente */
+        border-color: rgba(100, 100, 100, 0.5);
+        filter: brightness(70%);
+    }
 
     /* Responsive Grid */
-    @media (max-width: 768px) { #bookmark-grid { grid-template-columns: repeat(3, minmax(100px, 1fr)); gap: 10px; } }
-    @media (max-width: 480px) { #bookmark-grid { grid-template-columns: repeat(2, minmax(80px, 1fr)); gap: 8px; } }
+    @media (max-width: 768px) {
+        #bookmark-grid { grid-template-columns: repeat(3, minmax(100px, 1fr)); gap: 10px; }
+        main { width: calc(100% - 70px); } /* Ajuste ancho main */
+    }
+    @media (max-width: 480px) {
+        #bookmark-grid { grid-template-columns: repeat(2, minmax(80px, 1fr)); gap: 8px; }
+        main { width: calc(100% - 70px); } /* Ajuste ancho main */
+    }
 
-    /* Avisos */
-    .notices-icon-container { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 984px; margin: 0 auto; margin-left: 60px; position: relative; width: calc(100% - 80px); box-sizing: border-box; }
-    .notices-container { flex-grow: 1; padding: 0.5rem; border-radius: 0.5rem; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 3rem; margin-left: 10px; }
-    .notice-wrapper { padding: 0.5rem; height: 1.5rem; flex-grow: 1; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
-    .notice { color: #00ff00; font-weight: bold; white-space: nowrap; text-align: center; opacity: 0; animation: fadeInOut 14s infinite; }
-    @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
-    .notice-off-icon { width: auto; height: clamp(2rem, 5vw, 3rem); align-self: center; cursor: pointer; transition: filter 0.3s ease; flex-shrink: 0; }
+    /* --- Header/Footer/Avisos/Contador (Estilos originales restaurados) --- */
+    .header-container { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background-color: #ABAB99; padding: 0.5rem; border-radius: 0.5rem 0.5rem 0 0; /* Redondeo superior */ }
+    body.dark-mode .header-container { background-color: #92927E; }
+    .header-logo { width: 100px; height: 70px; transition: filter 0.2s ease; border-radius: 0.25rem; }
+    body.dark-mode .header-logo { filter: brightness(85%); }
+    .title-container { background-color: #ABAB99; padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block; }
+    body.dark-mode .title-container { background-color: #92927E; }
+    .header-container h1 { color: #5C5C47; }
+    body.dark-mode .header-container h1 { color: #3E3E2F; }
+    .version-text { font-size: 0.75rem; color: #5C5C47; font-weight: normal; margin-left: 5px;}
+    body.dark-mode .version-text { color: #C1C1A9; }
+
+    footer { margin: 0.5rem auto; text-align: center; max-width: 984px; width: calc(100% - 70px); display: block; background-color: #ABAB99; margin-left: 60px; box-sizing: border-box; border-radius: 0.75rem; }
+    body.dark-mode footer { background-color: #92927E; }
+    .footer-content { color: #5C5C47; padding: 0 0.5rem 0.5rem 0.5rem; /* Padding ajustado sin el header */ margin: 0 auto; max-width: 100%; position: relative; }
+    body.dark-mode .footer-content, body.dark-mode .footer-subtext, body.dark-mode .footer-link-green { color: #C1C1A9; }
+    .footer-subtext { font-size: 0.75rem; margin-top: 0.25rem; text-align: center; }
+    .footer-link-green { text-decoration: none; transition: color 0.2s ease; }
+    .footer-link-green:hover { color: #3E3E2F; }
+    body.dark-mode .footer-link-green:hover { color: #E6E6DC; }
+    .footer-line { display: flex; justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+    .notices-icon-container { display: flex; align-items: center; /* justify-content: center; */ justify-content: flex-start; /* Alinea a la izquierda */ width: 100%; max-width: 984px; margin: 0.5rem auto 0.5rem 60px; /* Margen igual que main/footer */ position: relative; width: calc(100% - 70px); box-sizing: border-box; height: 3rem; /* Altura fija */ }
+    .notice-off-icon { width: auto; height: 100%; /* Ocupa altura del contenedor */ align-self: center; cursor: pointer; transition: filter 0.3s ease; flex-shrink: 0; margin-right: 10px; /* Espacio a la derecha */ }
     body.dark-mode .notice-off-icon { filter: brightness(85%); }
+    .notices-container { flex-grow: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100%; }
+    .notice-wrapper { width: 100%; height: 100%; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+    .notice { color: #00ff00; font-weight: bold; white-space: nowrap; text-align: center; opacity: 0; animation: fadeInOut 14s infinite; font-size: 1.1rem; } /* Tamaño aviso */
+    @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
 
-    /* Botones Laterales Base */
-    .button-base { position: fixed; width: 91px; left: 10px; border-radius: 20px; cursor: pointer; z-index: 1000; transition: background-color 0.2s ease, filter 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; box-sizing: border-box; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
-    .button-base:hover { background-color: #D9A066 !important; /* Override specific colors on hover */ filter: brightness(105%); /* Slight brighten on hover */ }
-    .scroll-toggle-button { height: clamp(78.2px, 19.55vw, 175.95px); background-color: #668B8B; border-radius: 60px; flex-direction: column; justify-content: space-between; padding: clamp(10px, 2vw, 20px); /* Inherits .button-base */ top: 10px; /* Initial position */ }
-    .toggle-sign { height: 54px; background-color: #668B8B; font-weight: bold; font-size: 1.25rem; color: #E6E6DC; text-align: center; overflow: hidden; /* Inherits .button-base */ }
-    .toggle-image { height: 54px; object-fit: cover; /* Inherits .button-base */ }
+    .counter-wrapper { margin: 0.5rem auto 0 60px; text-align: center; max-width: 984px; width: calc(100% - 70px); display: block; opacity: 0.5; box-sizing: border-box; }
+    .counter-container { display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 0; /* Sin margen extra */ }
+
+    .top-text-container { display: flex; align-items: center; justify-content: center; font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: #5C5C47; background-color: #D1D5DB; margin: 0 auto 0.5rem 60px; /* Margen arriba/abajo */ gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; animation: fadeOut 6s forwards; max-width: 984px; width: calc(100% - 70px); box-sizing: border-box; }
+    body.dark-mode .top-text-container { background-color: #6B7280; color: #C1C1A9;}
+    .top-text-container span { color: #D9A066; font-size: clamp(0.9rem, 2vw, 1.2rem); }
+    @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
+    .arrow-button { width: clamp(36px, 6vw, 48px); height: clamp(36px, 6vw, 48px); background-color: #D9A066; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); transition: background-color 0.2s ease; }
+    .arrow-button:hover { background-color: #5C5C47; }
+    .arrow-button svg { stroke: #E6E6DC; }
+
+    /* --- Botones Laterales (Estilos originales restaurados) --- */
+    /* Scroll Toggle */
+    .scroll-toggle-button { position: fixed; width: 91px; height: clamp(78.2px, 19.55vw, 175.95px); background-color: #668B8B; border-radius: 60px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: clamp(10px, 2vw, 20px); cursor: pointer; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); z-index: 1000; transition: background-color 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; left: 10px; top: 10px; /* Posición inicial */ box-sizing: border-box; }
+    .scroll-toggle-button:hover { background-color: #D9A066; }
+    .scroll-toggle-button svg { width: clamp(24px, 4vw, 32px); height: clamp(24px, 4vw, 32px); stroke: #E6E6DC; }
+    body.dark-mode .scroll-toggle-button { background-color: #5C5C47; }
+    body.dark-mode .scroll-toggle-button:hover { background-color: #D9A066; }
+
+    /* Toggle Sign (para filtros, reload, home, config, weather, reminder, zoom) */
+    .toggle-sign { position: fixed; width: 91px; height: 54px; border-radius: 20px; background-color: #668B8B; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.25rem; color: #E6E6DC; text-align: center; cursor: pointer; z-index: 1000; transition: background-color 0.2s ease, filter 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; left: 10px; box-sizing: border-box; overflow: hidden; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
+    .toggle-sign:hover { background-color: #D9A066; }
     .toggle-sign .sign { font-size: 1.5rem; margin-right: 3px; min-width: 12px; display: inline-block; text-align: center; }
-    .toggle-sign img, .toggle-image img { max-width: calc(100% - 10px); max-height: calc(100% - 10px); object-fit: contain; } /* Ensure icon fits */
+    .toggle-sign img { max-width: calc(100% - 10px); max-height: calc(100% - 10px); object-fit: contain; }
+    body.dark-mode .toggle-sign { background-color: #5C5C47; }
+    body.dark-mode .toggle-sign:hover { background-color: #D9A066; }
 
-    /* Colores/Estilos Específicos Botones Laterales */
-    body:not(.dark-mode) .scroll-toggle-button { background-color: #668B8B; }
-    body:not(.dark-mode) .toggle-sign { background-color: #668B8B; }
-    body:not(.dark-mode) .toggle-image { /* No specific background, uses img */ }
+    /* Toggle Image (para on/off, dark mode) */
+    .toggle-image { position: fixed; width: 91px; height: 54px; cursor: pointer; z-index: 1000; transition: filter 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; left: 10px; border-radius: 20px; object-fit: cover; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
+    .toggle-image:hover { filter: brightness(80%); }
+    body.dark-mode .toggle-image#on-off-toggle { filter: brightness(85%); }
+    body.dark-mode .toggle-image#dark-mode-toggle { filter: brightness(85%); } /* Apply filter to dark mode toggle image */
+
+    /* Colores específicos botones (Light Mode) - Restaurados */
     body:not(.dark-mode) .toggle-sign.range-toggle[data-state="visible"] { background-color: #006400; }
     body:not(.dark-mode) .toggle-sign.range-toggle[data-state="hidden"] { background-color: #696969; }
     body:not(.dark-mode) #reload-button { background-color: #5DA8D6; }
@@ -68,9 +207,7 @@
     body:not(.dark-mode) #reminder-button { background-color: #4DA7A7; }
     body:not(.dark-mode) #config-button { background-color: #ABAB99; }
 
-    body.dark-mode .scroll-toggle-button { background-color: #5C5C47; }
-    body.dark-mode .toggle-sign { background-color: #5C5C47; }
-    body.dark-mode .toggle-image#on-off-toggle { filter: brightness(85%); }
+    /* Colores específicos botones (Dark Mode) - Restaurados */
     body.dark-mode .toggle-sign.range-toggle[data-state="visible"] { background-color: #166534; }
     body.dark-mode .toggle-sign.range-toggle[data-state="hidden"] { background-color: #4B5563; }
     body.dark-mode #reload-button { background-color: #0e7490; }
@@ -78,49 +215,49 @@
     body.dark-mode #weather-button { background-color: #b45309; }
     body.dark-mode #zoom-button { background-color: #c2410c; }
     body.dark-mode #zoom-button.zoomed { background-color: #7c2d12; }
-    body.dark-mode #reminder-button { background-color: #4DA7A7; }
+    body.dark-mode #reminder-button { background-color: #4DA7A7; } /* Mismo color en dark por ahora */
     body.dark-mode #config-button { background-color: #92927E; }
     body.dark-mode #config-button img { filter: brightness(85%); }
 
     /* Contador Recordatorios */
     #reminder-button { position: relative; /* Needed for absolute positioning of count */ }
-    #reminder-button .reminder-count { position: absolute; top: 4px; left: 4px; font-size: 0.65rem; color: #FFFFFF; background-color: #EF4444; border-radius: 50%; width: 18px; height: 18px; display: none; /* Hidden by default */ align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 3px rgba(0,0,0,0.5); z-index: 1; }
+    #reminder-button .reminder-count { position: absolute; top: 4px; left: 4px; font-size: 0.65rem; color: #FFFFFF; background-color: #EF4444; border-radius: 50%; width: 18px; height: 18px; display: none; /* Oculto hasta que haya > 0 */ align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 3px rgba(0,0,0,0.5); z-index: 1; }
 
-    /* Hidden Class */
+    /* --- Utilidades y Modos --- */
     .hidden { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
-    .footer-hidden { display: none !important; }
+    .footer-hidden { display: none !important; } /* Para ocultar contenido del footer */
 
     /* Dark Mode - General Effects */
     body.dark-mode .bookmark-item { filter: brightness(60%); }
-    body.dark-mode .footer-content, body.dark-mode .footer-subtext, body.dark-mode .footer-link-green, body.dark-mode .header-container h1 { color: #C1C1A9; } /* Lighter text in footer dark mode */
 
-    /* Minimal Mode */
-    /* .minimal-mode class is applied to BODY */
-    .minimal-mode main,
-    .minimal-mode footer,
-    .minimal-mode .notices-icon-container,
-    .minimal-mode .counter-wrapper,
-    .minimal-mode .top-text-container,
-    .minimal-mode #scroll-toggle,
-    .minimal-mode .range-toggle,
-    .minimal-mode #weather-button,
-    .minimal-mode #reminder-button,
-    .minimal-mode #zoom-button,
-    .minimal-mode #dark-mode-toggle,
-    .minimal-mode #reload-button,
-    .minimal-mode #home-button,
-    .minimal-mode #reminder-notifications {
+    /* Minimal Mode - Selectores Cuidadosos */
+    body.minimal-mode main,
+    body.minimal-mode footer,
+    body.minimal-mode .notices-icon-container,
+    body.minimal-mode .counter-wrapper,
+    body.minimal-mode .top-text-container,
+    body.minimal-mode #scroll-toggle,
+    body.minimal-mode .range-toggle, /* Oculta botones de filtro */
+    body.minimal-mode #weather-button,
+    body.minimal-mode #reminder-button,
+    body.minimal-mode #zoom-button,
+    body.minimal-mode #dark-mode-toggle, /* Oculta toggle dark */
+    body.minimal-mode #reload-button,
+    body.minimal-mode #home-button,
+    body.minimal-mode #reminder-notifications {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
     }
-    .minimal-mode #on-off-toggle { filter: none; opacity: 0.3; display: block !important; visibility: visible !important; opacity: 1 !important; } /* Force visible, override opacity */
-    .minimal-mode #config-button { display: flex !important; visibility: visible !important; opacity: 1 !important; }
+    /* Excepciones: Botones que SÍ se ven en minimal mode */
+    body.minimal-mode #on-off-toggle { display: block !important; visibility: visible !important; opacity: 0.3 !important; filter: none !important; } /* Visible pero atenuado */
+    body.minimal-mode #config-button { display: flex !important; visibility: visible !important; opacity: 1 !important; } /* Totalmente visible */
+    /* Mensaje Minimal Mode */
     .minimal-mode-message { color: #000000; font-size: 1rem; font-weight: bold; position: fixed; top: 70px; left: 10px; z-index: 1100; background: rgba(255, 255, 255, 0.7); padding: 5px; border-radius: 5px; }
     body.dark-mode .minimal-mode-message { color: #FFFFFF; background: rgba(0, 0, 0, 0.7); }
 
-    /* Recordatorios - Modals & Notifications */
-    /* Styles are largely unchanged but ensure dark-mode class toggling works */
+    /* --- Recordatorios y Configuración (Estilos sin cambios grandes) --- */
+    /* Recordatorios */
     .reminder-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #F3F4F6; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 2000; max-width: 400px; width: 90%; color: #111827; }
     .reminder-modal.dark-mode { background-color: #4B5563; color: #F3F4F6; }
     .reminder-modal h2 { font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem; }
@@ -137,7 +274,6 @@
     .reminder-modal.dark-mode button.delete-reminder { background-color: #DC2626; }
     .reminder-modal button.modify-reminder { background-color: #10B981; color: #FFFFFF; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size:0.8rem; }
     .reminder-modal.dark-mode button.modify-reminder { background-color: #059669; }
-
     #reminder-notifications { position: fixed; top: 10px; right: 10px; z-index: 1500; max-width: 300px; width: 90%; }
     .reminder-notification { background-color: #FFFF99; padding: 1rem; margin-bottom: 0.5rem; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; gap: 0.5rem; color: #333; }
     .reminder-notification.dark-mode { background-color: #FDE047; color: #1F2937; }
@@ -168,15 +304,15 @@
     .config-modal.dark-mode .save-button { background-color: #059669; }
 
     /* Grid en Modo Selección Items */
-    body.selecting-items-mode #bookmark-grid { border: 3px dashed #D9A066 !important; background-color: rgba(217, 160, 102, 0.1); z-index: 1; }
+    body.selecting-items-mode #bookmark-grid { border: 3px dashed #D9A066 !important; background-color: rgba(217, 160, 102, 0.1); z-index: 1; padding: 5px; /* Add padding for border */ }
     body.selecting-items-mode #bookmark-grid > div { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, border-color 0.2s ease; opacity: 0.6; border-width: 2px; border-style: solid; border-color: transparent; }
     body.dark-mode.selecting-items-mode #bookmark-grid > div { opacity: 0.5; }
     body.selecting-items-mode #bookmark-grid > div:not(.config-empty-cell):hover { transform: scale(1.05); opacity: 0.8; }
     body.dark-mode.selecting-items-mode #bookmark-grid > div:not(.config-empty-cell):hover { opacity: 0.7; }
     body.selecting-items-mode #bookmark-grid > div.config-selected { opacity: 1 !important; border-color: #2563EB !important; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); transform: scale(1.02); }
     body.dark-mode.selecting-items-mode #bookmark-grid > div.config-selected { border-color: #60A5FA !important; box-shadow: 0 0 10px rgba(96, 165, 250, 0.7); }
-    body.selecting-items-mode #bookmark-grid > div.config-empty-cell { opacity: 0.2 !important; cursor: not-allowed; background-color: rgba(128, 128, 128, 0.3) !important; }
-    body.dark-mode.selecting-items-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(0, 0, 0, 0.3) !important; }
+    body.selecting-items-mode #bookmark-grid > div.config-empty-cell { opacity: 0.2 !important; cursor: not-allowed; background-color: rgba(128, 128, 128, 0.3) !important; border-color: rgba(150, 150, 150, 0.5) !important; }
+    body.dark-mode.selecting-items-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(0, 0, 0, 0.3) !important; border-color: rgba(100, 100, 100, 0.5) !important; }
 
     /* Ocultar botones en Modo Configuración */
     body.config-mode .scroll-toggle-button,
@@ -184,12 +320,12 @@
     body.config-mode .toggle-sign:not(#config-button),
     body.config-mode #reminder-notifications,
     body.config-mode .top-text-container { display: none !important; visibility: hidden !important; }
-    body.config-mode #dark-mode-toggle { display: block !important; visibility: visible !important; z-index: 2600; } /* DarkMode SÍ visible */
-    body.config-mode #config-button { display: flex !important; visibility: visible !important; z-index: 2600; } /* Config SÍ visible */
+    body.config-mode #dark-mode-toggle { display: block !important; visibility: visible !important; z-index: 2600; }
+    body.config-mode #config-button { display: flex !important; visibility: visible !important; z-index: 2600; }
 
 </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-6"> <!-- Default light mode -->
+<body class=""> <!-- Clase dark-mode se añadirá con JS -->
     <!-- Contenedor de Texto Superior -->
     <div class="top-text-container">
         <div class="arrow-button" id="back-button">
@@ -219,17 +355,18 @@
     </div>
 
     <footer>
-        <div class="footer-content">
-            <div class="header-container">
-                <img src="https://boardinggate.github.io/Tesla/LOGOTESLA.jpg" class="header-logo">
-                <div class="title-container">
-                    <h1 class="text-2xl font-bold inline">
-                        <span class="text-2xl">BoardingGate</span>
-                        <span class="text-base">Lanzador</span>
-                        <span id="version" class="version-text"></span>
-                    </h1>
-                </div>
+         <!-- Header ahora DENTRO del footer para agrupar -->
+        <div class="header-container">
+            <img src="https://boardinggate.github.io/Tesla/LOGOTESLA.jpg" class="header-logo">
+            <div class="title-container">
+                <h1 class="text-2xl font-bold inline">
+                    <span class="text-2xl">BoardingGate</span>
+                    <span class="text-base">Lanzador</span>
+                    <span id="version" class="version-text"></span>
+                </h1>
             </div>
+        </div>
+        <div class="footer-content">
             <div class="footer-line">
                 <a href="https://x.com/boardinggate?s=21" class="footer-link-green" target="_blank" rel="noopener noreferrer">@BoardingGate</a>
                 <span class="text-green-200" style="font-size: 1.5rem;">🤝</span>
@@ -247,8 +384,8 @@
         </div>
     </div>
 
-     <!-- Botón Scroll (Estático HTML) -->
-    <div id="scroll-toggle" class="button-base scroll-toggle-button" title="Ir al inicio o fin">
+     <!-- Botón Scroll (Estático HTML, clase base eliminada aquí) -->
+    <div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </div>
@@ -261,7 +398,6 @@
     <script>
         // === Constants and Global Variables ===
         const bookmarks = [
-            // ... (La lista de bookmarks original va aquí, sin cambios) ...
             { name: "YouTube", url: "https://www.youtube.com" },
             { name: "Google", url: "https://www.google.com" },
             { name: "GDrive", url: "https://drive.google.com", favicon: "./IMG_4172.png" },
@@ -354,22 +490,22 @@
         const TOTAL_CELLS = 96;
         const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
-        const cellElements = []; // Array for grid cell elements
-        let createdToggleButtons = []; // Array for filter toggle button elements
-        let sideButtons = []; // Array for ALL side button elements (for positioning)
+        const cellElements = [];
+        let createdToggleButtons = [];
+        let sideButtons = [];
 
         // --- State Variables ---
         let isDarkMode = false;
-        let isMinimalMode = false; // Default to normal mode
-        let isConfigMode = false; // Default to non-config mode
-        let isActive = true; // Notices active by default
-        let isFooterVisible = true; // Footer visible by default
+        let isMinimalMode = false; // Default to normal
+        let isConfigMode = false;
+        let isActive = true; // Notices
+        let isFooterVisible = true; // Footer
         let pressStartTime = null;
         let reminderPressStartTime = null;
         let notices = [];
         let currentNoticeIndex = 0;
 
-        // --- Config State Variables ---
+        // --- Config State ---
         let customToggleConfigs = {};
         let currentConfiguringToggle = null;
         let currentConfigIndices = [];
@@ -387,153 +523,195 @@
         const checkDarkModeTime = () => { const h = new Date().getHours(); return h >= 21 || h < 7; };
 
         // === Settings Management ===
-        function loadCustomToggleConfigs() { /* ... (implementation from previous correct version) ... */ }
-        function saveCustomToggleConfigs() { /* ... (implementation from previous correct version) ... */ }
-        function saveSettings() { /* ... (implementation from previous correct version) ... */ }
+        function loadCustomToggleConfigs() {
+            const saved = localStorage.getItem('customToggleConfigs');
+            customToggleConfigs = {};
+            if (saved) { try { const p = JSON.parse(saved); if (typeof p === 'object' && p !== null) customToggleConfigs = p; } catch(e) { console.error("Err parsing custom toggles", e); }}
+            // console.log("Loaded custom toggles:", JSON.stringify(customToggleConfigs));
+        }
+        function saveCustomToggleConfigs() {
+            localStorage.setItem('customToggleConfigs', JSON.stringify(customToggleConfigs));
+            // console.log("Saved custom toggles:", JSON.stringify(customToggleConfigs));
+        }
+        function saveSettings() {
+            localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+            localStorage.setItem('minimalMode', JSON.stringify(isMinimalMode));
+            const tStates = {}; createdToggleButtons.forEach(t => { if(t.dataset.toggleId) tStates[t.dataset.toggleId] = t.dataset.state; }); localStorage.setItem('toggleStates', JSON.stringify(tStates));
+            const zb = document.getElementById('zoom-button'); if(zb) localStorage.setItem('zoomState', zb.dataset.zoomState);
+            const oot = document.getElementById('on-off-toggle'); if(oot) localStorage.setItem('onOffState', oot.dataset.state);
+            localStorage.setItem('noticesActive', JSON.stringify(isActive)); localStorage.setItem('footerVisible', JSON.stringify(isFooterVisible));
+            // console.log("Settings saved.");
+        }
 
         function loadSavedSettings() {
             console.log("Loading saved settings...");
-            // 1. Read all potential settings from localStorage
-            const savedDarkMode = localStorage.getItem('darkMode');
-            const savedMinimalMode = localStorage.getItem('minimalMode');
-            const savedZoomState = localStorage.getItem('zoomState');
-            const savedOnOffState = localStorage.getItem('onOffState');
-            const savedNoticesActive = localStorage.getItem('noticesActive');
-            const savedFooterVisible = localStorage.getItem('footerVisible');
-            const savedToggleStates = localStorage.getItem('toggleStates');
+            // Read storage
+            const sDarkMode = localStorage.getItem('darkMode'); const sMinimal = localStorage.getItem('minimalMode'); const sZoom = localStorage.getItem('zoomState');
+            const sOnOff = localStorage.getItem('onOffState'); const sNotices = localStorage.getItem('noticesActive'); const sFooter = localStorage.getItem('footerVisible');
+            const sToggles = localStorage.getItem('toggleStates');
 
-            // 2. Determine initial state values (use defaults if nothing saved)
-            isDarkMode = savedDarkMode ? JSON.parse(savedDarkMode) : checkDarkModeTime();
-            // IMPORTANT: Default minimalMode to FALSE unless explicitly saved as true
-            isMinimalMode = savedMinimalMode ? JSON.parse(savedMinimalMode) : false;
-            isActive = savedNoticesActive ? JSON.parse(savedNoticesActive) : true;
-            isFooterVisible = savedFooterVisible ? JSON.parse(savedFooterVisible) : true;
+            // Determine initial JS state (use defaults)
+            isDarkMode = sDarkMode ? JSON.parse(sDarkMode) : checkDarkModeTime();
+            isMinimalMode = sMinimal ? JSON.parse(sMinimal) : false; // CRITICAL: Default is FALSE
+            isActive = sNotices ? JSON.parse(sNotices) : true;
+            isFooterVisible = sFooter ? JSON.parse(sFooter) : true;
 
-            // 3. Load custom toggle configs
+            // Load custom toggle configs (needed before applying states)
             loadCustomToggleConfigs();
 
-            // 4. Apply Dark Mode class to body FIRST (affects subsequent styling)
-            if (isDarkMode) document.body.classList.add('dark-mode');
-            else document.body.classList.remove('dark-mode'); // Ensure it's removed if false
-
-            // 5. Apply state to existing buttons (Zoom, On/Off)
-            const zoomButton = document.getElementById('zoom-button');
-            if (zoomButton) {
-                zoomButton.dataset.zoomState = savedZoomState || 'off';
-                applyZoom(zoomButton.dataset.zoomState); // Apply visual zoom effect
-            }
-            const onOffToggle = document.getElementById('on-off-toggle');
-            if (onOffToggle) {
-                onOffToggle.dataset.state = savedOnOffState || 'on';
-            }
-
-            // 6. Apply state and config to filter toggle buttons
-            let toggleStates = {};
-            if (savedToggleStates) { try { toggleStates = JSON.parse(savedToggleStates); } catch(e) {} }
+            // Apply state to buttons DATASET (visuals applied later)
+            const zoomBtn = document.getElementById('zoom-button'); if(zoomBtn) zoomBtn.dataset.zoomState = sZoom || 'off';
+            const onOffBtn = document.getElementById('on-off-toggle'); if(onOffBtn) onOffBtn.dataset.state = sOnOff || 'on';
+            let toggleStates = {}; if (sToggles) { try { toggleStates = JSON.parse(sToggles); } catch(e){} }
             createdToggleButtons.forEach(toggle => {
-                const toggleId = toggle.dataset.toggleId;
-                if (toggleId) {
-                    // Set state first (default to visible if not found)
-                    toggle.dataset.state = toggleStates[toggleId] || 'visible';
-                    // Apply full configuration (label, indices, visibility based on state)
-                    applyToggleConfiguration(toggleId);
-                }
+                if(toggle.dataset.toggleId) toggle.dataset.state = toggleStates[toggle.dataset.toggleId] || 'visible';
             });
 
-            // 7. Load reminders data (doesn't affect layout immediately)
+            // Load reminder data
             loadReminders();
-
-            // 8. Update button visual styles (icons, counts) based on loaded state
-            updateButtonStyles();
-
-            // 9. IMPORTANT: Apply Minimal Mode *visuals* and Footer/Notice visibility LAST, as they hide/show elements
-            // This happens AFTER initial state is loaded and buttons are configured
-            toggleMinimalMode(isMinimalMode); // This will hide/show elements based on the loaded state
-            if (!isMinimalMode) {
-                toggleFooterVisibility(); // Ensure footer/notices are correct if not minimal
-            }
-
-            console.log("Finished loading settings. Final state -> isMinimalMode:", isMinimalMode, "isDarkMode:", isDarkMode);
+            console.log("Finished loading settings state. isMinimalMode:", isMinimalMode);
         }
 
-
-        // === Mode Toggling (Minimal, Config) ===
+        // === Mode Toggling ===
         function toggleMinimalMode(enable) {
-            console.log("Setting Minimal Mode:", enable);
-            // Set state *before* changing class, so adjustButtonPositions uses correct value
-            isMinimalMode = enable;
+            console.log("Setting Minimal Mode Visuals:", enable);
+            isMinimalMode = enable; // Ensure state is current
             document.body.classList.toggle('minimal-mode', enable);
-            const message = document.getElementById('minimal-mode-message');
+            const msg = document.getElementById('minimal-mode-message');
             if (enable) {
-                if (!message) {
-                    const newMessage = document.createElement('div');
-                    newMessage.id = 'minimal-mode-message'; newMessage.className = 'minimal-mode-message';
-                    newMessage.textContent = 'Pulse ON/OFF 2 seg. para reactivar';
-                    document.body.appendChild(newMessage);
-                }
-                // Explicitly hide footer etc when entering minimal mode
-                document.querySelector('footer')?.classList.add('hidden');
-                document.querySelector('.counter-wrapper')?.classList.add('hidden');
-                document.querySelector('.notices-icon-container')?.classList.add('hidden');
+                if (!msg) { /* create message */ }
+                 // Explicitly hide elements affected by minimal mode CSS
+                 document.querySelector('main')?.classList.add('hidden');
+                 document.querySelector('footer')?.classList.add('hidden');
+                 document.querySelector('.notices-icon-container')?.classList.add('hidden');
+                 document.querySelector('.counter-wrapper')?.classList.add('hidden');
+                 document.querySelector('.top-text-container')?.classList.add('hidden');
+                 document.getElementById('reminder-notifications')?.classList.add('hidden');
             } else {
-                if (message) message.remove();
-                // Explicitly show footer etc based on their flags when exiting minimal
-                toggleFooterVisibility(); // This fn checks isActive/isFooterVisible
+                if (msg) msg.remove();
+                 // Explicitly show elements (if they should be visible based on other flags)
+                 document.querySelector('main')?.classList.remove('hidden');
+                toggleFooterVisibility(); // This handles footer/notices/counter based on isActive/isFooterVisible
+                 document.querySelector('.top-text-container')?.classList.remove('hidden');
+                 document.getElementById('reminder-notifications')?.classList.remove('hidden');
             }
-            // Adjust positions AFTER changing class and potentially hiding/showing footer
-            adjustButtonPositions();
-            // Save the new state
-            saveSettings();
+            adjustButtonPositions(); // Adjust visibility/position of side buttons
+            // Save setting might happen outside if called by user action
         }
 
-        function exitConfigurationMode() { /* ... (implementation from previous correct version) ... */ }
-        // ... other config functions (showConfigMenu, showToggleSelectionMenu, etc.) ...
+        function exitConfigurationMode() {
+             if (document.body.classList.contains('selecting-items-mode')) exitItemSelectionMode();
+             const overlay = document.getElementById('config-overlay'); if (overlay) document.body.removeChild(overlay);
+             document.body.classList.remove('config-mode'); document.body.style.overflow = ''; isConfigMode = false;
+             adjustButtonPositions(); // Re-show normal buttons
+        }
+        // ... other config functions ...
+        function showConfigMenu() { /* ... (implementation) ... */ }
+        function showToggleSelectionMenu() { /* ... (implementation) ... */ }
+        function startToggleConfiguration(toggleId) { /* ... (implementation) ... */ }
+        function handleGridItemClickInConfig(event) { /* ... (implementation) ... */ }
+        function saveToggleConfiguration(toggleId, newLabel) { /* ... (implementation) ... */ }
+        function exitItemSelectionMode() { /* ... (implementation) ... */ }
 
-        // === UI Updates (Zoom, Styles, Version) ===
-        function applyZoom(state) { /* ... (implementation from previous correct version) ... */ }
-        function updateButtonStyles() { /* ... (implementation from previous correct version, ensure it finds elements correctly) ... */ }
-        function formatVersionDate(date) { /* ... */ return ""; }
-        async function getLastModifiedDate() { /* ... */ return new Date(); }
-        async function updateVersion() { /* ... (implementation from previous correct version) ... */ }
-        function applyCurrentThemeToElements() { /* ... (implementation from previous correct version) ... */ }
+
+        // === UI Updates ===
+        function applyZoom(state) {
+             const zoomBtn = document.getElementById('zoom-button'); if (!zoomBtn) return;
+             const gridCells = document.querySelectorAll('#bookmark-grid > div');
+             const bkImgs = document.querySelectorAll('.bookmark-item img'); const bkNames = document.querySelectorAll('.bookmark-name');
+             const smImgs = document.querySelectorAll('.small-bookmark img'); const smNames = document.querySelectorAll('.small-bookmark .bookmark-name');
+             const origW = 984, adjW = 935, origC = 6, zoomC = 4, gap = 15; const zCellW = (adjW - (zoomC - 1) * gap) / zoomC;
+
+             if (state === 'on') {
+                 grid.style.gridTemplateColumns = `repeat(${zoomC}, ${zCellW}px)`; grid.style.maxWidth = `${adjW}px`;
+                 gridCells.forEach(c => c.style.aspectRatio = '16 / 9');
+                 bkImgs.forEach(i => { i.style.width='48px'; i.style.maxWidth='56px'; i.style.height='48px'; i.style.maxHeight='56px'; });
+                 bkNames.forEach(n => n.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)');
+                 smImgs.forEach(i => { i.style.width='48px'; i.style.maxWidth='56px'; i.style.height='48px'; i.style.maxHeight='56px'; });
+                 smNames.forEach(n => n.style.fontSize = 'clamp(1.05rem, 1.8vw, 1.35rem)');
+                 zoomBtn.innerHTML = `<img src="./zoon+.png" alt="Zoom In">`; zoomBtn.classList.add('zoomed');
+             } else {
+                 grid.style.gridTemplateColumns = `repeat(${origC}, minmax(120px, 1fr))`; grid.style.maxWidth = `${origW}px`;
+                 gridCells.forEach(c => c.style.aspectRatio = '16 / 9');
+                 bkImgs.forEach(i => { i.style.width='36px'; i.style.maxWidth='40px'; i.style.height='36px'; i.style.maxHeight='40px'; });
+                 bkNames.forEach(n => n.style.fontSize = 'clamp(0.80rem, 1.4vw, 1.10rem)');
+                 smImgs.forEach(i => { i.style.width='24px'; i.style.maxWidth='28px'; i.style.height='24px'; i.style.maxHeight='28px'; });
+                 smNames.forEach(n => n.style.fontSize = 'clamp(0.80rem, 1.4vw, 1.10rem)');
+                 zoomBtn.innerHTML = `<img src="./zoon-.png" alt="Zoom Out">`; zoomBtn.classList.remove('zoomed');
+             }
+        }
+        function updateButtonStyles() {
+            // console.log("Updating button styles");
+            const dkToggle = document.getElementById('dark-mode-toggle'); const ooToggle = document.getElementById('on-off-toggle');
+            const zmBtn = document.getElementById('zoom-button'); const rmBtn = document.getElementById('reminder-button');
+            if(ooToggle) { ooToggle.src = `https://boardinggate.github.io/Tesla/${ooToggle.dataset.state === 'on' ? 'IMG_4192.jpg' : 'IMG_4191.jpg'}`; ooToggle.alt = `Toggle ${ooToggle.dataset.state === 'on' ? 'On' : 'Off'}`; }
+            if(dkToggle) { dkToggle.src = `https://boardinggate.github.io/Tesla/${isDarkMode ? 'IMG_4189.jpg' : 'IMG_4190.jpg'}`; dkToggle.alt = `Toggle ${isDarkMode ? 'Oscuro' : 'Claro'}`; }
+            if(rmBtn) { const rmdrs = JSON.parse(localStorage.getItem('reminders') || '[]'); const cnt = rmdrs.length; let cntEl = rmBtn.querySelector('.reminder-count'); if (cnt > 0) { if(!cntEl){cntEl = document.createElement('span'); cntEl.className='reminder-count'; rmBtn.appendChild(cntEl);} cntEl.textContent = cnt; cntEl.style.display = 'flex'; } else if (cntEl) { cntEl.style.display = 'none'; }}
+            if(zmBtn) { zmBtn.classList.toggle('zoomed', zmBtn.dataset.zoomState === 'on'); }
+            // Filter toggle button text/sign is handled by applyToggleConfiguration
+        }
+        async function updateVersion() {
+             try { const lmDate = await getLastModifiedDate(); const v = formatVersionDate(lmDate); const vEl = document.getElementById('version'); if(vEl) vEl.textContent = `v${v}`; } catch (err) { console.error("Version update failed", err); const vEl = document.getElementById('version'); if(vEl) vEl.textContent = 'v?.?.?'; }
+        }
+        function applyCurrentThemeToElements() {
+             // console.log("Applying theme to elements. Dark mode:", isDarkMode);
+             document.body.classList.toggle('dark-mode', isDarkMode); // Ensure body class is correct
+             // Empty cells
+             document.querySelectorAll('#bookmark-grid > div.config-empty-cell').forEach(cell => {
+                 cell.style.backgroundColor = isDarkMode ? 'rgba(80, 80, 80, 0.3)' : 'rgba(200, 200, 200, 0.3)';
+                 cell.style.borderColor = isDarkMode ? 'rgba(100, 100, 100, 0.5)' : 'rgba(150, 150, 150, 0.5)';
+                 cell.style.filter = isDarkMode ? 'brightness(70%)' : '';
+             });
+             // Modals/Notifications (add/remove dark-mode class)
+             document.querySelectorAll('.reminder-modal, .config-modal').forEach(m => m.classList.toggle('dark-mode', isDarkMode));
+             document.querySelectorAll('.reminder-notification').forEach(n => n.classList.toggle('dark-mode', isDarkMode));
+             // Update button styles that might depend on theme
+             updateButtonStyles();
+        }
 
         // === Grid Creation ===
-        const getFaviconUrl = (bookmark) => { /* ... */ return ''; };
-        function generateBrightColor() { /* ... */ return ''; }
-        function areColorsSimilar(c1, c2, t = 45) { /* ... */ return false; }
         function createGridItems() {
              console.log("Creating grid items...");
-             grid.innerHTML = ''; cellElements.length = 0; // Clear previous
-             const colors = Array(TOTAL_CELLS).fill(null);
-             // Color generation logic (ensure it handles potential errors)
-             for (let i = 0; i < TOTAL_CELLS; i++) { if (bookmarks[i] !== null) { try { /* ... color generation ... */ } catch(e) { console.error("Color gen error", e); } } }
+             grid.innerHTML = ''; cellElements.length = 0;
+             const colors = []; // Generate colors...
+             for (let i = 0; i < TOTAL_CELLS; i++) { if (bookmarks[i] !== null) { try { let color, attempts=0; do { color = generateBrightColor(); attempts++; /* check neighbors */ } while (/* condition */ attempts < 20); colors[i] = color; } catch(e){} }}
 
              Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
                 const cell = document.createElement('div');
                 const bookmark = (index < bookmarks.length) ? bookmarks[index] : null;
-                 const isEffectivelyEmpty = (bookmark === null || bookmark.name === undefined); // Check if it's a placeholder or out of bounds
+                 const isEmpty = !(bookmark && bookmark.name !== undefined); // Simplified empty check
 
-                 if (!isEffectivelyEmpty) {
-                    const link = document.createElement('a');
-                    // Add classes, title, color, href, target
-                    link.className = index >= 60 ? 'bookmark-item small-bookmark' : 'bookmark-item';
-                    link.title = bookmark.name || `Enlace ${index + 1}`;
-                    if (colors[index]) { try { const [h, s, l] = colors[index].match(/\d+/g).map(Number); link.style.setProperty('--hue', h); link.style.setProperty('--saturation', `${s}%`); link.style.setProperty('--lightness', `${l}%`); } catch(e){ link.style.backgroundColor = '#E0E0E0'; } } else { link.style.backgroundColor = '#E0E0E0'; }
-                    link.href = bookmark.url || "#";
-                    if (bookmark.url && bookmark.name !== "Inicio Tesla") { link.target = "_blank"; link.rel = "noopener noreferrer"; }
-                    // Add icon and name SPANS if not intentionally blank name
-                    if (bookmark.name !== "") {
-                        const img = document.createElement('img'); /* ... set src, alt, loading, onerror ... */ link.appendChild(img);
-                        const name = document.createElement('span'); name.className = 'bookmark-name'; name.textContent = bookmark.name; link.appendChild(name);
-                    } else { link.classList.add('no-name'); /* For bookmarks with URL but no name like Ventusky */ }
-                    cell.appendChild(link);
-                } else {
-                    cell.className = 'config-empty-cell'; // Mark as empty, specific style from CSS
-                }
-                grid.appendChild(cell);
-                cellElements.push(cell);
-            });
-             applyCurrentThemeToElements(); // Apply dark mode to empty cells if needed
+                 if (!isEmpty) {
+                     const link = document.createElement('a');
+                     link.className = index >= 60 ? 'bookmark-item small-bookmark' : 'bookmark-item';
+                     link.title = bookmark.name || '';
+                     if (colors[index]) { try { const [h, s, l] = colors[index].match(/\d+/g).map(Number); link.style.setProperty('--hue', h); link.style.setProperty('--saturation', `${s}%`); link.style.setProperty('--lightness', `${l}%`); } catch(e){ link.style.backgroundColor = '#EEE'; } } else { link.style.backgroundColor = '#EEE'; }
+                     link.href = bookmark.url || "#";
+                     if (bookmark.url && bookmark.name !== "Inicio Tesla") { link.target = "_blank"; link.rel = "noopener noreferrer"; }
+
+                     // Add icon only if name is not explicitly empty string "" (allows URL-only bookmarks like Ventusky)
+                     if (bookmark.name !== "" || !bookmark.url) { // If it has a name OR no URL (like "Inicio Tesla")
+                         const img = document.createElement('img');
+                         img.src = getFaviconUrl(bookmark); img.alt = `Favicon ${bookmark.name || ''}`; img.loading = "lazy";
+                         img.onerror = (e) => { e.target.src='https://via.placeholder.com/32/CCCCCC/FFFFFF?text=?'; e.target.onerror=null; };
+                         if (bookmark.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
+                         link.appendChild(img);
+                     }
+                     // Add name text only if name exists and is not empty string ""
+                     if (bookmark.name && bookmark.name !== "") {
+                         const name = document.createElement('span'); name.className = 'bookmark-name'; name.textContent = bookmark.name; link.appendChild(name);
+                     } else if (!bookmark.url) {
+                         // Handle "Inicio Tesla" which has a name but no URL and might need text
+                          const name = document.createElement('span'); name.className = 'bookmark-name'; name.textContent = bookmark.name; link.appendChild(name);
+                     } else { link.classList.add('no-name'); } // For URL-only like Ventusky
+                     cell.appendChild(link);
+                 } else {
+                     cell.className = 'config-empty-cell'; // Mark empty
+                 }
+                 grid.appendChild(cell);
+                 cellElements.push(cell);
+             });
+             applyCurrentThemeToElements(); // Style empty cells based on current theme
              console.log(`Grid items created (${cellElements.length}).`);
         }
 
@@ -541,180 +719,226 @@
         function createSideButtons() {
             console.log("Creating side buttons...");
             const buttonContainer = document.body;
-            createdToggleButtons = []; // Clear previous filter toggles
-            const newSideButtons = []; // Temp array for this creation run
+            createdToggleButtons = []; // Reset filter toggle array
+            const newSideButtons = []; // Temp array for this run
 
-             // Helper to create a button element
-             const createButton = (type, id, baseClass, innerHTML = '', dataset = {}) => {
-                 const el = document.createElement(type);
-                 el.id = id;
-                 el.className = `button-base ${baseClass}`; // Apply base and specific class
-                 if (innerHTML) el.innerHTML = innerHTML;
-                 Object.entries(dataset).forEach(([key, value]) => el.dataset[key] = value);
-                 buttonContainer.appendChild(el);
-                 newSideButtons.push(el); // Add to the list for positioning
-                 return el;
-             };
+            // Helper to avoid repetition
+            const addButton = (elType, id, classes, innerHTML = '', dataset = {}) => {
+                const el = document.createElement(elType);
+                el.id = id;
+                el.className = classes.join(' '); // Join class array
+                if (innerHTML) el.innerHTML = innerHTML;
+                Object.entries(dataset).forEach(([key, value]) => el.dataset[key] = value);
+                buttonContainer.appendChild(el);
+                newSideButtons.push(el);
+                return el;
+            };
 
-            // --- Create Buttons ---
-            const onOffToggle = createButton('img', 'on-off-toggle', 'toggle-image', '', { state: 'on' });
-            onOffToggle.alt = 'Toggle On/Off'; // Alt text for accessibility
-             // Add specific listeners
-            onOffToggle.addEventListener('mousedown', () => { pressStartTime = Date.now(); });
+            // --- Create Buttons (Using original classes structure) ---
+            const onOffToggle = addButton('img', 'on-off-toggle', ['toggle-image'], '', { state: 'on' });
+            onOffToggle.alt = 'Toggle On/Off'; onOffToggle.src = 'https://boardinggate.github.io/Tesla/IMG_4192.jpg'; // Default ON image
+            onOffToggle.addEventListener('mousedown', () => { pressStartTime = Date.now(); }); // Add listeners
             onOffToggle.addEventListener('mouseup', handleOnOffLongPress);
             onOffToggle.addEventListener('touchstart', (e) => { e.preventDefault(); pressStartTime = Date.now(); });
             onOffToggle.addEventListener('touchend', (e) => { e.preventDefault(); handleOnOffLongPress(); });
 
             toggleRanges.forEach((range) => {
-                 const toggle = createButton('span', range.id, 'toggle-sign range-toggle', '', { toggleId: range.id, state: 'visible' });
+                 const toggle = addButton('span', range.id, ['toggle-sign', 'range-toggle'], '', { toggleId: range.id, state: 'visible' });
                  toggle.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) updateToggleState(toggle); });
-                 createdToggleButtons.push(toggle); // Keep track of filter toggles
+                 createdToggleButtons.push(toggle);
             });
 
-            const weatherButton = createButton('span', 'weather-button', 'toggle-sign', `<img src="https://www.google.com/s2/favicons?domain=ventusky.com&sz=64" alt="Tiempo">`);
-            weatherButton.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank'); });
+            const weatherBtn = addButton('span', 'weather-button', ['toggle-sign'], `<img src="https://www.google.com/s2/favicons?domain=ventusky.com&sz=64" alt="Tiempo">`);
+            weatherBtn.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank'); });
 
-            const reminderButton = createButton('span', 'reminder-button', 'toggle-sign', `<img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio">`);
-            reminderButton.addEventListener('mousedown', () => { reminderPressStartTime = Date.now(); });
-            reminderButton.addEventListener('mouseup', handleReminderLongPress);
-            reminderButton.addEventListener('touchstart', (e) => { e.preventDefault(); reminderPressStartTime = Date.now(); });
-            reminderButton.addEventListener('touchend', (e) => { e.preventDefault(); handleReminderLongPress(); });
+            const reminderBtn = addButton('span', 'reminder-button', ['toggle-sign'], `<img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio">`);
+            reminderBtn.addEventListener('mousedown', () => { reminderPressStartTime = Date.now(); }); // Add listeners
+            reminderBtn.addEventListener('mouseup', handleReminderLongPress);
+            reminderBtn.addEventListener('touchstart', (e) => { e.preventDefault(); reminderPressStartTime = Date.now(); });
+            reminderBtn.addEventListener('touchend', (e) => { e.preventDefault(); handleReminderLongPress(); });
 
-            const zoomButton = createButton('span', 'zoom-button', 'toggle-sign', `<img src="./zoon-.png" alt="Zoom">`, { zoomState: 'off' });
-            zoomButton.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) { /* ... zoom logic ... */ } });
+            const zoomBtn = addButton('span', 'zoom-button', ['toggle-sign'], `<img src="./zoon-.png" alt="Zoom">`, { zoomState: 'off' });
+            zoomBtn.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) { const ns=zoomBtn.dataset.zoomState==='off'?'on':'off'; zoomBtn.dataset.zoomState=ns; applyZoom(ns); updateButtonStyles(); saveSettings();} });
 
-            const darkModeToggle = createButton('img', 'dark-mode-toggle', 'toggle-image');
-            darkModeToggle.alt = 'Toggle Dark Mode';
-            darkModeToggle.addEventListener('click', () => { if (!isMinimalMode) { /* ... dark mode logic ... */ } });
+            const dkModeToggle = addButton('img', 'dark-mode-toggle', ['toggle-image']);
+            dkModeToggle.alt = 'Toggle Dark Mode'; dkModeToggle.src = 'https://boardinggate.github.io/Tesla/IMG_4190.jpg'; // Default Light image
+            dkModeToggle.addEventListener('click', () => { if (!isMinimalMode) { isDarkMode=!isDarkMode; applyCurrentThemeToElements(); saveSettings(); } });
 
-            const reloadButton = createButton('span', 'reload-button', 'toggle-sign', `<img src="./reload.webp" alt="Recargar">`);
-            reloadButton.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) location.reload(); });
+            const reloadBtn = addButton('span', 'reload-button', ['toggle-sign'], `<img src="./reload.webp" alt="Recargar">`);
+            reloadBtn.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) location.reload(); });
 
-            const homeButton = createButton('span', 'home-button', 'toggle-sign', `<img src="./home.webp" alt="Inicio">`);
-            homeButton.addEventListener('click', (e) => { if (!isMinimalMode && !isConfigMode) { e.preventDefault(); window.history.back(); } });
+            const homeBtn = addButton('span', 'home-button', ['toggle-sign'], `<img src="./home.webp" alt="Inicio">`);
+            homeBtn.addEventListener('click', (e) => { if (!isMinimalMode && !isConfigMode) { e.preventDefault(); window.history.back(); } });
 
-            const configButton = createButton('span', 'config-button', 'toggle-sign', `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración">`);
-            configButton.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) showConfigMenu(); });
+            const configBtn = addButton('span', 'config-button', ['toggle-sign'], `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración">`);
+            configBtn.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) showConfigMenu(); });
 
             // --- Finalize Side Button List ---
-            const scrollToggle = document.getElementById('scroll-toggle'); // Get existing static button
-            sideButtons = [scrollToggle, ...newSideButtons].filter(Boolean); // Combine static + dynamic, remove nulls
+            const scrollToggle = document.getElementById('scroll-toggle');
+            sideButtons = [scrollToggle, ...newSideButtons].filter(Boolean); // Combine and ensure no nulls
             console.log(`Side buttons created/collected (${sideButtons.length}).`);
         }
 
+
         // === Side Button Positioning ===
         function adjustButtonPositions() {
-            console.log("Adjusting button positions. isMinimalMode:", isMinimalMode);
-            const scrollToggle = document.getElementById('scroll-toggle');
-            if (!scrollToggle || !sideButtons || sideButtons.length === 0) {
-                console.warn("Cannot adjust positions - buttons not ready.");
-                return;
-            }
+             console.log("Adjusting button positions. Minimal Mode:", isMinimalMode);
+             const scrollToggle = document.getElementById('scroll-toggle');
+             if (!scrollToggle || sideButtons.length === 0) return;
 
-            const scrollToggleHeight = scrollToggle.offsetHeight || 100; // Use default if hidden initially
-            const buttonHeight = 54;
-            const spacing = 4;
-            let currentTop = 10;
+             const scrollToggleHeight = scrollToggle.offsetHeight || 100; // Default height if needed
+             const buttonHeight = 54; // Standard height for others
+             const spacing = 4;
+             let currentTop = 10; // Initial top for scroll toggle
 
-            sideButtons.forEach((button) => {
-                if (!button) return; // Skip if button doesn't exist
+             sideButtons.forEach((button) => {
+                 if (!button) return; // Skip if button not found
 
-                const isScroll = button.id === 'scroll-toggle';
-                const isException = (button.id === 'config-button' || button.id === 'on-off-toggle');
-                const shouldBeVisible = !isMinimalMode || isException;
+                 const isScroll = button.id === 'scroll-toggle';
+                 const isException = (button.id === 'config-button' || button.id === 'on-off-toggle');
+                 // Determine visibility based on minimal mode and exceptions
+                 const shouldBeVisible = !isMinimalMode || isException;
 
-                if (shouldBeVisible) {
-                    button.style.top = `${currentTop}px`;
-                    button.style.visibility = 'visible';
-                    button.style.display = (button.tagName === 'IMG' || button.classList.contains('toggle-image')) ? 'block' : 'flex';
-                    const currentButtonHeight = isScroll ? scrollToggleHeight : (button.offsetHeight || buttonHeight);
-                    const validHeight = currentButtonHeight > 20 ? currentButtonHeight : (isScroll ? 100 : buttonHeight);
-                    currentTop += validHeight + spacing;
-                    // console.log(`Positioned ${button.id || 'toggle'} at ${button.style.top}`);
-                } else {
-                    button.style.visibility = 'hidden';
-                    button.style.display = 'none';
-                    // console.log(`Hid ${button.id || 'toggle'}`);
-                }
-            });
-            console.log("Button positions adjusted.");
+                 if (shouldBeVisible) {
+                     button.style.top = `${currentTop}px`;
+                     button.style.visibility = 'visible';
+                     // Set display based on original type (flex for spans, block for images)
+                     button.style.display = (button.classList.contains('toggle-sign')) ? 'flex' : 'block';
+
+                     // Calculate next top position
+                     const currentButtonHeight = isScroll ? scrollToggleHeight : (button.offsetHeight || buttonHeight);
+                     const validHeight = currentButtonHeight > 20 ? currentButtonHeight : (isScroll ? 100 : buttonHeight); // Use default if offsetHeight is 0
+                     currentTop += validHeight + spacing;
+                     // console.log(` - Visible: ${button.id || 'filter'}, Top: ${button.style.top}, Next Top: ${currentTop}`);
+                 } else {
+                     // Hide the button
+                     button.style.visibility = 'hidden';
+                     button.style.display = 'none';
+                     // console.log(` - Hidden: ${button.id || 'filter'}`);
+                 }
+             });
+             console.log("Button positions adjustment complete.");
         }
 
         // === Toggle Filter Logic ===
-        function getDefaultIndices(rangeInfo) { /* ... */ return []; }
-        function applyToggleConfiguration(toggleId) { /* ... (implementation from previous correct version, ensure it finds toggleButton in createdToggleButtons) ... */ }
-        function updateToggleState(toggle) { /* ... (implementation from previous correct version, ensures saveSettings is called) ... */ }
-        function updateAllToggles(targetState) { /* ... (implementation from previous correct version) ... */ }
+        function getDefaultIndices(rangeInfo) {
+             const indices = []; if (!rangeInfo || typeof rangeInfo.start !== 'number' || typeof rangeInfo.end !== 'number') return indices;
+             for (let i = rangeInfo.start; i <= rangeInfo.end; i++) { if (i < cellElements.length && cellElements[i] && !cellElements[i].classList.contains('config-empty-cell')) indices.push(i); } return indices;
+        }
+        function applyToggleConfiguration(toggleId) {
+             if (!toggleId) return; const btn = createdToggleButtons.find(b => b.dataset.toggleId === toggleId); if (!btn) return;
+             const rInfo = toggleRanges.find(r => r.id === toggleId); const cfg = customToggleConfigs[toggleId];
+             let lbl = cfg?.label || rInfo.defaultLabel; let idxs = cfg?.itemIndices || getDefaultIndices(rInfo);
+             btn.dataset.itemIndices = idxs.join(','); btn.dataset.label = lbl;
+             const state = btn.dataset.state || 'visible'; const sign = state === 'visible' ? '-' : '+'; btn.innerHTML = `<span class="sign">${sign}</span>${lbl}`;
+             const hide = state === 'hidden'; idxs.forEach(i => { if(cellElements[i]) cellElements[i].classList.toggle('hidden', hide); });
+        }
+        function updateToggleState(toggle) {
+             if (!toggle?.dataset?.toggleId) return; const state = toggle.dataset.state; const idxsStr = toggle.dataset.itemIndices || '';
+             const idxs = idxsStr.split(',').filter(s=>s).map(Number); const lbl = toggle.dataset.label;
+             const nState = state === 'visible' ? 'hidden' : 'visible'; const hide = nState === 'hidden'; const sign = nState === 'visible' ? '-' : '+';
+             idxs.forEach(i => { if(cellElements[i]) cellElements[i].classList.toggle('hidden', hide); });
+             toggle.dataset.state = nState; toggle.innerHTML = `<span class="sign">${sign}</span>${lbl}`;
+             updateButtonStyles(); saveSettings(); // Save state after update
+        }
+        function updateAllToggles(targetState) {
+             createdToggleButtons.forEach(t => { const id = t.dataset.toggleId; if(!id) return; const cState = t.dataset.state; const vis = targetState === 'on'; if ((vis && cState==='hidden') || (!vis && cState==='visible')) updateToggleState(t); });
+             const ooBtn = document.getElementById('on-off-toggle'); if(ooBtn) { ooBtn.dataset.state = targetState; updateButtonStyles(); }
+             // saveSettings is called inside updateToggleState
+        }
 
         // === ON/OFF Button Logic ===
-        function handleOnOffLongPress() { /* ... (implementation from previous correct version, calls toggleMinimalMode and updateAllToggles) ... */ }
+        function handleOnOffLongPress() {
+             const dur = pressStartTime ? Date.now() - pressStartTime : 0; const ooBtn = document.getElementById('on-off-toggle');
+             if (dur >= 2000) { toggleMinimalMode(!isMinimalMode); saveSettings(); /* Save minimal mode state */ } // Toggle minimal mode & save
+             else if (!isMinimalMode && ooBtn) { const cState = ooBtn.dataset.state; updateAllToggles(cState==='on'?'off':'on'); saveSettings(); /* Save on/off state */ }
+             pressStartTime = null;
+        }
 
-        // === Configuration Logic ===
-        // showConfigMenu, showToggleSelectionMenu, startToggleConfiguration,
-        // handleGridItemClickInConfig, saveToggleConfiguration, exitItemSelectionMode
-        // ... (implementations from previous correct version) ...
+        // === Config Logic Stubs ===
+        function showConfigMenu() { console.log("Config Menu"); /* Full implementation needed */ }
+        function showToggleSelectionMenu() { console.log("Toggle Selection"); /* Full implementation needed */ }
+        function startToggleConfiguration(toggleId) { console.log("Start Config:", toggleId); /* Full implementation needed */ }
+        function handleGridItemClickInConfig(event) { /* ... */ }
+        function saveToggleConfiguration(toggleId, newLabel) { /* ... */ }
+        function exitItemSelectionMode() { /* ... */ }
 
         // === Notices and Footer Logic ===
         async function loadNotices() { /* ... */ }
         function updateNotice() { /* ... */ }
         function startNoticeRotation() { /* ... */ }
         function toggleFooterVisibility() {
-            const footerElement = document.querySelector('footer');
-            const counterElement = document.querySelector('.counter-wrapper');
-            const noticeIconContainer = document.querySelector('.notices-icon-container');
-            // Visibility is determined by *both* minimal mode and the explicit flags
-            const shouldBeVisible = !isMinimalMode && isActive && isFooterVisible;
-            if (noticeIconContainer) noticeIconContainer.classList.toggle('hidden', !shouldBeVisible);
-            if (footerElement) footerElement.classList.toggle('hidden', !shouldBeVisible);
-            if (counterElement) counterElement.classList.toggle('hidden', !shouldBeVisible);
-            // Only save the isActive/isFooterVisible flags if not in minimal mode
-            if (!isMinimalMode) saveSettings();
+             const ftr = document.querySelector('footer'); const cntr = document.querySelector('.counter-wrapper'); const ntcCont = document.querySelector('.notices-icon-container');
+             const show = !isMinimalMode && isActive && isFooterVisible; // Determine visibility based on ALL flags
+             if(ntcCont) ntcCont.classList.toggle('hidden', !show); if(ftr) ftr.classList.toggle('hidden', !show); if(cntr) cntr.classList.toggle('hidden', !show);
+             // Only save isActive/isFooterVisible state if NOT in minimal mode
+             if (!isMinimalMode) saveSettings();
         }
         // Add listener to notice toggle icon...
+         document.getElementById('notice-toggle-icon')?.addEventListener('click', () => {
+             if (isMinimalMode || isConfigMode) return;
+             isActive = !isActive; isFooterVisible = isActive;
+             toggleFooterVisibility(); // Update visuals and save state (if not minimal)
+         });
 
-        // === Reminder Logic ===
-        // parseTimeOrTimerFromText, showReminderModal, showReminderNotification, deleteReminder,
-        // postponeReminder, updateReminderLastShown, showAllReminders, checkReminders,
-        // loadReminders, handleReminderLongPress
-        // ... (implementations from previous correct version) ...
+
+        // === Reminder Logic Stubs ===
+        function parseTimeOrTimerFromText(text) { /* ... */ return null; }
+        function showReminderModal(reminder = null) { console.log("Show reminder modal"); /* Full implementation */ }
+        function showReminderNotification(reminder) { console.log("Show reminder notification"); /* Full implementation */ }
+        function deleteReminder(reminderId) { /* ... */ }
+        function postponeReminder(reminderId, minutes) { /* ... */ }
+        function updateReminderLastShown(reminderId, timestamp) { /* ... */ }
+        function showAllReminders() { console.log("Show all reminders"); /* Full implementation */ }
+        function checkReminders() { /* ... */ }
+        function loadReminders() { console.log("Loading reminders"); /* setTimeout(checkReminders, 1000); setInterval(checkReminders, 60000); */ updateButtonStyles(); }
+        function handleReminderLongPress() { /* ... (implementation) ... */ }
 
         // === Navigation & Swipe ===
-        // Add listeners to back/forward buttons and document for swipe...
+        document.getElementById('back-button')?.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) window.history.back(); });
+        document.getElementById('forward-button')?.addEventListener('click', () => { if (!isMinimalMode && !isConfigMode) window.history.forward(); });
+        let touchStartX = 0; let touchEndX = 0;
+        document.addEventListener('touchstart', e => { if (isMinimalMode || isConfigMode || e.target.closest('.toggle-sign, .toggle-image, .scroll-toggle-button, #bookmark-grid, .reminder-modal, .config-overlay')) { touchStartX = 0; return; } touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => { if (touchStartX === 0 || isMinimalMode || isConfigMode) return; touchEndX = e.changedTouches[0].screenX; handleSwipe(); touchStartX = 0; });
+        function handleSwipe() { const dist = touchEndX - touchStartX; const thresh = 80; if (dist > thresh) window.history.back(); else if (dist < -thresh) window.history.forward(); }
 
         // === Initialization ===
         window.addEventListener('resize', () => { if (!isMinimalMode && !isConfigMode) adjustButtonPositions(); });
 
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("DOM Content Loaded. Initializing...");
+            console.log("=== Initializing Application ===");
 
-            // 1. Create Grid Content
-            createGridItems(); // Populates #bookmark-grid
+            // 1. Create UI Elements (Grid, Buttons)
+            console.log("Step 1: Creating Grid Items");
+            createGridItems();
+            console.log("Step 2: Creating Side Buttons");
+            createSideButtons(); // Populates `sideButtons` & `createdToggleButtons`
 
-            // 2. Create Side Buttons (add to DOM, store references)
-            createSideButtons(); // Populates `sideButtons` and `createdToggleButtons` arrays
-
-            // 3. Fetch and Display Version
+            // 3. Load Static/Async Data
+            console.log("Step 3: Loading Version & Notices");
             await updateVersion();
+            await loadNotices(); // Also starts rotation if needed
 
-            // 4. Load All Saved Settings and Apply Initial State
-            // This will set isDarkMode, isMinimalMode, apply zoom, set toggle states, etc.
-            // It does NOT yet visually apply minimal mode or final button positions.
-            loadSavedSettings();
+            // 4. Load Saved State (into JS variables)
+            console.log("Step 4: Loading Saved Settings");
+            loadSavedSettings(); // Populates state vars like isDarkMode, isMinimalMode, applies data-* attrs
 
-            // 5. Load Notices
-            await loadNotices();
+            // 5. Apply Initial Visual State Based on Loaded Settings
+            console.log("Step 5: Applying Initial Visual State");
+            applyCurrentThemeToElements(); // Sets body class, styles empty cells, modals etc.
+            applyZoom(document.getElementById('zoom-button')?.dataset.zoomState || 'off'); // Apply visual zoom
+            createdToggleButtons.forEach(toggle => applyToggleConfiguration(toggle.dataset.toggleId)); // Apply filter visibility/labels
+            updateButtonStyles(); // Update button icons (on/off, dark/light), reminder count
 
-            // 6. Final Visual Adjustments
-            // Apply minimal mode visuals (if applicable) and adjust button positions *now*
-            // based on the final loaded state.
-            toggleMinimalMode(isMinimalMode); // Apply visual hiding/showing for minimal mode
-             // Ensure footer visibility is correct based on flags *if not* in minimal mode
-             if (!isMinimalMode) {
-                toggleFooterVisibility();
-             }
-            adjustButtonPositions(); // Set final top positions
+            // 6. Apply Minimal Mode & Footer Visibility (which also calls adjustButtonPositions)
+            console.log("Step 6: Applying Minimal Mode Visuals & Footer Visibility");
+            toggleMinimalMode(isMinimalMode); // Apply visual hides/shows for minimal mode
+            if (!isMinimalMode) {
+                toggleFooterVisibility(); // Ensure footer/notices correct if not minimal
+            }
+            // adjustButtonPositions(); // Called inside toggleMinimalMode and toggleFooterVisibility indirectly affects it? Maybe call again for safety. Let's rely on toggleMinimalMode calling it. If issues persist, uncomment this line.
 
-            console.log("Initialization complete. Grid and buttons should be visible unless minimal mode is active.");
+            console.log("=== Initialization Complete ===");
         });
 
     </script>
