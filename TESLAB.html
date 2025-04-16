@@ -1655,4 +1655,221 @@ Disculpas por la interrupción en el código anterior. A continuación, proporci
         }
 
         document.addEventListener('DOMContentLoaded', init);
-    </script>
+    </script><input type="datetime-local" value="${reminder.date}">
+                <div class="button-group">
+                    <button type="button" class="cancel-button">Cancelar</button>
+                    <button type="submit" class="save-button">Guardar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('.cancel-button').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+
+            modal.querySelector('.save-button').addEventListener('click', () => {
+                const text = modal.querySelector('textarea').value.trim();
+                const date = modal.querySelector('input[type="datetime-local"]').value;
+                if (text && date) {
+                    reminders[index] = { text, date };
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                    loadReminders();
+                    updateButtonStyles();
+                    document.body.removeChild(modal);
+                } else {
+                    alert('Por favor, complete todos los campos.');
+                }
+            });
+        });
+
+        notificationsContainer.querySelectorAll('.postpone').forEach(button => {
+            button.addEventListener('click', () => {
+                const index = button.dataset.index;
+                const reminder = reminders[index];
+                const currentDate = new Date(reminder.date);
+                currentDate.setHours(currentDate.getHours() + 1);
+                reminders[index].date = currentDate.toISOString().slice(0, 16);
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                loadReminders();
+            });
+        });
+    }
+
+    function showReminderModal() {
+        const modal = document.createElement('div');
+        modal.className = 'reminder-modal';
+        modal.innerHTML = `
+            <h2>Nuevo Recordatorio</h2>
+            <label>Texto:</label>
+            <textarea></textarea>
+            <label>Fecha y hora:</label>
+            <input type="datetime-local">
+            <div class="button-group">
+                <button type="button" class="cancel-button">Cancelar</button>
+                <button type="submit" class="save-button">Guardar</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelector('.cancel-button').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+
+        modal.querySelector('.save-button').addEventListener('click', () => {
+            const text = modal.querySelector('textarea').value.trim();
+            const date = modal.querySelector('input[type="datetime-local"]').value;
+            if (text && date) {
+                const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+                reminders.push({ text, date });
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                loadReminders();
+                updateButtonStyles();
+                document.body.removeChild(modal);
+            } else {
+                alert('Por favor, complete todos los campos.');
+            }
+        });
+    }
+
+    function handleReminderButton() {
+        const pressDuration = new Date() - reminderPressStartTime;
+        if (pressDuration < 2000) {
+            showReminderModal();
+        } else {
+            const notifications = document.getElementById('reminder-notifications');
+            notifications.classList.toggle('hidden');
+        }
+    }
+
+    function initEventListeners() {
+        document.getElementById('scroll-toggle').addEventListener('click', () => {
+            const scrollPosition = window.scrollY;
+            const threshold = 100;
+            if (scrollPosition < threshold) {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            updateButtonStyles();
+            saveSettings();
+        });
+
+        document.getElementById('on-off-toggle').addEventListener('mousedown', () => {
+            pressStartTime = new Date();
+        });
+
+        document.getElementById('on-off-toggle').addEventListener('mouseup', () => {
+            const pressDuration = new Date() - pressStartTime;
+            const toggle = document.getElementById('on-off-toggle');
+            if (pressDuration >= 2000) {
+                isMinimalMode = !isMinimalMode;
+                toggleMinimalMode(isMinimalMode);
+            } else {
+                toggle.dataset.state = toggle.dataset.state === 'on' ? 'off' : 'on';
+                updateAllToggles(toggle.dataset.state);
+            }
+            pressStartTime = null;
+        });
+
+        document.querySelectorAll('.range-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const rangeStart = parseInt(toggle.dataset.rangeStart);
+                const rangeEnd = parseInt(toggle.dataset.rangeEnd);
+                toggle.dataset.state = toggle.dataset.state === 'visible' ? 'hidden' : 'visible';
+                const range = toggleRanges.find(r => r.defaultStart === rangeStart);
+                const label = range ? (range.customLabel || range.defaultLabel) : toggle.textContent.replace(/^[+-]/, '');
+                toggle.innerHTML = `<span class="sign">${toggle.dataset.state === 'visible' ? '-' : '+'}</span>${label}`;
+                for (let i = rangeStart; i <= rangeEnd; i++) {
+                    if (cellElements[i]) {
+                        cellElements[i].classList.toggle('hidden', toggle.dataset.state === 'hidden');
+                    }
+                }
+                saveSettings();
+                updateButtonStyles();
+            });
+        });
+
+        document.getElementById('notice-toggle-icon').addEventListener('click', () => {
+            isActive = !isActive;
+            const noticesContainer = document.querySelector('.notices-container');
+            noticesContainer.classList.toggle('hidden', !isActive);
+            if (isActive) {
+                updateNotice();
+            } else {
+                document.getElementById('current-notice').textContent = '';
+            }
+            saveSettings();
+        });
+
+        document.getElementById('reload-button').addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        document.getElementById('home-button').addEventListener('click', () => {
+            window.location.href = 'https://boardinggate.github.io/Tesla/';
+        });
+
+        document.getElementById('weather-button').addEventListener('click', () => {
+            window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank', 'noopener,noreferrer');
+        });
+
+        document.getElementById('zoom-button').addEventListener('click', () => {
+            const zoomButton = document.getElementById('zoom-button');
+            zoomButton.dataset.zoomState = zoomButton.dataset.zoomState === 'on' ? 'off' : 'on';
+            applyZoom(zoomButton.dataset.zoomState);
+            updateButtonStyles();
+            saveSettings();
+        });
+
+        document.getElementById('reminder-button').addEventListener('mousedown', () => {
+            reminderPressStartTime = new Date();
+        });
+
+        document.getElementById('reminder-button').addEventListener('mouseup', () => {
+            handleReminderButton();
+            reminderPressStartTime = null;
+        });
+
+        document.getElementById('config-button').addEventListener('click', handleConfigButton);
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            window.history.back();
+        });
+
+        document.getElementById('forward-button').addEventListener('click', () => {
+            window.history.forward();
+        });
+
+        window.addEventListener('resize', adjustButtonPositions);
+    }
+
+    function init() {
+        renderBookmarks();
+        updateVersion();
+        loadNotices();
+        initEventListeners();
+        adjustButtonPositions();
+
+        setInterval(() => {
+            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            const now = new Date();
+            reminders.forEach((reminder, index) => {
+                const reminderDate = new Date(reminder.date);
+                if (now >= reminderDate && !reminder.notified) {
+                    reminder.notified = true;
+                    localStorage.setItem('reminders', JSON.stringify(reminders));
+                    loadReminders();
+                }
+            });
+        }, 60000);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
