@@ -869,8 +869,7 @@
                 if (savedToggleStates) {
                     const toggleStates = JSON.parse(savedToggleStates);
                     document.querySelectorAll('.range-toggle').forEach(toggle => {
-                        const start = parse
-        'current-notice');
+                        const start = parse 'current-notice');
             if (isActive && notices.length > 0) {
                 noticeElement.textContent = notices[currentNoticeIndex];
                 noticeElement.style.animation = 'fadeInOut 14s infinite';
@@ -1405,3 +1404,5 @@
     </script>
 </body>
 </html>
+
+                        
