@@ -189,7 +189,9 @@
     .scroll-toggle-button {
         position: fixed;
         width: 91px;
-        height: clamp(78.2px, 19.55vw, 175.95px);
+        /* === MODIFICACIÓN AQUÍ === */
+        height: clamp(38.2px, 19.55vw, 135.95px); /* Altura reducida en 40px */
+        /* === FIN MODIFICACIÓN === */
         background-color: #668B8B;
         border-radius: 60px;
         display: flex;
@@ -1098,7 +1100,7 @@
             if (index < bookmarks.length && bookmarks[index] !== null) {
                 const bookmark = bookmarks[index];
                 const link = document.createElement('a');
-                link.className = index < 48 
+                link.className = index < 48
                     ? 'bookmark-item'
                     : 'bookmark-item small-bookmark';
                 link.title = bookmark.name;
@@ -1369,7 +1371,9 @@
         });
 
         function adjustButtonPositions() {
-            const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 175.95);
+            // === MODIFICACIÓN AQUÍ ===
+            const scrollToggleHeight = clamp(38.2, 19.55 * window.innerWidth / 100, 135.95); // Valores actualizados
+            // === FIN MODIFICACIÓN ===
             const buttonSpacing = 58;
 
             scrollToggle.style.top = `10px`;
