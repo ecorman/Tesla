@@ -386,6 +386,13 @@
         align-items: center;
         position: fixed;
         background-color: #668B8B;
+        width: 91px;
+        height: 54px;
+        border-radius: 20px;
+        cursor: pointer;
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+        left: 10px;
     }
     #reminder-button img {
         max-width: 80px;
@@ -395,10 +402,17 @@
     #reminder-button .reminder-count {
         position: absolute;
         top: 4px;
-        left: 4px;
-        font-size: 0.65rem;
-        color: #5C5C47;
+        right: 4px;
+        font-size: 0.75rem;
+        color: #FFFFFF;
         font-weight: bold;
+        background-color: #EF4444;
+        border-radius: 50%;
+        padding: 2px 6px;
+        line-height: 1;
+    }
+    body.dark-mode #reminder-button {
+        background-color: #5C5C47;
     }
     .hidden {
         display: none;
@@ -443,9 +457,6 @@
         background-color: #5C5C47;
     }
     body.dark-mode #zoom-button.zoomed {
-        background-color: #5C5C47;
-    }
-    body.dark-mode #reminder-button {
         background-color: #5C5C47;
     }
     body.dark-mode #config-button {
@@ -494,15 +505,22 @@
         background-color: #F3F4F6;
         padding: 1.5rem;
         border-radius: 0.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         z-index: 2000;
-        max-width: 400px;
+        max-width: 500px;
         width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    body.dark-mode .reminder-modal {
+        background-color: #1F2937;
+        color: #F3F4F6;
     }
     .reminder-modal h2 {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         font-weight: bold;
         margin-bottom: 1rem;
+        text-align: center;
     }
     .reminder-modal label {
         display: block;
@@ -510,12 +528,21 @@
         font-weight: 500;
     }
     .reminder-modal input,
-    .reminder-modal textarea {
+    .reminder-modal textarea,
+    .reminder-modal select {
         width: 100%;
         padding: 0.5rem;
         margin-bottom: 1rem;
         border: 1px solid #D1D5DB;
         border-radius: 0.25rem;
+        font-size: 1rem;
+    }
+    body.dark-mode .reminder-modal input,
+    body.dark-mode .reminder-modal textarea,
+    body.dark-mode .reminder-modal select {
+        background-color: #374151;
+        color: #F3F4F6;
+        border-color: #4B5563;
     }
     .reminder-modal .button-group {
         display: flex;
@@ -526,6 +553,7 @@
         padding: 0.5rem 1rem;
         border-radius: 0.25rem;
         cursor: pointer;
+        font-size: 1rem;
     }
     .reminder-modal button[type="submit"] {
         background-color: #2563EB;
@@ -535,39 +563,50 @@
         background-color: #D1D5DB;
         color: #111827;
     }
+    body.dark-mode .reminder-modal button[type="button"] {
+        background-color: #4B5563;
+        color: #F3F4F6;
+    }
     #reminder-notifications {
         position: fixed;
-        top: 10px;
-        right: 10px;
-        z-index: 1500;
-        max-width: 300px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2500;
+        max-width: 600px;
         width: 90%;
     }
     .reminder-notification {
         background-color: #FFFF99;
-        padding: 1rem;
+        padding: 1.5rem;
         margin-bottom: 0.5rem;
-        border-radius: 0.25rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 1rem;
+        text-align: center;
+        font-size: 1.25rem;
     }
     .reminder-notification p {
         margin: 0;
-        font-size: 1.25rem;
         color: #0000FF;
+        font-weight: bold;
+    }
+    .reminder-notification .details {
+        font-size: 1rem;
+        color: #111827;
     }
     .reminder-notification .button-group {
         display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
+        justify-content: center;
+        gap: 1rem;
     }
     .reminder-notification button {
-        padding: 0.25rem 0.5rem;
+        padding: 0.5rem 1rem;
         border-radius: 0.25rem;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
     .reminder-notification button.cancel {
         background-color: #EF4444;
@@ -581,13 +620,51 @@
         background-color: #F59E0B;
         color: #FFFFFF;
     }
-    .counter-wrapper {
-        margin: 0.5rem auto 0 60px;
-        text-align: center;
-        max-width: 984px;
+    .reminder-table-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #F3F4F6;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        z-index: 2000;
+        max-width: 800px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    body.dark-mode .reminder-table-modal {
+        background-color: #1F2937;
+        color: #F3F4F6;
+    }
+    .reminder-table-modal table {
         width: 100%;
-        display: block;
-        opacity: 0.4;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    .reminder-table-modal th,
+    .reminder-table-modal td {
+        padding: 0.75rem;
+        border: 1px solid #D1D5DB;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+    body.dark-mode .reminder-table-modal th,
+    body.dark-mode .reminder-table-modal td {
+        border-color: #4B5563;
+    }
+    .reminder-table-modal th {
+        background-color: #E5E7EB;
+        font-weight: bold;
+    }
+    body.dark-mode .reminder-table-modal th {
+        background-color: #374151;
+    }
+    .reminder-table-modal .actions {
+        display: flex;
+        gap: 0.5rem;
     }
 </style>
 </head>
@@ -649,7 +726,12 @@
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
 </div>
 
-<div id="reminder-notifications"></div>
+<span class="toggle-sign" id="reminder-button" aria-label="Gestionar recordatorios">
+    <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio" class="max-w-[80px] max-h-[48px] object-contain">
+    <span class="reminder-count" id="reminder-count">0</span>
+</span>
+
+<div id="reminder-notifications" role="alert"></div>
 
 <script>
     const bookmarks = [
@@ -956,13 +1038,7 @@
         }`;
         darkModeToggle.alt = `Toggle ${isDarkMode ? 'Oscuro' : 'Claro'}`;
 
-        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-        const pendingCount = reminders.length;
-        reminderButton.innerHTML = `
-            <img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio" class="max-w-[80px] max-h-[48px] object-contain">
-            ${pendingCount > 0 ? `<span class="reminder-count">${pendingCount}</span>` : ''}
-        `;
-        reminderButton.style.backgroundColor = '#4DA7A7';
+        updateReminderCount();
 
         if (isDarkMode && !isMinimalMode) {
             toggleButtons.forEach(toggle => {
@@ -1161,11 +1237,7 @@
     weatherButton.style.left = `10px`;
     document.body.appendChild(weatherButton);
 
-    const reminderButton = document.createElement('span');
-    reminderButton.className = 'toggle-sign';
-    reminderButton.id = 'reminder-button';
-    reminderButton.style.left = `10px`;
-    document.body.appendChild(reminderButton);
+    const reminderButton = document.getElementById('reminder-button');
 
     const zoomButton = document.createElement('span');
     zoomButton.className = 'toggle-sign';
@@ -1221,7 +1293,6 @@
             localStorage.clear();
             location.reload();
         }
-        // Personalizar no hace nada por ahora
     });
 
     function clamp(min, val, max) {
@@ -1307,132 +1378,24 @@
         handleOnOffLongPress();
     });
 
-    function handleReminderLongPress() {
-        const pressDuration = Date.now() - reminderPressStartTime;
-        if (pressDuration >= 2000) {
-            showAllReminders();
-        } else if (!isMinimalMode) {
-            showReminderModal();
-        }
-        reminderPressStartTime = null;
-    }
+    let reminderPressStartTime = null;
+    const DAYS_OF_WEEK = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-    reminderButton.addEventListener('mousedown', () => {
-        reminderPressStartTime = Date.now();
-    });
+    function parseReminderText(text) {
+        const result = {
+            text: text.trim(),
+            type: 'onload',
+            time: null,
+            date: null,
+            dayOfWeek: null,
+            intervalDays: null,
+            timerMinutes: null
+        };
 
-    reminderButton.addEventListener('mouseup', handleReminderLongPress);
-
-    reminderButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        reminderPressStartTime = Date.now();
-    });
-
-    reminderButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handleReminderLongPress();
-    });
-
-    toggleButtons.forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            if (isMinimalMode) return;
-            updateToggleState(toggle);
-        });
-    });
-
-    reloadButton.addEventListener('click', () => {
-        if (isMinimalMode) return;
-        location.reload();
-    });
-
-    homeButton.addEventListener('click', (e) => {
-        if (isMinimalMode) return;
-        e.preventDefault();
-        window.history.back();
-    });
-
-    weatherButton.addEventListener('click', () => {
-        if (isMinimalMode) return;
-        window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank');
-    });
-
-    zoomButton.addEventListener('click', () => {
-        if (isMinimalMode) return;
-        const currentState = zoomButton.dataset.zoomState;
-        applyZoom(currentState === 'off' ? 'on' : 'off');
-        zoomButton.dataset.zoomState = currentState === 'off' ? 'on' : 'off';
-        updateButtonStyles();
-        saveSettings();
-        adjustButtonPositions();
-    });
-
-    function adjustButtonPositions() {
-        const scrollToggleHeight = clamp(78.2, 19.55 * window.innerWidth / 100, 145.95);
-        const buttonSpacing = 58;
-
-        scrollToggle.style.top = `10px`;
-        onOffToggle.style.top = `${scrollToggleHeight + buttonSpacing}px`;
-        toggleButtons.forEach((toggle, index) => {
-            toggle.style.top = `${scrollToggleHeight + buttonSpacing * (index + 2)}px`;
-        });
-        weatherButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 2)}px`;
-        reminderButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 3)}px`;
-        zoomButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 4)}px`;
-        darkModeToggle.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 5)}px`;
-        reloadButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 6)}px`;
-        homeButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 7)}px`;
-        configButton.style.top = `${scrollToggleHeight + buttonSpacing * (toggleRanges.length + 8)}px`;
-
-        buttons.forEach(button => {
-            button.style.left = '10px';
-        });
-    }
-
-    function toggleFooterVisibility() {
-        const noticesContainer = document.querySelector('.notices-container');
-        const noticeIcon = document.querySelector('#notice-toggle-icon');
-        const footerContent = document.querySelector('.footer-content');
-        const footerChildren = footerContent.querySelectorAll(':scope > *:not(#notice-toggle-icon)');
-
-        if (!isMinimalMode && isActive && isFooterVisible) {
-            noticesContainer.classList.remove('hidden');
-            footerChildren.forEach(child => child.classList.remove('footer-hidden'));
-        } else {
-            noticesContainer.classList.add('hidden');
-            footerChildren.forEach(child => child.classList.add('footer-hidden'));
-        }
-        saveSettings();
-    }
-
-    document.getElementById('notice-toggle-icon').addEventListener('click', () => {
-        if (isMinimalMode) return;
-        isActive = !isActive;
-        isFooterVisible = isActive;
-        toggleFooterVisibility();
-    });
-
-    function updateNotice() {
-        const noticeElement = document.getElementById('current-notice');
-        if (notices.length > 0) {
-            noticeElement.textContent = notices[currentNoticeIndex];
-        } else {
-            noticeElement.textContent = 'No hay avisos disponibles.';
-        }
-    }
-
-    function startNoticeRotation() {
-        if (notices.length > 1) {
-            setInterval(() => {
-                if (!isMinimalMode && isActive && isFooterVisible) {
-                    currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
-                    updateNotice();
-                }
-            }, 14000);
-        }
-    }
-
-    function parseTimeOrTimerFromText(text) {
         const timeRegex = /(\d{1,2}):(\d{2})\s*(am|pm)?/i;
+        const dateRegex = /(mañana|pasado\s+mañana|(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{4}|\d{2}))?)/i;
+        const dayOfWeekRegex = /(lunes|martes|miércoles|jueves|viernes|sábado|domingo)/i;
+        const intervalRegex = /cada\s+(\d+)\s*días?/i;
         const timerRegex = /(\d+)\s*(minutos?|mins?|m|horas?|hrs?|h)/i;
 
         let match = text.match(timeRegex);
@@ -1440,284 +1403,524 @@
             let hours = parseInt(match[1]);
             const minutes = match[2];
             const period = match[3] ? match[3].toLowerCase() : null;
-
             if (period) {
                 if (period === 'pm' && hours < 12) hours += 12;
                 if (period === 'am' && hours === 12) hours = 0;
             }
+            result.time = `${hours.toString().padStart(2, '0')}:${minutes}`;
+            result.type = result.type === 'onload' ? 'daily' : result.type;
+        }
 
-            return {
-                time: `${hours.toString().padStart(2, '0')}:${minutes}`,
-                isTimer: false
-            };
+        match = text.match(dateRegex);
+        if (match) {
+            const now = new Date();
+            let targetDate;
+            if (match[1].toLowerCase() === 'mañana') {
+                targetDate = new Date(now);
+                targetDate.setDate(now.getDate() + 1);
+            } else if (match[1].toLowerCase() === 'pasado mañana') {
+                targetDate = new Date(now);
+                targetDate.setDate(now.getDate() + 2);
+            } else {
+                const day = parseInt(match[2]);
+                const month = parseInt(match[3]) - 1;
+                const year = match[4] ? (parseInt(match[4]) < 100 ? 2000 + parseInt(match[4]) : parseInt(match[4])) : now.getFullYear();
+                targetDate = new Date(year, month, day);
+            }
+            if (!isNaN(targetDate)) {
+                result.date = targetDate.toISOString().split('T')[0];
+                result.type = 'date';
+            }
+        }
+
+        match = text.match(dayOfWeekRegex);
+        if (match) {
+            const day = DAYS_OF_WEEK.findIndex(d => d.toLowerCase() === match[1].toLowerCase());
+            if (day !== -1) {
+                result.dayOfWeek = day;
+                result.type = 'weekly';
+            }
+        }
+
+        match = text.match(intervalRegex);
+        if (match) {
+            result.intervalDays = parseInt(match[1]);
+            result.type = 'interval';
         }
 
         match = text.match(timerRegex);
         if (match) {
             const value = parseInt(match[1]);
             const unit = match[2].toLowerCase();
-            let minutes = value;
-
-            if (unit.startsWith('h')) {
-                minutes = value * 60;
-            }
-
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + minutes);
-            return {
-                time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`,
-                isTimer: true
-            };
+            result.timerMinutes = unit.startsWith('h') ? value * 60 : value;
+            result.type = 'timer';
         }
 
-        return null;
+        if (result.time) result.text = result.text.replace(timeRegex, '').trim();
+        if (result.date) result.text = result.text.replace(dateRegex, '').trim();
+        if (result.dayOfWeek !== null) result.text = result.text.replace(dayOfWeekRegex, '').trim();
+        if (result.intervalDays) result.text = result.text.replace(intervalRegex, '').trim();
+        if (result.timerMinutes) result.text = result.text.replace(timerRegex, '').trim();
+
+        return result;
     }
 
     function showReminderModal(reminder = null) {
         const modal = document.createElement('div');
         modal.className = 'reminder-modal';
         modal.setAttribute('aria-label', 'Formulario de recordatorio');
+        const parsed = reminder ? reminder : { text: '', type: 'onload', time: null, date: null, dayOfWeek: null, intervalDays: null, timerMinutes: null };
         modal.innerHTML = `
             <h2>${reminder ? 'Editar' : 'Nuevo'} Recordatorio</h2>
             <form id="reminder-form">
                 <label for="reminder-text">Texto del recordatorio:</label>
-                <textarea id="reminder-text" rows="3" required>${reminder ? reminder.text : ''}</textarea>
-                <label for="reminder-time">Hora (opcional, formato HH:MM):</label>
-                <input type="time" id="reminder-time" value="${reminder && reminder.time ? reminder.time : ''}">
-                <label>Días de repetición:</label>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    ${['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((day, i) => `
-                        <label style="flex: 1 0 30%;">
-                            <input type="checkbox" name="repeat" value="${i}" ${reminder && reminder.repeatDays && reminder.repeatDays.includes(i) ? 'checked' : ''}> ${day}
-                        </label>
-                    `).join('')}
-                </div>
-                <div class="button-group">
-                    <button type="submit">Guardar</button>
-                    <button type="button" id="cancel-reminder">Cancelar</button>
-                </div>
-            </form>
-        `;
-        document.body.appendChild(modal);
+                <textarea id="reminder-text" rows="3" required>${parsed.text}</textarea>
+                <label for="reminder-type">Tipo de recordatorio:</label>
+                <select id="reminder-type" name="type">
+                    <option value="onload" ${parsed.type === 'onload' ? 'selected' : ''}>Al cargar página</option>
+                    <option value="daily" ${parsed.type === 'daily' ? 'selected' : ''}>Diario (Hora)</option>
+                    <option value="date" ${parsed.type === 'date' ? 'selected' : ''}>Fecha específica</option>
+                    <option value="weekly" ${parsed.type === 'weekly' ? 'selected' : ''}>Semanal (Día y hora)</option>
+                    <option value="interval" ${parsed.type === 'interval' ? 'selected' : ''}>Cada X días</option>
+                    <option value="timer" ${parsed.type === 'timer' ? 'selected' : ''}>Alarma (Temporizador)</option>
+                </select>
+                <div id="time-field" class="${parsed.type === 'onload' ? 'hidden' : ''}">
+                    <label for="reminder-time">Hora:</label>
+                <input type="time" id="reminder-time" value="${parsed.time || ''}">
+            </div>
+            <div id="date-field" class="${parsed.type !== 'date' ? 'hidden' : ''}">
+                <label for="reminder-date">Fecha:</label>
+                <input type="date" id="reminder-date" value="${parsed.date || ''}">
+            </div>
+            <div id="weekly-field" class="${parsed.type !== 'weekly' ? 'hidden' : ''}">
+                <label for="reminder-day">Día de la semana:</label>
+                <select id="reminder-day">
+                    ${DAYS_OF_WEEK.map((day, i) => `<option value="${i}" ${parsed.dayOfWeek === i ? 'selected' : ''}>${day}</option>`).join('')}
+                </select>
+            </div>
+            <div id="interval-field" class="${parsed.type !== 'interval' ? 'hidden' : ''}">
+                <label for="reminder-interval">Cada X días:</label>
+                <input type="number" id="reminder-interval" min="1" value="${parsed.intervalDays || ''}">
+            </div>
+            <div id="timer-field" class="${parsed.type !== 'timer' ? 'hidden' : ''}">
+                <label for="reminder-timer">Minutos:</label>
+                <select id="reminder-timer">
+                    ${[5, 10, 15, 20, 30, 45, 60, 90].map(m => `<option value="${m}" ${parsed.timerMinutes === m ? 'selected' : ''}>${m} minutos</option>`).join('')}
+                </select>
+            </div>
+            <div class="button-group">
+                <button type="submit">Guardar</button>
+                <button type="button" id="cancel-reminder">Cancelar</button>
+            </div>
+        </form>
+    `;
+    document.body.appendChild(modal);
 
-        modal.querySelector('#reminder-form').addEventListener                ('submit', (e) => {
-                e.preventDefault();
-                const text = modal.querySelector('#reminder-text').value.trim();
-                const time = modal.querySelector('#reminder-time').value;
-                const repeatDays = Array.from(modal.querySelectorAll('input[name="repeat"]:checked')).map(input => parseInt(input.value));
+    const typeSelect = modal.querySelector('#reminder-type');
+    const timeField = modal.querySelector('#time-field');
+    const dateField = modal.querySelector('#date-field');
+    const weeklyField = modal.querySelector('#weekly-field');
+    const intervalField = modal.querySelector('#interval-field');
+    const timerField = modal.querySelector('#timer-field');
 
-                if (!text) {
-                    alert('El texto del recordatorio es obligatorio.');
-                    return;
-                }
+    typeSelect.addEventListener('change', () => {
+        timeField.classList.toggle('hidden', typeSelect.value === 'onload');
+        dateField.classList.toggle('hidden', typeSelect.value !== 'date');
+        weeklyField.classList.toggle('hidden', typeSelect.value !== 'weekly');
+        intervalField.classList.toggle('hidden', typeSelect.value !== 'interval');
+        timerField.classList.toggle('hidden', typeSelect.value !== 'timer');
+    });
 
-                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                let parsedTime = time || null;
+    modal.querySelector('#reminder-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = modal.querySelector('#reminder-text').value.trim();
+        const type = typeSelect.value;
+        let time = modal.querySelector('#reminder-time')?.value || null;
+        const date = modal.querySelector('#reminder-date')?.value || null;
+        const dayOfWeek = modal.querySelector('#reminder-day')?.value ? parseInt(modal.querySelector('#reminder-day').value) : null;
+        const intervalDays = modal.querySelector('#reminder-interval')?.value ? parseInt(modal.querySelector('#reminder-interval').value) : null;
+        const timerMinutes = modal.querySelector('#reminder-timer')?.value ? parseInt(modal.querySelector('#reminder-timer').value) : null;
 
-                if (!parsedTime) {
-                    const timeInfo = parseTimeOrTimerFromText(text);
-                    if (timeInfo) {
-                        parsedTime = timeInfo.time;
-                        if (timeInfo.isTimer && repeatDays.length > 0) {
-                            repeatDays.length = 0;
-                        }
-                    }
-                }
-
-                if (reminder) {
-                    const index = reminders.findIndex(r => r.id === reminder.id);
-                    if (index !== -1) {
-                        reminders[index] = {
-                            ...reminders[index],
-                            text,
-                            time: parsedTime,
-                            repeatDays
-                        };
-                    }
-                } else {
-                    const newReminder = {
-                        id: Date.now(),
-                        text,
-                        time: parsedTime,
-                        repeatDays
-                    };
-                    reminders.push(newReminder);
-                }
-
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                document.body.removeChild(modal);
-                updateButtonStyles();
-            });
-
-            modal.querySelector('#cancel-reminder').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
+        if (!text) {
+            alert('El texto del recordatorio es obligatorio.');
+            return;
         }
 
-        function showReminderNotification(reminder) {
-            const notification = document.createElement('div');
-            notification.className = 'reminder-notification';
-            notification.setAttribute('aria-label', 'Notificación de recordatorio');
-            notification.innerHTML = `
-                <p>${reminder.text}</p>
-                ${reminder.time ? `<p>Hora: ${reminder.time}</p>` : ''}
-                ${reminder.repeatDays && reminder.repeatDays.length > 0 ? `
-                    <p>Repite: ${reminder.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}</p>
-                ` : ''}
-                <div class="button-group">
-                    <button class="cancel">Descartar</button>
-                    <button class="modify">Modificar</button>
-                    <button class="postpone">Aplazar</button>
-                </div>
-            `;
-            document.getElementById('reminder-notifications').appendChild(notification);
+        let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const newReminder = {
+            id: reminder ? reminder.id : Date.now(),
+            text,
+            type,
+            time: type === 'onload' ? null : (time || '00:00'),
+            date,
+            dayOfWeek,
+            intervalDays,
+            timerMinutes,
+            createdAt: reminder ? reminder.createdAt : new Date().toISOString(),
+            nextTrigger: null
+        };
 
-            notification.querySelector('.cancel').addEventListener('click', () => {
-                document.getElementById('reminder-notifications').removeChild(notification);
-                let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                reminders = reminders.filter(r => r.id !== reminder.id);
-                localStorage.setItem('reminders', JSON.stringify(reminders));
-                updateButtonStyles();
-            });
+        if (newReminder.type === 'timer' && newReminder.timerMinutes) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + newReminder.timerMinutes);
+            newReminder.nextTrigger = now.toISOString();
+        } else if (newReminder.type === 'interval' && newReminder.intervalDays) {
+            const now = new Date();
+            newReminder.nextTrigger = now.toISOString();
+        }
 
-            notification.querySelector('.modify').addEventListener('click', () => {
-                document.getElementById('reminder-notifications').removeChild(notification);
-                showReminderModal(reminder);
-            });
+        if (reminder) {
+            const index = reminders.findIndex(r => r.id === reminder.id);
+            if (index !== -1) reminders[index] = newReminder;
+        } else {
+            reminders.push(newReminder);
+        }
 
-            notification.querySelector('.postpone').addEventListener('click', () => {
-                document.getElementById('reminder-notifications').removeChild(notification);
+        localStorage.setItem('reminders', JSON.stringify(reminders));
+        updateReminderCount();
+        document.body.removeChild(modal);
+        if (newReminder.type === 'onload') showReminderNotification(newReminder);
+    });
+
+    modal.querySelector('#cancel-reminder').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+}
+
+function showReminderNotification(reminder) {
+    const notification = document.createElement('div');
+    notification.className = 'reminder-notification';
+    notification.setAttribute('aria-label', 'Notificación de recordatorio');
+    let details = '';
+    if (reminder.type === 'daily') details = `Hora: ${reminder.time}`;
+    else if (reminder.type === 'date') details = `Fecha: ${reminder.date} ${reminder.time ? `, Hora: ${reminder.time}` : ''}`;
+    else if (reminder.type === 'weekly') details = `Día: ${DAYS_OF_WEEK[reminder.dayOfWeek]} ${reminder.time ? `, Hora: ${reminder.time}` : ''}`;
+    else if (reminder.type === 'interval') details = `Cada ${reminder.intervalDays} días ${reminder.time ? `, Hora: ${reminder.time}` : ''}`;
+    else if (reminder.type === 'timer') details = `Alarma: ${reminder.timerMinutes} minutos`;
+    notification.innerHTML = `
+        <p>${reminder.text}</p>
+        ${details ? `<p class="details">${details}</p>` : ''}
+        <div class="button-group">
+            <button class="cancel">Borrar</button>
+            <button class="modify">Modificar</button>
+            <button class="postpone">Posponer</button>
+        </div>
+    `;
+    document.getElementById('reminder-notifications').appendChild(notification);
+
+    const audio = new Audio('https://freesound.org/data/previews/316/316847_4939433-lq.mp3');
+    audio.play().catch(e => console.log('No se pudo reproducir el sonido:', e));
+
+    notification.querySelector('.cancel').addEventListener('click', () => {
+        if (confirm('¿Confirmar borrado del recordatorio?')) {
+            let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            reminders = reminders.filter(r => r.id !== reminder.id);
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            document.getElementById('reminder-notifications').removeChild(notification);
+            updateReminderCount();
+        }
+    });
+
+    notification.querySelector('.modify').addEventListener('click', () => {
+        document.getElementById('reminder-notifications').removeChild(notification);
+        showReminderModal(reminder);
+    });
+
+    notification.querySelector('.postpone').addEventListener('click', () => {
+        let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        const index = reminders.findIndex(r => r.id === reminder.id);
+        if (index !== -1) {
+            if (reminders[index].type === 'timer') {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + reminders[index].timerMinutes);
+                reminders[index].nextTrigger = now.toISOString();
+            } else {
                 const now = new Date();
                 now.setMinutes(now.getMinutes() + 10);
-                const newTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                reminders[index].time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                reminders[index].type = 'daily';
+                reminders[index].dayOfWeek = null;
+                reminders[index].intervalDays = null;
+                reminders[index].date = null;
+            }
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            document.getElementById('reminder-notifications').removeChild(notification);
+            updateReminderCount();
+        }
+    });
+}
+
+function showAllReminders() {
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    const modal = document.createElement('div');
+    modal.className = 'reminder-table-modal';
+    modal.setAttribute('aria-label', 'Lista de recordatorios');
+    modal.innerHTML = `
+        <h2>Recordatorios Guardados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Texto</th>
+                    <th>Tipo</th>
+                    <th>Hora</th>
+                    <th>Fecha/Día/Intervalo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${reminders.length === 0 ? '<tr><td colspan="5">No hay recordatorios.</td></tr>' : reminders.map(r => {
+                    let dateInfo = '';
+                    if (r.type === 'date') dateInfo = r.date;
+                    else if (r.type === 'weekly') dateInfo = DAYS_OF_WEEK[r.dayOfWeek];
+                    else if (r.type === 'interval') dateInfo = `Cada ${r.intervalDays} días`;
+                    else if (r.type === 'timer') dateInfo = `${r.timerMinutes} minutos`;
+                    return `
+                        <tr>
+                            <td>${r.text}</td>
+                            <td>${{
+                                onload: 'Al cargar',
+                                daily: 'Diario',
+                                date: 'Fecha',
+                                weekly: 'Semanal',
+                                interval: 'Intervalo',
+                                timer: 'Alarma'
+                            }[r.type]}</td>
+                            <td>${r.time || '-'}</td>
+                            <td>${dateInfo || '-'}</td>
+                            <td class="actions">
+                                <button class="modify-reminder" data-id="${r.id}" style="background-color: #10B981; color: #FFFFFF; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">Modificar</button>
+                                <button class="delete-reminder" data-id="${r.id}" style="background-color: #EF4444; color: #FFFFFF; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">Borrar</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+        <div class="button-group">
+            <button type="button" id="close-reminders">Cerrar</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelectorAll('.modify-reminder').forEach(button => {
+        button.addEventListener('click', () => {
+            const id = parseInt(button.dataset.id);
+            const reminder = reminders.find(r => r.id === id);
+            document.body.removeChild(modal);
+            showReminderModal(reminder);
+        });
+    });
+
+    modal.querySelectorAll('.delete-reminder').forEach(button => {
+        button.addEventListener('click', () => {
+            if (confirm('¿Confirmar borrado del recordatorio?')) {
+                const id = parseInt(button.dataset.id);
                 let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                const index = reminders.findIndex(r => r.id === reminder.id);
-                if (index !== -1) {
-                    reminders[index].time = newTime;
-                    reminders[index].repeatDays = [];
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                }
-                updateButtonStyles();
-            });
-        }
-
-        function showAllReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const modal = document.createElement('div');
-            modal.className = 'reminder-modal';
-            modal.setAttribute('aria-label', 'Lista de recordatorios');
-            modal.innerHTML = `
-                <h2>Recordatorios</h2>
-                <ul style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
-                    ${reminders.length === 0 ? '<li>No hay recordatorios.</li>' : reminders.map(r => `
-                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #D1D5DB;">
-                            ${r.text}
-                            ${r.time ? `<br>Hora: ${r.time}` : ''}
-                            ${r.repeatDays && r.repeatDays.length > 0 ? `<br>
-                            Repite: ${r.repeatDays.map(day => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][day]).join(', ')}` : ''}
-                            <button class="modify-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #10B981; color: #FFFFFF; border-radius: 0.25rem;">Modificar</button>
-                            <button class="delete-reminder" data-id="${r.id}" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background-color: #EF4444; color: #FFFFFF; border-radius: 0.25rem;">Eliminar</button>
-                        </li>
-                    `).join('')}
-                </ul>
-                <div class="button-group">
-                    <button type="button" id="close-reminders">Cerrar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            modal.querySelectorAll('.modify-reminder').forEach(button => {
-                button.addEventListener('click', () => {
-                    const id = parseInt(button.dataset.id);
-                    const reminder = reminders.find(r => r.id === id);
-                    document.body.removeChild(modal);
-                    showReminderModal(reminder);
-                });
-            });
-
-            modal.querySelectorAll('.delete-reminder').forEach(button => {
-                button.addEventListener('click', () => {
-                    const id = parseInt(button.dataset.id);
-                    let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-                    reminders = reminders.filter(r => r.id !== id);
-                    localStorage.setItem('reminders', JSON.stringify(reminders));
-                    document.body.removeChild(modal);
-                    updateButtonStyles();
-                    showAllReminders();
-                });
-            });
-
-            modal.querySelector('#close-reminders').addEventListener('click', () => {
+                reminders = reminders.filter(r => r.id !== id);
+                localStorage.setItem('reminders', JSON.stringify(reminders));
                 document.body.removeChild(modal);
-            });
-        }
-
-        function checkReminders() {
-            const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-            const now = new Date();
-            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            const currentDay = now.getDay();
-
-            reminders.forEach(reminder => {
-                if (reminder.time && reminder.time === currentTime) {
-                    if (reminder.repeatDays && reminder.repeatDays.length > 0) {
-                        if (reminder.repeatDays.includes(currentDay)) {
-                            showReminderNotification(reminder);
-                        }
-                    } else {
-                        showReminderNotification(reminder);
-                    }
-                }
-            });
-        }
-
-        function loadReminders() {
-            setInterval(checkReminders, 60000);
-            checkReminders();
-        }
-
-        document.getElementById('back-button').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.back();
+                updateReminderCount();
+                showAllReminders();
+            }
         });
+    });
 
-        document.getElementById('forward-button').addEventListener('click', () => {
-            if (isMinimalMode) return;
-            window.history.forward();
-        });
+    modal.querySelector('#close-reminders').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+}
 
-        let touchStartX = 0;
-        let touchEndX = 0;
+function updateReminderCount() {
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    const countElement = document.getElementById('reminder-count');
+    countElement.textContent = reminders.length;
+    countElement.style.display = reminders.length > 0 ? 'block' : 'none';
+}
 
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
+function checkReminders() {
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentDate = now.toISOString().split('T')[0];
+    const currentDay = now.getDay();
 
-        document.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
+    reminders.forEach(reminder => {
+        let shouldNotify = false;
 
-        function handleSwipe() {
-            const swipeDistance = touchEndX - touchStartX;
-            const minSwipeDistance = 100;
-
-            if (swipeDistance > minSwipeDistance) {
-                window.history.back();
-            } else if (swipeDistance < -minSwipeDistance) {
-                window.history.forward();
+        if (reminder.type === 'onload') {
+            shouldNotify = true;
+        } else if (reminder.type === 'daily' && reminder.time === currentTime) {
+            shouldNotify = true;
+        } else if (reminder.type === 'date' && reminder.date === currentDate && (!reminder.time || reminder.time === currentTime)) {
+            shouldNotify = true;
+        } else if (reminder.type === 'weekly' && reminder.dayOfWeek === currentDay && (!reminder.time || reminder.time === currentTime)) {
+            shouldNotify = true;
+        } else if (reminder.type === 'interval' && reminder.nextTrigger) {
+            const nextTrigger = new Date(reminder.nextTrigger);
+            if (nextTrigger <= now && (!reminder.time || reminder.time === currentTime)) {
+                shouldNotify = true;
+                nextTrigger.setDate(nextTrigger.getDate() + reminder.intervalDays);
+                reminder.nextTrigger = nextTrigger.toISOString();
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+            }
+        } else if (reminder.type === 'timer' && reminder.nextTrigger) {
+            const triggerTime = new Date(reminder.nextTrigger);
+            if (triggerTime <= now) {
+                shouldNotify = true;
+                reminder.nextTrigger = null;
+                localStorage.setItem('reminders', JSON.stringify(reminders));
             }
         }
 
-        window.addEventListener('resize', adjustButtonPositions);
+        if (shouldNotify) showReminderNotification(reminder);
+    });
+}
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await updateVersion();
-            loadSavedSettings();
-            await loadNotices();
-            startNoticeRotation();
-            adjustButtonPositions();
-        });
-    </script>
+function handleReminderLongPress() {
+    const pressDuration = Date.now() - reminderPressStartTime;
+    if (pressDuration >= 2000) {
+        showAllReminders();
+    } else if (!isMinimalMode) {
+        const text = prompt('Introduce el recordatorio (puedes incluir hora, fecha, día, intervalo o temporizador):');
+        if (text) {
+            const parsed = parseReminderText(text);
+            showReminderModal(parsed);
+        }
+    }
+    reminderPressStartTime = null;
+}
+
+reminderButton.addEventListener('mousedown', () => {
+    reminderPressStartTime = Date.now();
+});
+reminderButton.addEventListener('mouseup', handleReminderLongPress);
+reminderButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    reminderPressStartTime = Date.now();
+});
+reminderButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleReminderLongPress();
+});
+
+function loadReminders() {
+    setInterval(checkReminders, 60000);
+    checkReminders();
+    updateReminderCount();
+    const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+    reminders.forEach(reminder => {
+        if (reminder.type === 'onload') showReminderNotification(reminder);
+    });
+}
+
+toggleButtons.forEach(toggle => {
+    toggle.addEventListener('click', () => {
+        if (isMinimalMode) return;
+        updateToggleState(toggle);
+    });
+});
+
+weatherButton.addEventListener('click', () => {
+    if (isMinimalMode) return;
+    window.open('https://www.accuweather.com/es/es/spain-weather', '_blank', 'noopener,noreferrer');
+});
+
+zoomButton.addEventListener('click', () => {
+    if (isMinimalMode) return;
+    const currentState = zoomButton.dataset.zoomState;
+    zoomButton.dataset.zoomState = currentState === 'on' ? 'off' : 'on';
+    applyZoom(zoomButton.dataset.zoomState);
+    updateButtonStyles();
+    saveSettings();
+});
+
+reloadButton.addEventListener('click', () => {
+    if (isMinimalMode) return;
+    location.reload();
+});
+
+homeButton.addEventListener('click', () => {
+    if (isMinimalMode) return;
+    window.location.href = 'https://boardinggate.github.io/Tesla/';
+});
+
+function adjustButtonPositions() {
+    if (isMinimalMode) return;
+    const positions = [
+        { top: '10px' },
+        { top: '80px' },
+        { top: '150px' },
+        { top: '220px' },
+        { top: '290px' },
+        { top: '360px' },
+        { top: '430px' },
+        { top: '500px' },
+        { top: '570px' },
+        { top: '640px' },
+        { top: '710px' }
+    ];
+    buttons.forEach((button, index) => {
+        if (button && positions[index]) {
+            button.style.top = positions[index].top;
+        }
+    });
+}
+
+function toggleFooterVisibility() {
+    const footer = document.querySelector('footer');
+    footer.classList.toggle('footer-hidden', !isFooterVisible);
+    const counterWrapper = document.querySelector('.counter-wrapper');
+    counterWrapper.classList.toggle('footer-hidden', !isFooterVisible);
+}
+
+document.getElementById('back-button').addEventListener('click', () => {
+    if (isMinimalMode) return;
+    history.back();
+});
+
+document.getElementById('forward-button').addEventListener('click', () => {
+    if (isMinimalMode) return;
+    history.forward();
+});
+
+function updateNotice() {
+    const noticeElement = document.getElementById('current-notice');
+    if (isActive && notices.length > 0) {
+        noticeElement.textContent = notices[currentNoticeIndex];
+        noticeElement.style.animation = 'none';
+        noticeElement.offsetHeight;
+        noticeElement.style.animation = 'fadeInOut 14s infinite';
+    } else {
+        noticeElement.textContent = '';
+        noticeElement.style.animation = 'none';
+    }
+}
+
+function startNoticeRotation() {
+    if (notices.length <= 1) return;
+    setInterval(() => {
+        if (isActive) {
+            currentNoticeIndex = (currentNoticeIndex + 1) % notices.length;
+            updateNotice();
+        }
+    }, 14000);
+}
+
+document.getElementById('notice-toggle-icon').addEventListener('click', () => {
+    if (isMinimalMode) return;
+    isActive = !isActive;
+    updateNotice();
+    saveSettings();
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await updateVersion();
+    loadSavedSettings();
+    await loadNotices();
+    startNoticeRotation();
+    adjustButtonPositions();
+    loadReminders();
+});
+</script>
 </body>
 </html>
