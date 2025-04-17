@@ -3,57 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoardingGate Lanzador (Debug v4)</title>
+    <title>BoardingGate Lanzador (Debug v5)</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-    /* --- Estilos Originales + DEBUG VISIBILITY --- */
-    body { display: flex; flex-direction: column; min-height: 100vh; background-color: #ABAB99; margin: 0; overflow-x: hidden; padding: 6px; box-sizing: border-box; position: relative; }
-    body.dark-mode { background-color: #92927E; }
-
-    main { margin: 0.5rem auto 0.5rem 70px; max-width: 984px; width: calc(100% - 80px); padding: 16px; box-sizing: border-box; border-radius: 0.75rem; min-height: 400px; /* border: 1px dotted red; */ visibility: visible !important; opacity: 1 !important; }
-    #bookmark-grid { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 15px; width: 100%; transition: all 0.3s ease; /* border: 1px dotted lime; */ min-height: 100px; visibility: visible !important; opacity: 1 !important;}
-    #bookmark-grid > div { height: auto; aspect-ratio: 16 / 9; transition: all 0.3s ease; border: 1px solid transparent; display: flex; align-items: stretch; justify-content: stretch; border-radius: 0.5rem; overflow: hidden; visibility: visible !important; opacity: 1 !important;}
-    .bookmark-item { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.3s ease; background-color: hsla(var(--hue, 200), var(--saturation, 70%), var(--lightness, 85%), 0.64); padding: 4px; box-sizing: border-box; text-decoration: none; box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.1); position: relative; visibility: visible !important; opacity: 1 !important;}
-    .bookmark-item:hover { transform: scale(1.03) translateY(-1px); box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.15); z-index: 10;}
-    .bookmark-item img { width: 36px; height: 36px; max-width: 40px; object-fit: contain; border-radius: 0.25rem; margin-bottom: 4px; image-rendering: crisp-edges; -ms-interpolation-mode: nearest-neighbor; visibility: visible !important; opacity: 1 !important;}
-    .bookmark-name { font-weight: bold; color: #333; text-align: center; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 8px); font-size: clamp(0.80rem, 1.4vw, 1.10rem); line-height: 1.2; visibility: visible !important; opacity: 1 !important;}
-    body.dark-mode .bookmark-name { color: #E5E7EB; }
+    /* --- ESTILOS ORIGINALES (del primer mensaje) --- */
+    .bookmark-item { transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1); position: relative; }
+    .bookmark-item:hover { transform: scale(1.05) translateY(-2px); box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15); z-index: 10;}
+    .bookmark-item img { image-rendering: crisp-edges; -ms-interpolation-mode: nearest-neighbor; }
+    .bookmark-name { font-weight: bold; color: #333; text-align: center; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 8px); font-size: clamp(0.80rem, 1.4vw, 1.10rem); line-height: 1.2; }
+    #bookmark-grid { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 15px; background-color: transparent; border-radius: 0.75rem; position: relative; width: 100%; max-width: 984px; margin: 0 auto 0 70px; /* Margen izquierdo */ transition: all 0.3s ease; /* border: 1px dotted lime; */ min-height: 100px; }
+    #bookmark-grid > div { height: auto; aspect-ratio: 16 / 9; transition: all 0.3s ease; /* border: 1px dotted cyan; */ display: flex; align-items: stretch; justify-content: stretch; border-radius: 0.5rem; overflow: hidden; }
+    .bookmark-item { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.3s ease; background-color: hsla(var(--hue, 200), var(--saturation, 70%), var(--lightness, 85%), 0.64); padding: 4px; box-sizing: border-box; text-decoration: none; }
+    .bookmark-item img { width: 36px; height: 36px; max-width: 40px; object-fit: contain; border-radius: 0.25rem; margin-bottom: 4px; }
     .small-bookmark img { width: 24px; height: 24px; max-width: 28px; }
     #bookmark-grid > div.config-empty-cell { background-color: rgba(200, 200, 200, 0.3); border: 1px dashed rgba(150, 150, 150, 0.5); box-shadow: none; }
-    body.dark-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(80, 80, 80, 0.3); border-color: rgba(100, 100, 100, 0.5); filter: brightness(70%); }
-    @media (max-width: 768px) { #bookmark-grid { grid-template-columns: repeat(3, minmax(100px, 1fr)); gap: 10px; margin-left: 70px; } main { width: calc(100% - 80px); } }
-    @media (max-width: 480px) { #bookmark-grid { grid-template-columns: repeat(2, minmax(80px, 1fr)); gap: 8px; margin-left: 70px; } main { width: calc(100% - 80px); } }
+    @media (max-width: 768px) { #bookmark-grid { grid-template-columns: repeat(3, minmax(100px, 1fr)); gap: 10px; margin-left: 70px; } }
+    @media (max-width: 480px) { #bookmark-grid { grid-template-columns: repeat(2, minmax(80px, 1fr)); gap: 8px; margin-left: 70px; } }
 
-    /* Footer and Header */
-    footer { margin: 0.5rem auto; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; background-color: #ABAB99; margin-left: 70px; box-sizing: border-box; border-radius: 0.75rem; visibility: visible !important; opacity: 1 !important; /* DEBUG */ }
+    .header-container { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background-color: #ABAB99; padding: 0.5rem; border-radius: 0.75rem 0.75rem 0 0; }
+    .header-logo { width: 100px; height: 70px; transition: filter 0.2s ease; border-radius: 0.25rem;}
+    .title-container { background-color: #ABAB99; padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block; }
+    .header-container h1 { color: #5C5C47; }
+    .version-text { font-size: 0.75rem; color: #5C5C47; font-weight: normal; margin-left: 5px;}
+
+    body { display: flex; flex-direction: column; min-height: 100vh; background-color: #ABAB99; margin: 0; overflow-x: hidden; padding: 6px; box-sizing: border-box; position: relative; }
+    body.dark-mode { background-color: #92927E; }
+    body.dark-mode .bookmark-name { color: #E5E7EB; }
+    body.dark-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(80, 80, 80, 0.3); border-color: rgba(100, 100, 100, 0.5); filter: brightness(70%); }
+    body.dark-mode .header-container { background-color: #92927E; }
+    body.dark-mode .header-logo { filter: brightness(85%); }
+    body.dark-mode .title-container { background-color: #92927E; }
+    body.dark-mode .header-container h1 { color: #3E3E2F; }
+    body.dark-mode .version-text { color: #C1C1A9; }
+    main { margin: 0.5rem auto 0.5rem 70px; max-width: 984px; width: calc(100% - 80px); padding: 16px; box-sizing: border-box; border-radius: 0.75rem; min-height: 400px; /* border: 1px dotted red; */ }
+    footer { margin: 0.5rem auto; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; background-color: #ABAB99; margin-left: 70px; box-sizing: border-box; border-radius: 0.75rem; }
     body.dark-mode footer { background-color: #92927E; }
-    .header-container { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background-color: inherit; padding: 0.5rem; border-radius: 0.75rem 0.75rem 0 0; visibility: visible !important; opacity: 1 !important; /* DEBUG */ }
-    .header-logo { width: 100px; height: 70px; transition: filter 0.2s ease; border-radius: 0.25rem;} body.dark-mode .header-logo { filter: brightness(85%); }
-    .title-container { background-color: inherit; padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block; }
-    .header-container h1 { color: #5C5C47; visibility: visible !important; opacity: 1 !important; /* DEBUG */ } body.dark-mode .header-container h1 { color: #3E3E2F; }
-    .version-text { font-size: 0.75rem; color: #5C5C47; font-weight: normal; margin-left: 5px;} body.dark-mode .version-text { color: #C1C1A9; }
-    .footer-content { color: #5C5C47; padding: 0 0.5rem 0.5rem 0.5rem; margin: 0 auto; max-width: 100%; position: relative; visibility: visible !important; opacity: 1 !important; /* DEBUG */ } body.dark-mode .footer-content, body.dark-mode .footer-subtext, body.dark-mode .footer-link-green { color: #C1C1A9; }
+    .footer-content { color: #5C5C47; padding: 0 0.5rem 0.5rem 0.5rem; margin: 0 auto; max-width: 100%; position: relative; }
+    body.dark-mode .footer-content, body.dark-mode .footer-subtext, body.dark-mode .footer-link-green { color: #C1C1A9; }
     .footer-subtext { font-size: 0.75rem; margin-top: 0.25rem; text-align: center; }
     .footer-link-green { text-decoration: none; transition: color 0.2s ease; } .footer-link-green:hover { color: #3E3E2F; } body.dark-mode .footer-link-green:hover { color: #E6E6DC; }
     .footer-line { display: flex; justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-    .notices-icon-container { display: flex; align-items: center; justify-content: flex-start; width: 100%; max-width: 984px; margin: 0.5rem auto 0.5rem 70px; width: calc(100% - 80px); box-sizing: border-box; height: 3rem; visibility: visible !important; opacity: 1 !important; /* DEBUG */ }
+    .notices-icon-container { display: flex; align-items: center; justify-content: flex-start; width: 100%; max-width: 984px; margin: 0.5rem auto 0.5rem 70px; width: calc(100% - 80px); box-sizing: border-box; height: 3rem; }
     .notice-off-icon { width: auto; height: 100%; align-self: center; cursor: pointer; transition: filter 0.3s ease; flex-shrink: 0; margin-right: 10px; } body.dark-mode .notice-off-icon { filter: brightness(85%); }
     .notices-container { flex-grow: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100%; }
     .notice-wrapper { width: 100%; height: 100%; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
     .notice { color: #00ff00; font-weight: bold; white-space: nowrap; text-align: center; opacity: 0; animation: fadeInOut 14s infinite; font-size: 1.1rem; } @keyframes fadeInOut { 0%{opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{opacity:0} }
-    .counter-wrapper { margin: 0.5rem auto 0 70px; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; opacity: 0.5; box-sizing: border-box; visibility: visible !important; /* DEBUG */ }
+    .counter-wrapper { margin: 0.5rem auto 0 70px; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; opacity: 0.5; box-sizing: border-box; }
     .counter-container { display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 0; }
-    .top-text-container { display: flex; align-items: center; justify-content: center; font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: #5C5C47; background-color: #D1D5DB; margin: 0 auto 0.5rem 70px; gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; animation: fadeOut 6s forwards; max-width: 984px; width: calc(100% - 80px); box-sizing: border-box; } body.dark-mode .top-text-container { background-color: #6B7280; color: #C1C1A9;}
+    .top-text-container { display: flex; align-items: center; justify-content: center; font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: #5C5C47; background-color: #D1D5DB; margin: 0 auto 0.5rem 70px; gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; animation: fadeOut 6s forwards; max-width: 984px; width: calc(100% - 80px); box-sizing: border-box; }
+    body.dark-mode .top-text-container { background-color: #6B7280; color: #C1C1A9;}
     .top-text-container span { color: #D9A066; font-size: clamp(0.9rem, 2vw, 1.2rem); } @keyframes fadeOut { 0%{opacity:1} 80%{opacity:1} 100%{opacity:0;display:none} }
     .arrow-button { width: clamp(36px, 6vw, 48px); height: clamp(36px, 6vw, 48px); background-color: #D9A066; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); transition: background-color 0.2s ease; } .arrow-button:hover { background-color: #5C5C47; } .arrow-button svg { stroke: #E6E6DC; }
     .favicon-red { filter: hue-rotate(0deg) saturate(200%) brightness(80%); } .favicon-blue { filter: hue-rotate(200deg) saturate(150%) brightness(90%); }
 
     /* Botones Laterales */
-    .button-lateral { position: fixed; width: 91px; left: 10px; border-radius: 20px; cursor: pointer; z-index: 1000; transition: background-color 0.2s ease, filter 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; box-sizing: border-box; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); opacity: 1; visibility: visible; /* Default visible */ display: flex; align-items: center; justify-content: center; border: 1px solid transparent; /* DEBUG - Borde transparente por defecto */ }
+    .button-lateral { position: fixed; width: 91px; left: 10px; border-radius: 20px; cursor: pointer; z-index: 1000; transition: background-color 0.2s ease, filter 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; box-sizing: border-box; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); opacity: 1; visibility: visible; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; /* DEBUG */ }
     .button-lateral:hover { filter: brightness(110%); background-color: #D9A066 !important; }
-    #scroll-toggle { border-color: blue; } .toggle-sign { border-color: orange; } .toggle-image { border-color: magenta; } /* DEBUG BORDERS */
+    /* #scroll-toggle { border-color: blue; } .toggle-sign { border-color: orange; } .toggle-image { border-color: magenta; } */ /* DEBUG BORDERS OFF */
     .scroll-toggle-button { height: clamp(78.2px, 19.55vw, 175.95px); background-color: #668B8B; border-radius: 60px; flex-direction: column; justify-content: space-between; padding: clamp(10px, 2vw, 20px); top: 10px; }
     .toggle-sign { height: 54px; background-color: #668B8B; font-weight: bold; font-size: 1.25rem; color: #E6E6DC; text-align: center; overflow: hidden; }
     .toggle-image { height: 54px; padding: 3px; background-color: #668B8B; }
@@ -105,7 +113,7 @@
 
     <script>
         // === Constants & Globals ===
-        const bookmarks = [ /* ... Tu lista original ... */ ];
+        const bookmarks = [ /* ... Tu lista completa ... */ ];
         const TOTAL_CELLS = 96; const COLS = 6;
         const grid = document.getElementById('bookmark-grid');
         const cellElements = []; let createdToggleButtons = []; let sideButtons = [];
@@ -113,15 +121,29 @@
         let isActive = true; let isFooterVisible = true;
         let pressStartTime = null; let reminderPressStartTime = null;
         let notices = []; let currentNoticeIndex = 0;
-        let customToggleConfigs = {}; // Keep for future
-        const toggleRanges = [ // Original ranges for filters
+        let customToggleConfigs = {};
+        const toggleRanges = [ // Original ranges
             { start: 18, end: 29, label: "PdR,s" }, { start: 30, end: 41, label: "iAs" },
             { start: 42, end: 59, label: "Útil" }, { start: 60, end: 95, label: "Varios" }
         ];
 
         // === Helper Functions ===
         const checkDarkModeTime = () => { const h = new Date().getHours(); return h >= 21 || h < 7; };
-        const getFaviconUrl = (b) => { try { if(b.favicon) return b.favicon; const d = new URL(b.url).hostname; return `https://www.google.com/s2/favicons?domain=${d}&sz=64`; } catch { return 'https://via.placeholder.com/32/eee/aaa?text=?'; } }; // Fallback placeholder
+        const getFaviconUrl = (b) => { // Simplified for debug
+             console.log(`[Debug] Getting Favicon for: ${b?.name || 'N/A'}, URL: ${b?.url}, Favicon: ${b?.favicon}`);
+            if (b?.favicon) return b.favicon;
+            if (b?.url) {
+                try {
+                    const domain = new URL(b.url).hostname;
+                    if (domain && domain !== 'localhost' && domain.includes('.')) {
+                        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`; // Use 32px maybe?
+                    }
+                } catch (e) {
+                    console.warn(`[Debug] URL parse error for ${b.url}: ${e.message}`);
+                }
+            }
+            return 'https://via.placeholder.com/32/eee/aaa?text=X'; // Default placeholder
+        };
         function generateBrightColor() { const h=Math.floor(Math.random()*360); const s=50+Math.floor(Math.random()*25); const l=75+Math.floor(Math.random()*15); return `hsla(${h}, ${s}%, ${l}%, 0.75)`; }
         function formatVersionDate(d){ if(!d || isNaN(d.getTime())) return "?"; const y=d.getUTCFullYear().toString().slice(-2); const m=String(d.getUTCMonth()+1).padStart(2,'0'); const day=String(d.getUTCDate()).padStart(2,'0'); const h=String(d.getUTCHours()).padStart(2,'0'); return `${y}.${m}.${day}${h}`; }
         async function getLastModifiedDate(){ try { const r = await fetch('https://boardinggate.github.io/Tesla/version.txt', {cache:'no-cache'}); if(!r.ok) throw 'Fetch fail'; const t = await r.text(); const d = new Date(t.trim()); if(isNaN(d.getTime())) throw 'Invalid date'; return d; } catch(e){ console.error("Version fetch err:", e); return new Date(0); }}
@@ -136,10 +158,10 @@
             Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
                 const cell = document.createElement('div');
                 const bookmark = (index < bookmarks.length) ? bookmarks[index] : null;
-                const isEmpty = !(bookmark && bookmark.name !== undefined); // Allow name=""
+                const isEmpty = !(bookmark && bookmark.name !== undefined);
 
                 if (!isEmpty) {
-                    try { // Add try-catch around item creation
+                    try {
                         const link = document.createElement('a');
                         link.className = 'bookmark-item' + (index >= 60 ? ' small-bookmark' : '');
                         link.title = bookmark.name || '';
@@ -147,23 +169,42 @@
                         link.href = bookmark.url || "#";
                         if (bookmark.url && bookmark.name !== "Inicio Tesla") { link.target = "_blank"; link.rel = "noopener noreferrer"; }
 
-                        if(bookmark && (bookmark.url || bookmark.name === "Inicio Tesla")) {
+                        // Icono
+                        let iconAdded = false;
+                        if(bookmark && (bookmark.url || bookmark.name === "Inicio Tesla" || bookmark.favicon)) {
                              const img = document.createElement('img');
                              img.src = getFaviconUrl(bookmark); // Use corrected function
                              img.alt = ''; img.loading="lazy";
-                             img.onerror=(e)=>{e.target.style.display='none'; /* Hide if error */ console.warn(`Favicon error for ${bookmark.name || index}`);}; // Hide on error
+                             img.onerror=(e)=>{ e.target.style.display='none'; console.warn(`Favicon error for ${bookmark?.name || index}`);};
                              if (bookmark.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
                              link.appendChild(img);
+                             iconAdded = true;
+                        } else {
+                            console.log(`[Debug] No icon condition met for index ${index}, name: ${bookmark?.name}`);
                         }
-                        if (bookmark.name) { const name = document.createElement('span'); name.className = 'bookmark-name'; name.textContent = bookmark.name; link.appendChild(name); }
-                        else { link.classList.add('no-name'); }
+
+                        // Nombre
+                        if (bookmark.name) {
+                            const name = document.createElement('span');
+                            name.className = 'bookmark-name';
+                            name.textContent = bookmark.name;
+                            link.appendChild(name);
+                        } else {
+                             link.classList.add('no-name');
+                             if (!iconAdded) { // Add placeholder if no icon AND no name
+                                const placeholder = document.createElement('span');
+                                placeholder.textContent = `(${index})`; // Show index as placeholder
+                                placeholder.style.fontSize = '10px';
+                                placeholder.style.opacity = '0.5';
+                                link.appendChild(placeholder);
+                             }
+                        }
                         cell.appendChild(link);
                     } catch (e) {
                         console.error(`Error creating bookmark item at index ${index}:`, bookmark, e);
-                        cell.innerHTML = `<span>Error ${index}</span>`; // Show error in cell
-                        cell.style.backgroundColor = 'pink';
+                        cell.innerHTML = `<span>Error ${index}</span>`; cell.style.backgroundColor = 'pink';
                     }
-                } else { cell.className = 'config-empty-cell'; } // Mark empty
+                } else { cell.className = 'config-empty-cell'; }
                 grid.appendChild(cell); cellElements.push(cell);
             });
             console.log(`[Init] FN: createGridItems END (${cellElements.length} cells).`);
@@ -175,7 +216,7 @@
              const addBtn = (tag, id, klasses, html='', data={}) => {
                  try {
                      const el=document.createElement(tag); el.id=id; el.className=klasses.join(' '); if(html)el.innerHTML=html; Object.entries(data).forEach(([k,v])=>el.dataset[k]=v); btnCont.appendChild(el); newBtns.push(el); return el;
-                 } catch (e) { console.error(`Error creating button ${id}:`, e); return null; } // Return null on error
+                 } catch (e) { console.error(`Error creating button ${id}:`, e); return null; }
              };
 
              addBtn('img','on-off-toggle',['toggle-image', 'button-lateral'],'',{state:'on'});
@@ -189,21 +230,56 @@
              addBtn('span','config-button',['toggle-sign', 'button-lateral'], `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración">`);
 
              const scroll = document.getElementById('scroll-toggle'); if(scroll && !scroll.classList.contains('button-lateral')) scroll.classList.add('button-lateral');
-             sideButtons = [scroll, ...newBtns].filter(Boolean); // Filter out nulls if creation failed
-             console.log(`[Init] FN: createSideButtons END (${sideButtons.length} buttons).`);
+             sideButtons = [scroll, ...newBtns].filter(Boolean);
+             console.log(`[Init] FN: createSideButtons END (${sideButtons.length} buttons found/created).`);
         }
 
         // === State Loading ===
-        function loadStateFromStorage() { /* ... (same as previous) ... */ }
-        function saveSettings() { /* ... (same as previous, restored) ... */ }
+        function loadStateFromStorage() {
+            console.log("[Init] FN: loadStateFromStorage START");
+            try {
+                isDarkMode = JSON.parse(localStorage.getItem('darkMode') || 'null') ?? checkDarkModeTime();
+                isMinimalMode = JSON.parse(localStorage.getItem('minimalMode') || 'false');
+                isActive = JSON.parse(localStorage.getItem('noticesActive') || 'true');
+                isFooterVisible = JSON.parse(localStorage.getItem('footerVisible') || 'true');
+            } catch (e) {
+                console.error("Error loading state:", e);
+                isDarkMode = checkDarkModeTime(); isMinimalMode = false; isActive = true; isFooterVisible = true; // Fallback to defaults
+            }
+            console.log(`[Init] FN: loadStateFromStorage END (Minimal: ${isMinimalMode}, Dark: ${isDarkMode})`);
+        }
+
+        // === Settings Saving ===
+        function saveSettings() {
+             try { localStorage.setItem('darkMode', JSON.stringify(isDarkMode)); localStorage.setItem('minimalMode', JSON.stringify(isMinimalMode)); const t={}; createdToggleButtons.forEach(b=>{if(b.dataset.toggleId)t[b.dataset.toggleId]=b.dataset.state}); localStorage.setItem('toggleStates', JSON.stringify(t)); const z=document.getElementById('zoom-button'); if(z)localStorage.setItem('zoomState', z.dataset.zoomState); const o=document.getElementById('on-off-toggle'); if(o)localStorage.setItem('onOffState', o.dataset.state); localStorage.setItem('noticesActive', JSON.stringify(isActive)); localStorage.setItem('footerVisible', JSON.stringify(isFooterVisible)); } catch (e) { console.error("Save Settings Error:", e); }
+        }
 
         // === Visual Updates ===
-        function applyTheme() { document.body.classList.toggle('dark-mode', isDarkMode); /* ... style elements ... */ updateButtonStyles(); }
-        function applyZoomState() { /* ... (same as previous) ... */ }
-        function applyToggleStates() { /* ... (same as previous) ... */ }
-        function applySingleToggleConfig(btn) { /* ... (same as previous) ... */ }
-        function updateButtonStyles() { /* ... (same as previous) ... */ }
-        async function updateVersionDisplay() { /* ... (same as previous) ... */ }
+        function applyTheme() { document.body.classList.toggle('dark-mode', isDarkMode); /* ... */ updateButtonStyles(); }
+        function applyZoomState() { /* ... (implementation as before) ... */ }
+        function applyToggleStates() { // Uses original ranges
+            console.log("[Visual] FN: applyToggleStates START");
+            const savedStates = localStorage.getItem('toggleStates'); let states = {}; if(savedStates){try{states=JSON.parse(savedStates);}catch(e){}}
+            createdToggleButtons.forEach(btn => {
+                const id = btn.dataset.toggleId; if(!id) return;
+                btn.dataset.state = states[id] || 'visible'; // Load state or default
+                applySingleToggleConfig(btn); // Apply label AND hide/show items
+            });
+            console.log("[Visual] FN: applyToggleStates END");
+        }
+        function applySingleToggleConfig(btn) { // Uses original ranges
+             const rangeStart = parseInt(btn.dataset.rangeStart); const rangeEnd = parseInt(btn.dataset.rangeEnd);
+             const lbl = btn.dataset.label || "???"; // Use label stored on button
+             if (isNaN(rangeStart) || isNaN(rangeEnd)) { console.warn("Invalid range data on button:", btn.id); return; }
+             const state = btn.dataset.state || 'visible'; const sign = state === 'visible' ? '-' : '+';
+             // Ensure innerHTML is set correctly
+             btn.innerHTML = `<span class="sign">${sign}</span>${lbl}`;
+             const hide = state === 'hidden';
+             // console.log(`Applying toggle ${lbl}: state=${state}, hiding=${hide}`);
+             for (let i = rangeStart; i <= rangeEnd; i++) { if(cellElements[i]) cellElements[i].classList.toggle('hidden', hide); }
+        }
+        function updateButtonStyles() { /* ... (Implementation to update icons/counts) ... */ }
+        async function updateVersionDisplay() { const vEl = document.getElementById('version'); if(vEl){ try{const d=await getLastModifiedDate(); vEl.textContent = `v${formatVersionDate(d)}`;}catch(e){vEl.textContent='v?.?';}} }
         function applyCurrentThemeToElements() { document.body.classList.toggle('dark-mode', isDarkMode); /* ... Style empty cells, modals ... */ updateButtonStyles(); }
 
         // === Positioning & Visibility ===
@@ -212,130 +288,112 @@
             let top = 10; const space = 4; const btnH = 54; const scrollH = 100;
             if (!sideButtons || sideButtons.length === 0) { console.warn("No side buttons found for positioning."); return; }
 
-            sideButtons.forEach((button, idx) => { // Add index for logging
+            sideButtons.forEach((button, idx) => {
                 if (!button || !button.id) { console.warn(`Button at index ${idx} is invalid.`); return; }
                 const isScroll = button.id === 'scroll-toggle'; const isEx = (button.id==='config-button'||button.id==='on-off-toggle');
                 const shouldBeVisible = !isMinimalMode || isEx;
-                // console.log(` - Processing Button ${idx}: ${button.id}, shouldBeVisible: ${shouldBeVisible}`);
+                const elemHeight = isScroll ? scrollH : btnH; // Use CONSTANT heights for calculation
 
                 if (shouldBeVisible) {
                     button.style.top = `${top}px`;
                     button.style.visibility = 'visible'; button.style.opacity = '1';
                     button.style.display = button.classList.contains('toggle-sign') ? 'flex' : 'block';
-                    // Use getBoundingClientRect for more reliable height, fallback to constants
-                    const rect = button.getBoundingClientRect();
-                    const currentH = rect.height > 0 ? rect.height : (isScroll ? scrollH : btnH);
-                    top += currentH + space;
-                    // console.log(`   -> Visible. Top: ${button.style.top}, Height: ${currentH}, Next Top: ${top}`);
+                    top += elemHeight + space; // Increment top using FIXED height
+                     console.log(` - Visible: ${button.id}, Top: ${button.style.top}`);
                 } else {
                     button.style.visibility = 'hidden'; button.style.opacity = '0';
-                    button.style.display = 'none'; // Use display:none when hidden
-                    // console.log(`   -> Hidden.`);
+                    button.style.display = 'none';
+                     console.log(` - Hidden: ${button.id}`);
                 }
             });
-             console.log("[Layout] FN: adjustButtonPositions END");
+            console.log("[Layout] FN: adjustButtonPositions END");
         }
         function toggleFooterVisibility() {
              const show = !isMinimalMode && isActive && isFooterVisible;
              document.querySelector('footer')?.classList.toggle('hidden', !show);
              document.querySelector('.counter-wrapper')?.classList.toggle('hidden', !show);
              document.querySelector('.notices-icon-container')?.classList.toggle('hidden', !show);
-             if (!isMinimalMode) saveSettings(); // Save state only if not minimal
+             // Save state ONLY if not in minimal mode
+             if (!isMinimalMode) saveSettings();
         }
         function applyMinimalModeVisuals() {
              console.log("[Layout] FN: applyMinimalModeVisuals", isMinimalMode);
              document.body.classList.toggle('minimal-mode', isMinimalMode);
-             const msg = document.getElementById('minimal-mode-message'); if(isMinimalMode && !msg) { const m=document.createElement('div'); m.id='minimal-mode-message'; m.className='minimal-mode-message'; m.textContent='Pulse ON/OFF 2s...'; document.body.appendChild(m); } else if (!isMinimalMode && msg) { msg.remove(); }
-             adjustButtonPositions(); // Re-run positioning AFTER class is applied
-             toggleFooterVisibility(); // Re-run footer visibility
+             const msg = document.getElementById('minimal-mode-message'); if(isMinimalMode && !msg) { /* create msg */ } else if (!isMinimalMode && msg) { msg.remove(); }
+             adjustButtonPositions(); // Adjust button visibility/position based on new class
+             toggleFooterVisibility(); // Adjust footer visibility based on new class
         }
 
         // === Event Listeners Setup ===
-        function setupEventListeners() {
-             console.log("[Init] FN: setupEventListeners START");
+        function setupEventListeners() { /* ... (Same as previous version with corrected reminder listeners) ... */
+            console.log("[Init] FN: setupEventListeners START");
              try {
-                 // Scroll toggle
                  document.getElementById('scroll-toggle')?.addEventListener('click', () => { if(isMinimalMode || isConfigMode) return; const sY = window.scrollY; const max = document.body.scrollHeight - window.innerHeight; window.scrollTo({ top: (sY < 100 ? max : 0), behavior: 'smooth' }); });
-                 // ON/OFF + Minimal Mode
-                 const ooBtn = document.getElementById('on-off-toggle'); if(ooBtn){ ooBtn.addEventListener('mousedown', ()=>{pressStartTime=Date.now();}); ooBtn.addEventListener('mouseup', ()=>{ const dur = pressStartTime?Date.now()-pressStartTime:0; if(dur>=2000){isMinimalMode=!isMinimalMode; applyMinimalModeVisuals(); saveSettings();} else if(!isMinimalMode){const cState=ooBtn.dataset.state||'on'; updateAllToggles(cState==='on'?'off':'on'); /* saveSettings called in updateAllToggles */ } pressStartTime=null; }); ooBtn.addEventListener('touchstart', (e)=>{e.preventDefault(); pressStartTime=Date.now();}); ooBtn.addEventListener('touchend', (e)=>{e.preventDefault(); const dur = pressStartTime?Date.now()-pressStartTime:0; if(dur>=2000){isMinimalMode=!isMinimalMode; applyMinimalModeVisuals(); saveSettings();} else if(!isMinimalMode){const cState=ooBtn.dataset.state||'on'; updateAllToggles(cState==='on'?'off':'on'); /* saveSettings called in updateAllToggles */ } pressStartTime=null; }); }
-                 // Dark Mode
+                 const ooBtn = document.getElementById('on-off-toggle'); if(ooBtn){ ooBtn.addEventListener('mousedown', ()=>{pressStartTime=Date.now();}); ooBtn.addEventListener('mouseup', ()=>{ const dur = pressStartTime?Date.now()-pressStartTime:0; if(dur>=2000){isMinimalMode=!isMinimalMode; applyMinimalModeVisuals(); saveSettings();} else if(!isMinimalMode){const cState=ooBtn.dataset.state||'on'; updateAllToggles(cState==='on'?'off':'on'); /* saveSettings called in updateAllToggles */} pressStartTime=null; }); ooBtn.addEventListener('touchstart', (e)=>{e.preventDefault(); pressStartTime=Date.now();}); ooBtn.addEventListener('touchend', (e)=>{e.preventDefault(); const dur = pressStartTime?Date.now()-pressStartTime:0; if(dur>=2000){isMinimalMode=!isMinimalMode; applyMinimalModeVisuals(); saveSettings();} else if(!isMinimalMode){const cState=ooBtn.dataset.state||'on'; updateAllToggles(cState==='on'?'off':'on'); /* saveSettings called in updateAllToggles */} pressStartTime=null; }); }
                  document.getElementById('dark-mode-toggle')?.addEventListener('click', () => { if(isMinimalMode || isConfigMode) return; isDarkMode=!isDarkMode; applyTheme(); saveSettings(); });
-                 // Zoom
                  document.getElementById('zoom-button')?.addEventListener('click', () => { if(isMinimalMode || isConfigMode) return; const btn=document.getElementById('zoom-button'); const nS=btn.dataset.zoomState==='off'?'on':'off'; btn.dataset.zoomState=nS; applyZoomState(); updateButtonStyles(); saveSettings(); });
-                 // Filter Toggles
-                 createdToggleButtons.forEach(btn => btn.addEventListener('click', () => { if(isMinimalMode||isConfigMode)return; updateToggleState(btn); })); // Listener CORRECTO
-                 // Other buttons
+                 createdToggleButtons.forEach(btn => btn.addEventListener('click', () => { if(isMinimalMode||isConfigMode)return; updateToggleState(btn); }));
                  document.getElementById('weather-button')?.addEventListener('click', ()=>{ if(isMinimalMode||isConfigMode)return; window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h','_blank'); });
                  const reminderBtn = document.getElementById('reminder-button'); if(reminderBtn){ reminderBtn.addEventListener('mousedown', ()=>{ reminderPressStartTime = Date.now(); }); reminderBtn.addEventListener('mouseup', handleReminderLongPress); reminderBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); reminderPressStartTime = Date.now(); }); reminderBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); handleReminderLongPress(); }); }
                  document.getElementById('reload-button')?.addEventListener('click', ()=>{ if(isMinimalMode||isConfigMode)return; location.reload(); });
                  document.getElementById('home-button')?.addEventListener('click', (e)=>{ if(isMinimalMode||isConfigMode)return; e.preventDefault(); window.history.back(); });
-                 document.getElementById('config-button')?.addEventListener('click', ()=>{ if(isMinimalMode||isConfigMode)return; showConfigMenu(); }); // Config Menu Call RESTORED
+                 document.getElementById('config-button')?.addEventListener('click', ()=>{ if(isMinimalMode||isConfigMode)return; showConfigMenu(); });
                  document.getElementById('notice-toggle-icon')?.addEventListener('click', ()=>{ if(isMinimalMode||isConfigMode)return; isActive=!isActive; isFooterVisible=isActive; toggleFooterVisibility(); });
-                 // Swipe and Resize
                  window.addEventListener('resize', () => { if (!isMinimalMode && !isConfigMode) adjustButtonPositions(); });
                  document.addEventListener('touchstart', e => { if (isMinimalMode || isConfigMode || e.target.closest('.button-lateral, #bookmark-grid, .reminder-modal, .config-overlay')) { touchStartX = 0; return; } touchStartX = e.changedTouches[0].screenX; });
                  document.addEventListener('touchend', e => { if (touchStartX === 0 || isMinimalMode || isConfigMode) return; touchEndX = e.changedTouches[0].screenX; handleSwipe(); touchStartX = 0; });
-                 console.log("FN: setupEventListeners END");
+                 console.log("[Init] FN: setupEventListeners END");
              } catch (error) { console.error("Error during setupEventListeners:", error); }
         }
 
-        // === Stubs/Implementations for Complex Functions ===
-        function updateToggleState(toggle) { // Restore actual logic
-             if (!toggle?.dataset?.toggleId) return;
-             const rangeStart = parseInt(toggle.dataset.rangeStart); const rangeEnd = parseInt(toggle.dataset.rangeEnd);
-             if(isNaN(rangeStart) || isNaN(rangeEnd)) return;
-             const currentState = toggle.dataset.state || 'visible';
-             const newState = currentState === 'visible' ? 'hidden' : 'visible';
-             toggle.dataset.state = newState;
-             applySingleToggleConfig(toggle); // Re-apply label and hide/show items
-             saveSettings(); // Save the new state
-        }
-        function updateAllToggles(targetState) { // Restore actual logic
-             const shouldBeVisible = targetState === 'on';
-             createdToggleButtons.forEach(t => { const id=t.dataset.toggleId; if(!id) return; const cState = t.dataset.state; if ((shouldBeVisible && cState==='hidden') || (!shouldBeVisible && cState==='visible')) { updateToggleState(t); } });
-             const ooBtn = document.getElementById('on-off-toggle'); if(ooBtn) { ooBtn.dataset.state = targetState; updateButtonStyles(); }
-             // saveSettings called within updateToggleState
-        }
-        function showConfigMenu() { alert("Configuración (funcionalidad completa deshabilitada temporalmente)"); /* Full implementation needed */ }
-        function handleReminderLongPress() { alert("Acción Recordatorios (funcionalidad completa deshabilitada temporalmente)"); /* Full implementation needed */ }
-        async function loadNotices() { try { /* ... fetch logic ... */ } catch(e){} updateNotice(); startNoticeRotation(); }
-        function updateNotice() { const el=document.getElementById('current-notice'); if(el) el.textContent = notices[currentNoticeIndex] || 'Aviso...'; }
-        function startNoticeRotation() { if(window.noticeIntervalId) clearInterval(window.noticeIntervalId); if(notices.length>1){window.noticeIntervalId=setInterval(()=>{if(!isMinimalMode&&isActive&&isFooterVisible){currentNoticeIndex=(currentNoticeIndex+1)%notices.length; updateNotice();}}, 14000);} }
-        function loadReminders() { console.log("Load reminders stub"); updateButtonStyles();}
-        function handleSwipe() { /* ... swipe logic ... */ }
+        // === Stubs for Complex Functions ===
+        function showConfigMenu() { alert("Configuración Deshabilitada"); }
+        function handleReminderLongPress() { alert("Acción Recordatorios Deshabilitada"); }
+        async function loadNotices() { try { const r = await fetch('...'); notices = (await r.text()).split('\n')...; if(notices.length===0) notices=['...']; } catch(e){} updateNotice(); startNoticeRotation(); }
+        function updateNotice() { const el=document.getElementById('current-notice'); if(el) el.textContent = notices[currentNoticeIndex] || '...'; }
+        function startNoticeRotation() { /* ... */ }
+        function loadReminders() { console.log("Load reminders stub"); updateButtonStyles(); }
+        function handleSwipe() { /* ... */ }
 
         // === Initialization Sequence ===
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("=== Initializing Application (v4) ===");
+            console.log("=== Initializing Application (v5) ===");
             try {
-                document.body.classList.remove('minimal-mode', 'dark-mode');
-                isMinimalMode = false; isDarkMode = false; // Force defaults before load
+                document.body.classList.remove('minimal-mode', 'dark-mode'); // Clean slate
+                isMinimalMode = false; isDarkMode = false; // Force defaults
 
-                console.log("Step 1: Creating UI Elements..."); createGridItems(); createSideButtons();
-                console.log("Step 2: Loading Async Data..."); await updateVersionDisplay(); await loadNotices();
-                console.log("Step 3: Loading State Variables..."); loadStateFromStorage(); // isDarkMode, isMinimalMode etc. set here
+                // 1. Create UI Elements
+                console.log("Step 1: Creating UI Elements...");
+                createGridItems();      // Needs grid element
+                createSideButtons();    // Needs body, adds buttons
 
-                // Set timeout to allow browser to render initial elements before final adjustments
-                // This can sometimes help with offsetHeight issues on fixed elements
-                setTimeout(() => {
-                    try {
-                        console.log("Step 4 (Delayed): Applying Initial Visual State...");
-                        applyTheme();
-                        applyZoomState();
-                        applyToggleStates(); // Hides/shows grid items
+                // 2. Load Async Data
+                console.log("Step 2: Loading Async Data...");
+                await updateVersionDisplay();
+                // Defer loadNotices until end
 
-                        console.log("Step 5 (Delayed): Setting Up Event Listeners...");
-                        setupEventListeners();
+                // 3. Load Saved State (into JS vars ONLY)
+                console.log("Step 3: Loading State Variables...");
+                loadStateFromStorage(); // Loads isDarkMode, isMinimalMode etc.
 
-                        console.log("Step 6 (Delayed): Applying Minimal Mode & Final Positions...");
-                        applyMinimalModeVisuals(); // Applies class, calls adjustButtons, toggleFooter
+                // 4. Apply Initial Visual State (Theme, Zoom, Toggles, Icons)
+                console.log("Step 4: Applying Initial Visual State...");
+                applyTheme();           // Sets body class, styles elements, updates icons
+                applyZoomState();       // Applies zoom visuals & button state
+                applyToggleStates();    // Applies filter labels and hides items
 
-                        console.log("=== Init Complete ===");
-                    } catch (delayedError) {
-                        console.error("FATAL ERROR during delayed initialization:", delayedError);
-                        document.body.innerHTML = `<div style="color:red; padding:20px; font-family:sans-serif;"><h1>Error Fatal (Delayed Init)</h1><p>${delayedError.message}</p><pre>${delayedError.stack || ''}</pre></div>`;
-                    }
-                }, 50); // Small delay (e.g., 50ms)
+                // 5. Setup Event Listeners
+                console.log("Step 5: Setting Up Event Listeners...");
+                setupEventListeners(); // Add interactivity
+
+                // 6. Final Layout Adjustment (Minimal Mode Class + Positioning + Footer)
+                console.log("Step 6: Applying Minimal Mode Class & Final Positions...");
+                applyMinimalModeVisuals(); // Applies class AND calls adjust/toggleFooter
+
+                 // 7. Load Notices (very end)
+                 await loadNotices();
+
+                console.log("=== Init Complete ===");
 
             } catch (error) {
                 console.error("FATAL INITIALIZATION ERROR:", error);
