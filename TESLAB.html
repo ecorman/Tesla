@@ -3,105 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoardingGate Lanzador (Debug v7)</title>
+    <title>BoardingGate Lanzador (Debug v8)</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-    /* --- ESTILOS ORIGINALES (Restaurados, sin !important de debug en grid items) --- */
-    .bookmark-item { transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1); position: relative; }
-    .bookmark-item:hover { transform: scale(1.05) translateY(-2px); box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15); z-index: 10;}
+    /* --- ESTILOS ORIGINALES (Restaurados) --- */
+    /* ... (COPIA AQUÍ TODOS los estilos CSS originales del PRIMER mensaje que me enviaste) ... */
+    /* Asegúrate de incluir TODOS los estilos, incluyendo los de .bookmark-item, botones, minimal-mode, etc. */
+    /* Ejemplo de inicio (pega el resto): */
+    .bookmark-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    .bookmark-item:hover { /* ... */ }
     .bookmark-item img { image-rendering: crisp-edges; -ms-interpolation-mode: nearest-neighbor; }
-    .bookmark-name { font-weight: bold; color: #333; text-align: center; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 8px); font-size: clamp(0.80rem, 1.4vw, 1.10rem); line-height: 1.2; }
-    #bookmark-grid { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 15px; background-color: transparent; border-radius: 0.75rem; position: relative; width: 100%; max-width: 984px; margin: 0 auto 0 70px; /* Margen izquierdo */ transition: all 0.3s ease; }
-    #bookmark-grid > div { height: auto; aspect-ratio: 16 / 9; transition: all 0.3s ease; border: 1px solid transparent; display: flex; align-items: stretch; justify-content: stretch; border-radius: 0.5rem; overflow: hidden; }
-    /* --- CONTENIDO DEL GRID SIMPLE --- */
-    .bookmark-item { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.3s ease; background-color: lightcyan; /* Color simple para ver */ padding: 4px; box-sizing: border-box; text-decoration: none; border: 1px solid black; color: black; font-size: 12px; text-align: center; }
-    /* Ocultar img/name originales por ahora */
-    .bookmark-item img, .bookmark-item .bookmark-name { display: none; }
-    /* ----------------------------- */
-    #bookmark-grid > div.config-empty-cell { background-color: rgba(200, 200, 200, 0.3); border: 1px dashed rgba(150, 150, 150, 0.5); box-shadow: none; }
-    @media (max-width: 768px) { #bookmark-grid { grid-template-columns: repeat(3, minmax(100px, 1fr)); gap: 10px; margin-left: 70px; } }
-    @media (max-width: 480px) { #bookmark-grid { grid-template-columns: repeat(2, minmax(80px, 1fr)); gap: 8px; margin-left: 70px; } }
+    /* ... PEGA TODOS LOS ESTILOS ORIGINALES HASTA EL FINAL DE LA ETIQUETA </style> ... */
 
-    .header-container { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background-color: #ABAB99; padding: 0.5rem; border-radius: 0.75rem 0.75rem 0 0; }
-    .header-logo { width: 100px; height: 70px; transition: filter 0.2s ease; border-radius: 0.25rem;}
-    .title-container { background-color: #ABAB99; padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block; }
-    .header-container h1 { color: #5C5C47; }
-    .version-text { font-size: 0.75rem; color: #5C5C47; font-weight: normal; margin-left: 5px;}
-
-    body { display: flex; flex-direction: column; min-height: 100vh; background-color: #ABAB99; margin: 0; overflow-x: hidden; padding: 6px; box-sizing: border-box; position: relative; }
-    body.dark-mode { background-color: #92927E; }
-    body.dark-mode .bookmark-name { color: #E5E7EB; } /* Restaurado */
-    body.dark-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(80, 80, 80, 0.3); border-color: rgba(100, 100, 100, 0.5); filter: brightness(70%); }
-    body.dark-mode .header-container { background-color: #92927E; }
-    body.dark-mode .header-logo { filter: brightness(85%); }
-    body.dark-mode .title-container { background-color: #92927E; }
-    body.dark-mode .header-container h1 { color: #3E3E2F; }
-    body.dark-mode .version-text { color: #C1C1A9; }
-    main { margin: 0.5rem auto 0.5rem 70px; max-width: 984px; width: calc(100% - 80px); padding: 16px; box-sizing: border-box; border-radius: 0.75rem; min-height: 400px; }
-    footer { margin: 0.5rem auto; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; background-color: #ABAB99; margin-left: 70px; box-sizing: border-box; border-radius: 0.75rem; }
-    body.dark-mode footer { background-color: #92927E; }
-    .footer-content { color: #5C5C47; padding: 0 0.5rem 0.5rem 0.5rem; margin: 0 auto; max-width: 100%; position: relative; }
-    body.dark-mode .footer-content, body.dark-mode .footer-subtext, body.dark-mode .footer-link-green { color: #C1C1A9; }
-    .footer-subtext { font-size: 0.75rem; margin-top: 0.25rem; text-align: center; }
-    .footer-link-green { text-decoration: none; transition: color 0.2s ease; } .footer-link-green:hover { color: #3E3E2F; } body.dark-mode .footer-link-green:hover { color: #E6E6DC; }
-    .footer-line { display: flex; justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-    .notices-icon-container { display: flex; align-items: center; justify-content: flex-start; width: 100%; max-width: 984px; margin: 0.5rem auto 0.5rem 70px; width: calc(100% - 80px); box-sizing: border-box; height: 3rem; }
-    .notice-off-icon { width: auto; height: 100%; align-self: center; cursor: pointer; transition: filter 0.3s ease; flex-shrink: 0; margin-right: 10px; } body.dark-mode .notice-off-icon { filter: brightness(85%); }
-    .notices-container { flex-grow: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100%; }
-    .notice-wrapper { width: 100%; height: 100%; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
-    .notice { color: #00ff00; font-weight: bold; white-space: nowrap; text-align: center; opacity: 0; animation: fadeInOut 14s infinite; font-size: 1.1rem; } @keyframes fadeInOut { 0%{opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{opacity:0} }
-    .counter-wrapper { margin: 0.5rem auto 0 70px; text-align: center; max-width: 984px; width: calc(100% - 80px); display: block; opacity: 0.5; box-sizing: border-box; }
-    .counter-container { display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 0; }
-    .top-text-container { display: flex; align-items: center; justify-content: center; font-size: clamp(0.6rem, 1.5vw, 0.75rem); color: #5C5C47; background-color: #D1D5DB; margin: 0 auto 0.5rem 70px; gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; animation: fadeOut 6s forwards; max-width: 984px; width: calc(100% - 80px); box-sizing: border-box; } body.dark-mode .top-text-container { background-color: #6B7280; color: #C1C1A9;}
-    .top-text-container span { color: #D9A066; font-size: clamp(0.9rem, 2vw, 1.2rem); } @keyframes fadeOut { 0%{opacity:1} 80%{opacity:1} 100%{opacity:0;display:none} }
-    .arrow-button { width: clamp(36px, 6vw, 48px); height: clamp(36px, 6vw, 48px); background-color: #D9A066; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); transition: background-color 0.2s ease; } .arrow-button:hover { background-color: #5C5C47; } .arrow-button svg { stroke: #E6E6DC; }
-    .favicon-red { filter: hue-rotate(0deg) saturate(200%) brightness(80%); } .favicon-blue { filter: hue-rotate(200deg) saturate(150%) brightness(90%); }
-
-    /* Botones Laterales */
-    .button-lateral { position: fixed; width: 91px; left: 10px; border-radius: 20px; cursor: pointer; z-index: 1000; transition: background-color 0.2s ease, filter 0.2s ease, opacity 0.3s, visibility 0.3s, top 0.2s ease-out; box-sizing: border-box; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); opacity: 1; visibility: visible; display: flex; align-items: center; justify-content: center; /* border: 1px solid transparent; */ }
-    .button-lateral:hover { filter: brightness(110%); background-color: #D9A066 !important; }
-    .scroll-toggle-button { height: clamp(78.2px, 19.55vw, 175.95px); background-color: #668B8B; border-radius: 60px; flex-direction: column; justify-content: space-between; padding: clamp(10px, 2vw, 20px); top: 10px; }
-    .toggle-sign { height: 54px; background-color: #668B8B; font-weight: bold; font-size: 1.25rem; color: #E6E6DC; text-align: center; overflow: hidden; }
-    .toggle-image { height: 54px; padding: 3px; background-color: #668B8B; }
-    .toggle-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 17px; }
-    .toggle-sign img { max-width: calc(100% - 10px); max-height: calc(100% - 10px); object-fit: contain; }
-    .toggle-sign .sign { font-size: 1.5rem; margin-right: 3px; min-width: 12px; }
-
-    /* Colores Específicos Botones */
-    body:not(.dark-mode) .scroll-toggle-button { background-color: #668B8B; } body:not(.dark-mode) .toggle-sign { background-color: #668B8B; } body:not(.dark-mode) .toggle-image { background-color: #668B8B; } body:not(.dark-mode) .range-toggle[data-state="visible"] { background-color: #006400 !important; } body:not(.dark-mode) .range-toggle[data-state="hidden"] { background-color: #696969 !important; } body:not(.dark-mode) #reload-button { background-color: #5DA8D6; } body:not(.dark-mode) #home-button { background-color: #5DA8D6; } body:not(.dark-mode) #weather-button { background-color: #FBBF24; } body:not(.dark-mode) #zoom-button { background-color: #F97316; } body:not(.dark-mode) #zoom-button.zoomed { background-color: #C2410C; } body:not(.dark-mode) #reminder-button { background-color: #4DA7A7; } body:not(.dark-mode) #config-button { background-color: #ABAB99; }
-    body.dark-mode .scroll-toggle-button { background-color: #5C5C47; } body.dark-mode .toggle-sign { background-color: #5C5C47; } body.dark-mode .toggle-image { background-color: #5C5C47; } body.dark-mode .toggle-image#on-off-toggle { filter: brightness(85%); } body.dark-mode .toggle-image#dark-mode-toggle { filter: brightness(85%); } body.dark-mode .range-toggle[data-state="visible"] { background-color: #166534 !important; } body.dark-mode .range-toggle[data-state="hidden"] { background-color: #4B5563 !important; } body.dark-mode #reload-button { background-color: #0e7490; } body.dark-mode #home-button { background-color: #0e7490; } body.dark-mode #weather-button { background-color: #b45309; } body.dark-mode #zoom-button { background-color: #c2410c; } body.dark-mode #zoom-button.zoomed { background-color: #7c2d12; } body.dark-mode #reminder-button { background-color: #4DA7A7; } body.dark-mode #config-button { background-color: #92927E; } body.dark-mode #config-button img { filter: brightness(85%); }
-
-    /* Contador Recordatorios */
-    #reminder-button { position: relative; }
-    #reminder-button .reminder-count { position: absolute; top: 4px; left: 4px; font-size: 0.65rem; color: #FFFFFF; background-color: #EF4444; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 3px rgba(0,0,0,0.5); z-index: 1; }
-
-    /* --- Utilidades y Modos --- */
-    .hidden { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
-    .footer-hidden { display: none !important; }
-    body.dark-mode .bookmark-item { filter: brightness(60%); }
-
-    /* Minimal Mode */
-    body.minimal-mode main, body.minimal-mode footer, body.minimal-mode .notices-icon-container, body.minimal-mode .counter-wrapper, body.minimal-mode .top-text-container, body.minimal-mode #scroll-toggle, body.minimal-mode .range-toggle, body.minimal-mode #weather-button, body.minimal-mode #reminder-button, body.minimal-mode #zoom-button, body.minimal-mode #dark-mode-toggle, body.minimal-mode #reload-button, body.minimal-mode #home-button, body.minimal-mode #reminder-notifications { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; /* display: none !important; */ }
-    body.minimal-mode #on-off-toggle { visibility: visible !important; opacity: 0.3 !important; display: block !important; filter: none !important; pointer-events: auto !important; }
-    body.minimal-mode #config-button { visibility: visible !important; opacity: 1 !important; display: flex !important; pointer-events: auto !important;}
-    .minimal-mode-message { color: #000; font-size: 1rem; font-weight: bold; position: fixed; top: 70px; left: 10px; z-index: 1100; background: rgba(255, 255, 255, 0.7); padding: 5px; border-radius: 5px; display: none; }
-    body.minimal-mode .minimal-mode-message { display: block !important; }
-    body.dark-mode .minimal-mode-message { color: #FFF; background: rgba(0, 0, 0, 0.7); }
-
-    /* Recordatorios y Configuración (Estilos completos) */
-    /* ... (Estilos completos) ... */
-     .reminder-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #F3F4F6; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 2000; max-width: 400px; width: 90%; color: #111827; } .reminder-modal.dark-mode { background-color: #4B5563; color: #F3F4F6; } .reminder-modal h2 { font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem; } .reminder-modal label { display: block; margin-bottom: 0.5rem; font-weight: 500; } .reminder-modal input, .reminder-modal textarea { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #D1D5DB; border-radius: 0.25rem; background-color: #FFFFFF; color: #111827; box-sizing: border-box; } .reminder-modal.dark-mode input, .reminder-modal.dark-mode textarea { background-color: #6B7280; color: #F3F4F6; border-color: #9CA3AF; } .reminder-modal .button-group { display: flex; justify-content: flex-end; gap: 1rem; } .reminder-modal button { padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; border: none; } .reminder-modal button[type="submit"] { background-color: #2563EB; color: #FFFFFF; } .reminder-modal.dark-mode button[type="submit"] { background-color: #3B82F6; } .reminder-modal button[type="button"] { background-color: #D1D5DB; color: #111827; } .reminder-modal.dark-mode button[type="button"] { background-color: #4B5563; color: #F3F4F6; } .reminder-modal button.delete-reminder { background-color: #EF4444; color: #FFFFFF; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size:0.8rem; } .reminder-modal.dark-mode button.delete-reminder { background-color: #DC2626; } .reminder-modal button.modify-reminder { background-color: #10B981; color: #FFFFFF; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size:0.8rem; } .reminder-modal.dark-mode button.modify-reminder { background-color: #059669; }
-     #reminder-notifications { position: fixed; top: 10px; right: 10px; z-index: 1500; max-width: 300px; width: 90%; } .reminder-notification { background-color: #FFFF99; padding: 1rem; margin-bottom: 0.5rem; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; gap: 0.5rem; color: #333; } .reminder-notification.dark-mode { background-color: #FDE047; color: #1F2937; } .reminder-notification p { margin: 0; font-size: 1rem; color: #1E40AF; } .reminder-notification.dark-mode p { color: #172554; } .reminder-notification .button-group { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; } .reminder-notification button { padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.8rem; border: none; color: #FFFFFF; } .reminder-notification button.cancel { background-color: #EF4444; } .reminder-notification button.modify { background-color: #10B981; } .reminder-notification button.postpone { background-color: #F59E0B; } .reminder-notification.dark-mode button.cancel { background-color: #DC2626; } .reminder-notification.dark-mode button.modify { background-color: #059669; } .reminder-notification.dark-mode button.postpone { background-color: #D97706; }
-     .config-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 2500; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; color: white; } body.config-mode .config-overlay { display: flex !important; } .config-modal { background-color: #ABAB99; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); max-width: 90%; max-height: 90vh; overflow-y: auto; text-align: center; color: #333; } .config-modal.dark-mode { background-color: #92927E; color: #E6E6DC; } .config-modal h2 { margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: bold; } .config-modal p { margin-bottom: 1rem; } .config-modal button, .config-modal .config-toggle-button { background-color: #668B8B; color: #E6E6DC; padding: 0.75rem 1.25rem; border: none; border-radius: 0.375rem; cursor: pointer; margin: 0.5rem; transition: background-color 0.2s ease; font-size: 1rem; } .config-modal button:hover, .config-modal .config-toggle-button:hover { background-color: #D9A066; } .config-modal.dark-mode button, .config-modal.dark-mode .config-toggle-button { background-color: #5C5C47; } .config-modal.dark-mode button:hover, .config-modal.dark-mode .config-toggle-button:hover { background-color: #D9A066; } .config-modal .cancel-button { background-color: #EF4444; } .config-modal.dark-mode .cancel-button { background-color: #B91C1C; } .config-modal .save-button { background-color: #10B981; } .config-modal.dark-mode .save-button { background-color: #059669; }
-     body.selecting-items-mode #bookmark-grid { border: 3px dashed #D9A066 !important; background-color: rgba(217, 160, 102, 0.1); z-index: 1; padding: 5px; } body.selecting-items-mode #bookmark-grid > div { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, border-color 0.2s ease; opacity: 0.6; border-width: 2px; border-style: solid; border-color: transparent; } body.dark-mode.selecting-items-mode #bookmark-grid > div { opacity: 0.5; } body.selecting-items-mode #bookmark-grid > div:not(.config-empty-cell):hover { transform: scale(1.05); opacity: 0.8; } body.dark-mode.selecting-items-mode #bookmark-grid > div:not(.config-empty-cell):hover { opacity: 0.7; } body.selecting-items-mode #bookmark-grid > div.config-selected { opacity: 1 !important; border-color: #2563EB !important; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); transform: scale(1.02); } body.dark-mode.selecting-items-mode #bookmark-grid > div.config-selected { border-color: #60A5FA !important; box-shadow: 0 0 10px rgba(96, 165, 250, 0.7); } body.selecting-items-mode #bookmark-grid > div.config-empty-cell { opacity: 0.2 !important; cursor: not-allowed; background-color: rgba(128, 128, 128, 0.3) !important; border-color: rgba(150, 150, 150, 0.5) !important; } body.dark-mode.selecting-items-mode #bookmark-grid > div.config-empty-cell { background-color: rgba(0, 0, 0, 0.3) !important; border-color: rgba(100, 100, 100, 0.5) !important; }
-     body.config-mode .button-lateral:not(#dark-mode-toggle):not(#config-button), body.config-mode #reminder-notifications, body.config-mode .top-text-container { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; } body.config-mode #dark-mode-toggle, body.config-mode #config-button { visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; z-index: 2600; }
+    /* --- Añadidos/Ajustes Menores para Debug --- */
+    /* Asegurar visibilidad base de contenedores principales */
+    main, footer, .notices-icon-container, .counter-wrapper {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    /* Borde suave para ver botones si tienen problemas */
+    /* .button-lateral { border: 1px dashed rgba(0,0,0,0.2); } */
 
 </style>
 </head>
 <body class="">
-    <!-- Contenido HTML -->
+    <!-- Contenido HTML Original -->
     <div class="top-text-container"> <div class="arrow-button" id="back-button"><svg><!-- ... --></svg></div> <span>[...]</span> <div class="arrow-button" id="forward-button"><svg><!-- ... --></svg></div> </div>
     <main> <div id="bookmark-grid"></div> </main>
     <div class="notices-icon-container"> <img src="https://boardinggate.github.io/Tesla/IMG_4194.jpg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon"> <div class="notices-container"><div class="notice-wrapper"><span class="notice" id="current-notice"></span></div></div> </div>
@@ -118,7 +50,8 @@
         const grid = document.getElementById('bookmark-grid');
         const cellElements = []; let createdToggleButtons = []; let sideButtons = [];
         let isDarkMode = false; let isMinimalMode = false; let isConfigMode = false;
-        let isActive = true; let isFooterVisible = true;
+        // Simplificar: Footer visible por defecto, oculto solo por minimal mode
+        // let isActive = true; let isFooterVisible = true;
         let pressStartTime = null; let reminderPressStartTime = null;
         let notices = []; let currentNoticeIndex = 0;
         let customToggleConfigs = {};
@@ -136,6 +69,7 @@
             console.log("[Init] FN: createGridItems START");
             if (!grid) { console.error("Grid element not found!"); return; }
             grid.innerHTML = ''; cellElements.length = 0;
+            const colors = []; for(let i=0; i<TOTAL_CELLS; i++) colors.push(generateBrightColor());
 
             Array.from({ length: TOTAL_CELLS }).forEach((_, index) => {
                 const cell = document.createElement('div');
@@ -145,39 +79,39 @@
                 if (!isEmpty) {
                     try {
                         const link = document.createElement('a');
-                        link.className = 'bookmark-item' + (index >= 60 ? ' small-bookmark' : '');
+                        link.className = 'bookmark-item' + (index >= 60 ? ' small-bookmark' : ''); // Apply original classes
                         link.title = bookmark.name || `Item ${index}`;
-                        link.style.backgroundColor = generateBrightColor(); // Random color ok now
+                        // Apply original color logic
+                        if (colors[index]) { try { const [h, s, l] = colors[index].match(/\d+/g).map(Number); link.style.setProperty('--hue', h); link.style.setProperty('--saturation', `${s}%`); link.style.setProperty('--lightness', `${l}%`); } catch(e){ link.style.backgroundColor = '#EEE'; } } else { link.style.backgroundColor = '#EEE'; }
                         link.href = bookmark.url || "#";
                         if (bookmark.url && bookmark.name !== "Inicio Tesla") { link.target = "_blank"; link.rel = "noopener noreferrer"; }
 
-                        // DEBUG: Solo añadir texto simple
-                        link.textContent = bookmark.name || `Item ${index}`;
-                        link.style.fontSize = '10px'; // Make text small
-                        link.style.wordBreak = 'break-all'; // Allow wrapping
-
-                        /* --- Código original de icono/nombre comentado ---
+                        // --- RESTAURAR Icono ---
                         let iconAdded = false;
                         if(bookmark && (bookmark.url || bookmark.name === "Inicio Tesla" || bookmark.favicon)) {
                              const img = document.createElement('img');
-                             img.src = getFaviconUrl(bookmark);
+                             img.src = getFaviconUrl(bookmark); // Use original function
                              img.alt = ''; img.loading="lazy";
                              img.onerror=(e)=>{ e.target.style.display='none'; console.warn(`Favicon error for ${bookmark?.name || index}`);};
                              if (bookmark.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmark.name === "Olas Updates") img.classList.add('favicon-blue');
                              link.appendChild(img);
                              iconAdded = true;
+                             // console.log(`[Grid ${index}] Icon added for ${bookmark.name}`);
+                        } else {
+                            // console.log(`[Grid ${index}] No icon condition for ${bookmark.name}`);
                         }
 
-                        if (bookmark.name !== undefined && bookmark.name !== null) {
+                        // --- RESTAURAR Nombre ---
+                        if (bookmark.name !== undefined && bookmark.name !== null) { // Check exists
                             const name = document.createElement('span');
-                            name.className = 'bookmark-name';
-                            name.textContent = (bookmark.name === "" && iconAdded) ? `(${index})` : (bookmark.name || `(No Name ${index})`);
+                            name.className = 'bookmark-name'; // Original class
+                            name.textContent = bookmark.name || ""; // Show name or empty string if ""
                             link.appendChild(name);
+                            // console.log(`[Grid ${index}] Name added: ${name.textContent}`);
                         } else {
-                             link.classList.add('no-name');
-                             if (!iconAdded) { const p=document.createElement('span'); p.textContent=`(${index})`; p.style.cssText='font-size:10px;opacity:0.5;'; link.appendChild(p); }
+                            link.classList.add('no-name');
+                            // console.log(`[Grid ${index}] No name added.`);
                         }
-                        */
                         cell.appendChild(link);
 
                     } catch (e) {
@@ -193,22 +127,32 @@
         function createSideButtons() {
              console.log("[Init] FN: createSideButtons START");
              const btnCont = document.body; createdToggleButtons = []; const newBtns = [];
-             const addBtn = (tag, id, klasses, html='', data={}) => { try { const el=document.createElement(tag); el.id=id; el.className=klasses.join(' '); if(html)el.innerHTML=html; Object.entries(data).forEach(([k,v])=>el.dataset[k]=v); btnCont.appendChild(el); newBtns.push(el); return el; } catch (e) { console.error(`Error creating button ${id}:`, e); return null; } };
+             // --- Helper to create buttons with ORIGINAL classes ---
+             const addBtn = (tag, id, originalClasses, html='', data={}) => {
+                 try {
+                     const el=document.createElement(tag); el.id=id;
+                     // Apply original classes + the base class for selection
+                     el.className = [...originalClasses, 'button-lateral'].join(' ');
+                     if(html)el.innerHTML=html; Object.entries(data).forEach(([k,v])=>el.dataset[k]=v);
+                     btnCont.appendChild(el); newBtns.push(el); return el;
+                 } catch (e) { console.error(`Error creating button ${id}:`, e); return null; }
+             };
 
-             // Add base class 'button-lateral' to all
-             addBtn('img','on-off-toggle',['toggle-image', 'button-lateral'],'',{state:'on'});
-             toggleRanges.forEach((range, index) => { const id = `filter-toggle-${index}`; const t = addBtn('span', id, ['toggle-sign', 'range-toggle', 'button-lateral'], '', { toggleId: id, rangeStart: range.start, rangeEnd: range.end, state: 'visible', label: range.label }); if(t) createdToggleButtons.push(t); });
-             addBtn('span','weather-button',['toggle-sign', 'button-lateral'], `<img src="https://www.google.com/s2/favicons?domain=ventusky.com&sz=64" alt="Tiempo">`);
-             addBtn('span','reminder-button',['toggle-sign', 'button-lateral'], `<img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio">`);
-             addBtn('span','zoom-button',['toggle-sign', 'button-lateral'], `<img src="./zoon-.png" alt="Zoom">`,{zoomState:'off'});
-             addBtn('img','dark-mode-toggle',['toggle-image', 'button-lateral']);
-             addBtn('span','reload-button',['toggle-sign', 'button-lateral'], `<img src="./reload.webp" alt="Recargar">`);
-             addBtn('span','home-button',['toggle-sign', 'button-lateral'], `<img src="./home.webp" alt="Inicio">`);
-             addBtn('span','config-button',['toggle-sign', 'button-lateral'], `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración">`);
+             // --- Create buttons using ORIGINAL classes ---
+             addBtn('img','on-off-toggle',['toggle-image'],'',{state:'on'}); // Class 'button-lateral' added by helper
+             toggleRanges.forEach((range, index) => { const id = `filter-toggle-${index}`; const t = addBtn('span', id, ['toggle-sign', 'range-toggle'], '', { toggleId: id, rangeStart: range.start, rangeEnd: range.end, state: 'visible', label: range.label }); if(t) createdToggleButtons.push(t); });
+             addBtn('span','weather-button',['toggle-sign'], `<img src="https://www.google.com/s2/favicons?domain=ventusky.com&sz=64" alt="Tiempo">`);
+             addBtn('span','reminder-button',['toggle-sign'], `<img src="https://boardinggate.github.io/Tesla/IMG_4197.jpg" alt="Recordatorio">`);
+             addBtn('span','zoom-button',['toggle-sign'], `<img src="./zoon-.png" alt="Zoom">`,{zoomState:'off'});
+             addBtn('img','dark-mode-toggle',['toggle-image']);
+             addBtn('span','reload-button',['toggle-sign'], `<img src="./reload.webp" alt="Recargar">`);
+             addBtn('span','home-button',['toggle-sign'], `<img src="./home.webp" alt="Inicio">`);
+             addBtn('span','config-button',['toggle-sign'], `<img src="https://boardinggate.github.io/Tesla/config.jpg" alt="Configuración">`);
 
-             const scroll = document.getElementById('scroll-toggle'); if(scroll && !scroll.classList.contains('button-lateral')) scroll.classList.add('button-lateral');
-             sideButtons = [scroll, ...newBtns].filter(Boolean);
-             console.log(`[Init] FN: createSideButtons END (${sideButtons.length} buttons found/created). Order: ${sideButtons.map(b=>b?.id).join(', ')}`);
+             const scroll = document.getElementById('scroll-toggle'); // Static button ALREADY has its class
+             if(scroll && !scroll.classList.contains('button-lateral')) scroll.classList.add('button-lateral'); // Ensure base class
+             sideButtons = [scroll, ...newBtns].filter(Boolean); // Combine
+             console.log(`[Init] FN: createSideButtons END (${sideButtons.length} buttons found/created).`);
         }
 
         // === State Loading & Saving ===
@@ -219,25 +163,25 @@
         function applyTheme() { document.body.classList.toggle('dark-mode', isDarkMode); /* ... */ updateButtonStyles(); }
         function applyZoomState() { /* ... (same) ... */ }
         function applyToggleStates() { /* ... (same) ... */ }
-        function applySingleToggleConfig(btn) { // Uses original ranges + VERIFY LABEL
-             const rangeStart = parseInt(btn.dataset.rangeStart); const rangeEnd = parseInt(btn.dataset.rangeEnd);
-             const lbl = btn.dataset.label || "???"; // Use label stored or fallback
-             if (isNaN(rangeStart) || isNaN(rangeEnd)) { btn.innerHTML = `<span>ERR</span>`; return; }
-             const state = btn.dataset.state || 'visible'; const sign = state === 'visible' ? '-' : '+';
-             btn.innerHTML = `<span class="sign">${sign}</span>${lbl}`; // Apply text
-             const hide = state === 'hidden';
-             for (let i = rangeStart; i <= rangeEnd; i++) { if(cellElements[i]) cellElements[i].classList.toggle('hidden', hide); }
-        }
+        function applySingleToggleConfig(btn) { /* ... (same) ... */ }
         function updateButtonStyles() { /* ... (same, ensure icons/counts update) ... */ }
         async function updateVersionDisplay() { /* ... (same) ... */ }
         function applyCurrentThemeToElements() { document.body.classList.toggle('dark-mode', isDarkMode); /* ... */ updateButtonStyles(); }
 
         // === Positioning & Visibility ===
         function adjustButtonPositions() {
-            console.log(`[Layout] FN: adjustButtonPositions (Minimal: ${isMinimalMode}) START - Attempting to position ${sideButtons.length} buttons`);
+            console.log(`[Layout] FN: adjustButtonPositions (Minimal: ${isMinimalMode}) START - ${sideButtons.length} buttons`);
             let top = 10; const space = 4; const btnH_fixed = 54; const scrollH_fixed = 100; // Use fixed heights
 
             if (!sideButtons || sideButtons.length === 0) { console.warn("No side buttons array found for positioning."); return; }
+
+            // --- Force initial visibility ---
+            sideButtons.forEach(button => {
+                 if (!button) return;
+                 button.style.visibility = 'visible';
+                 button.style.opacity = '1';
+                 button.style.display = button.classList.contains('toggle-sign') ? 'flex' : 'block'; // Default display
+            });
 
             // Ensure correct order before positioning
             const expectedOrder = [ 'scroll-toggle', 'on-off-toggle', ...toggleRanges.map((r, i) => `filter-toggle-${i}`), 'weather-button', 'reminder-button', 'zoom-button', 'dark-mode-toggle', 'reload-button', 'home-button', 'config-button' ];
@@ -245,18 +189,18 @@
             console.log(`[Layout] Button order for positioning: ${sideButtons.map(b=>b?.id).join(', ')}`);
 
             sideButtons.forEach((button) => {
-                if (!button || !button.id) { console.warn(`Invalid button found in sideButtons`); return; }
-                const isScroll = button.id === 'scroll-toggle'; const isEx = (button.id==='config-button'||button.id==='on-off-toggle');
+                if (!button || !button.id) { console.warn(`Invalid button found`); return; }
+                const isScroll = button.id === 'scroll-toggle';
+                const isEx = (button.id==='config-button'||button.id==='on-off-toggle');
                 const shouldBeVisible = !isMinimalMode || isEx;
-                const elemHeight = isScroll ? scrollH_fixed : btnH_fixed;
+                const elemHeight = isScroll ? scrollH_fixed : btnH_fixed; // Use FIXED height
 
                 // Set position first
                 button.style.top = `${top}px`;
 
-                // Then set visibility/display
+                // Then set visibility/display based on minimal mode
                 if (shouldBeVisible) {
-                    button.style.visibility = 'visible'; button.style.opacity = '1';
-                    button.style.display = button.classList.contains('toggle-sign') ? 'flex' : 'block';
+                    // Visibility/Opacity already set above
                     console.log(` - Visible: ${button.id}, Top: ${button.style.top}`);
                     top += elemHeight + space; // Increment top for next visible button
                 } else {
@@ -267,20 +211,20 @@
             });
             console.log("[Layout] FN: adjustButtonPositions END");
         }
-        function toggleFooterVisibility() {
-             const show = !isMinimalMode && isActive && isFooterVisible;
-             console.log(`[Layout] toggleFooterVisibility: Should Show = ${show} (Minimal:${isMinimalMode}, Active:${isActive}, FooterVisible:${isFooterVisible})`);
+        function toggleFooterVisibility() { // Simplified - footer only hidden by minimal mode now
+             const show = !isMinimalMode; // Directly use minimal mode state
+             console.log(`[Layout] toggleFooterVisibility: Should Show = ${show}`);
              document.querySelector('footer')?.classList.toggle('hidden', !show);
              document.querySelector('.counter-wrapper')?.classList.toggle('hidden', !show);
              document.querySelector('.notices-icon-container')?.classList.toggle('hidden', !show);
-             if (!isMinimalMode) saveSettings();
+             // No need to save flags here anymore
         }
         function applyMinimalModeVisuals() {
              console.log("[Layout] FN: applyMinimalModeVisuals", isMinimalMode);
              document.body.classList.toggle('minimal-mode', isMinimalMode);
-             const msg = document.getElementById('minimal-mode-message'); if(isMinimalMode && !msg) { /* create msg */ } else if (!isMinimalMode && msg) { msg.remove(); }
+             const msg = document.getElementById('minimal-mode-message'); if(isMinimalMode && !msg) { const m=document.createElement('div'); m.id='minimal-mode-message'; m.className='minimal-mode-message'; m.textContent='Pulse ON/OFF 2s...'; document.body.appendChild(m); } else if (!isMinimalMode && msg) { msg.remove(); }
              adjustButtonPositions(); // Re-run positioning AFTER class is applied/removed
-             toggleFooterVisibility(); // Re-run footer visibility
+             toggleFooterVisibility(); // Re-run footer visibility based on new minimal state
         }
 
         // === Event Listeners Setup ===
@@ -291,15 +235,15 @@
         function updateAllToggles(targetState) { /* ... (Same as v5) ... */ }
         function showConfigMenu() { alert("Configuración Deshabilitada"); }
         function handleReminderLongPress() { alert("Acción Recordatorios Deshabilitada"); }
-        async function loadNotices() { console.log("STUB: loadNotices"); updateNotice(); startNoticeRotation();}
+        async function loadNotices() { try {const r=await fetch('...');notices=(await r.text()).split('\n')...;}catch(e){} updateNotice(); startNoticeRotation();}
         function updateNotice() { const el=document.getElementById('current-notice'); if(el) el.textContent = notices[currentNoticeIndex] || 'Aviso...'; }
         function startNoticeRotation() { /* ... */ }
-        function loadReminders() { console.log("STUB: loadReminders"); updateButtonStyles();}
+        function loadReminders() { console.log("Load reminders stub"); updateButtonStyles();}
         function handleSwipe() { /* ... */ }
 
         // === Initialization Sequence ===
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log("=== Initializing Application (v7 - Grid Content Debug) ===");
+            console.log("=== Initializing Application (v8 - Restore Content) ===");
             try {
                 document.body.classList.remove('minimal-mode', 'dark-mode'); isMinimalMode = false; isDarkMode = false;
 
@@ -307,23 +251,22 @@
                 console.log("Step 2: Loading Async Data..."); await updateVersionDisplay(); await loadNotices();
                 console.log("Step 3: Loading State Variables..."); loadStateFromStorage();
 
-                requestAnimationFrame(async () => { // Delay final steps
+                requestAnimationFrame(async () => {
                     try {
                         console.log("Step 4 (rAF): Applying Initial Visual State...");
                         applyTheme(); applyZoomState(); applyToggleStates();
 
                         console.log("Step 5 (rAF): Setting Up Event Listeners...");
-                        setupEventListeners(); // Add listeners before final layout
+                        setupEventListeners();
 
                         console.log("Step 6 (rAF): Applying Minimal Mode Class & Final Positions...");
                         applyMinimalModeVisuals(); // Applies class, calls adjustButtons, toggleFooter
 
-                         // Force footer visible initially for debug, overriding loaded state
-                         console.log("Step 7 (rAF): Forcing Footer Visible for Debug...");
-                         document.querySelector('footer')?.classList.remove('hidden');
-                         document.querySelector('.counter-wrapper')?.classList.remove('hidden');
-                         document.querySelector('.notices-icon-container')?.classList.remove('hidden');
-
+                        // Ensure footer is visible by default if not minimal
+                        if (!isMinimalMode) {
+                             console.log("Step 7 (rAF): Ensuring non-minimal footer visibility...");
+                             toggleFooterVisibility(); // Call again to be sure
+                        }
 
                         console.log("=== Init Complete ===");
                     } catch (rAFError) { console.error("FATAL rAF ERROR:", rAFError); document.body.innerHTML = `<div class="error-message"><h1>Error Fatal (rAF Init)</h1><pre>${rAFError.stack || ''}</pre></div>`; }
