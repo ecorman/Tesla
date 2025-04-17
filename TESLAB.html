@@ -1,3 +1,607 @@
+Muéstrame en ejecución este código HTML: <!DOCTYPE html>
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoardingGate Lanzador</title>
+    <link rel="icon" href="https://boardinggate.github.io/Tesla/IMG_4157.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+<style>
+    .bookmark-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    .bookmark-item:hover {
+        transform: scale(1.1) translateY(-2px);
+        box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(255, 255, 255, 0.15);
+    }
+    .bookmark-item img {
+        image-rendering: crisp-edges;
+    }
+    .bookmark-name {
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    #bookmark-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(120px, 1fr));
+        gap: 15px;
+        background-color: transparent;
+        border-radius: 0.75rem;
+        position: relative;
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto 0 60px;
+        transition: all 0.3s ease;
+    }
+    #bookmark-grid > div {
+        height: auto;
+        aspect-ratio: 16 / 9;
+        transition: all 0.3s ease;
+    }
+    .bookmark-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        background-color: hsla(var(--hue), var(--saturation), var(--lightness), 0.64);
+    }
+    .bookmark-item img {
+        width: 36px;
+        height: auto;
+        max-width: 40px;
+        border-radius: 0.25rem;
+    }
+    .bookmark-name {
+        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    }
+    .small-bookmark img {
+        width: 24px;
+        max-width: 28px;
+    }
+    .small-bookmark .bookmark-name {
+        font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    }
+    @media (max-width: 768px) {
+        #bookmark-grid {
+            grid-template-columns: repeat(3, minmax(100px, 1fr));
+            gap: 10px;
+        }
+    }
+    @media (max-width: 480px) {
+        #bookmark-grid {
+            grid-template-columns: repeat(2, minmax(80px, 1fr));
+            gap: 8px;
+        }
+    }
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: #ABAB99;
+        padding: 0.5rem;
+    }
+    body.dark-mode .header-container {
+        background-color: #92927E;
+    }
+    .header-logo {
+        width: 100px;
+        height: 70px;
+        transition: filter 0.2s ease;
+    }
+    body.dark-mode .header-logo {
+        filter: brightness(85%);
+    }
+    .title-container {
+        background-color: #ABAB99;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+    }
+    body.dark-mode .title-container {
+        background-color: #92927E;
+    }
+    .header-container h1 {
+        color: #5C5C47;
+    }
+    .version-text {
+        font-size: 0.75rem;
+        color: #5C5C47;
+        font-weight: normal;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: #ABAB99;
+        margin: 0;
+        overflow-x: hidden;
+    }
+    body.dark-mode {
+        background-color: #92927E;
+    }
+    header {
+        margin-bottom: 0.5rem;
+    }
+    main {
+        margin: 0.5rem auto 0.5rem 60px;
+        background-color: transparent;
+        border-radius: 0.75rem;
+        padding: 16px;
+        min-height: 400px;
+        transition: background-color 0.3s ease;
+        max-width: 984px;
+        width: 100%;
+    }
+    footer {
+        margin: 0.5rem auto;
+        text-align: center;
+        max-width: 984px;
+        width: 100%;
+        display: block;
+        background-color: #ABAB99;
+        margin-left: 120px;
+    }
+    body.dark-mode footer {
+        background-color: #92927E;
+    }
+    .footer-content {
+        color: #5C5C47;
+        padding: 0.5rem;
+        margin: 0 auto;
+        max-width: 100%;
+        position: relative;
+    }
+    .footer-subtext {
+        font-size: 0.75rem;
+        color: #5C5C47;
+        margin-top: 0.25rem;
+        text-align: center;
+    }
+    .footer-link-green {
+        color: #5C5C47;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .footer-link-green:hover {
+        color: #5C5C47;
+    }
+    .footer-line {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .scroll-toggle-button {
+        position: fixed;
+        width: 91px;
+        height: clamp(78.2px, 19.55vw, 175.95px);
+        background-color: #668B8B;
+        border-radius: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: clamp(10px, 2vw, 20px);
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+        left: 10px;
+        top: 10px;
+    }
+    .scroll-toggle-button:hover {
+        background-color: #D9A066;
+    }
+    .scroll-toggle-button svg {
+        width: clamp(24px, 4vw, 32px);
+        height: clamp(24px, 4vw, 32px);
+        stroke: #E6E6DC;
+    }
+    .top-text-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+        color: #5C5C47;
+        background-color: #D1D5DB;
+        margin-top: 0.25rem;
+        margin-left: 60px;
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        animation: fadeOut 6s forwards;
+    }
+    body.dark-mode .top-text-container {
+        background-color: #6B7280;
+    }
+    .top-text-container span {
+        color: #D9A066;
+        font-size: clamp(0.9rem, 2vw, 1.2rem);
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; display: none; }
+    }
+    .arrow-button {
+        width: clamp(36px, 6vw, 48px);
+        height: clamp(36px, 6vw, 48px);
+        background-color: #D9A066;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.2s ease;
+    }
+    .arrow-button:hover {
+        background-color: #5C5C47;
+    }
+    .arrow-button svg {
+        stroke: #E6E6DC;
+    }
+    .counter-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-top: 1rem;
+        text-align: center;
+        margin-left: 120px;
+    }
+    .favicon-red {
+        filter: hue-rotate(0deg) saturate(200%) brightness(80%);
+    }
+    .favicon-blue {
+        filter: hue-rotate(200deg) saturate(150%) brightness(90%);
+    }
+    .notices-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 984px;
+        margin: 0 auto;
+        margin-left: 80px;
+        position: relative;
+    }
+    .notices-container {
+        flex-grow: 1;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-left: 80px;
+        height: 3rem;
+    }
+    .notice-wrapper {
+        padding: 0.5rem;
+        height: 1.5rem;
+        flex-grow: 1;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .notice {
+        color: #00ff00;
+        font-size: 0.8rem;
+        font-weight: bold;
+        white-space: nowrap;
+        text-align: center;
+        opacity: 0;
+        animation: fadeInOut 14s infinite;
+    }
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    .notice-off-icon {
+        width: auto;
+        height: clamp(2rem, 5vw, 3rem);
+        margin-right: 10px;
+        align-self: center;
+        cursor: pointer;
+        transition: filter 0.3s ease;
+    }
+    body.dark-mode .notice-off-icon {
+        filter: brightness(85%);
+    }
+    .toggle-sign {
+        position: fixed;
+        width: 91px;
+        height: 54px;
+        border-radius: 20px;
+        background-color: #668B8B;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.25rem;
+        color: #E6E6DC;
+        text-align: center;
+        cursor: pointer;
+        z-index: 1000;
+        transition: background-color 0.2s ease, filter 0.2s ease;
+        left: 10px;
+    }
+    .toggle-sign .sign {
+        font-size: 1.5rem;
+        margin-right: 2px;
+    }
+    .toggle-sign:hover {
+        background-color: #D9A066;
+    }
+    .toggle-sign img {
+        max-width: 80px;
+        max-height: 48px;
+        object-fit: contain;
+    }
+    body.dark-mode .toggle-sign#config-button {
+        filter: brightness(85%);
+    }
+    body.dark-mode .toggle-sign#config-button img {
+        filter: brightness(85%);
+    }
+    .toggle-image {
+        position: fixed;
+        width: 91px;
+        height: 54px;
+        cursor: pointer;
+        z-index: 1000;
+        transition: filter 0.2s ease;
+    }
+    .toggle-image:hover {
+        filter: brightness(80%);
+    }
+    body.dark-mode .toggle-image#on-off-toggle {
+        filter: brightness(85%);
+    }
+    #reminder-button {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        background-color: #668B8B;
+    }
+    #reminder-button img {
+        max-width: 80px;
+        max-height: 48px;
+        object-fit: contain;
+    }
+    #reminder-button .reminder-count {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        font-size: 0.65rem;
+        color: #5C5C47;
+        font-weight: bold;
+    }
+    .hidden {
+        display: none;
+    }
+    .footer-hidden {
+        display: none;
+    }
+    body.dark-mode .bookmark-item {
+        filter: brightness(60%);
+    }
+    body.dark-mode .bg-gray-50.border.border-dashed.border-gray-200.rounded-lg {
+        filter: brightness(60%);
+    }
+    body.dark-mode .scroll-toggle-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode .scroll-toggle-button:hover {
+        background-color: #D9A066;
+    }
+    body.dark-mode .toggle-sign {
+        background-color: #5C5C47;
+    }
+    body.dark-mode .toggle-sign:hover {
+        background-color: #D9A066;
+    }
+    body.dark-mode .toggle-sign.range-toggle[data-state="visible"] {
+        background-color: #668B8B;
+    }
+    body.dark-mode .toggle-sign.range-toggle[data-state="hidden"] {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #reload-button {
+        background-color: #668B8B;
+    }
+    body.dark-mode #home-button {
+        background-color: #668B8B;
+    }
+    body.dark-mode #weather-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #zoom-button:not(.zoomed) {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #zoom-button.zoomed {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #reminder-button {
+        background-color: #5C5C47;
+    }
+    body.dark-mode #config-button {
+        background-color: #92927E;
+    }
+    .minimal-mode {
+        background-color: #ABAB99;
+    }
+    body.dark-mode.minimal-mode {
+        background-color: #92927E;
+    }
+    .minimal-mode main,
+    .minimal-mode .notices-container,
+    .minimal-mode .footer-content,
+    .minimal-mode .top-text-container,
+    .minimal-mode .scroll-toggle-button,
+    .minimal-mode .toggle-sign,
+    .minimal-mode #reminder-notifications,
+    .minimal-mode .counter-wrapper,
+    .minimal-mode .notice-off-icon {
+        display: none !important;
+    }
+    .minimal-mode #dark-mode-toggle,
+    .minimal-mode .header-container,
+    .minimal-mode .header-logo {
+        display: none !important;
+    }
+    .minimal-mode #on-off-toggle {
+        filter: none;
+        opacity: 0.3;
+    }
+    .minimal-mode-message {
+        color: #000000;
+        font-size: 1rem;
+        font-weight: bold;
+        position: fixed;
+        top: 70px;
+        left: 10px;
+        z-index: 1000;
+    }
+    .reminder-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #F3F4F6;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 2000;
+        max-width: 400px;
+        width: 90%;
+    }
+    .reminder-modal h2 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .reminder-modal label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .reminder-modal input,
+    .reminder-modal textarea {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.25rem;
+    }
+    .reminder-modal .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    .reminder-modal button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .reminder-modal button[type="submit"] {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    .reminder-modal button[type="button"] {
+        background-color: #D1D5DB;
+        color: #111827;
+    }
+    #reminder-notifications {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1500;
+        max-width: 300px;
+        width: 90%;
+    }
+    .reminder-notification {
+        background-color: #FFFF99;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .reminder-notification p {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #0000FF;
+    }
+    .reminder-notification .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    .reminder-notification button {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    .reminder-notification button.cancel {
+        background-color: #EF4444;
+        color: #FFFFFF;
+    }
+    .reminder-notification button.modify {
+        background-color: #10B981;
+        color: #FFFFFF;
+    }
+    .reminder-notification button.postpone {
+        background-color: #F59E0B;
+        color: #FFFFFF;
+    }
+    .counter-wrapper {
+        margin: 0.5rem auto 0 60px;
+        text-align: center;
+        max-width: 984px;
+        width: 100%;
+        display: block;
+        opacity: 0.4;
+    }
+</style>
+</head>
+<body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
+    <div class="top-text-container">
+        <div class="arrow-button" id="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </div>
+        <span>[ Web anterior o posterior arrastre hacia los bordes ]</span>
+        <div class="arrow-button" id="forward-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+    </div>
 <main>
     <div id="bookmark-grid">
         <!-- Grid populated by JavaScript -->
@@ -1117,3 +1721,7 @@
         });
     </script>
 </body>
+content_copy
+download
+Use code with caution.
+</html>
