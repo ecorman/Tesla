@@ -5682,9 +5682,15 @@ async function openNavigationMap(isRecovery = false) {
                         navigationMapInstance.on('mousedown', handlePressStart);
                         navigationMapInstance.on('touchstart', handlePressStart);
                         
-                        navigationMapInstance.on('dragstart', clearLongPressTimer);
-                        navigationMapInstance.on('zoomstart', clearLongPressTimer);
-                        navigationMapInstance.on('pitchstart', clearLongPressTimer);
+                        const handleManualInteraction = () => {
+                            clearLongPressTimer();
+                            triggerManualMapInteraction();
+                        };
+
+                        navigationMapInstance.on('dragstart', handleManualInteraction);
+                        navigationMapInstance.on('zoomstart', handleManualInteraction);
+                        navigationMapInstance.on('pitchstart', handleManualInteraction);
+                        navigationMapInstance.on('rotatestart', handleManualInteraction);
                         
                         navigationMapInstance.on('mouseup', clearLongPressTimer);
                         navigationMapInstance.on('touchend', clearLongPressTimer);
@@ -5753,13 +5759,26 @@ async function openNavigationMap(isRecovery = false) {
                         const mode = mapViewMode; if (mode === 'heading' || mode === 'perspective' || mode === 'relief') { initialViewOptions.bearing = currentPos.heading || 0; } if (mode === 'perspective' || mode === 'relief') { initialViewOptions.pitch = mapPitchValue; } else { initialViewOptions.pitch = 0; }
                         initialViewOptions.pitch = 0;
                         if (!isRecovery) { 
-                        console.log("Jumping directly to initial position");
-                        navigationMapInstance.jumpTo(initialViewOptions);
+                            console.log("Jumping directly to initial position");
+                            navigationMapInstance.jumpTo(initialViewOptions);
+                        } else {
+                            navigationMapInstance.jumpTo(initialViewOptions);
+                        }
+
+                        // Sincronizar el estado de animación con la cámara inicial
+                        markerAnimationState.currentMapCenter = navigationMapInstance.getCenter();
+                        markerAnimationState.currentMapZoom = navigationMapInstance.getZoom();
+                        markerAnimationState.currentMapPitch = navigationMapInstance.getPitch();
+                        markerAnimationState.currentMapBearing = navigationMapInstance.getBearing();
+                        markerAnimationState.targetMapCenter = navigationMapInstance.getCenter();
+                        markerAnimationState.targetMapZoom = navigationMapInstance.getZoom();
+                        markerAnimationState.targetMapPitch = navigationMapInstance.getPitch();
+                        markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
+                        
                         // Forzar inyección 3D tras el salto
                         setTimeout(() => add3DBuildingsLayer(navigationMapInstance), 1000);
- navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
-                        markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); markerAnimationState.currentMapPitch = navigationMapInstance.getPitch(); markerAnimationState.currentMapBearing = navigationMapInstance.getBearing(); markerAnimationState.targetMapCenter = navigationMapInstance.getCenter(); markerAnimationState.targetMapZoom = navigationMapInstance.getZoom(); markerAnimationState.targetMapPitch = navigationMapInstance.getPitch(); markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
-                        
+
+                        // Inicializar marcador del coche
                         updateInitialUserPosition(currentPos, navigationMapInstance); 
                         startGpsWatching();               
                         resolve();
@@ -17353,13 +17372,21 @@ function handleLocateMeClick(isExplicitAction = false) {
         toggleRouteDetailOverlays(true);  
         if (navigationCurrentLocation) {
             isFlying = true; 
-
+            
+            // Si el zoom actual es muy bajo (mundo), forzamos un mínimo para evitar zoom brusco
+            const currentZoom = navigationMapInstance.getZoom();
             const targetZoom = manualZoomLevelMemory !== null ? manualZoomLevelMemory : 17;
-      
+            
+            // Sincronizamos el estado de animación ANTES de volar para que no haya saltos
+            markerAnimationState.currentMapZoom = currentZoom;
+            markerAnimationState.targetMapZoom = targetZoom;
+            markerAnimationState.currentMapCenter = navigationMapInstance.getCenter();
+            markerAnimationState.targetLngLat = new maplibregl.LngLat(navigationCurrentLocation.longitude, navigationCurrentLocation.latitude);
+            
             const flyToOptions = {
                 center: [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude],
                 zoom: targetZoom, 
-                duration: 1200,
+                duration: 1000,
                 essential: true
             };
 
