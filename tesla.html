@@ -1412,17 +1412,22 @@ function actualizarContadorPdrs(count) {
 // ===================================================================
 // NOMBRE: add3DBuildingsLayer (VERSIÓN CORREGIDA Y ROBUSTA CON COALESCE)
 async function add3DBuildingsLayer(mapInstance) {
-    if (!mapInstance || !mapInstance.isStyleLoaded()) {
-        return;
-    }
+    if (!mapInstance || !mapInstance.isStyleLoaded()) return;
 
     const layerId = '3d-buildings';
     if (mapInstance.getLayer(layerId)) {
         try { mapInstance.removeLayer(layerId); } catch (e) {}
     }
 
-    if (!mapInstance.getSource('composite')) {
-        return; // El estilo actual no tiene datos de edificios.
+    // Detectar la fuente de datos (Mapbox usa 'composite', OpenFreeMap usa 'openmaptiles')
+    let sourceId = 'composite';
+    let sourceLayer = 'building';
+    
+    if (mapInstance.getSource('openmaptiles')) {
+        sourceId = 'openmaptiles';
+    } else if (!mapInstance.getSource('composite')) {
+        console.warn("No se encontró una fuente de edificios compatible.");
+        return;
     }
     
     const layers = mapInstance.getStyle().layers;
@@ -1437,44 +1442,24 @@ async function add3DBuildingsLayer(mapInstance) {
     try {
         mapInstance.addLayer({
             'id': layerId,
-            'source': 'composite',
-            'source-layer': 'building',
-            'filter': ['==', 'extrude', 'true'],
+            'source': sourceId,
+            'source-layer': sourceLayer,
             'type': 'fill-extrusion',
             'minzoom': 14,
             'paint': {
-                'fill-extrusion-color': [
-                    'interpolate', ['linear'], ['coalesce', ['get', 'height'], 0], 
-                     0, '#fcc2a4',
-                    20, '#fcc2a4',
-                    40, '#f3a070',
-                    60, '#ef8f56',
-                    120, '#ea7e3c',
-                    150, '#e66d22',
-                ],   
-                
+                'fill-extrusion-color': '#fcc2a4',
                 'fill-extrusion-height': [
                     'interpolate', ['linear'], ['zoom'],
                     14, 0,
-                    15, ['*', ['coalesce', ['get', 'height'], 0], 1], 
-                    18.2, ['*', ['coalesce', ['get', 'height'], 0], 0.85],
-                    18.5, ['*', ['coalesce', ['get', 'height'], 0], 0.30] 
+                    14.05, ['coalesce', ['get', 'render_height'], ['get', 'height'], 20]
                 ],
-
-                // 3. Base del edificio (Ya era robusto, no necesita cambios)
-                'fill-extrusion-base': ['get', 'min_height'],
-                
-                // 4. Opacidad dinámica (No depende de 'height', no necesita cambios)
-                'fill-extrusion-opacity': [
-                    'interpolate', ['linear'], ['zoom'],
-                    15, 1,
-                    18.2, 0.85,
-                    18.5, 0
-                ]
+                'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
+                'fill-extrusion-opacity': 0.8
             }
         }, firstSymbolId);
-    } catch (error) {
-        console.error("Error al añadir la capa de edificios 3D:", error);
+        console.log("Capa 3D de OpenFreeMap añadida correctamente.");
+    } catch (e) {
+        console.error("Error al añadir capa 3D:", e);
     }
 }
 
