@@ -10422,7 +10422,7 @@ async function createAndLoadReturnTrip() {
 // NOMBRE: fetchRouteData 
 async function fetchRouteData(coordsString, startHeading = null) {
     const OSRM_PRIMARY_KEY = 'boardinggate_useOsrmAsPrimary';
-    const useOsrmAsPrimary = localStorage.getItem(OSRM_PRIMARY_KEY) === 'true';
+    const useOsrmAsPrimary = localStorage.getItem(OSRM_PRIMARY_KEY) !== 'false'; // Por defecto true para evitar errores de Mapbox
   
     const osrmService = {
         name: 'OSRM',
