@@ -2815,6 +2815,9 @@ class MapSettingsPanel {
                         if (typeof updateVehicleIconPerspective === 'function') {
                             updateVehicleIconPerspective();
                         }
+                        
+                        // RE-AÑADIR RUTA: Importante para que no desaparezca al cambiar entre 2D/3D/Relieve
+                        reAddCustomMapLayersAndSources(this._map);
                     }
                 };
             label.appendChild(input); label.appendChild(document.createTextNode(` ${name}`)); viewSelector.appendChild(label);
@@ -2907,11 +2910,46 @@ class MapSettingsPanel {
             const sep = document.createElement('div'); sep.className = className; return sep;
         };
         
+        const routingSelector = document.createElement('div');
+        routingSelector.className = 'map-routing-selector';
+        routingSelector.style.marginTop = '15px';
+        routingSelector.style.borderTop = '1px solid #444';
+        routingSelector.style.paddingTop = '10px';
+        const rTitle = document.createElement('h3');
+        rTitle.textContent = 'PROVEEDOR DE RUTA';
+        routingSelector.appendChild(rTitle);
+
+        const providers = [
+            { id: 'google', name: 'Google Maps' },
+            { id: 'mapbox', name: 'Mapbox' },
+            { id: 'osrm', name: 'OSRM (Libre)' }
+        ];
+        const currentProvider = localStorage.getItem('boardinggate_routing_service') || 'osrm';
+
+        providers.forEach(p => {
+            const label = document.createElement('label');
+            label.className = 'layer-visibility-toggle';
+            label.style.display = 'block';
+            label.style.margin = '5px 0';
+            const input = document.createElement('input');
+            input.type = 'radio'; input.name = 'routing-provider'; input.value = p.id;
+            input.checked = (p.id === currentProvider);
+            input.addEventListener('change', () => {
+                localStorage.setItem('boardinggate_routing_service', p.id);
+                showToast(`Proveedor de ruta: ${p.name}`, 'info');
+                markCacheAsDirty();
+            });
+            label.appendChild(input); label.appendChild(document.createTextNode(` ${p.name}`));
+            routingSelector.appendChild(label);
+        });
+
         fragment.appendChild(layerSelectorContainer);
         fragment.appendChild(separator());
         fragment.appendChild(viewSelector);
         fragment.appendChild(separator());
         fragment.appendChild(visibilitySelector);
+        fragment.appendChild(separator());
+        fragment.appendChild(routingSelector);
 
         return fragment;
     }
@@ -5603,11 +5641,26 @@ async function openNavigationMap(isRecovery = false) {
                                
                 if (!isRecovery) { showToast("INICIALIZANDO MAPA...", "info", 0, false, "map-init-toast"); }
       
+                // Intento de obtener última posición para evitar vista mundial
+                const lastPosJSON = localStorage.getItem('boardinggate_nav_recovery_flag');
+                let initialCenter = [ -3.70379, 40.41678 ]; // Madrid por defecto
+                let initialZoom = 13;
+                
+                if (lastPosJSON) {
+                    try {
+                        const lastData = JSON.parse(lastPosJSON);
+                        if (lastData.lastKnownLocation) {
+                            initialCenter = [ lastData.lastKnownLocation.longitude, lastData.lastKnownLocation.latitude ];
+                            initialZoom = 16;
+                        }
+                    } catch(e) {}
+                }
+
                 navigationMapInstance = new maplibregl.Map({
                     container: mapActualContainer,
                     style: initialStyle, 
-                    center: [ -97.1903, 30.3715],
-                    zoom: 2.8, pitch: 0, bearing: 0,
+                    center: initialCenter,
+                    zoom: initialZoom, pitch: 0, bearing: 0,
                     attributionControl: false, 
                     pixelRatio: window.devicePixelRatio || 1,
                     maxTileCacheSize: 50,
@@ -5748,6 +5801,12 @@ async function openNavigationMap(isRecovery = false) {
                         
                         let currentPos = await getInitialGpsPositionForMap();
                         
+                        // VALIDACIÓN: Si no tenemos posición válida (0,0), esperamos un poco
+                        if (!currentPos || (currentPos.latitude === 0 && currentPos.longitude === 0)) {
+                             console.warn("Posición inicial no válida (0,0), reintentando...");
+                             currentPos = await getGpsWithRetries(3, 1000);
+                        }
+
                         startWeatherUpdates(currentPos); 
                         
                         setMapImmersiveMode(false); 
@@ -5756,9 +5815,21 @@ async function openNavigationMap(isRecovery = false) {
                         updateLocateMeButtonsUI(); 
                         toggleMapControls(true); 
                         navigationCurrentLocation = currentPos; updateCurrentAddress(currentPos.latitude, currentPos.longitude);
-                        const initialViewOptions = { center: [currentPos.longitude, currentPos.latitude], zoom: 15.5, essential: true };
-                        const mode = mapViewMode; if (mode === 'heading' || mode === 'perspective' || mode === 'relief') { initialViewOptions.bearing = currentPos.heading || 0; } if (mode === 'perspective' || mode === 'relief') { initialViewOptions.pitch = mapPitchValue; } else { initialViewOptions.pitch = 0; }
-                        initialViewOptions.pitch = 0;
+                        
+                        const initialViewOptions = { 
+                            center: [currentPos.longitude, currentPos.latitude], 
+                            zoom: 16.5, // Un poco más de zoom inicial
+                            essential: true 
+                        };
+                        const mode = mapViewMode; 
+                        if (mode === 'heading' || mode === 'perspective' || mode === 'relief') { 
+                            initialViewOptions.bearing = currentPos.heading || 0; 
+                        } 
+                        if (mode === 'perspective' || mode === 'relief') { 
+                            initialViewOptions.pitch = mapPitchValue || 60; 
+                        } else { 
+                            initialViewOptions.pitch = 0; 
+                        }
                         if (!isRecovery) { 
                             console.log("Jumping directly to initial position");
                             navigationMapInstance.jumpTo(initialViewOptions);
@@ -10504,10 +10575,47 @@ async function createAndLoadReturnTrip() {
 }
 
 // ===================================================================
+// NOMBRE: decodePolyline
+// RESUMEN: Decodifica una polilínea codificada de Google (Encoded Polyline Algorithm)
+function decodePolyline(encoded) {
+    if (!encoded) return [];
+    var points = [];
+    var index = 0, len = encoded.length;
+    var lat = 0, lng = 0;
+    while (index < len) {
+        var b, shift = 0, result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        var dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+        lat += dlat;
+        shift = 0;
+        result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        var dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+        lng += dlng;
+        points.push([lng * 1e-5, lat * 1e-5]);
+    }
+    return points;
+}
+
+// ===================================================================
 // NOMBRE: fetchRouteData 
 async function fetchRouteData(coordsString, startHeading = null) {
     const OSRM_PRIMARY_KEY = 'boardinggate_useOsrmAsPrimary';
-    const useOsrmAsPrimary = localStorage.getItem(OSRM_PRIMARY_KEY) !== 'false'; // Por defecto true para evitar errores de Mapbox
+    const ROUTING_SERVICE_KEY = 'boardinggate_routing_service';
+    
+    // Prioridad: 1. Selección explícita, 2. Flag antiguo, 3. Por defecto OSRM para estabilidad
+    let activeServiceType = localStorage.getItem(ROUTING_SERVICE_KEY);
+    if (!activeServiceType) {
+        activeServiceType = (localStorage.getItem(OSRM_PRIMARY_KEY) !== 'false') ? 'osrm' : 'mapbox';
+    }
   
     const osrmService = {
         name: 'OSRM',
@@ -10524,7 +10632,6 @@ async function fetchRouteData(coordsString, startHeading = null) {
             if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
                 throw new Error(data.message || "No se encontraron rutas en OSRM.");
             }
-            console.log('%c[Route Service] Respuesta OSRM (Completa)', 'color: #28a745; font-weight: bold;');
             return { routeData: data, serviceUsed: 'OSRM' };
         }
     };
@@ -10555,29 +10662,75 @@ async function fetchRouteData(coordsString, startHeading = null) {
             if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
                 throw new Error(data.message || "No se encontraron rutas en Mapbox.");
             }
-
-            const hasBanners = data.routes[0]?.legs?.[0]?.steps?.some(step => step.bannerInstructions);
-            const statusMessage = hasBanners ? 'COMPLETA (con Banners)' : 'SIMPLE (sin Banners)';
-            const logStyle = hasBanners ? 'color: #28a745; font-weight: bold;' : 'color: #ffc107; font-weight: bold;';
-            console.log(`%c[Route Service] Respuesta Mapbox: ${statusMessage}`, logStyle);
-  
             const adaptedRoute = adaptMapboxRouteToOSRMFormat(data.routes[0]);
-            const adaptedWaypoints = data.waypoints.map(wp => ({
-                distance: wp.distance,
-                hint: wp.hint,
-                location: wp.location,
-                name: wp.name,
-            }));
-            const finalData = {
-                code: 'Ok',
-                routes: [adaptedRoute],
-                waypoints: adaptedWaypoints
-            };
-            return { routeData: finalData, serviceUsed: 'Mapbox' };
+            return { routeData: { code: 'Ok', routes: [adaptedRoute], waypoints: data.waypoints }, serviceUsed: 'Mapbox' };
         }
     };
 
+    const googleService = {
+        name: 'Google',
+        buildUrl: (coords) => {
+            const points = coords.split(';');
+            const origin = points[0].split(',').reverse().join(',');
+            const destination = points[points.length - 1].split(',').reverse().join(',');
+            const waypoints = points.slice(1, -1).map(p => p.split(',').reverse().join(',')).join('|');
+            
+            const params = new URLSearchParams({
+                origin: origin,
+                destination: destination,
+                waypoints: waypoints ? `via:${waypoints}` : '',
+                mode: 'driving',
+                language: 'es',
+                key: window.APP_CONFIG.keys.googleMaps
+            });
+            return `https://maps.googleapis.com/maps/api/directions/json?${params.toString()}`;
+        },
+        processResponse: async (response) => {
+            if (!response.ok) throw new Error(`Google HTTP error ${response.status}`);
+            const data = await response.json();
+            if (data.status !== 'OK' || !data.routes || data.routes.length === 0) {
+                throw new Error(data.error_message || data.status || "No se encontraron rutas en Google.");
+            }
+            
+            const gRoute = data.routes[0];
+            const fullPath = decodePolyline(gRoute.overview_polyline.points);
+            
+            const adaptedRoute = {
+                distance: gRoute.legs.reduce((acc, leg) => acc + leg.distance.value, 0),
+                duration: gRoute.legs.reduce((acc, leg) => acc + leg.duration.value, 0),
+                geometry: { type: 'LineString', coordinates: fullPath },
+                legs: gRoute.legs.map(leg => ({
+                    distance: leg.distance.value,
+                    duration: leg.duration.value,
+                    steps: leg.steps.map(step => ({
+                        distance: step.distance.value,
+                        duration: step.duration.value,
+                        instruction: step.html_instructions.replace(/<[^>]*>?/gm, ''),
+                        maneuver: { type: 'turn', instruction: step.html_instructions.replace(/<[^>]*>?/gm, '') },
+                        geometry: { type: 'LineString', coordinates: decodePolyline(step.polyline.points) }
+                    }))
+                }))
+            };
+            
+            return { 
+                routeData: { code: 'Ok', routes: [adaptedRoute], waypoints: [] }, 
+                serviceUsed: 'Google' 
+            };
+        }
+    };
+
+    const services = {
+        'osrm': osrmService,
+        'mapbox': mapboxService,
+        'google': googleService
+    };
+
+    const primaryService = services[activeServiceType] || osrmService;
+    const fallbackService = (activeServiceType === 'mapbox') ? osrmService : mapboxService;
+    
     const buildUrlWithCorrectBearings = (service, coords) => {
+        if (service.name === 'Google') return service.buildUrl(coords);
+        
         let baseUrl = service.buildUrl(coords).split('?')[0];
         let params = new URLSearchParams(service.buildUrl(coords).split('?')[1] || '');
 
@@ -10595,9 +10748,6 @@ async function fetchRouteData(coordsString, startHeading = null) {
         return `${baseUrl}?${params.toString()}`;
     };
 
-    const primaryService = useOsrmAsPrimary ? osrmService : mapboxService;
-    const fallbackService = useOsrmAsPrimary ? mapboxService : osrmService;
-    
     const MAX_PRIMARY_RETRIES = 5;
 
     for (let attempt = 1; attempt <= MAX_PRIMARY_RETRIES; attempt++) {
