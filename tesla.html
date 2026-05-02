@@ -10333,13 +10333,12 @@ function startGpsWatching() {
     locationWatchId = navigator.geolocation.watchPosition(
         (position) => {
             gpsHzMonitor.ticks++; 
-            
             if (isSimulatingGpsLocation) return;
 
             const persistentErrorToast = document.getElementById("gps-persistent-error");
             if (persistentErrorToast) persistentErrorToast.remove();
             gpsRetryAttempt = 0;
-            
+
             const coordsForUpdate = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
@@ -10348,6 +10347,12 @@ function startGpsWatching() {
                 speed: position.coords.speed,
                 altitude: position.coords.altitude
             };
+
+            navigationCurrentLocation = coordsForUpdate;
+            
+            // MOVER MAPA EN TIEMPO REAL
+            if (typeof onGpsUpdate === 'function') onGpsUpdate(coordsForUpdate);
+            if (typeof updateCurrentAddress === 'function') updateCurrentAddress(coordsForUpdate.latitude, coordsForUpdate.longitude);
 
             updateInitialUserPosition(coordsForUpdate, navigationMapInstance);
 
@@ -21651,6 +21656,11 @@ function reactivateRealGpsAfterSimulation() {
                      altitude: position.coords.altitude, speed: position.coords.speed
                 };
                 navigationCurrentLocation = coordsForUpdate;
+                
+                // MOVER MAPA EN TIEMPO REAL
+                if (typeof onGpsUpdate === 'function') onGpsUpdate(coordsForUpdate);
+                if (typeof updateCurrentAddress === 'function') updateCurrentAddress(coordsForUpdate.latitude, coordsForUpdate.longitude);
+
                 updateInitialUserPosition(coordsForUpdate, navigationMapInstance);
                  if(isNavigating && navigationCurrentRouteData && navigationCurrentRouteData.routes[0]) {
                     const routeForDistCalc = navigationCurrentRouteData.routes[0];
