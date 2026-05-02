@@ -729,11 +729,21 @@
     };
  
     
+    
     const MAP_STYLES = {
-        "RELIEVE": "https://tiles.openfreemap.org/styles/bright",
-        "SATELITE": "https://tiles.openfreemap.org/styles/liberty",
+        "RELIEVE": "https://tiles.openfreemap.org/styles/liberty",
         "CALLES_LIGHT": "https://tiles.openfreemap.org/styles/bright",
-        "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark"
+        "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark",
+        "GOOGLE_SAT": {
+            "version": 8,
+            "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 } },
+            "layers": [{ "id": "google-tiles", "type": "raster", "source": "google-tiles", "minzoom": 0, "maxzoom": 22 }]
+        },
+        "ESRI_SAT": {
+            "version": 8,
+            "sources": { "esri-tiles": { "type": "raster", "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], "tileSize": 256, "attribution": "Esri" } },
+            "layers": [{ "id": "esri-tiles", "type": "raster", "source": "esri-tiles", "minzoom": 0, "maxzoom": 22 }]
+        }
     };  
     const MAP_LEGACY_NAME_MAP = {
         "Satélite + Calles": "RELIEVE",
@@ -2649,7 +2659,7 @@ class MapSettingsPanel {
         const layerSelectorContainer = document.createElement('div');
         layerSelectorContainer.className = 'map-layer-selector';
 
-        const baseMapOptions = ["RELIEVE", "CALLES"];
+        const baseMapOptions = ["CALLES", "RELIEVE", "GOOGLE_SAT", "ESRI_SAT"];
         let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE";
         
         if (MAP_LEGACY_NAME_MAP[savedLayerName]) {
@@ -2677,34 +2687,36 @@ class MapSettingsPanel {
         streetThemeCheckbox.checked = savedTheme === 'dark';
 
         
+        
         const updateStyle = () => {
             const selectedRadio = layerSelectorContainer.querySelector('input[name="map-style-selector"]:checked');
             if (!selectedRadio) return;
 
             const baseStyle = selectedRadio.value;
-            let finalStyleUrl;
+            let finalStyle;
             let finalLayerNameForStorage = baseStyle;
 
             if (baseStyle === 'CALLES') {
                 const isDark = streetThemeCheckbox.checked;
-                finalStyleUrl = isDark ? MAP_STYLES.CALLES_DARK : MAP_STYLES.CALLES_LIGHT;
+                finalStyle = isDark ? MAP_STYLES.CALLES_DARK : MAP_STYLES.CALLES_LIGHT;
                 streetThemeCheckboxContainer.style.opacity = '1';
                 streetThemeCheckboxContainer.style.pointerEvents = 'auto';
                 localStorage.setItem(this.streetMapThemeKey, isDark ? 'dark' : 'light');
             } else {
-                // Para RELIEVE o cualquier otro, usamos Liberty
-                finalStyleUrl = MAP_STYLES.SATELITE || MAP_STYLES.HIBRIDO;
+                finalStyle = MAP_STYLES[baseStyle];
                 streetThemeCheckboxContainer.style.opacity = '0.5';
                 streetThemeCheckboxContainer.style.pointerEvents = 'none';
             }
 
             if (navigationMapInstance) {
-                navigationMapInstance.setStyle(finalStyleUrl);
+                navigationMapInstance.setStyle(finalStyle);
                 localStorage.setItem(ACTIVE_MAP_LAYER_KEY, finalLayerNameForStorage);
                 
-                // IMPORTANTE: Re-añadir edificios 3D cuando el nuevo estilo termine de cargar
                 navigationMapInstance.once('style.load', () => {
-                    add3DBuildingsLayer(navigationMapInstance);
+                    // Solo intentamos 3D en capas vectoriales (Calles/Relieve)
+                    if (baseStyle === 'CALLES' || baseStyle === 'RELIEVE') {
+                        add3DBuildingsLayer(navigationMapInstance);
+                    }
                     reAddCustomMapLayersAndSources(navigationMapInstance);
                     plotRemindersOnNavigationMap();
                 });
