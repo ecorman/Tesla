@@ -1434,55 +1434,57 @@ function actualizarContadorPdrs(count) {
 // NOMBRE: add3DBuildingsLayer (VERSIÓN CORREGIDA Y ROBUSTA CON COALESCE)
 async function add3DBuildingsLayer(mapInstance) {
     if (!mapInstance) return;
+    
+    // Esperar a que el estilo esté cargado antes de añadir capas
     if (!mapInstance.isStyleLoaded()) {
-        setTimeout(() => add3DBuildingsLayer(mapInstance), 1000);
+        setTimeout(() => add3DBuildingsLayer(mapInstance), 500);
         return;
     }
 
     const layerId = '3d-buildings';
+    
+    // Si la capa ya existe, nos aseguramos de que sea visible
     if (mapInstance.getLayer(layerId)) {
         try { mapInstance.setLayoutProperty(layerId, 'visibility', 'visible'); } catch(e){}
         return;
     }
 
+    // Solo añadimos edificios si estamos en un modo 3D (perspective o relief)
+    if (typeof mapViewMode !== 'undefined' && mapViewMode !== 'perspective' && mapViewMode !== 'relief') {
+        return;
+    }
 
-    // Si estamos en un mapa de satélite, necesitamos añadir la fuente de OpenFreeMap
-    if (!mapInstance.getSource('openmaptiles') && !mapInstance.getSource('composite')) {
+    console.log("Inyectando edificios 3D sobre el estilo actual...");
+
+    // Asegurar fuente de datos (OpenFreeMap Planet)
+    if (!mapInstance.getSource('openmaptiles')) {
         try {
             mapInstance.addSource('openmaptiles', {
                 type: 'vector',
                 url: 'https://tiles.openfreemap.org/planet'
             });
         } catch (e) {
-            console.warn("Reintentando añadir fuente de edificios...");
-            setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
-            return;
+            console.warn("La fuente ya existía o hubo un error al añadirla");
         }
     }
 
-    let sourceId = mapInstance.getSource('openmaptiles') ? 'openmaptiles' : 'composite';
-    
+    // Añadir la capa de extrusión (edificios con altura)
     try {
         mapInstance.addLayer({
             'id': layerId,
-            'source': sourceId,
+            'source': 'openmaptiles',
             'source-layer': 'building',
             'type': 'fill-extrusion',
-            'minzoom': 14,
+            'minzoom': 13,
             'paint': {
                 'fill-extrusion-color': '#ffffff',
-                'fill-extrusion-height': [
-                    'interpolate', ['linear'], ['zoom'],
-                    14, 0,
-                    14.05, ['coalesce', ['get', 'render_height'], ['get', 'height'], 20]
-                ],
+                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 20],
                 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
-                'fill-extrusion-opacity': 0.7
+                'fill-extrusion-opacity': 0.6
             }
         });
-        console.log("3D activado correctamente sobre el mapa.");
     } catch (e) {
-        console.error("Error inyectando capa 3D:", e);
+        console.error("Error al añadir capa 3D:", e);
     }
 }
 
@@ -2722,7 +2724,7 @@ class MapSettingsPanel {
                 
                 navigationMapInstance.once('style.load', () => {
                     // Intentar añadir 3D en cualquier modo seleccionado
-                    add3DBuildingsLayer(navigationMapInstance);
+                    setTimeout(() => add3DBuildingsLayer(navigationMapInstance), 1000);
                     reAddCustomMapLayersAndSources(navigationMapInstance);
                     plotRemindersOnNavigationMap();
                 });
@@ -5621,7 +5623,7 @@ async function openNavigationMap(isRecovery = false) {
 
                 navigationMapInstance.on('style.load', () => {
                     console.log("Style loaded, adding 3D buildings...");
-                    add3DBuildingsLayer(navigationMapInstance);
+                    setTimeout(() => add3DBuildingsLayer(navigationMapInstance), 1000);
                     reAddCustomMapLayersAndSources(navigationMapInstance);
                     plotRemindersOnNavigationMap();
                 });
@@ -5718,7 +5720,7 @@ async function openNavigationMap(isRecovery = false) {
                         await configureMapAtmosphere();
                         
                         // await wait(500);
-                        await add3DBuildingsLayer(navigationMapInstance);
+                        await setTimeout(() => add3DBuildingsLayer(navigationMapInstance), 1000);
                         
                         await wait(300);
                         
@@ -5757,7 +5759,7 @@ async function openNavigationMap(isRecovery = false) {
                         console.log("Jumping directly to initial position");
                         navigationMapInstance.jumpTo(initialViewOptions);
                         // Forzar inyección 3D tras el salto
-                        add3DBuildingsLayer(navigationMapInstance);
+                        setTimeout(() => add3DBuildingsLayer(navigationMapInstance), 1000);
  navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
                         markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); markerAnimationState.currentMapPitch = navigationMapInstance.getPitch(); markerAnimationState.currentMapBearing = navigationMapInstance.getBearing(); markerAnimationState.targetMapCenter = navigationMapInstance.getCenter(); markerAnimationState.targetMapZoom = navigationMapInstance.getZoom(); markerAnimationState.targetMapPitch = navigationMapInstance.getPitch(); markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
                         
