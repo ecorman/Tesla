@@ -730,13 +730,13 @@
  
     
     const MAP_STYLES = {
-        "HIBRIDO": "https://tiles.openfreemap.org/styles/bright",
+        "RELIEVE": "https://tiles.openfreemap.org/styles/bright",
         "SATELITE": "https://tiles.openfreemap.org/styles/liberty",
         "CALLES_LIGHT": "https://tiles.openfreemap.org/styles/bright",
         "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark"
     };  
     const MAP_LEGACY_NAME_MAP = {
-        "Satélite + Calles": "HÍBRIDO",
+        "Satélite + Calles": "RELIEVE",
         "Satélite Puro": "SATÉLITE",
         "Mapa Normal": "CALLES_LIGHT"
     };
@@ -2644,8 +2644,8 @@ class MapSettingsPanel {
         const layerSelectorContainer = document.createElement('div');
         layerSelectorContainer.className = 'map-layer-selector';
 
-        const baseMapOptions = ["HÍBRIDO", "SATÉLITE", "CALLES"];
-        let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO";
+        const baseMapOptions = ["RELIEVE", "CALLES"];
+        let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE";
         
         if (MAP_LEGACY_NAME_MAP[savedLayerName]) {
             savedLayerName = MAP_LEGACY_NAME_MAP[savedLayerName];
@@ -2655,7 +2655,7 @@ class MapSettingsPanel {
              savedLayerName = "CALLES";
         }
         if (!baseMapOptions.includes(savedLayerName)) {
-            savedLayerName = "HÍBRIDO";
+            savedLayerName = "RELIEVE";
         }
 
         const streetThemeCheckboxContainer = document.createElement('div');
@@ -2671,6 +2671,7 @@ class MapSettingsPanel {
         const savedTheme = localStorage.getItem(this.streetMapThemeKey) || 'dark'; 
         streetThemeCheckbox.checked = savedTheme === 'dark';
 
+        
         const updateStyle = () => {
             const selectedRadio = layerSelectorContainer.querySelector('input[name="map-style-selector"]:checked');
             if (!selectedRadio) return;
@@ -2679,38 +2680,30 @@ class MapSettingsPanel {
             let finalStyleUrl;
             let finalLayerNameForStorage = baseStyle;
 
-            if (baseStyle === "CALLES") {
+            if (baseStyle === 'CALLES') {
                 const isDark = streetThemeCheckbox.checked;
                 finalStyleUrl = isDark ? MAP_STYLES.CALLES_DARK : MAP_STYLES.CALLES_LIGHT;
+                streetThemeCheckboxContainer.style.opacity = '1';
+                streetThemeCheckboxContainer.style.pointerEvents = 'auto';
                 localStorage.setItem(this.streetMapThemeKey, isDark ? 'dark' : 'light');
             } else {
-                 finalStyleUrl = MAP_STYLES[baseStyle];
+                // Para RELIEVE o cualquier otro, usamos Liberty
+                finalStyleUrl = MAP_STYLES.SATELITE || MAP_STYLES.HIBRIDO;
+                streetThemeCheckboxContainer.style.opacity = '0.5';
+                streetThemeCheckboxContainer.style.pointerEvents = 'none';
             }
-            
-            localStorage.setItem(ACTIVE_MAP_LAYER_KEY, finalLayerNameForStorage);
-            markCacheAsDirty();
 
-            this._map.setStyle(finalStyleUrl, { diff: false });
-            
-            this._map.once('style.load', async () => {
+            if (navigationMapInstance) {
+                navigationMapInstance.setStyle(finalStyleUrl);
+                localStorage.setItem(ACTIVE_MAP_LAYER_KEY, finalLayerNameForStorage);
                 
-                await loadAndAddMapImages(this._map);
-
-                await configureMapAtmosphere();
-                setMapLighting(this._map);
-                
-                await new Promise(resolve => this._map.once('idle', resolve));
-                
-                await add3DBuildingsLayer(this._map);
-                
-                await reAddCustomMapLayersAndSources(this._map);
-                applyLayerVisibility();
-                plotRemindersOnNavigationMap();
-                displayChargingPointsOnMap();
-                displayAlertsOnMap();
-                renderWaypointMarkers();
-                updateRouteAndCarIconStyle();
-            });
+                // IMPORTANTE: Re-añadir edificios 3D cuando el nuevo estilo termine de cargar
+                navigationMapInstance.once('style.load', () => {
+                    add3DBuildingsLayer(navigationMapInstance);
+                    reAddCustomMapLayersAndSources(navigationMapInstance);
+                    plotRemindersOnNavigationMap();
+                });
+            }
         };
         
         baseMapOptions.forEach(name => {
@@ -5525,7 +5518,7 @@ async function openNavigationMap(isRecovery = false) {
         } else {
             try {
                 const STREET_MAP_THEME_KEY = 'boardinggate_streetMapTheme';
-                let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO";
+                let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE";
 
                 
     console.log("Debug: Intentando inicializar MapLibre...");
@@ -14298,7 +14291,7 @@ function handleProgressiveManeuverZoom(currentStep, distanceToManeuver, carDista
     
     const ZOOM_PEAK_DISTANCE = 50;
     const HOLD_ZOOM_THRESHOLD = 300; // Aumentamos ligeramente para ser más robusto en encadenamientos.
-    const currentMapLayerName = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO").toLowerCase();
+    const currentMapLayerName = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE").toLowerCase();
     const isSatelliteWithLabels = currentMapLayerName.includes("satélite") && currentMapLayerName.includes("calles");
     const MANEUVER_PEAK_ZOOM_LEVEL = Math.min(isSatelliteWithLabels ? 17.5 : 18.5, 19.5);
     
@@ -21616,7 +21609,7 @@ function getRouteStyleProperties() {
     }
     
     const isPitched = navigationMapInstance.getPitch() > 20;
-    const isStreetsView = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO") === 'CALLES';
+    const isStreetsView = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE") === 'CALLES';
 
     const mainWidthExpression = isPitched 
         ? ['interpolate', ['linear'], ['zoom'], 13.49, 7, 13.5, 16] 
