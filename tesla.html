@@ -10349,11 +10349,6 @@ function startGpsWatching() {
             };
 
             navigationCurrentLocation = coordsForUpdate;
-            
-            // MOVER MAPA EN TIEMPO REAL
-            if (typeof onGpsUpdate === 'function') onGpsUpdate(coordsForUpdate);
-            if (typeof updateCurrentAddress === 'function') updateCurrentAddress(coordsForUpdate.latitude, coordsForUpdate.longitude);
-
             updateInitialUserPosition(coordsForUpdate, navigationMapInstance);
 
             if (!isNavigating && navigationWaypoints.length >= 2) {
@@ -10428,6 +10423,12 @@ function processSimulatedGpsPosition(forceExactPosition = false) {
         lastPositionForStats = { ...navigationCurrentLocation };
     }
     
+    // Asegurar que la cámara sigue la posición simulada
+    if (!navigationFollowUser) {
+        navigationFollowUser = true;
+        shouldCenterOnUser = true;
+    }
+
     updateInitialUserPosition(navigationCurrentLocation, navigationMapInstance);
 
     if (!automatedSimulationIntervalId) { 
@@ -21656,11 +21657,6 @@ function reactivateRealGpsAfterSimulation() {
                      altitude: position.coords.altitude, speed: position.coords.speed
                 };
                 navigationCurrentLocation = coordsForUpdate;
-                
-                // MOVER MAPA EN TIEMPO REAL
-                if (typeof onGpsUpdate === 'function') onGpsUpdate(coordsForUpdate);
-                if (typeof updateCurrentAddress === 'function') updateCurrentAddress(coordsForUpdate.latitude, coordsForUpdate.longitude);
-
                 updateInitialUserPosition(coordsForUpdate, navigationMapInstance);
                  if(isNavigating && navigationCurrentRouteData && navigationCurrentRouteData.routes[0]) {
                     const routeForDistCalc = navigationCurrentRouteData.routes[0];
