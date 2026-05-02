@@ -1423,8 +1423,6 @@ function actualizarContadorPdrs(count) {
 // NOMBRE: add3DBuildingsLayer (VERSIÓN CORREGIDA Y ROBUSTA CON COALESCE)
 async function add3DBuildingsLayer(mapInstance) {
     if (!mapInstance) return;
-    
-    // Si el estilo no ha cargado, esperamos un poco y reintentamos
     if (!mapInstance.isStyleLoaded()) {
         setTimeout(() => add3DBuildingsLayer(mapInstance), 1000);
         return;
@@ -1433,26 +1431,33 @@ async function add3DBuildingsLayer(mapInstance) {
     const layerId = '3d-buildings';
     if (mapInstance.getLayer(layerId)) return;
 
-    let sourceId = 'openmaptiles';
-    if (!mapInstance.getSource('openmaptiles')) {
-        if (mapInstance.getSource('composite')) {
-            sourceId = 'composite';
-        } else {
-            // Si no hay fuente, esperamos a que el estilo se asiente
-            setTimeout(() => add3DBuildingsLayer(mapInstance), 1000);
-            return;
-        }
-    }
-    
-    const layers = mapInstance.getStyle().layers;
-    let firstSymbolId;
-    for (const layer of layers) {
-        if (layer.type === 'symbol') {
-            firstSymbolId = layer.id;
-            break;
+    // Si estamos en un mapa de satélite (Google/Esri), no tendremos fuente de edificios.
+    // La añadimos dinámicamente desde OpenFreeMap.
+    if (!mapInstance.getSource('openmaptiles') && !mapInstance.getSource('composite')) {
+        console.log("Añadiendo fuente de edificios de OpenFreeMap sobre el satélite...");
+        try {
+            mapInstance.addSource('openmaptiles', {
+                type: 'vector',
+                url: 'https://tiles.openfreemap.org/tiles/v1/openmaptiles.json' 
+            });
+        } catch (e) {
+            // Si falla el JSON, intentamos la URL directa de las teselas
+            try {
+                mapInstance.addSource('openmaptiles', {
+                    type: 'vector',
+                    tiles: ['https://tiles.openfreemap.org/tiles/{z}/{x}/{y}.pbf'],
+                    minzoom: 0,
+                    maxzoom: 14
+                });
+            } catch (e2) {
+                console.error("No se pudo añadir la fuente de edificios:", e2);
+                return;
+            }
         }
     }
 
+    let sourceId = mapInstance.getSource('openmaptiles') ? 'openmaptiles' : 'composite';
+    
     try {
         mapInstance.addLayer({
             'id': layerId,
@@ -1461,19 +1466,14 @@ async function add3DBuildingsLayer(mapInstance) {
             'type': 'fill-extrusion',
             'minzoom': 14,
             'paint': {
-                'fill-extrusion-color': '#fcc2a4',
-                'fill-extrusion-height': [
-                    'interpolate', ['linear'], ['zoom'],
-                    14, 0,
-                    14.05, ['coalesce', ['get', 'render_height'], ['get', 'height'], 20]
-                ],
+                'fill-extrusion-color': '#ffffff',
+                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 20],
                 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
-                'fill-extrusion-opacity': 0.8
+                'fill-extrusion-opacity': 0.6 // Un poco de transparencia para ver el satélite debajo
             }
-        }, firstSymbolId);
-        console.log("Capa 3D inyectada con éxito.");
+        });
+        console.log("Edificios 3D inyectados sobre el mapa actual.");
     } catch (e) {
-        console.warn("Reintentando inyección 3D...");
         setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
     }
 }
@@ -2713,10 +2713,8 @@ class MapSettingsPanel {
                 localStorage.setItem(ACTIVE_MAP_LAYER_KEY, finalLayerNameForStorage);
                 
                 navigationMapInstance.once('style.load', () => {
-                    // Solo intentamos 3D en capas vectoriales (Calles/Relieve)
-                    if (baseStyle === 'CALLES' || baseStyle === 'RELIEVE') {
-                        add3DBuildingsLayer(navigationMapInstance);
-                    }
+                    // Intentar añadir 3D en cualquier modo seleccionado
+                    add3DBuildingsLayer(navigationMapInstance);
                     reAddCustomMapLayersAndSources(navigationMapInstance);
                     plotRemindersOnNavigationMap();
                 });
