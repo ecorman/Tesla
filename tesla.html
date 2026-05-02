@@ -5592,6 +5592,14 @@ async function openNavigationMap(isRecovery = false) {
                     maxzoom: 19
                 });
 
+                navigationMapInstance.on('style.load', () => {
+                    console.log("Style loaded, adding 3D buildings...");
+                    add3DBuildingsLayer(navigationMapInstance);
+                    reAddCustomMapLayersAndSources(navigationMapInstance);
+                    plotRemindersOnNavigationMap();
+                });
+
+
                 if (!isRecovery) { setMapImmersiveMode(true); }
                 
                 incrementMapSessionCount();
@@ -5718,7 +5726,12 @@ async function openNavigationMap(isRecovery = false) {
                         const initialViewOptions = { center: [currentPos.longitude, currentPos.latitude], zoom: 15.5, essential: true };
                         const mode = mapViewMode; if (mode === 'heading' || mode === 'perspective' || mode === 'relief') { initialViewOptions.bearing = currentPos.heading || 0; } if (mode === 'perspective' || mode === 'relief') { initialViewOptions.pitch = mapPitchValue; } else { initialViewOptions.pitch = 0; }
                         initialViewOptions.pitch = 0;
-                        if (!isRecovery) { console.log("Skipping globe spin for faster load"); navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
+                        if (!isRecovery) { 
+                        console.log("Jumping directly to initial position");
+                        navigationMapInstance.jumpTo(initialViewOptions);
+                        // Forzar inyección 3D tras el salto
+                        add3DBuildingsLayer(navigationMapInstance);
+ navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
                         markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); markerAnimationState.currentMapPitch = navigationMapInstance.getPitch(); markerAnimationState.currentMapBearing = navigationMapInstance.getBearing(); markerAnimationState.targetMapCenter = navigationMapInstance.getCenter(); markerAnimationState.targetMapZoom = navigationMapInstance.getZoom(); markerAnimationState.targetMapPitch = navigationMapInstance.getPitch(); markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
                         
                         updateInitialUserPosition(currentPos, navigationMapInstance); 
