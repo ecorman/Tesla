@@ -5683,6 +5683,7 @@ async function openNavigationMap(isRecovery = false) {
                         navigationMapInstance.on('touchstart', handlePressStart);
                         
                         const handleManualInteraction = () => {
+                            if (isFlying) return; // Ignorar si es un movimiento automático (flyTo)
                             clearLongPressTimer();
                             triggerManualMapInteraction();
                         };
@@ -17365,7 +17366,14 @@ function handleLocateMeClick(isExplicitAction = false) {
     clearLocateMeReactivationTimer();
     isManualZoomActive = false;
     
-    navigationFollowUser = !navigationFollowUser;
+    // Si es una pulsación del botón, siempre queremos ACTIVAR el seguimiento y centrar
+    if (isExplicitAction) {
+        navigationFollowUser = true;
+    } else {
+        // Si no es explícito (ej: reactivación automática), toggle normal o mantener estado
+        navigationFollowUser = !navigationFollowUser;
+    }
+    
     shouldCenterOnUser = navigationFollowUser;
 
     if (navigationFollowUser) {
