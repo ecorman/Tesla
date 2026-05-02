@@ -730,10 +730,16 @@
  
     
     
+    
     const MAP_STYLES = {
         "RELIEVE": "https://tiles.openfreemap.org/styles/liberty",
         "CALLES_LIGHT": "https://tiles.openfreemap.org/styles/bright",
         "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark",
+        "GOOGLE_MAP": {
+            "version": 8,
+            "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"], "tileSize": 256 } },
+            "layers": [{ "id": "google-tiles", "type": "raster", "source": "google-tiles", "minzoom": 0, "maxzoom": 22 }]
+        },
         "GOOGLE_SAT": {
             "version": 8,
             "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 } },
@@ -2658,7 +2664,7 @@ class MapSettingsPanel {
         const layerSelectorContainer = document.createElement('div');
         layerSelectorContainer.className = 'map-layer-selector';
 
-        const baseMapOptions = ["CALLES", "RELIEVE", "GOOGLE_SAT", "ESRI_SAT"];
+        const baseMapOptions = ["CALLES", "RELIEVE", "GOOGLE_MAP", "GOOGLE_SAT", "ESRI_SAT"];
         let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE";
         
         if (MAP_LEGACY_NAME_MAP[savedLayerName]) {
