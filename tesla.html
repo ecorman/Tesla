@@ -24,7 +24,7 @@
     <meta name="twitter:image" content="./th.jpeg">
     <meta name="twitter:image:alt" content="Logo de BoardingGate para Tesla">
     <meta name="theme-color" content="#ABAB99">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BoardingGate">
     <link rel="apple-touch-icon" href="./th.jpeg"> 
@@ -174,11 +174,8 @@
               var sc_project=13126275;
               var sc_invisible=0;
               var sc_security="0fc568cc";
-              var scJsHost = "https://";
-              document.write("<sc"+"ript type='text/javascript' src='" +
-              scJsHost+
-              "statcounter.com/counter/counter.js'>"+"<"+"/script>");
             </script>
+            <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
             <noscript><div class="statcounter"><a title="Web Analytics"
             href="https://statcounter.com/" target="_blank"><img
             class="statcounter"
@@ -871,8 +868,8 @@
 const originalBookmarks = [ 
         { name: "YouTube", url: "https://www.youtube.com" }, 
         { name: "Google", url: "https://www.google.com" }, 
-        { name: "GDrive", url: "https://drive.google.com", favicon: "./PNG/IMG_4172.png" }, 
-        { name: "GMail", url: "https://mail.google.com/mail/mu/mp/603/#tl/Recibidos", favicon: "./PNG/IMG_4171.png"}, 
+        { name: "GDrive", url: "https://drive.google.com" }, 
+        { name: "GMail", url: "https://mail.google.com/mail/mu/mp/603/#tl/Recibidos" }, 
         { name: "Google Fotos", url: "https://photos.google.com" }, 
         { name: "iCloud", url: "https://www.icloud.com/"}, 
         { name: "ABRP", url: "https://abetterrouteplanner.com" }, 
@@ -19467,13 +19464,13 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
     async function updateVersion() { try { const lmd = await getLastModifiedDate(); const v = formatVersionDate(lmd); const el = document.getElementById('version'); if (el) el.textContent = `versión: ${v}`; } catch (e) { const el = document.getElementById('version'); if (el) el.textContent = 'versión: error'; } }
     
     // ===================================================================
-    const getFaviconUrl = (bookmarkData) => { try { const urlToParse = bookmarkData?.url || ''; const customFavicon = bookmarkData?.favicon; if (customFavicon && (customFavicon.startsWith('data:image') || customFavicon.startsWith('http') || customFavicon.startsWith('./'))) return customFavicon; if (urlToParse) { const domain = new URL(urlToParse).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } } catch (e) { } return 'https://via.placeholder.com/64'; };
+    const getFaviconUrl = (bookmarkData) => { try { const urlToParse = bookmarkData?.url || ''; const customFavicon = bookmarkData?.favicon; if (customFavicon && (customFavicon.startsWith('data:image') || customFavicon.startsWith('http') || customFavicon.startsWith('./'))) return customFavicon; if (urlToParse) { const domain = new URL(urlToParse).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } } catch (e) { } return 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23444"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20"%3EB%3C/text%3E%3C/svg%3E'; };
     
     // ===================================================================
     // NOMBRE: renderGrid
     function renderGrid() { grid.innerHTML = ''; cellElements = []; Array.from({ length: TOTAL_CELLS }).forEach((_, index) => { const cellContainer = document.createElement('div'); cellContainer.classList.add('grid-cell'); cellContainer.dataset.index = index; const bookmarkData = currentBookmarks[index]; const section = getSectionForIndex(index); const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; if (bookmarkData) { const link = document.createElement('a'); link.className = 'bookmark-item'; link.title = bookmarkData.name; link.style.backgroundColor = bgColor; link.href = bookmarkData.url || "#"; link.dataset.index = index;
         if (isKeywordAssignmentMode || (bookmarkData.name && bookmarkData.name === "Inicio Tesla") || !bookmarkData.url || bookmarkData.url === '#') { } else { link.target = "_blank"; link.rel = "noopener noreferrer"; }
-        const img = document.createElement('img'); img.src = getFaviconUrl(bookmarkData); img.alt = `Favicon ${bookmarkData.name}`; img.loading = "lazy"; img.onerror = function() { this.src = 'https://via.placeholder.com/64'; this.onerror = null; }; if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); const nameSpan = document.createElement('span'); nameSpan.className = 'bookmark-name'; nameSpan.textContent = bookmarkData.name; link.appendChild(img); link.appendChild(nameSpan); cellContainer.appendChild(link); } else { cellContainer.classList.add('empty-slot'); const addIcon = document.createElement('span'); addIcon.textContent = '+'; cellContainer.appendChild(addIcon); cellContainer.style.backgroundColor = bgColor; }
+        const img = document.createElement('img'); img.src = getFaviconUrl(bookmarkData); img.alt = `Favicon ${bookmarkData.name}`; img.loading = "lazy"; img.onerror = function() { this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23444"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20"%3EB%3C/text%3E%3C/svg%3E'; this.onerror = null; }; if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); const nameSpan = document.createElement('span'); nameSpan.className = 'bookmark-name'; nameSpan.textContent = bookmarkData.name; link.appendChild(img); link.appendChild(nameSpan); cellContainer.appendChild(link); } else { cellContainer.classList.add('empty-slot'); const addIcon = document.createElement('span'); addIcon.textContent = '+'; cellContainer.appendChild(addIcon); cellContainer.style.backgroundColor = bgColor; }
         cellContainer.addEventListener('click', handleGridCellClick);
         if (isEditMode) {
              cellContainer.draggable = true;
