@@ -5549,7 +5549,7 @@ async function openNavigationMap(isRecovery = false) {
                     initialStyle = (streetTheme === 'light') ? MAP_STYLES.CALLES_LIGHT : MAP_STYLES.CALLES_DARK;
                 } else {
                     const finalLayerName = MAP_LEGACY_NAME_MAP[savedLayerName] || savedLayerName;
-                    initialStyle = MAP_STYLES[finalLayerName] || MAP_STYLES["HÍBRIDO"];
+                    initialStyle = MAP_STYLES[finalLayerName] || MAP_STYLES["HIBRIDO"];
                 }
                                
                 if (!isRecovery) { showToast("INICIALIZANDO MAPA...", "info", 0, false, "map-init-toast"); }
@@ -5564,7 +5564,7 @@ async function openNavigationMap(isRecovery = false) {
                     maxTileCacheSize: 50,
                     antialias: false,
                     preserveDrawingBuffer: true,
-                    accessToken: maplibregl.accessToken,
+                    
                     minzoom: 2,
                     maxzoom: 19
                 });
@@ -5595,7 +5595,7 @@ async function openNavigationMap(isRecovery = false) {
                     navigationMapInstance._interactionListenersAttached = true; 
                 }
 
-                navigationMapInstance.on('error', (e) => { if (e.error && e.error.message.includes("Token")) { showToast("Error de Token de Mapbox...", "error", 10000); } });
+                navigationMapInstance.on('error', (e) => { if (e.error && e.error.message.includes("Token")) { showToast("Error de servidor de mapas...", "error", 10000); } });
                 
                 navigationMapInstance.on('load', async function() {
                     try {
