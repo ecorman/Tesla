@@ -9941,7 +9941,7 @@ function handleDragStartReorder(e) {
 //===================================================================
 // NOMBRE: updateInitialUserPosition (MODIFICADA CON ROTACIÓN ROBUSTA EN MINIMAPA)
 function updateInitialUserPosition(coords, mapInstanceToUse) {
-    if (isRecalculatingRoute || !mapInstanceToUse || !coords) { console.log('[GPS] updateInitialUserPosition BLOCKED - isRecalc:', isRecalculatingRoute, 'map:', !!mapInstanceToUse, 'coords:', !!coords); return; }
+    if (isRecalculatingRoute || !mapInstanceToUse || !coords) return;
 
     gpsTickCounter++;
 
@@ -10014,7 +10014,6 @@ function updateInitialUserPosition(coords, mapInstanceToUse) {
 // NOMBRE: updateVehicleMarker 
 function updateVehicleMarker(coords, mapInstanceToUse) {
     lastGpsUpdateTime = Date.now();
-    console.log('[GPS] updateVehicleMarker called - marker exists:', !!initialUserLocationMarker, 'follow:', navigationFollowUser, 'shouldCenter:', shouldCenterOnUser);
     const lngLat = new maplibregl.LngLat(coords.longitude, coords.latitude);
     initialUserLocationMarkerLat = coords.latitude;
     initialUserLocationMarkerLng = coords.longitude;
@@ -10059,6 +10058,10 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
     
     if (!markerAnimationState.currentLngLat) {
         markerAnimationState.currentLngLat = lngLat;
+    }
+    // Inicializar currentMapCenter si es null para evitar crash en animateMarkerAndMap
+    if (!markerAnimationState.currentMapCenter) {
+        markerAnimationState.currentMapCenter = { lng: lngLat.lng, lat: lngLat.lat };
     }
    
     markerAnimationState.targetLngLat = lngLat;
@@ -10404,7 +10407,6 @@ function startGpsWatching() {
 function processSimulatedGpsPosition(forceExactPosition = false) {
     if (!isSimulatingGpsLocation || !simulatedGpsLocation) return;
     navigationCurrentLocation = { ...simulatedGpsLocation };
-    console.log('[SIM] processSimulatedGpsPosition - lat:', navigationCurrentLocation.latitude.toFixed(4), 'marker:', initialUserLocationMarker ? 'OK' : 'NULL', 'map:', navigationMapInstance ? 'OK' : 'NULL', 'isRecalc:', isRecalculatingRoute);
 
     const isTripActive = isNavigating || isFreeDriveActive;
     if (isTripActive && lastPositionForStats) {
@@ -13155,6 +13157,7 @@ function updateNavigationProgressDisplay(route, carDistanceAlongTheRoute = 0) {
     
 //==================================================================
 function animateMarkerAndMap(timestamp) {
+    try {
     const now = timestamp || performance.now();
     if (now - lastMapUpdateTime < MAP_UPDATE_INTERVAL_MS) {
         markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
@@ -13201,6 +13204,9 @@ function animateMarkerAndMap(timestamp) {
         if (markerAnimationState.currentMapCenter && markerAnimationState.targetLngLat) {
             markerAnimationState.currentMapCenter.lng += (markerAnimationState.targetLngLat.lng - markerAnimationState.currentMapCenter.lng) * posLerpFactor;
             markerAnimationState.currentMapCenter.lat += (markerAnimationState.targetLngLat.lat - markerAnimationState.currentMapCenter.lat) * posLerpFactor;
+        } else if (markerAnimationState.targetLngLat) {
+            // Inicializar currentMapCenter si es null
+            markerAnimationState.currentMapCenter = { lng: markerAnimationState.targetLngLat.lng, lat: markerAnimationState.targetLngLat.lat };
         }
 
         if (markerAnimationState.currentMapAltitude !== null && markerAnimationState.targetMapAltitude !== null) {
@@ -13220,50 +13226,54 @@ function animateMarkerAndMap(timestamp) {
         markerAnimationState.currentMapOffsetX += (markerAnimationState.targetMapOffsetX - markerAnimationState.currentMapOffsetX) * zoomPitchLerpFactor;
         markerAnimationState.currentMapOffsetY += (markerAnimationState.targetMapOffsetY - markerAnimationState.currentMapOffsetY) * zoomPitchLerpFactor;
 
-        let offsetXToUse = markerAnimationState.currentMapOffsetX;
-        let offsetYToUse = markerAnimationState.currentMapOffsetY;
+        // Solo calcular offset de cámara si currentMapCenter está inicializado
+        if (markerAnimationState.currentMapCenter) {
+            let offsetXToUse = markerAnimationState.currentMapOffsetX;
+            let offsetYToUse = markerAnimationState.currentMapOffsetY;
 
-        const viewModes = { '3D RELIEVE': { mode: 'relief' } };
-        const savedViewMode = localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
-        if (savedViewMode === viewModes['3D RELIEVE'].mode) {
-            offsetXToUse = Math.max(-10, Math.min(offsetXToUse, 10));
-            offsetYToUse = Math.max(-20, Math.min(offsetYToUse, 20));
+            const savedViewMode = localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
+            if (savedViewMode === 'relief') {
+                offsetXToUse = Math.max(-10, Math.min(offsetXToUse, 10));
+                offsetYToUse = Math.max(-20, Math.min(offsetYToUse, 20));
+            }
+
+            const canvas = navigationMapInstance.getCanvas();
+            const pitchInRadians = (markerAnimationState.currentMapPitch * Math.PI) / 180;
+            const cameraHeightAboveCar = 150; 
+            
+            const verticalOffsetFactor = offsetYToUse / 100;
+            const groundDistanceOffset = (cameraHeightAboveCar * Math.tan(pitchInRadians)) * verticalOffsetFactor * -1;
+
+            const metersPerPixel = 156543.03 * Math.cos(markerAnimationState.currentMapCenter.lat * Math.PI / 180) / Math.pow(2, markerAnimationState.currentMapZoom);
+            const pixelOffsetX = canvas.clientWidth * (offsetXToUse / 100);
+            const horizontalDistanceOffset = metersPerPixel * pixelOffsetX * -1;
+
+            const totalDistance = Math.sqrt(Math.pow(groundDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
+            const angleAdjustment = Math.atan2(horizontalDistanceOffset, groundDistanceOffset) * (180 / Math.PI);
+
+            _turfCarPointForAnimation.geometry.coordinates[0] = markerAnimationState.currentMapCenter.lng;
+            _turfCarPointForAnimation.geometry.coordinates[1] = markerAnimationState.currentMapCenter.lat;
+            const finalBearingForOffset = markerAnimationState.currentMapBearing - 180 + angleAdjustment;
+            const cameraAnchorPoint = turf.destination(_turfCarPointForAnimation, totalDistance / 1000, finalBearingForOffset, { units: 'kilometers' });
+            
+            const cameraOptions = {
+                center: cameraAnchorPoint.geometry.coordinates,
+                zoom: markerAnimationState.currentMapZoom,
+                bearing: markerAnimationState.currentMapBearing,
+                pitch: markerAnimationState.currentMapPitch,
+                offset: [0, 0]
+            };
+            
+            if (markerAnimationState.currentMapAltitude !== null && !isNaN(markerAnimationState.currentMapAltitude)) {
+                cameraOptions.altitude = markerAnimationState.currentMapAltitude;
+            }
+
+            navigationMapInstance.jumpTo(cameraOptions);
         }
-
-        const canvas = navigationMapInstance.getCanvas();
-        const pitchInRadians = (markerAnimationState.currentMapPitch * Math.PI) / 180;
-        const cameraHeightAboveCar = 150; 
-        
-        const verticalOffsetFactor = offsetYToUse / 100;
-        const groundDistanceOffset = (cameraHeightAboveCar * Math.tan(pitchInRadians)) * verticalOffsetFactor * -1; // Hacia atrás
-
-        const metersPerPixel = 156543.03 * Math.cos(markerAnimationState.currentMapCenter.lat * Math.PI / 180) / Math.pow(2, markerAnimationState.currentMapZoom);
-        const pixelOffsetX = canvas.clientWidth * (offsetXToUse / 100);
-        const horizontalDistanceOffset = metersPerPixel * pixelOffsetX * -1; // -1 para que el anclaje se mueva en dirección opuesta al coche
-
-        const totalDistance = Math.sqrt(Math.pow(groundDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
-        const angleAdjustment = Math.atan2(horizontalDistanceOffset, groundDistanceOffset) * (180 / Math.PI); // Ángulo relativo al vector "hacia atrás"
-
-        _turfCarPointForAnimation.geometry.coordinates[0] = markerAnimationState.currentMapCenter.lng;
-        _turfCarPointForAnimation.geometry.coordinates[1] = markerAnimationState.currentMapCenter.lat;
-        const finalBearingForOffset = markerAnimationState.currentMapBearing - 180 + angleAdjustment;
-        const cameraAnchorPoint = turf.destination(_turfCarPointForAnimation, totalDistance / 1000, finalBearingForOffset, { units: 'kilometers' });
-        
-        const cameraOptions = {
-            center: cameraAnchorPoint.geometry.coordinates,
-            zoom: markerAnimationState.currentMapZoom,
-            bearing: markerAnimationState.currentMapBearing,
-            pitch: markerAnimationState.currentMapPitch,
-            offset: [0, 0]
-        };
-        
-        if (markerAnimationState.currentMapAltitude !== null && !isNaN(markerAnimationState.currentMapAltitude)) {
-            cameraOptions.altitude = markerAnimationState.currentMapAltitude;
-        }
-
-        navigationMapInstance.jumpTo(cameraOptions);
     }
-    
+    } catch(e) {
+        console.warn('[animateMarkerAndMap] Error caught, restarting loop:', e.message);
+    }
     markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
 }
 
