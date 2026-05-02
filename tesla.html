@@ -2923,7 +2923,7 @@ function handleZoomToggleButtonClick(button) {
     } else {
         if (navigationCurrentLocation) {
             
-    navigationFollowUser = true;
+    navigationFollowUser = true; updateLocateMeButtonsUI();
     shouldCenterOnUser = true;
     if (currentPos) {
         navigationMapInstance.jumpTo({
@@ -17817,29 +17817,25 @@ async function incrementUserCount() {
 // NOMBRE: getGpsWithRetries 
 async function getGpsWithRetries() {
     const toastId = "gps-locate-toast";
-    showToast("LOCALIZANDO VEHÍCULO...", "info", 0, false, toastId);
+    showToast("LOCALIZANDO VEHÍCULO...", "info", 2000, false, toastId);
     
-    let retries = 0;
-    const MAX_RETRIES = 10; 
-
-    while (retries < MAX_RETRIES) {
-        try {
-            const coords = await getCurrentLocationAsync();
-            const loadingToast = document.getElementById(toastId);
-            if (loadingToast) loadingToast.remove();
-            return coords;
-        } catch (error) {
-            retries++;
-            const message = `No se pudo obtener la ubicación. Reintentando en 3s... (${retries}/${MAX_RETRIES})`;
-            showToast(message, "warning", 0, false, toastId);
-            await new Promise(resolve => setTimeout(resolve, 3000));
-        }
+    try {
+        // Intentar obtener ubicación con un tiempo límite de 2 segundos
+        const coords = await Promise.race([
+            getCurrentLocationAsync(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000))
+        ]);
+        return coords;
+    } catch (error) {
+        console.warn("GPS inicial fallido o lento, usando ubicación por defecto.");
+        // Devolvemos una posición por defecto (Madrid, España) para que la UI no se bloquee
+        return {
+            latitude: 40.4168,
+            longitude: -3.7038,
+            heading: 0,
+            speed: 0
+        };
     }
-
-    const loadingToast = document.getElementById(toastId);
-    if (loadingToast) loadingToast.remove();
-    showToast("Fallo al obtener la ubicación tras varios intentos. Revise los permisos.", "error");
-    throw new Error("Fallo al obtener la ubicación GPS tras múltiples reintentos.");
 }
 // ===================================================================
 // NOMBRE: getInitialGpsPositionForMap 
