@@ -1459,7 +1459,7 @@ async function add3DBuildingsLayer(mapInstance) {
         }, firstSymbolId);
         console.log("Capa 3D de OpenFreeMap añadida correctamente.");
     } catch (e) {
-        console.error("Error al añadir capa 3D:", e);
+        console.error("Error al añadir capa 3D:", e); setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
     }
 }
 
@@ -2742,21 +2742,50 @@ class MapSettingsPanel {
             const label = document.createElement('label'); const input = document.createElement('input');
             input.type = 'radio'; input.name = 'map-view-selector'; const modeDetails = viewModes[name];
             input.value = modeDetails.mode; if (modeDetails.mode === savedViewMode) input.checked = true;
-            input.onchange = async () => {
-                if (!input.checked) return; isPitchManuallyFlattened = false; 
-                const selectedModeValue = input.value;
-                const newModeDetails = Object.values(viewModes).find(m => m.mode === selectedModeValue);
-                const newModeName = Object.keys(viewModes).find(key => viewModes[key].mode === selectedModeValue);
-                if (newModeDetails) {
-                    mapViewMode = newModeDetails.mode; localStorage.setItem(MAP_VIEW_MODE_KEY, mapViewMode); markCacheAsDirty(); showToast(`Modo Vista: ${newModeName}`, 'info');
-                    await configureMapAtmosphere();
-                    const easeOptions = { bearing: newModeDetails.bearing };
-                    if (navigationCurrentLocation && newModeDetails.bearing === null && navigationCurrentLocation.heading !== null) { easeOptions.bearing = navigationCurrentLocation.heading; }
-                    if (newModeDetails.mode === 'perspective' || newModeDetails.mode === 'relief') { easeOptions.pitch = mapPitchValue; } else { easeOptions.pitch = newModeDetails.pitch; }
-                    this._map.easeTo(easeOptions);
-                    if (navigationCurrentLocation) { updateInitialUserPosition(navigationCurrentLocation, this._map); }
-                }
-            };
+            
+                input.onchange = async () => {
+                    if (!input.checked) return; 
+                    isPitchManuallyFlattened = false; 
+                    const selectedModeValue = input.value;
+                    const newModeDetails = viewModes[name];
+                    const newModeName = name;
+                    
+                    if (newModeDetails) {
+                        mapViewMode = newModeDetails.mode; 
+                        localStorage.setItem(MAP_VIEW_MODE_KEY, mapViewMode); 
+                        markCacheAsDirty(); 
+                        showToast(`Modo Vista: ${newModeName}`, 'info');
+                        
+                        await configureMapAtmosphere();
+                        
+                        // Calculamos el rumbo (bearing) de forma segura
+                        let targetBearing = 0;
+                        if (newModeDetails.mode === 'static') {
+                            targetBearing = 0;
+                        } else if (navigationCurrentLocation && navigationCurrentLocation.heading !== null) {
+                            targetBearing = navigationCurrentLocation.heading;
+                        } else if (typeof currentVehicleHeading !== 'undefined') {
+                            targetBearing = currentVehicleHeading;
+                        }
+                        
+                        let targetPitch = newModeDetails.pitch;
+                        if (newModeDetails.mode === 'perspective' || newModeDetails.mode === 'relief') {
+                            targetPitch = mapPitchValue || 60;
+                        }
+
+                        this._map.easeTo({
+                            bearing: targetBearing,
+                            pitch: targetPitch,
+                            duration: 1000,
+                            essential: true
+                        });
+                        
+                        // Forzar actualización visual
+                        if (typeof updateVehicleIconPerspective === 'function') {
+                            updateVehicleIconPerspective();
+                        }
+                    }
+                };
             label.appendChild(input); label.appendChild(document.createTextNode(` ${name}`)); viewSelector.appendChild(label);
         });
 
