@@ -2910,7 +2910,18 @@ function handleZoomToggleButtonClick(button) {
 
     } else {
         if (navigationCurrentLocation) {
-            navigationFollowUser = true;
+            
+    navigationFollowUser = true;
+    shouldCenterOnUser = true;
+    if (currentPos) {
+        navigationMapInstance.jumpTo({
+            center: [currentPos.longitude, currentPos.latitude],
+            zoom: 15.5,
+            essential: true
+        });
+    }
+
+                        navigationFollowUser = true;
             shouldCenterOnUser = true;
             clearLocateMeReactivationTimer();
             updateLocateMeButtonsUI();
@@ -5659,7 +5670,7 @@ async function openNavigationMap(isRecovery = false) {
                         await loadAndAddMapImages(navigationMapInstance);
                         await configureMapAtmosphere();
                         
-                        await new Promise(resolve => navigationMapInstance.once('idle', resolve));
+                        // await wait(500);
                         await add3DBuildingsLayer(navigationMapInstance);
                         
                         await wait(300);
@@ -5695,7 +5706,7 @@ async function openNavigationMap(isRecovery = false) {
                         const initialViewOptions = { center: [currentPos.longitude, currentPos.latitude], zoom: 15.5, essential: true };
                         const mode = mapViewMode; if (mode === 'heading' || mode === 'perspective' || mode === 'relief') { initialViewOptions.bearing = currentPos.heading || 0; } if (mode === 'perspective' || mode === 'relief') { initialViewOptions.pitch = mapPitchValue; } else { initialViewOptions.pitch = 0; }
                         initialViewOptions.pitch = 0;
-                        if (!isRecovery) { const globeSpinPromise = new Promise(resolve => { const startCoords = { lat: 30.3715, lng: -97.1903 }; const endCoords = { lat: 40.3748, lng: -3.7354 }; const duration = 1800; const totalLngChange = -(360 - (endCoords.lng - startCoords.lng)); const totalLatChange = endCoords.lat - startCoords.lat; const startTimestamp = performance.now(); function animateSpin(timestamp) { const progress = Math.min((timestamp - startTimestamp) / duration, 1); const easedProgress = 1 - Math.pow(1 - progress, 3); navigationMapInstance.setCenter([startCoords.lng + (totalLngChange * easedProgress), startCoords.lat + (totalLatChange * easedProgress)]); if (progress < 1) { requestAnimationFrame(animateSpin); } else { navigationMapInstance.setCenter([endCoords.lng, endCoords.lat]); resolve(); } } requestAnimationFrame(animateSpin); }); await globeSpinPromise; navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
+                        if (!isRecovery) { console.log("Skipping globe spin for faster load"); navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
                         markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); markerAnimationState.currentMapPitch = navigationMapInstance.getPitch(); markerAnimationState.currentMapBearing = navigationMapInstance.getBearing(); markerAnimationState.targetMapCenter = navigationMapInstance.getCenter(); markerAnimationState.targetMapZoom = navigationMapInstance.getZoom(); markerAnimationState.targetMapPitch = navigationMapInstance.getPitch(); markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
                         
                         updateInitialUserPosition(currentPos, navigationMapInstance); 
