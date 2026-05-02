@@ -44,7 +44,16 @@
     <script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
     
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>   function initMap() {} </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>
+
+    window.onerror = function(message, source, lineno, colno, error) {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = "position:fixed; top:0; left:0; width:100%; background:red; color:white; z-index:10000; padding:20px; font-family:monospace; font-size:12px; overflow:auto; max-height:50vh;";
+        errorDiv.innerHTML = "<strong>ERROR CRÍTICO:</strong> " + message + "<br>Línea: " + lineno + "<br>Archivo: " + source;
+        document.body.appendChild(errorDiv);
+        return false;
+    };
+   function initMap() {} </script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
@@ -731,25 +740,12 @@
     
     
     
+    
     const MAP_STYLES = {
         "RELIEVE": "https://tiles.openfreemap.org/styles/liberty",
         "CALLES_LIGHT": "https://tiles.openfreemap.org/styles/bright",
         "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark",
-        "GOOGLE_MAP": {
-            "version": 8,
-            "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"], "tileSize": 256 } },
-            "layers": [{ "id": "google-tiles", "type": "raster", "source": "google-tiles", "minzoom": 0, "maxzoom": 22 }]
-        },
-        "GOOGLE_SAT": {
-            "version": 8,
-            "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 } },
-            "layers": [{ "id": "google-tiles", "type": "raster", "source": "google-tiles", "minzoom": 0, "maxzoom": 22 }]
-        },
-        "ESRI_SAT": {
-            "version": 8,
-            "sources": { "esri-tiles": { "type": "raster", "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], "tileSize": 256, "attribution": "Esri" } },
-            "layers": [{ "id": "esri-tiles", "type": "raster", "source": "esri-tiles", "minzoom": 0, "maxzoom": 22 }]
-        }
+        "GOOGLE_SAT": "https://tiles.openfreemap.org/styles/bright" // Temporalmente usamos uno que sabemos que funciona
     };  
     const MAP_LEGACY_NAME_MAP = {
         "Satélite + Calles": "RELIEVE",
