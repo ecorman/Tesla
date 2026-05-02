@@ -1429,7 +1429,13 @@ async function add3DBuildingsLayer(mapInstance) {
     }
 
     const layerId = '3d-buildings';
-    if (mapInstance.getLayer(layerId)) return;
+    
+    const layerId = '3d-buildings';
+    if (mapInstance.getLayer(layerId)) {
+        try { mapInstance.setLayoutProperty(layerId, 'visibility', 'visible'); } catch(e){}
+        return;
+    }
+
 
     // Si estamos en un mapa de satélite, necesitamos añadir la fuente de OpenFreeMap
     if (!mapInstance.getSource('openmaptiles') && !mapInstance.getSource('composite')) {
@@ -2751,6 +2757,7 @@ class MapSettingsPanel {
             input.type = 'radio'; input.name = 'map-view-selector'; const modeDetails = viewModes[name];
             input.value = modeDetails.mode; if (modeDetails.mode === savedViewMode) input.checked = true;
             
+                
                 input.onchange = async () => {
                     if (!input.checked) return; 
                     isPitchManuallyFlattened = false; 
@@ -2766,7 +2773,16 @@ class MapSettingsPanel {
                         
                         await configureMapAtmosphere();
                         
-                        // Calculamos el rumbo (bearing) de forma segura
+                        // Si activamos un modo 3D, intentamos poner los edificios
+                        if (mapViewMode === 'perspective' || mapViewMode === 'relief') {
+                            add3DBuildingsLayer(this._map);
+                        } else {
+                            // Si pasamos a 2D, podemos ocultar la capa si queremos ahorrar recursos
+                            if (this._map.getLayer('3d-buildings')) {
+                                try { this._map.setLayoutProperty('3d-buildings', 'visibility', 'none'); } catch(e){}
+                            }
+                        }
+
                         let targetBearing = 0;
                         if (newModeDetails.mode === 'static') {
                             targetBearing = 0;
@@ -2788,7 +2804,6 @@ class MapSettingsPanel {
                             essential: true
                         });
                         
-                        // Forzar actualización visual
                         if (typeof updateVehicleIconPerspective === 'function') {
                             updateVehicleIconPerspective();
                         }
