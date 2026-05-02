@@ -5531,6 +5531,18 @@ async function openNavigationMap(isRecovery = false) {
                 const STREET_MAP_THEME_KEY = 'boardinggate_streetMapTheme';
                 let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO";
 
+                
+    console.log("Debug: Intentando inicializar MapLibre...");
+    try {
+        if (typeof maplibregl === 'undefined') {
+            showToast("ERROR: MapLibre no cargado", "error");
+        } else {
+            console.log("Debug: MapLibre detectado correctamente.");
+        }
+    } catch(e) {
+        console.error("Debug Error:", e);
+    }
+
                 let initialStyle;
                 if (savedLayerName === "CALLES") {
                     const streetTheme = localStorage.getItem(STREET_MAP_THEME_KEY) || 'dark';
