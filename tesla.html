@@ -9941,7 +9941,7 @@ function handleDragStartReorder(e) {
 //===================================================================
 // NOMBRE: updateInitialUserPosition (MODIFICADA CON ROTACIÓN ROBUSTA EN MINIMAPA)
 function updateInitialUserPosition(coords, mapInstanceToUse) {
-    if (isRecalculatingRoute || !mapInstanceToUse || !coords) return;
+    if (isRecalculatingRoute || !mapInstanceToUse || !coords) { console.log('[GPS] updateInitialUserPosition BLOCKED - isRecalc:', isRecalculatingRoute, 'map:', !!mapInstanceToUse, 'coords:', !!coords); return; }
 
     gpsTickCounter++;
 
@@ -10014,6 +10014,7 @@ function updateInitialUserPosition(coords, mapInstanceToUse) {
 // NOMBRE: updateVehicleMarker 
 function updateVehicleMarker(coords, mapInstanceToUse) {
     lastGpsUpdateTime = Date.now();
+    console.log('[GPS] updateVehicleMarker called - marker exists:', !!initialUserLocationMarker, 'follow:', navigationFollowUser, 'shouldCenter:', shouldCenterOnUser);
     const lngLat = new maplibregl.LngLat(coords.longitude, coords.latitude);
     initialUserLocationMarkerLat = coords.latitude;
     initialUserLocationMarkerLng = coords.longitude;
@@ -10403,6 +10404,7 @@ function startGpsWatching() {
 function processSimulatedGpsPosition(forceExactPosition = false) {
     if (!isSimulatingGpsLocation || !simulatedGpsLocation) return;
     navigationCurrentLocation = { ...simulatedGpsLocation };
+    console.log('[SIM] processSimulatedGpsPosition - lat:', navigationCurrentLocation.latitude.toFixed(4), 'marker:', initialUserLocationMarker ? 'OK' : 'NULL', 'map:', navigationMapInstance ? 'OK' : 'NULL', 'isRecalc:', isRecalculatingRoute);
 
     const isTripActive = isNavigating || isFreeDriveActive;
     if (isTripActive && lastPositionForStats) {
