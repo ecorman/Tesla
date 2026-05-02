@@ -7160,25 +7160,36 @@ function saveSettings() {
 // ===================================================================
 // NOMBRE: speakNavigationInstruction
 // RESUMEN: Genera audio TTS para las indicaciones si está activado.
+
+let lastSpokenText = "";
 function speakNavigationInstruction(text) {
-    if (!voiceGuidanceEnabled || !voiceSynthesis) return;
+    if (!voiceGuidanceEnabled || !text) return;
+    
+    // Evitar repetir la misma instrucción en menos de 5 segundos
+    if (text === lastSpokenText) return;
+    lastSpokenText = text;
+    setTimeout(() => { lastSpokenText = ""; }, 5000);
 
-    if (voiceSynthesis.speaking) {
-        voiceSynthesis.cancel();
+    console.log("Locución GPS:", text);
+    
+    try {
+        // Usar el servicio de Google Translate para generar el audio (MP3)
+        // tl=es (Español), client=tw-ob (indispensable para que funcione sin API key)
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
+        
+        const audio = new Audio(audioUrl);
+        audio.play().catch(e => {
+            console.warn("El navegador bloqueó el audio automático. Se requiere interacción del usuario primero.", e);
+            // Fallback al sistema nativo por si acaso funciona en este dispositivo
+            if (window.speechSynthesis) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+    } catch (err) {
+        console.error("Error en el motor de voz:", err);
     }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'es-ES'; // Forzar español
-    utterance.rate = 1.05;    // Ligeramente más rápido para naturalidad
-    utterance.volume = 1;
-
-    const voices = voiceSynthesis.getVoices();
-    const googleVoice = voices.find(v => v.lang === 'es-ES' && v.name.includes('Google'));
-    if (googleVoice) {
-        utterance.voice = googleVoice;
-    }
-
-    voiceSynthesis.speak(utterance);
 }
     
  
