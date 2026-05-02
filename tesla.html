@@ -40,8 +40,8 @@
     
 <!-- REVISAR CADA 30 DIAS API DE MAPBOX -->
     
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.19.0/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.19.0/mapbox-gl.js'></script>
+    <link href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css' rel='stylesheet' />
+    <script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
     
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>   function initMap() {} </script>
@@ -711,7 +711,7 @@
 <script>
     
 //ofu mapbox
-                                                                                                                                                                                                    mapboxgl.accessToken = window.APP_CONFIG.keys.mapbox;                                                                                                   
+                                                                                                                                                                                                    // maplibregl no necesita accessToken para OpenFreeMap                                                                                                   
 
     
 //=======================================================        
@@ -728,11 +728,12 @@
         return originalToFixed.call(this, digits);
     };
  
+    
     const MAP_STYLES = {
-        "HÍBRIDO": "mapbox://styles/mapbox/satellite-streets-v12?optimize=true",
-        "SATÉLITE": "mapbox://styles/mapbox/satellite-v9?optimize=true",
-        "CALLES_LIGHT": "mapbox://styles/mapbox/standard?optimize=true",
-        "CALLES_DARK": "mapbox://styles/boardinggate11/cmgp4njxr000l01sd8spdci26?optimize=true"
+        "HIBRIDO": "https://tiles.openfreemap.org/styles/bright",
+        "SATELITE": "https://tiles.openfreemap.org/styles/liberty",
+        "CALLES_LIGHT": "https://tiles.openfreemap.org/styles/bright",
+        "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark"
     };  
     const MAP_LEGACY_NAME_MAP = {
         "Satélite + Calles": "HÍBRIDO",
@@ -2463,9 +2464,9 @@ function createMinimapInstanceIfNeeded() {
 
     const minimapMapDiv = document.getElementById('minimap-map-div');
     if (minimapMapDiv) {
-        minimapInstance = new mapboxgl.Map({
+        minimapInstance = new maplibregl.Map({
             container: minimapMapDiv,
-            style: 'mapbox://styles/boardinggate11/cmgp5snhk000s01qx1v5i4tlq?optimize=true', 
+            style: 'https://tiles.openfreemap.org/styles/bright', 
             center: [-97.1903, 30.3715],
             zoom: 1,
             interactive: false,
@@ -2607,7 +2608,7 @@ async function drawRouteOnMinimap() {
         const newSW = turf.destination(center, paddedRadiusKm, -135, { units: 'kilometers' });
         const newNE = turf.destination(center, paddedRadiusKm, 45, { units: 'kilometers' });
 
-        const paddedBounds = new mapboxgl.LngLatBounds(
+        const paddedBounds = new maplibregl.LngLatBounds(
             [newSW.geometry.coordinates[0], newSW.geometry.coordinates[1]],
             [newNE.geometry.coordinates[0], newNE.geometry.coordinates[1]]
         );
@@ -2897,7 +2898,7 @@ function handleZoomToggleButtonClick(button) {
         const routeSource = navigationMapInstance.getSource('route');
         if (routeSource && routeSource._data && routeSource._data.geometry && routeSource._data.geometry.coordinates.length > 1) {
             const coordinates = routeSource._data.geometry.coordinates;
-            const bounds = new mapboxgl.LngLatBounds();
+            const bounds = new maplibregl.LngLatBounds();
             coordinates.forEach(coord => bounds.extend(coord));
             if (!bounds.isEmpty()) {
                 navigationMapInstance.fitBounds(bounds, { padding: 80, animate: true, duration: 1500 });
@@ -3354,7 +3355,7 @@ class CompassAndStatsControl {
         document.addEventListener('click', this._boundHideMenu, true);
 
         this._container = document.createElement('div');
-        this._container.className = 'mapboxgl-ctrl map-control-custom-map-controls';
+        this._container.className = 'maplibregl-ctrl map-control-custom-map-controls';
         
         const compassContainer = document.createElement('div');
         compassContainer.className = 'map-control-orientation-altitude';
@@ -3671,7 +3672,7 @@ class CustomMapControlsGroup {
     onAdd(map) {
         this._map = map;
         this._container = document.createElement('div');
-        this._container.className = 'mapboxgl-ctrl map-controls-bottom-right';
+        this._container.className = 'maplibregl-ctrl map-controls-bottom-right';
         
         this._settingsPopup = document.createElement('div');
         this._settingsPopup.className = 'map-settings-popup';
@@ -4252,7 +4253,7 @@ async function calculateAndDrawRangeCircle(startPoint) {
         
         const startPointTurf = turf.point([startPoint.lng, startPoint.lat]);
         const bbox = turf.bbox(turf.buffer(startPointTurf, theoreticalRoadRangeKm, { units: 'kilometers' }));
-        const bounds = new mapboxgl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
+        const bounds = new maplibregl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
 
         navigationMapInstance.fitBounds(bounds, { padding: 40, duration: 1000, essential: true });
         
@@ -4478,7 +4479,7 @@ async function drawRangePolygon(polygonGeoJSON) {
     }
 
     const bbox = turf.bbox(polygonGeoJSON);
-    const bounds = new mapboxgl.LngLatBounds(
+    const bounds = new maplibregl.LngLatBounds(
         [bbox[0], bbox[1]], 
         [bbox[2], bbox[3]]  
     );
@@ -4796,7 +4797,7 @@ function displayPoiSearchResults(features, map) {
         const clearButton = listContainer.querySelector('.poi-list-filter-clear');
         const listUl = listContainer.querySelector('#poi-results-ul');
 
-        const bounds = new mapboxgl.LngLatBounds();
+        const bounds = new maplibregl.LngLatBounds();
         features.forEach((feature, index) => {
             const coords = feature.geometry.coordinates;
             const props = feature.properties;
@@ -4806,7 +4807,7 @@ function displayPoiSearchResults(features, map) {
             el.className = 'numbered-poi-marker';
             el.textContent = index + 1;
             
-            const marker = new mapboxgl.Marker(el)
+            const marker = new maplibregl.Marker(el)
                 .setLngLat(coords)
                 .addTo(map);
 
@@ -5541,7 +5542,7 @@ async function openNavigationMap(isRecovery = false) {
                                
                 if (!isRecovery) { showToast("INICIALIZANDO MAPA...", "info", 0, false, "map-init-toast"); }
       
-                navigationMapInstance = new mapboxgl.Map({
+                navigationMapInstance = new maplibregl.Map({
                     container: mapActualContainer,
                     style: initialStyle, 
                     center: [ -97.1903, 30.3715],
@@ -5551,7 +5552,7 @@ async function openNavigationMap(isRecovery = false) {
                     maxTileCacheSize: 50,
                     antialias: false,
                     preserveDrawingBuffer: true,
-                    accessToken: mapboxgl.accessToken,
+                    accessToken: maplibregl.accessToken,
                     minzoom: 2,
                     maxzoom: 19
                 });
@@ -8110,7 +8111,7 @@ function showIntersectionPreviewMap(step, route, isSimulationContextOrClick = fa
         const endSlicePoint = turf.along(fullRouteLineString, endSliceDistanceKm);
         const routeSlice = turf.lineSlice(startSlicePoint, endSlicePoint, fullRouteLineString);
         
-        const bounds = new mapboxgl.LngLatBounds();
+        const bounds = new maplibregl.LngLatBounds();
         routeSlice.geometry.coordinates.forEach(coord => bounds.extend(coord));
         const lookAheadPointTurf = turf.along(routeSlice, Math.min(5, turf.length(routeSlice, {units: 'meters'})), { units: 'meters' });
         const segmentBearing = turf.bearing(startSlicePoint, lookAheadPointTurf);
@@ -8673,9 +8674,9 @@ function showReminderModal(reminder = null, options = {}) {
         mapDiv.style.width = '100%'; mapDiv.style.height = '100%';
         mapContainer.insertBefore(mapDiv, reduceMapButton);
 
-        reminderModalMap = new mapboxgl.Map({
+        reminderModalMap = new maplibregl.Map({
             container: mapDiv,
-            style: 'mapbox://styles/mapbox/satellite-streets-v12?optimize=true',
+            style: 'https://tiles.openfreemap.org/styles/bright',
             center: [effectiveCoords.longitude, effectiveCoords.latitude],
             zoom: zoomLevel,
             interactive: isInteractive && effectiveLocationEnabled,
@@ -8834,7 +8835,7 @@ function showReminderModal(reminder = null, options = {}) {
         if (!reminderMarker) {
             const vehicleEl = document.createElement('div');
             vehicleEl.innerHTML = `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;"><img src="PNG/AVANCE.PNG" style="width: 100%; height: 100%; object-fit: contain;"></div>`;
-            reminderMarker = new mapboxgl.Marker({ element: vehicleEl, draggable: true })
+            reminderMarker = new maplibregl.Marker({ element: vehicleEl, draggable: true })
                 .setLngLat(lngLat)
                 .addTo(reminderModalMap);
             reminderMarker.on('dragend', handleMarkerDragEnd);
@@ -9611,9 +9612,9 @@ function initializeLocationPickerMap(mapContainerId, slotIndex) {
     mapDiv.style.width = '100%';
     mapDiv.style.height = '100%';
     container.insertBefore(mapDiv, container.firstChild); 
-    locationPickerMap = new mapboxgl.Map({
+    locationPickerMap = new maplibregl.Map({
         container: mapDiv, // Usamos el nuevo div.
-        style: 'mapbox://styles/mapbox/satellite-streets-v12?optimize=true',
+        style: 'https://tiles.openfreemap.org/styles/bright',
         center: [centerLng, centerLat],
         zoom: initialZoom,
         maxTileCacheSize: 20,
@@ -9627,7 +9628,7 @@ function initializeLocationPickerMap(mapContainerId, slotIndex) {
     locationPickerMap.activeSlotIndex = slotIndex;
 
     locationPickerMap.on('load', () => {
-        locationPickerMarker = new mapboxgl.Marker({ draggable: true })
+        locationPickerMarker = new maplibregl.Marker({ draggable: true })
             .setLngLat([centerLng, centerLat])
             .addTo(locationPickerMap);
 
@@ -9925,7 +9926,7 @@ function updateInitialUserPosition(coords, mapInstanceToUse) {
 // NOMBRE: updateVehicleMarker 
 function updateVehicleMarker(coords, mapInstanceToUse) {
     lastGpsUpdateTime = Date.now();
-    const lngLat = new mapboxgl.LngLat(coords.longitude, coords.latitude);
+    const lngLat = new maplibregl.LngLat(coords.longitude, coords.latitude);
     initialUserLocationMarkerLat = coords.latitude;
     initialUserLocationMarkerLng = coords.longitude;
 
@@ -9951,7 +9952,7 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
     if (!initialUserLocationMarker) {
         vehicleIconElement.style.perspective = '200px';
 
-        initialUserLocationMarker = new mapboxgl.Marker({ 
+        initialUserLocationMarker = new maplibregl.Marker({ 
             element: vehicleIconElement, 
             rotationAlignment: 'map',  anchor: 'bottom'    })
         .setLngLat(lngLat)
@@ -9959,7 +9960,7 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
 
         const anchorEl = document.createElement('div');
         anchorEl.className = 'ground-anchor-marker ground-anchor-hidden'; // Empieza oculto
-        groundAnchorMarker = new mapboxgl.Marker({ 
+        groundAnchorMarker = new maplibregl.Marker({ 
             element: anchorEl, 
             anchor: 'center' 
         })
@@ -10564,7 +10565,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
     const intersectionPreviewWindow = document.getElementById('intersection-preview-map-window');
     const miniNavCard = document.getElementById('mini-nav-info-card'); 
     const progressBar = document.getElementById('navigation-bottom-progress-bar');
-    const compassControl = document.querySelector('.mapboxgl-ctrl-bottom-left'); 
+    const compassControl = document.querySelector('.maplibregl-ctrl-bottom-left'); 
     const maneuverCounterEl = document.getElementById('maneuver-counter-display');
     const minimapContainer = document.getElementById('minimap-container');
     const showMinimapButton = document.getElementById('force-show-minimap-button');
@@ -11522,7 +11523,7 @@ async function findChargingPointsOnRoute(powerFilters, searchConfig) {
             if (existingToast) existingToast.remove();
             return;
         }
-        const routeBounds = new mapboxgl.LngLatBounds();
+        const routeBounds = new maplibregl.LngLatBounds();
         routeSource._data.geometry.coordinates.forEach(coord => routeBounds.extend(coord));
         apiUrl = `https://api.openchargemap.io/v3/poi/?output=json&key=${OCM_API_KEY}&boundingbox=(${routeBounds.getSouthWest().lat},${routeBounds.getSouthWest().lng}),(${routeBounds.getNorthEast().lat},${routeBounds.getNorthEast().lng})&maxresults=1500&compact=false&verbose=true`;
     } else if (searchConfig.type === 'radius') {
@@ -13289,7 +13290,7 @@ async function loadRouteFromObject(routeObject, autoStartNavigation = false, for
                     } else {
                         const routeGeoJSON = navigationMapInstance.getSource('route')._data;
                         if (routeGeoJSON.geometry && routeGeoJSON.geometry.coordinates.length > 1) {
-                            const bounds = new mapboxgl.LngLatBounds();
+                            const bounds = new maplibregl.LngLatBounds();
                             routeGeoJSON.geometry.coordinates.forEach(coord => bounds.extend(coord));
                             if (!bounds.isEmpty()) {
                                 navigationMapInstance.fitBounds(bounds, { padding: 80, animate: true, duration: 1500 });
@@ -13969,9 +13970,9 @@ function openLocationsPreviewMap() {
         try { locationsPreviewMap.remove(); } catch (e) {}
     }
     
-    locationsPreviewMap = new mapboxgl.Map({
+    locationsPreviewMap = new maplibregl.Map({
         container: mapContainerEl,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12?optimize=true', 
+        style: 'https://tiles.openfreemap.org/styles/bright', 
         center: [-3.703790, 40.416775],
         zoom: 6,
         attributionControl: true, 
@@ -14048,7 +14049,7 @@ function openLocationsPreviewMap() {
         setTimeout(() => {
             if (!locationsPreviewMap) return; 
             if (geojsonFeatures.length > 0) {
-                const bounds = new mapboxgl.LngLatBounds();
+                const bounds = new maplibregl.LngLatBounds();
                 geojsonFeatures.forEach(feature => {
                     bounds.extend(feature.geometry.coordinates);
                 });
@@ -16041,7 +16042,7 @@ function drawAlternativeRoutes(waypointId, routesData) {
 
             const midPoint = turf.along(config.data.geometry, turf.length(config.data.geometry) / 2).geometry.coordinates;
             const labelElement = createRouteLabelMarker(config.label, config.color);
-            const labelMarker = new mapboxgl.Marker({ element: labelElement })
+            const labelMarker = new maplibregl.Marker({ element: labelElement })
                 .setLngLat(midPoint)
                 .addTo(navigationMapInstance);
             
@@ -21724,7 +21725,7 @@ function handleWaypointPlacement(displayName, lat, lon) {
     `;
     tempMarkerElement.textContent = 'F'; // Letra "F" en lugar de "?"
 
-    const tempMarker = new mapboxgl.Marker({
+    const tempMarker = new maplibregl.Marker({
         element: tempMarkerElement,
         draggable: false, // Inicialmente no es arrastrable
         anchor: 'center'
@@ -21754,7 +21755,7 @@ function handleWaypointPlacement(displayName, lat, lon) {
         <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
     `;
 
-    const confirmationPopup = new mapboxgl.Popup({
+    const confirmationPopup = new maplibregl.Popup({
         closeButton: false,
         closeOnClick: false,
         anchor: 'bottom',
@@ -22845,7 +22846,7 @@ function renderWaypointMarkers() {
             const waypointIconElement = createWaypointMarkerIcon(wp.label, wp.type, wp.visited, wp.id);
             waypointIconElement.dataset.waypointId = wp.id;
 
-            wp.marker = new mapboxgl.Marker({
+            wp.marker = new maplibregl.Marker({
                 element: waypointIconElement,
                 draggable: false,
                 anchor: 'center'
