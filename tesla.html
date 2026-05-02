@@ -1431,28 +1431,17 @@ async function add3DBuildingsLayer(mapInstance) {
     const layerId = '3d-buildings';
     if (mapInstance.getLayer(layerId)) return;
 
-    // Si estamos en un mapa de satélite (Google/Esri), no tendremos fuente de edificios.
-    // La añadimos dinámicamente desde OpenFreeMap.
+    // Si estamos en un mapa de satélite, necesitamos añadir la fuente de OpenFreeMap
     if (!mapInstance.getSource('openmaptiles') && !mapInstance.getSource('composite')) {
-        console.log("Añadiendo fuente de edificios de OpenFreeMap sobre el satélite...");
         try {
             mapInstance.addSource('openmaptiles', {
                 type: 'vector',
-                url: 'https://tiles.openfreemap.org/tiles/v1/openmaptiles.json' 
+                url: 'https://tiles.openfreemap.org/planet'
             });
         } catch (e) {
-            // Si falla el JSON, intentamos la URL directa de las teselas
-            try {
-                mapInstance.addSource('openmaptiles', {
-                    type: 'vector',
-                    tiles: ['https://tiles.openfreemap.org/tiles/{z}/{x}/{y}.pbf'],
-                    minzoom: 0,
-                    maxzoom: 14
-                });
-            } catch (e2) {
-                console.error("No se pudo añadir la fuente de edificios:", e2);
-                return;
-            }
+            console.warn("Reintentando añadir fuente de edificios...");
+            setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
+            return;
         }
     }
 
@@ -1467,14 +1456,18 @@ async function add3DBuildingsLayer(mapInstance) {
             'minzoom': 14,
             'paint': {
                 'fill-extrusion-color': '#ffffff',
-                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 20],
+                'fill-extrusion-height': [
+                    'interpolate', ['linear'], ['zoom'],
+                    14, 0,
+                    14.05, ['coalesce', ['get', 'render_height'], ['get', 'height'], 20]
+                ],
                 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
-                'fill-extrusion-opacity': 0.6 // Un poco de transparencia para ver el satélite debajo
+                'fill-extrusion-opacity': 0.7
             }
         });
-        console.log("Edificios 3D inyectados sobre el mapa actual.");
+        console.log("3D activado correctamente sobre el mapa.");
     } catch (e) {
-        setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
+        console.error("Error inyectando capa 3D:", e);
     }
 }
 
