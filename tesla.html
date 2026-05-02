@@ -1412,22 +1412,26 @@ function actualizarContadorPdrs(count) {
 // ===================================================================
 // NOMBRE: add3DBuildingsLayer (VERSIÓN CORREGIDA Y ROBUSTA CON COALESCE)
 async function add3DBuildingsLayer(mapInstance) {
-    if (!mapInstance || !mapInstance.isStyleLoaded()) return;
-
-    const layerId = '3d-buildings';
-    if (mapInstance.getLayer(layerId)) {
-        try { mapInstance.removeLayer(layerId); } catch (e) {}
+    if (!mapInstance) return;
+    
+    // Si el estilo no ha cargado, esperamos un poco y reintentamos
+    if (!mapInstance.isStyleLoaded()) {
+        setTimeout(() => add3DBuildingsLayer(mapInstance), 1000);
+        return;
     }
 
-    // Detectar la fuente de datos (Mapbox usa 'composite', OpenFreeMap usa 'openmaptiles')
-    let sourceId = 'composite';
-    let sourceLayer = 'building';
-    
-    if (mapInstance.getSource('openmaptiles')) {
-        sourceId = 'openmaptiles';
-    } else if (!mapInstance.getSource('composite')) {
-        console.warn("No se encontró una fuente de edificios compatible.");
-        return;
+    const layerId = '3d-buildings';
+    if (mapInstance.getLayer(layerId)) return;
+
+    let sourceId = 'openmaptiles';
+    if (!mapInstance.getSource('openmaptiles')) {
+        if (mapInstance.getSource('composite')) {
+            sourceId = 'composite';
+        } else {
+            // Si no hay fuente, esperamos a que el estilo se asiente
+            setTimeout(() => add3DBuildingsLayer(mapInstance), 1000);
+            return;
+        }
     }
     
     const layers = mapInstance.getStyle().layers;
@@ -1443,7 +1447,7 @@ async function add3DBuildingsLayer(mapInstance) {
         mapInstance.addLayer({
             'id': layerId,
             'source': sourceId,
-            'source-layer': sourceLayer,
+            'source-layer': 'building',
             'type': 'fill-extrusion',
             'minzoom': 14,
             'paint': {
@@ -1457,9 +1461,10 @@ async function add3DBuildingsLayer(mapInstance) {
                 'fill-extrusion-opacity': 0.8
             }
         }, firstSymbolId);
-        console.log("Capa 3D de OpenFreeMap añadida correctamente.");
+        console.log("Capa 3D inyectada con éxito.");
     } catch (e) {
-        console.error("Error al añadir capa 3D:", e); setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
+        console.warn("Reintentando inyección 3D...");
+        setTimeout(() => add3DBuildingsLayer(mapInstance), 2000);
     }
 }
 
