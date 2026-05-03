@@ -247,7 +247,7 @@
                 <label for="map-provider">Mapa</label>
                 <select id="map-provider">
                     <optgroup label="OSM">
-                        <option value="osm-streets">OSM Calles</option>
+                        <option value="osm-streets" selected>OSM Calles</option>
                     </optgroup>
                     <optgroup label="Carto">
                         <option value="carto-streets">Carto Calles</option>
@@ -265,7 +265,7 @@
                     </optgroup>
                     <optgroup label="Google">
                         <option value="google-streets">Google Calles</option>
-                        <option value="google-satellite" selected>Google Satélite</option>
+                        <option value="google-satellite">Google Satélite</option>
                     </optgroup>
                 </select>
             </div>
@@ -319,19 +319,7 @@
     <script>
         const defaultCenter = [-3.70379, 40.41678];
         const defaultZoom = 15;
-        const map = new maplibregl.Map({
-            container: 'map',
-            style: {
-                version: 8,
-                sources: {},
-                layers: [
-                    { id: 'background', type: 'background', paint: { 'background-color': '#fff' } }
-                ]
-            },
-            center: defaultCenter,
-            zoom: defaultZoom,
-            antialias: true
-        });
+        let map;
 
         const routeStatus = document.getElementById('route-status');
         const routeProviderLabel = document.getElementById('route-provider-label');
@@ -352,6 +340,7 @@
         let destinationPosition = null;
         let routeData = null;
         let carMarker = null;
+        let clickDestinationMarker = null;
         let routeLayers = [];
         let waypoints = [];
         let carHeading = 0;
@@ -420,6 +409,14 @@
             google: { streets: 'Google Calles', satellite: 'Google Satélite' }
         };
 
+        map = new maplibregl.Map({
+            container: 'map',
+            style: MAP_STYLES['osm-streets'],
+            center: defaultCenter,
+            zoom: defaultZoom,
+            antialias: true
+        });
+
         let currentMapMode = '2d';
 
         function updateMapStyle(styleKey) {
@@ -449,6 +446,9 @@
                     });
                 }
                 messageBar.textContent = `Mapa cargado`;
+                if (routeData && routeData.geometry) {
+                    displayRoutes({ routes: [routeData] });
+                }
                 setTimeout(() => {
                     messageBar.classList.remove('show');
                 }, 2000);
@@ -476,6 +476,9 @@
                         });
                     }
                     messageBar.textContent = `Mapa cargado`;
+                    if (routeData && routeData.geometry) {
+                        displayRoutes({ routes: [routeData] });
+                    }
                     setTimeout(() => {
                         messageBar.classList.remove('show');
                     }, 2000);
@@ -529,7 +532,19 @@
         }
 
         function setRouteStatus(text) {
-            routeStatus.textContent = text;
+            if (routeStatus && routeStatus.textContent !== undefined) {
+                routeStatus.textContent = text;
+            } else if (messageBar) {
+                messageBar.textContent = text;
+            }
+        }
+
+        function parseCoordinates(input) {
+            const parts = input.split(/\s*,\s*|\s+/).map(v => parseFloat(v.trim()));
+            if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
+                return { lat: parts[0], lon: parts[1] };
+            }
+            return null;
         }
 
         function clearRouteLayers() {
@@ -558,9 +573,10 @@
                     'line-join': 'round'
                 },
                 paint: {
-                    'line-color': index === 0 ? '#0dffff' : '#ffab40',
-                    'line-width': index === 0 ? 8 : 5,
-                    'line-opacity': index === 0 ? 0.95 : 0.65,
+                    'line-color': index === 0 ? '#ffeb3b' : '#ff9800',
+                    'line-width': index === 0 ? 10 : 6,
+                    'line-opacity': index === 0 ? 1 : 0.85,
+                    'line-blur': index === 0 ? 0.8 : 0.5,
                     'line-dasharray': index === 0 ? [1, 0] : [2, 2]
                 }
             });
@@ -568,8 +584,8 @@
         }
 
         async function fetchRoute(provider, origin, destination, alternatives, waypoints = []) {
-            const allCoords = [origin, ...waypoints.map(w => [w.lat, w.lon]), destination];
-            const coords = allCoords.map(c => `${c[1]},${c[0]}`).join(';');
+            const allCoords = [origin, ...waypoints.map(w => [w.lng, w.lat]), destination];
+            const coords = allCoords.map(c => `${c[0]},${c[1]}`).join(';');
             let url;
             if (provider === 'osmde') {
                 url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=false`;
@@ -606,17 +622,48 @@
             vehicleEl.style.transform = `rotate(${carHeading}deg)`;
         }
 
-        async function calculateRoute() {
-            if (waypoints.length === 0) {
-                setRouteStatus('Añade un destino');
-                return;
+        function getRouteOrigin() {
+            if (carMarker && carMarker.getLngLat) {
+                const origin = carMarker.getLngLat();
+                if (origin && typeof origin.lng === 'number' && typeof origin.lat === 'number') {
+                    return [origin.lng, origin.lat];
+                }
             }
-            destinationPosition = [waypoints[waypoints.length - 1].lon, waypoints[waypoints.length - 1].lat];
+            if (currentPosition && currentPosition.length === 2) {
+                return currentPosition;
+            }
+            return defaultCenter.slice();
+        }
+
+        async function calculateRoute() {
+            let destinationCoords = null;
+            if (waypoints.length === 0) {
+                if (destinationPosition) {
+                    destinationCoords = destinationPosition;
+                } else {
+                    const query = destinationInput.value.trim();
+                    const coords = parseCoordinates(query);
+                    if (coords) {
+                        destinationCoords = [coords.lon, coords.lat];
+                    } else if (query.length > 0) {
+                        setRouteStatus('Selecciona un resultado de búsqueda o introduce lat,lng.');
+                        fetchAddressSuggestions(query);
+                        return;
+                    } else {
+                        setRouteStatus('Añade un destino');
+                        return;
+                    }
+                }
+            }
+            if (waypoints.length > 0) {
+                destinationCoords = [waypoints[waypoints.length - 1].lng, waypoints[waypoints.length - 1].lat];
+            }
+            destinationPosition = destinationCoords;
+            const origin = getRouteOrigin();
             setRouteStatus('Calculando ruta...');
             const provider = routeProviderSelect.value;
-            providerLabel.textContent = provider.toUpperCase();
             try {
-                const response = await fetchRoute(provider, currentPosition, destinationPosition, altRoutesToggle.checked, waypoints.slice(0, -1));
+                const response = await fetchRoute(provider, origin, destinationPosition, altRoutesToggle?.checked ?? false, waypoints.slice(0, -1));
                 displayRoutes(response);
             } catch (error) {
                 setRouteStatus('Error al calcular ruta');
@@ -625,9 +672,17 @@
         }
 
         function setDestinationFromPoint(lngLat) {
+            waypoints = [];
             destinationPosition = [lngLat.lng, lngLat.lat];
             destinationInput.value = `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`;
-            calculateRoute();
+            setRouteStatus('Destino fijado. Pulsa RUTA para calcular la ruta.');
+            if (clickDestinationMarker) {
+                clickDestinationMarker.setLngLat(destinationPosition);
+            } else {
+                clickDestinationMarker = new maplibregl.Marker({ color: '#ffd700' })
+                    .setLngLat(destinationPosition)
+                    .addTo(map);
+            }
         }
 
         function updateCurrentPositionFromGeolocation(position) {
@@ -662,7 +717,7 @@
                     layout: { visibility: 'none' }
                 });
             }
-            updateMapStyle('osm-streets');
+            updateMapStyle(mapProviderSelect.value || 'osm-streets');
             updateBuildingsVisibility();
             createCarMarker();
             map.getCanvas().style.cursor = 'crosshair';
@@ -701,11 +756,19 @@
         destinationInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                calculateRoute();
+                const query = destinationInput.value.trim();
+                const coords = parseCoordinates(query);
+                if (coords) {
+                    waypoints = [{ display_name: query, lat: coords.lat, lng: coords.lon }];
+                    calculateRoute();
+                } else {
+                    fetchAddressSuggestions(query);
+                }
             }
         });
 
         let selectedSuggestion = null;
+        let suggestionFetchTimeout = null;
 
         function hideAddressSuggestionsModal() {
             const modal = document.getElementById('address-suggestions-modal');
@@ -739,12 +802,12 @@
         }
 
         async function fetchAddressSuggestions(query) {
-            if (!query || query.length < 4) {
+            if (!query || query.length < 3) {
                 hideAddressSuggestionsModal();
                 return;
             }
             try {
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=es`;
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=12&accept-language=es`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`Error: ${response.status}`);
                 const data = await response.json();
@@ -758,6 +821,15 @@
                 console.error('Error fetching suggestions:', error);
                 hideAddressSuggestionsModal();
             }
+        }
+
+        function scheduleAddressSuggestionFetch(query) {
+            clearTimeout(suggestionFetchTimeout);
+            if (!query || query.length < 3) {
+                hideAddressSuggestionsModal();
+                return;
+            }
+            suggestionFetchTimeout = setTimeout(() => fetchAddressSuggestions(query), 250);
         }
 
         async function snapCoordsToRoad(lat, lon) {
@@ -915,19 +987,25 @@
         }
 
         destinationInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-            if (query.length > 3) {
-                fetchAddressSuggestions(query);
-            } else {
-                hideAddressSuggestionsModal();
+            destinationPosition = null;
+            if (clickDestinationMarker) {
+                clickDestinationMarker.remove();
+                clickDestinationMarker = null;
             }
+            scheduleAddressSuggestionFetch(e.target.value.trim());
         });
 
         destinationInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 const query = e.target.value.trim();
-                if (query) {
-                    fetchAddressSuggestions(query);
+                const coords = parseCoordinates(query);
+                if (coords) {
+                    waypoints = [{ display_name: query, lat: coords.lat, lng: coords.lon }];
+                    destinationPosition = null;
+                    calculateRoute();
+                } else {
+                    scheduleAddressSuggestionFetch(query);
                 }
             }
         });
