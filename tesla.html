@@ -189,6 +189,7 @@
         <div id="reminders-location-map-header">
              <div class="button-row">
                 <button id="close-reminders-location-map" class="reminders-map-button-action" title="Cerrar mapa y navegación"><img src="PNG/SALIR.PNG" alt="Salir"></button>
+                <button id="map-config-button" class="reminders-map-button-action" title="Abrir configuración"><img src="PNG/config.jpg" alt="Configuración"></button>
                 <button id="locate-me-on-reminders-map" class="reminders-map-button-action" title="Mostrar mi posición actual y activar seguimiento"><img src="PNG/ESTASAQUI.PNG" alt="Estás Aquí"></button>
                 <button id="start-navigation-button" class="reminders-map-button-action" title="Iniciar/Terminar Navegación"><img src="PNG/INICIARNAVEGACION.PNG" alt="Iniciar Navegación"></button>
                 <button id="save-route-button" class="reminders-map-button-action hidden" title="Guardar Ruta Actual"><img src="PNG/GUARDARRUTA.PNG" alt="Guardar Ruta"></button>
@@ -2909,7 +2910,68 @@ pois: {
             showToast(`Minimapa de ruta ${showRouteMinimapPreference ? 'ACTIVADO' : 'DESACTIVADO'}`, 'info');
         });
         visibilitySelector.appendChild(routeMinimapControl);
-    
+
+        const offsetControl = document.createElement('div');
+        offsetControl.className = 'map-offset-settings';
+        offsetControl.style.marginTop = '10px';
+        offsetControl.style.borderTop = '1px solid rgba(255,255,255,0.12)';
+        offsetControl.style.paddingTop = '10px';
+        offsetControl.innerHTML = `
+            <h3>Ajuste del Offset</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 0.9rem; color: #ddd;">X: <strong id="map-offset-x-value">${mapOffsetX}</strong>%</div>
+                <div style="font-size: 0.9rem; color: #ddd;">Y: <strong id="map-offset-y-value">${mapOffsetY}</strong>%</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px;">
+                <button id="offset-decrease-x" class="btn-small">-X</button>
+                <button id="offset-reset" class="btn-small">Restablecer</button>
+                <button id="offset-increase-x" class="btn-small">+X</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+                <button id="offset-decrease-y" class="btn-small">-Y</button>
+                <div style="display: flex; align-items: center; justify-content: center; color: #bbb;">Ajusta la posición del coche</div>
+                <button id="offset-increase-y" class="btn-small">+Y</button>
+            </div>
+        `;
+        visibilitySelector.appendChild(offsetControl);
+
+        const updateOffsetLabels = () => {
+            const xLabel = offsetControl.querySelector('#map-offset-x-value');
+            const yLabel = offsetControl.querySelector('#map-offset-y-value');
+            if (xLabel) xLabel.textContent = `${mapOffsetX}`;
+            if (yLabel) yLabel.textContent = `${mapOffsetY}`;
+        };
+
+        const adjustOffset = (axis, amount) => {
+            if (axis === 'x') {
+                mapOffsetX = Math.max(-75, Math.min(75, mapOffsetX + amount));
+            } else {
+                mapOffsetY = Math.max(-75, Math.min(75, mapOffsetY + amount));
+            }
+            saveSettings();
+            markCacheAsDirty();
+            updateOffsetLabels();
+            if (navigationCurrentLocation && navigationMapInstance) {
+                updateInitialUserPosition(navigationCurrentLocation, navigationMapInstance);
+            }
+        };
+
+        offsetControl.querySelector('#offset-decrease-x')?.addEventListener('click', () => adjustOffset('x', -1));
+        offsetControl.querySelector('#offset-increase-x')?.addEventListener('click', () => adjustOffset('x', 1));
+        offsetControl.querySelector('#offset-decrease-y')?.addEventListener('click', () => adjustOffset('y', -1));
+        offsetControl.querySelector('#offset-increase-y')?.addEventListener('click', () => adjustOffset('y', 1));
+        offsetControl.querySelector('#offset-reset')?.addEventListener('click', () => {
+            mapOffsetX = 0;
+            mapOffsetY = 15;
+            saveSettings();
+            markCacheAsDirty();
+            updateOffsetLabels();
+            if (navigationCurrentLocation && navigationMapInstance) {
+                updateInitialUserPosition(navigationCurrentLocation, navigationMapInstance);
+            }
+            showToast('Offset de vista restaurado por defecto.', 'info');
+        });
+
         const ecoNote = document.createElement('p');
         ecoNote.className = 'eco-note';
         ecoNote.textContent = '(*) El Modo ECO/RUTA anulará esta configuración temporalmente.';
@@ -2932,7 +2994,20 @@ pois: {
             { id: 'google', name: 'Google Maps' },
             { id: 'osrm', name: 'OSRM (Libre)' }
         ];
+        const hasMapboxToken = window.APP_CONFIG?.keys?.mapbox || (typeof mapboxgl !== 'undefined' && mapboxgl.accessToken);
+        if (hasMapboxToken) {
+            routingProviders.push({ id: 'mapbox', name: 'Mapbox (Tráfico)' });
+        }
         const currentProvider = localStorage.getItem('boardinggate_routing_service') || 'osrm';
+
+        const updateRoutingProvider = async (serviceId, serviceName) => {
+            localStorage.setItem('boardinggate_routing_service', serviceId);
+            showToast(`Proveedor de ruta: ${serviceName}`, 'info');
+            markCacheAsDirty();
+            if (navigationWaypoints.length >= 2) {
+                try { await recalculateAndDrawRoute(false); } catch (err) { /* no-op */ }
+            }
+        };
 
         routingProviders.forEach(p => {
             const label = document.createElement('label');
@@ -2942,11 +3017,7 @@ pois: {
             const input = document.createElement('input');
             input.type = 'radio'; input.name = 'routing-provider'; input.value = p.id;
             input.checked = (p.id === currentProvider);
-            input.addEventListener('change', () => {
-                localStorage.setItem('boardinggate_routing_service', p.id);
-                showToast(`Proveedor de ruta: ${p.name}`, 'info');
-                markCacheAsDirty();
-            });
+            input.addEventListener('change', () => updateRoutingProvider(p.id, p.name));
             label.appendChild(input); label.appendChild(document.createTextNode(` ${p.name}`));
             routingSelector.appendChild(label);
         });
@@ -5217,6 +5288,12 @@ async function initiateControlledReload() {
             
             await drawRouteOnMap(newRemainingRoute);
             
+            const nonInternalWaypoints = navigationWaypoints.filter(wp => wp && !wp.isInternal && !wp.isRecalculatedStart);
+            const autoAlternativeWaypoint = nonInternalWaypoints.length > 1 ? nonInternalWaypoints[1] : nonInternalWaypoints[0];
+            if (autoAlternativeWaypoint) {
+                fetchAndDisplayAlternativeRoutes(autoAlternativeWaypoint.id).catch(() => {});
+            }
+            
             const isRadaresRutaActive = document.getElementById('radares-ruta-checkbox').checked;
 
             if (isRadaresRutaActive) {
@@ -5964,14 +6041,16 @@ async function initializeApp() {
     lastMobileSyncTimestamp = parseInt(localStorage.getItem('lastCacheUpdateTimestamp') || '0');
     checkForExcessiveRadars();
     const termsAccepted = localStorage.getItem('termsAccepted_v1') === 'true';
-    const shouldDirectToNav = JSON.parse(localStorage.getItem(DIRECT_TO_NAVIGATION_KEY) || 'false');
+    const shouldDirectToNav = JSON.parse(localStorage.getItem(DIRECT_TO_NAVIGATION_KEY) || 'true');
     const tempPreventDirectNav = sessionStorage.getItem(TEMP_PREVENT_DIRECT_NAV_KEY);
+    sessionStorage.removeItem(TEMP_PREVENT_DIRECT_NAV_KEY);
 
     const userId = localStorage.getItem('userData_userId');
     const allowDMs = JSON.parse(localStorage.getItem('userData_allowDMs') || 'false');
     const canAccessMaps = (userId && userId.trim() !== '' && allowDMs);
+    const shouldForceOpenNavigation = termsAccepted && canAccessMaps;
   
-    if (((shouldDirectToNav && !tempPreventDirectNav) || recoveryExecuted) && termsAccepted && canAccessMaps) {
+    if (((shouldDirectToNav && !tempPreventDirectNav) || recoveryExecuted || shouldForceOpenNavigation) && termsAccepted && canAccessMaps) {
         if(!recoveryExecuted) sessionStorage.setItem('isInDirectToMapMode', 'true');
         directToNavOnLoad = true;
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
@@ -10281,7 +10360,9 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
 
         initialUserLocationMarker = new maplibregl.Marker({ 
             element: vehicleIconElement, 
-            rotationAlignment: 'map',  anchor: 'bottom'    })
+            rotationAlignment: 'map', 
+            anchor: 'bottom' 
+        })
         .setLngLat(lngLat)
         .addTo(mapInstanceToUse);
 
@@ -10293,7 +10374,7 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
         })
         .setLngLat(lngLat)
         .addTo(mapInstanceToUse);
-   }
+    }
     
     if (!markerAnimationState.currentLngLat) {
         markerAnimationState.currentLngLat = lngLat;
@@ -10766,10 +10847,18 @@ function decodePolyline(encoded) {
 // NOMBRE: fetchRouteData 
 async function fetchRouteData(coordsString, startHeading = null) {
     const ROUTING_SERVICE_KEY = 'boardinggate_routing_service';
-    
-    // Prioridad: 1. Selección explícita, 2. Por defecto OSRM para evitar Mapbox
-    let activeServiceType = 'osrm'; // FORCED to avoid Google CORS issues
-  
+    const selectedService = localStorage.getItem(ROUTING_SERVICE_KEY) || 'osrm';
+    const mapboxAccessToken = window.APP_CONFIG?.keys?.mapbox || (typeof mapboxgl !== 'undefined' ? mapboxgl.accessToken : null);
+    const hasMapboxToken = typeof mapboxAccessToken === 'string' && mapboxAccessToken.length > 0;
+
+    let activeServiceType = ['osrm', 'google', 'mapbox'].includes(selectedService) ? selectedService : 'osrm';
+    if (activeServiceType === 'mapbox' && !hasMapboxToken) {
+        activeServiceType = 'osrm';
+    }
+    if (activeServiceType === 'google' && !window.APP_CONFIG?.keys?.googleMaps) {
+        activeServiceType = 'osrm';
+    }
+
     const osrmService = {
         name: 'OSRM',
         buildUrl: (coords) => {
@@ -10846,13 +10935,58 @@ async function fetchRouteData(coordsString, startHeading = null) {
         }
     };
 
+    const mapboxService = {
+        name: 'Mapbox',
+        buildUrl: (coords) => {
+            if (!hasMapboxToken) throw new Error('Mapbox token no configurado.');
+            const params = new URLSearchParams({
+                alternatives: 'true',
+                overview: 'full',
+                geometries: 'geojson',
+                steps: 'true',
+                annotations: 'duration,distance,congestion',
+                language: 'es',
+                access_token: mapboxAccessToken
+            });
+            return `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coords}?${params.toString()}`;
+        },
+        processResponse: async (response) => {
+            if (!response.ok) {
+                let errorData = { message: `Mapbox HTTP error ${response.status}` };
+                try { errorData = await response.json(); } catch (e) {}
+                throw new Error(errorData.message || response.statusText || `Mapbox HTTP error ${response.status}`);
+            }
+            const data = await response.json();
+            if (!data.routes || data.routes.length === 0) {
+                throw new Error(data.message || "No se encontraron rutas en Mapbox.");
+            }
+            const adaptedRoutes = data.routes.map(route => adaptMapboxRouteToOSRMFormat(route));
+            return {
+                routeData: { code: 'Ok', routes: adaptedRoutes, waypoints: data.waypoints || [] },
+                serviceUsed: 'Mapbox'
+            };
+        }
+    };
+
     const services = {
         'osrm': osrmService,
-        'google': googleService
+        'google': googleService,
+        'mapbox': mapboxService
     };
 
     const primaryService = services[activeServiceType] || osrmService;
-    const fallbackService = (activeServiceType === 'google') ? osrmService : googleService;
+    let fallbackService;
+    if (activeServiceType === 'osrm') {
+        if (hasMapboxToken) {
+            fallbackService = mapboxService;
+        } else if (window.APP_CONFIG?.keys?.googleMaps) {
+            fallbackService = googleService;
+        } else {
+            fallbackService = osrmService;
+        }
+    } else {
+        fallbackService = osrmService;
+    }
     
     const buildUrlWithCorrectBearings = (service, coords) => {
         if (service.name === 'Google') return service.buildUrl(coords);
@@ -15519,6 +15653,15 @@ function assignMapButtonListeners() {
                  case 'range-calculator-button':
                     toggleRangeCalcMode();
                     break;
+                 case 'map-config-button':
+                    const currentMapContext = sessionStorage.getItem('mapContext');
+                    if (isNavigationMapActive && currentMapContext) {
+                        sessionStorage.setItem('boardinggate_map_should_reopen_after_config', 'true');
+                        sessionStorage.setItem('mapContextToReopenAfterConfig', currentMapContext);
+                        closeNavigationMap(true);
+                    }
+                    showConfigModal();
+                    break;
                  case 'map-location-search-button': 
                     togglePoiCategorySearch();
                     break;
@@ -15603,14 +15746,18 @@ function assignMapButtonListeners() {
     });
     
     const mapboxCheckbox = reassignElement(document.getElementById('mapbox-primary-checkbox'));
-    mapboxCheckbox.addEventListener('change', (e) => {
-        const OSRM_PRIMARY_KEY = 'boardinggate_useOsrmAsPrimary';
-        localStorage.setItem(OSRM_PRIMARY_KEY, e.target.checked);
-        markCacheAsDirty();
-        const serviceName = e.target.checked ? 'OSRM' : 'Mapbox';
-        showToast(`Servicio primario cambiado a ${serviceName}. Recalculando ruta...`, 'success');
-        if (navigationWaypoints.length >= 2) { recalculateAndDrawRoute(false); }
-    });
+    const currentRoutingProvider = localStorage.getItem('boardinggate_routing_service') || 'osrm';
+    if (mapboxCheckbox) {
+        mapboxCheckbox.checked = currentRoutingProvider === 'osrm';
+        mapboxCheckbox.addEventListener('change', (e) => {
+            const selectedService = e.target.checked ? 'osrm' : 'mapbox';
+            localStorage.setItem('boardinggate_routing_service', selectedService);
+            markCacheAsDirty();
+            const serviceName = e.target.checked ? 'OSRM' : 'Mapbox';
+            showToast(`Servicio primario cambiado a ${serviceName}. Recalculando ruta...`, 'success');
+            if (navigationWaypoints.length >= 2) { recalculateAndDrawRoute(false); }
+        });
+    }
     
     newMapLocationSearchInput.value = '';
     newMapFilterInput.value = localStorage.getItem(MAP_FILTER_INPUT_KEY) || 'España';
@@ -16382,6 +16529,7 @@ function showAutoStartNavigationModal(route) {
 // ===================================================================
 // NOMBRE: selectAlternativeRoute 
 async function selectAlternativeRoute(waypointId, routeType) {
+    cancelAutoSelectFastestAlternative();
     clearAlternativeRoutesDisplay();
 
     if (!alternativeRoutesCache.has(waypointId)) {
@@ -16498,11 +16646,39 @@ function drawAlternativeRoutes(waypointId, routesData) {
             alternativeRouteLayers.push({ sourceId, layerId, labelMarker });
         }
     });
+
+    scheduleAutoSelectFastestAlternative(waypointId, routesData);
+}
+
+let autoSelectFastestAlternativeTimer = null;
+let autoSelectFastestAlternativeWaypointId = null;
+
+function cancelAutoSelectFastestAlternative() {
+    if (autoSelectFastestAlternativeTimer) {
+        clearTimeout(autoSelectFastestAlternativeTimer);
+        autoSelectFastestAlternativeTimer = null;
+        autoSelectFastestAlternativeWaypointId = null;
+    }
+}
+
+function scheduleAutoSelectFastestAlternative(waypointId, routesData, delayMs = 15000) {
+    cancelAutoSelectFastestAlternative();
+    if (!routesData || !routesData.fastest || !routesData.shortest) return;
+
+    autoSelectFastestAlternativeWaypointId = waypointId;
+    autoSelectFastestAlternativeTimer = setTimeout(() => {
+        if (autoSelectFastestAlternativeWaypointId !== waypointId) return;
+        if (!alternativeRoutesCache.has(waypointId)) return;
+
+        selectAlternativeRoute(waypointId, 'fastest');
+        showToast('Seleccionada automáticamente la ruta más rápida en función del tráfico.', 'success', 5000);
+    }, delayMs);
 }
 
 // ===================================================================
 // NOMBRE: clearAlternativeRoutesDisplay 
 function clearAlternativeRoutesDisplay() {
+    cancelAutoSelectFastestAlternative();
     if (!navigationMapInstance) {
         alternativeRouteLayers = [];
         return;
@@ -16567,34 +16743,65 @@ async function fetchAndDisplayAlternativeRoutes(waypointId) {
     }
 
     const endWaypointIndex = navigationWaypoints.findIndex(wp => wp && wp.id === waypointId);
-    if (endWaypointIndex < 1) return;
+    if (endWaypointIndex < 0) return;
 
     let startWaypoint = null;
     for (let i = endWaypointIndex - 1; i >= 0; i--) {
-        if (navigationWaypoints[i] && !navigationWaypoints[i].isInternal) {
+        if (navigationWaypoints[i] && !navigationWaypoints[i].isInternal && !navigationWaypoints[i].isRecalculatedStart) {
             startWaypoint = navigationWaypoints[i];
             break;
         }
+    }
+    if (!startWaypoint && navigationCurrentLocation) {
+        startWaypoint = {
+            lat: navigationCurrentLocation.latitude,
+            lng: navigationCurrentLocation.longitude,
+            address: 'Ubicación actual'
+        };
     }
     
     if (!startWaypoint) return;
     const endWaypoint = navigationWaypoints[endWaypointIndex];
 
-    const url = `${OSRM_SERVICE_URL}/route/v1/driving/${startWaypoint.lng},${startWaypoint.lat};${endWaypoint.lng},${endWaypoint.lat}?alternatives=true&overview=full&geometries=geojson&steps=false`;
+    const mapboxAccessToken = window.APP_CONFIG?.keys?.mapbox || (typeof mapboxgl !== 'undefined' ? mapboxgl.accessToken : null);
+    const hasMapboxToken = typeof mapboxAccessToken === 'string' && mapboxAccessToken.length > 0;
+    const selectedService = localStorage.getItem('boardinggate_routing_service') || 'osrm';
+    const useMapboxAlternatives = selectedService === 'mapbox' && hasMapboxToken;
+
+    let url;
+    let parseRoutes;
+
+    if (useMapboxAlternatives) {
+        const params = new URLSearchParams({
+            alternatives: 'true',
+            overview: 'full',
+            geometries: 'geojson',
+            steps: 'false',
+            annotations: 'duration,distance,congestion',
+            language: 'es',
+            access_token: mapboxAccessToken
+        });
+        url = `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${startWaypoint.lng},${startWaypoint.lat};${endWaypoint.lng},${endWaypoint.lat}?${params.toString()}`;
+        parseRoutes = (data) => (data.routes || []).map(route => adaptMapboxRouteToOSRMFormat(route));
+    } else {
+        url = `${OSRM_SERVICE_URL}/route/v1/driving/${startWaypoint.lng},${startWaypoint.lat};${endWaypoint.lng},${endWaypoint.lat}?alternatives=true&overview=full&geometries=geojson&steps=false`;
+        parseRoutes = (data) => data.routes || [];
+    }
 
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Respuesta de red no fue OK');
         const data = await response.json();
 
-        if (!data.routes || data.routes.length < 1) {
-             showToast("NO HAY RUTAS ALTERNATIVAS", "info");
+        const routes = parseRoutes(data);
+        if (!routes || routes.length < 1) {
+            showToast("NO HAY RUTAS ALTERNATIVAS", "info");
             return;
         }
 
-        const fastestRoute = data.routes[0];
-        const shortestRoute = [...data.routes].sort((a, b) => a.distance - b.distance)[0];
-        const alternativeRoute = data.routes.find(r => r !== fastestRoute && r !== shortestRoute) || null;
+        const fastestRoute = routes.reduce((best, route) => (!best || route.duration < best.duration) ? route : best, null);
+        const shortestRoute = [...routes].sort((a, b) => a.distance - b.distance)[0];
+        const alternativeRoute = routes.find(r => r !== fastestRoute && r !== shortestRoute) || null;
         
         if (fastestRoute === shortestRoute && !alternativeRoute) {
             showToast("NO HAY RUTAS ALTERNATIVAS", "info");
@@ -16609,6 +16816,7 @@ async function fetchAndDisplayAlternativeRoutes(waypointId) {
 
         alternativeRoutesCache.set(waypointId, routesData);
         drawAlternativeRoutes(waypointId, routesData);
+        showToast('Alternativas cargadas. Se seleccionará la ruta más rápida en 15 segundos.', 'info', 4000);
 
     } catch (error) {
         showToast("Error al obtener rutas alternativas", "error");

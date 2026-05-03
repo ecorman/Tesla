@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoardingGate Tesla Navegación</title>
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: 'Segoe UI', sans-serif;
+            background: #111;
+            color: #f5f5f5;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        body { display: flex; flex-direction: column; }
+        #app-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 12;
+            pointer-events: none;
+        }
+        #top-toolbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.9rem 1rem;
+            background: rgba(0, 0, 0, 0.84);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            z-index: 12;
+            pointer-events: auto;
+        }
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+        #top-toolbar select,
+        #top-toolbar input[type=range],
+        #top-toolbar input[type=text] {
+            min-width: 140px;
+            max-width: 220px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(0,0,0,0.7);
+            color: #f5f5f5;
+            padding: 0.7rem 0.85rem;
+            font-size: 0.9rem;
+        }
+        #top-toolbar .toolbar-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .icon-button {
+            font-size: 1.5rem;
+            border: none;
+            background: none;
+            color: #f5f5f5;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .icon-button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        #top-toolbar .toolbar-right {
+            justify-content: flex-end;
+        }
+        #controls-panel { display: none; }
+        .control-card { display: none; }
+        .control-card label { }
+        .control-card select,
+        .control-card input[type=range],
+        .control-card input[type=text] { }
+        .control-card button { }
+        .control-row { }
+        #map { position: absolute; inset: 0; }
+        #message-bar {
+            position: absolute;
+            bottom: 6.4rem;
+            left: 1rem;
+            right: 1rem;
+            z-index: 10;
+            text-align: center;
+            color: #fff;
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.8);
+            padding: 0.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #message-bar.show { opacity: 1; }
+        #bottom-toolbar {
+            background: rgba(12,12,12,0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 0.9rem 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            min-height: 54px;
+            font-size: 0.92rem;
+            color: #eee;
+        }
+        .status-panel span { font-weight: 600; color: #fff; }
+        #bottom-toolbar {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+            padding: 0.45rem 0.45rem;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 18px;
+            backdrop-filter: blur(10px);
+        }
+        .map-type-button {
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.08);
+            color: #f5f5f5;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.18s, border-color 0.18s, transform 0.18s;
+        }
+        .map-type-button:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
+        .map-type-button.active {
+            background: #22a7f0;
+            border-color: #1c90d8;
+            color: white;
+        }
+        .hidden { display: none !important; }
+        #settings-panel {
+            position: absolute;
+            top: 5rem;
+            right: 1rem;
+            width: min(360px, calc(100vw - 2rem));
+            border-radius: 22px;
+            background: rgba(0,0,0,0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+            padding: 1rem;
+            z-index: 15;
+            gap: 0.75rem;
+            display: grid;
+        }
+        #settings-panel h2 { margin: 0; font-size: 1rem; }
+        #settings-panel .setting-row { display: grid; gap: 0.55rem; }
+        #settings-panel .setting-row small { color: #999; }
+        #settings-panel button { width: 100%; }
+        .vehicle-marker {
+            width: 48px;
+            height: 68px;
+            display: grid;
+            justify-content: center;
+            align-items: flex-end;
+            transform-origin: bottom center;
+            pointer-events: none;
+        }
+        .vehicle-marker svg {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.35));
+        }
+        .mapboxgl-ctrl-logo, .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left { display: none !important; }
+        #address-suggestions-modal, #waypoint-type-modal {
+            position: absolute;
+            top: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(400px, calc(100vw - 2rem));
+            background: rgba(0,0,0,0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #address-suggestions-modal h2, #waypoint-type-modal h2 {
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+        #address-suggestions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #address-suggestions-list li {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            color: #fff;
+        }
+        #address-suggestions-list li:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+        .modal-buttons button:hover {
+            background: #555;
+        }
+    </style>
+    </style>
+</head>
+<body>
+    <div id="top-toolbar">
+        <div class="toolbar-group">
+            <button id="gear-button" class="icon-button" title="Abrir ajustes">⚙️</button>
+            <button id="recenter-button" class="icon-button" title="Centrar el mapa en el coche">📍</button>
+            <button id="calc-route" class="icon-button" title="Calcular ruta">🗺️</button>
+        </div>
+        <div class="toolbar-center">
+            <div class="toolbar-action">
+                <label for="map-provider">Mapa</label>
+                <select id="map-provider">
+                    <optgroup label="OSM">
+                        <option value="osm-streets">OSM Calles</option>
+                    </optgroup>
+                    <optgroup label="Carto">
+                        <option value="carto-streets">Carto Calles</option>
+                    </optgroup>
+                    <optgroup label="Stamen">
+                        <option value="stamen-dark">Stamen Oscuro</option>
+                    </optgroup>
+                    <optgroup label="ESRI">
+                        <option value="esri-streets">ESRI Calles</option>
+                        <option value="esri-satellite">ESRI Satélite</option>
+                    </optgroup>
+                    <optgroup label="OpenFreeMap">
+                        <option value="openfreemap-streets">OpenFreeMap Calles</option>
+                        <option value="openfreemap-relieve">OpenFreeMap Relieve</option>
+                    </optgroup>
+                    <optgroup label="Google">
+                        <option value="google-streets">Google Calles</option>
+                        <option value="google-satellite" selected>Google Satélite</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="toolbar-action">
+                <input type="text" id="destination-input" placeholder="Buscar destino..." />
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <div class="toolbar-action">
+                <label for="map-mode">Modo</label>
+                <select id="map-mode">
+                    <option value="2d">2D</option>
+                    <option value="3d">3D</option>
+                    <option value="relieve">Relieve</option>
+                </select>
+            </div>
+            <div class="toolbar-action">
+                <label for="route-provider">Ruta</label>
+                <select id="route-provider">
+                    <option value="osrm">OSMR</option>
+                    <option value="osmde">OSM.DE</option>
+                </select>
+            </div>
+            <label><input type="checkbox" id="buildings-toggle" checked> Edificios</label>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="message-bar"></div>
+
+    <div id="settings-panel" class="hidden">
+        <h2>Ajustes de navegación</h2>
+        <div class="setting-row">
+            <p>Usa la barra superior para cambiar proveedor, destino y offset. La barra inferior cambia el tipo de mapa.</p>
+        </div>
+        <div class="setting-row">
+            <button id="close-settings">Cerrar ajustes</button>
+        </div>
+    </div>
+
+    <div id="address-suggestions-modal" class="hidden">
+        <h2>Sugerencias de Dirección</h2>
+        <ul id="address-suggestions-list"></ul>
+        <div class="modal-buttons">
+            <button id="close-address-suggestions-modal">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const defaultCenter = [-3.70379, 40.41678];
+        const defaultZoom = 15;
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: {
+                version: 8,
+                sources: {},
+                layers: [
+                    { id: 'background', type: 'background', paint: { 'background-color': '#fff' } }
+                ]
+            },
+            center: defaultCenter,
+            zoom: defaultZoom,
+            antialias: true
+        });
+
+        const routeStatus = document.getElementById('route-status');
+        const routeProviderLabel = document.getElementById('route-provider-label');
+        const gearButton = document.getElementById('gear-button');
+        const settingsPanel = document.getElementById('settings-panel');
+        const closeSettings = document.getElementById('close-settings');
+        const routeProviderSelect = document.getElementById('route-provider');
+        const mapProviderSelect = document.getElementById('map-provider');
+        const mapModeSelect = document.getElementById('map-mode');
+        const altRoutesToggle = document.getElementById('alt-routes-toggle');
+        const buildingsToggle = document.getElementById('buildings-toggle');
+        const calcRouteButton = document.getElementById('calc-route');
+        const destinationInput = document.getElementById('destination-input');
+        const recenterButton = document.getElementById('recenter-button');
+        const messageBar = document.getElementById('message-bar');
+
+        let currentPosition = defaultCenter.slice();
+        let destinationPosition = null;
+        let routeData = null;
+        let carMarker = null;
+        let routeLayers = [];
+        let waypoints = [];
+        let carHeading = 0;
+
+        const vehicleEl = document.createElement('div');
+        vehicleEl.className = 'vehicle-marker';
+        vehicleEl.innerHTML = `
+            <svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="carGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2ce1ff" />
+                        <stop offset="100%" stop-color="#0d5dff" />
+                    </linearGradient>
+                </defs>
+                <path d="M40 6 L70 50 A10 10 0 0 1 68 66 L40 114 L12 66 A10 10 0 0 1 10 50 Z" fill="url(#carGrad)" stroke="#fff" stroke-width="3" />
+                <path d="M40 24 L40 106" stroke="rgba(255,255,255,0.35)" stroke-width="6" stroke-linecap="round" />
+            </svg>
+        `;
+
+        const MAP_STYLES = {
+            "osm-streets": {
+                "version": 8,
+                "sources": { "osm-tiles": { "type": "raster", "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], "tileSize": 256 } },
+                "layers": [{ "id": "osm-tiles", "type": "raster", "source": "osm-tiles", "minzoom": 0, "maxzoom": 22 }]
+            },
+            "carto-streets": {
+                "version": 8,
+                "sources": { "carto-tiles": { "type": "raster", "tiles": ["https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"], "tileSize": 256 } },
+                "layers": [{ "id": "carto-tiles", "type": "raster", "source": "carto-tiles", "minzoom": 0, "maxzoom": 22 }]
+            },
+            "stamen-dark": {
+                "version": 8,
+                "sources": { "stamen-tiles": { "type": "raster", "tiles": ["https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png"], "tileSize": 256 } },
+                "layers": [{ "id": "stamen-tiles", "type": "raster", "source": "stamen-tiles", "minzoom": 0, "maxzoom": 22 }]
+            },
+            "esri-streets": {
+                "version": 8,
+                "sources": { "esri-tiles": { "type": "raster", "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"], "tileSize": 256, "attribution": "Esri" } },
+                "layers": [{ "id": "esri-tiles", "type": "raster", "source": "esri-tiles", "minzoom": 0, "maxzoom": 22 }]
+            },
+            "esri-satellite": {
+                "version": 8,
+                "sources": { "esri-tiles": { "type": "raster", "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], "tileSize": 256, "attribution": "Esri" } },
+                "layers": [{ "id": "esri-tiles", "type": "raster", "source": "esri-tiles", "minzoom": 0, "maxzoom": 22 }]
+            },
+            "openfreemap-streets": "https://tiles.openfreemap.org/styles/bright",
+            "openfreemap-relieve": "https://tiles.openfreemap.org/styles/liberty",
+            "google-streets": {
+                "version": 8,
+                "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"], "tileSize": 256 } },
+                "layers": [{ "id": "google-tiles", "type": "raster", "source": "google-tiles", "minzoom": 0, "maxzoom": 22 }]
+            },
+            "google-satellite": {
+                "version": 8,
+                "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 } },
+                "layers": [{ "id": "google-tiles", "type": "raster", "source": "google-tiles", "minzoom": 0, "maxzoom": 22 }]
+            }
+        };
+
+        const providerConfigs = {
+            osm: { streets: 'OSM Calles' },
+            carto: { streets: 'Carto Calles' },
+            stamen: { dark: 'Stamen Oscuro' },
+            esri: { streets: 'ESRI Calles', satellite: 'ESRI Satélite' },
+            openfreemap: { streets: 'OpenFreeMap Calles', relieve: 'OpenFreeMap Relieve' },
+            google: { streets: 'Google Calles', satellite: 'Google Satélite' }
+        };
+
+        let currentMapMode = '2d';
+
+        function updateMapStyle(styleKey) {
+            messageBar.textContent = 'Cargando...';
+            messageBar.classList.add('show');
+            map.setStyle(MAP_STYLES[styleKey]);
+            let loaded = false;
+            map.once('style.load', () => {
+                loaded = true;
+                if (!map.getSource('openfreemap-buildings')) {
+                    map.addSource('openfreemap-buildings', {
+                        type: 'vector',
+                        url: 'https://tiles.openfreemap.org/planet'
+                    });
+                    map.addLayer({
+                        id: 'buildings',
+                        type: 'fill-extrusion',
+                        source: 'openfreemap-buildings',
+                        'source-layer': 'building',
+                        paint: {
+                            'fill-extrusion-color': '#aaa',
+                            'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
+                            'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                            'fill-extrusion-opacity': 0.8
+                        },
+                        layout: { visibility: 'none' }
+                    });
+                }
+                messageBar.textContent = `Mapa cargado`;
+                setTimeout(() => {
+                    messageBar.classList.remove('show');
+                }, 2000);
+            });
+            // Fallback
+            setTimeout(() => {
+                if (!loaded) {
+                    if (!map.getSource('openfreemap-buildings')) {
+                        map.addSource('openfreemap-buildings', {
+                            type: 'vector',
+                            url: 'https://tiles.openfreemap.org/planet'
+                        });
+                        map.addLayer({
+                            id: 'buildings',
+                            type: 'fill-extrusion',
+                            source: 'openfreemap-buildings',
+                            'source-layer': 'building',
+                            paint: {
+                                'fill-extrusion-color': '#aaa',
+                                'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
+                                'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                                'fill-extrusion-opacity': 0.8
+                            },
+                            layout: { visibility: 'none' }
+                        });
+                    }
+                    messageBar.textContent = `Mapa cargado`;
+                    setTimeout(() => {
+                        messageBar.classList.remove('show');
+                    }, 2000);
+                }
+            }, 3000);
+        }
+
+        function updateMapStyleLabel() {
+            const modeLabel = currentMapMode === '3d' ? '3D' : '2D';
+            mapStyleLabel.textContent = `${mapTypeConfig[currentMapType].label} ${modeLabel}`;
+            mapProviderLabel.textContent = currentMapProvider.toUpperCase();
+            routeProviderLabel.textContent = routeProviderSelect.value.toUpperCase();
+        }
+
+        function setMapMode(mode) {
+            currentMapMode = mode;
+            let pitch = 0;
+            let bearing = 0;
+            if (mode === '3d') {
+                pitch = 60;
+                bearing = 30;
+            } else if (mode === 'relieve') {
+                pitch = 45;
+                bearing = 0;
+            }
+            map.easeTo({ pitch, bearing, duration: 700 });
+            updateBuildingsVisibility();
+        }
+
+        function updateBuildingsVisibility() {
+            const buildingsVisible = (currentMapMode === '3d' || currentMapMode === 'relieve') && buildingsToggle.checked;
+            if (buildingsVisible) {
+                if (map.getLayer('buildings')) {
+                    map.setLayoutProperty('buildings', 'visibility', 'visible');
+                }
+            } else {
+                if (map.getLayer('buildings')) {
+                    map.setLayoutProperty('buildings', 'visibility', 'none');
+                }
+            }
+        }
+
+        function createCarMarker() {
+            if (carMarker) {
+                carMarker.setLngLat(currentPosition);
+                return;
+            }
+            carMarker = new maplibregl.Marker(vehicleEl, { anchor: 'bottom' })
+                .setLngLat(currentPosition)
+                .addTo(map);
+        }
+
+        function setRouteStatus(text) {
+            routeStatus.textContent = text;
+        }
+
+        function clearRouteLayers() {
+            routeLayers.forEach(layerId => {
+                if (map.getLayer(layerId)) map.removeLayer(layerId);
+                if (map.getSource(layerId)) map.removeSource(layerId);
+            });
+            routeLayers = [];
+        }
+
+        function addRouteLine(route, index) {
+            const id = `route-line-${index}`;
+            map.addSource(id, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: route.geometry
+                }
+            });
+            map.addLayer({
+                id,
+                type: 'line',
+                source: id,
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                },
+                paint: {
+                    'line-color': index === 0 ? '#0dffff' : '#ffab40',
+                    'line-width': index === 0 ? 8 : 5,
+                    'line-opacity': index === 0 ? 0.95 : 0.65,
+                    'line-dasharray': index === 0 ? [1, 0] : [2, 2]
+                }
+            });
+            routeLayers.push(id);
+        }
+
+        async function fetchRoute(provider, origin, destination, alternatives, waypoints = []) {
+            const allCoords = [origin, ...waypoints.map(w => [w.lat, w.lon]), destination];
+            const coords = allCoords.map(c => `${c[1]},${c[0]}`).join(';');
+            let url;
+            if (provider === 'osmde') {
+                url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=false`;
+            } else {
+                url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=${alternatives ? 'true' : 'false'}`;
+            }
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('No se pudo obtener la ruta');
+            return response.json();
+        }
+
+        function displayRoutes(data) {
+            clearRouteLayers();
+            if (!data.routes || !data.routes.length) {
+                setRouteStatus('No hay ruta disponible');
+                return;
+            }
+            data.routes.forEach((route, index) => addRouteLine(route, index));
+            routeData = data.routes[0];
+            const distanceKm = (routeData.distance / 1000).toFixed(1);
+            const durationMin = Math.round(routeData.duration / 60);
+            setRouteStatus(`${distanceKm} km · ${durationMin} min · ${data.routes.length} ruta(s)`);
+            const bounds = new maplibregl.LngLatBounds();
+            data.routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
+            map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 900 });
+            updateCarHeading(routeData.geometry.coordinates);
+        }
+
+        function updateCarHeading(coords) {
+            if (!coords || coords.length < 2) return;
+            const [lon1, lat1] = coords[0];
+            const [lon2, lat2] = coords[1];
+            carHeading = Math.atan2(lon2 - lon1, lat2 - lat1) * 180 / Math.PI;
+            vehicleEl.style.transform = `rotate(${carHeading}deg)`;
+        }
+
+        async function calculateRoute() {
+            if (waypoints.length === 0) {
+                setRouteStatus('Añade un destino');
+                return;
+            }
+            destinationPosition = [waypoints[waypoints.length - 1].lon, waypoints[waypoints.length - 1].lat];
+            setRouteStatus('Calculando ruta...');
+            const provider = routeProviderSelect.value;
+            providerLabel.textContent = provider.toUpperCase();
+            try {
+                const response = await fetchRoute(provider, currentPosition, destinationPosition, altRoutesToggle.checked, waypoints.slice(0, -1));
+                displayRoutes(response);
+            } catch (error) {
+                setRouteStatus('Error al calcular ruta');
+                console.error(error);
+            }
+        }
+
+        function setDestinationFromPoint(lngLat) {
+            destinationPosition = [lngLat.lng, lngLat.lat];
+            destinationInput.value = `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`;
+            calculateRoute();
+        }
+
+        function updateCurrentPositionFromGeolocation(position) {
+            const newPosition = [position.coords.longitude, position.coords.latitude];
+            if (currentPosition[0] === defaultCenter[0] && currentPosition[1] === defaultCenter[1]) {
+                // Primera actualización, centrar el mapa
+                map.flyTo({ center: newPosition, zoom: map.getZoom(), duration: 1500 });
+            }
+            currentPosition = newPosition;
+            if (carMarker) carMarker.setLngLat(currentPosition);
+            else createCarMarker();
+            setRouteStatus('Posición GPS actualizada');
+        }
+
+        map.on('load', () => {
+            if (!map.getSource('openfreemap-buildings')) {
+                map.addSource('openfreemap-buildings', {
+                    type: 'vector',
+                    url: 'https://tiles.openfreemap.org/planet'
+                });
+                map.addLayer({
+                    id: 'buildings',
+                    type: 'fill-extrusion',
+                    source: 'openfreemap-buildings',
+                    'source-layer': 'building',
+                    paint: {
+                        'fill-extrusion-color': '#aaa',
+                        'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
+                        'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                        'fill-extrusion-opacity': 0.8
+                    },
+                    layout: { visibility: 'none' }
+                });
+            }
+            updateMapStyle('osm-streets');
+            updateBuildingsVisibility();
+            createCarMarker();
+            map.getCanvas().style.cursor = 'crosshair';
+            map.on('click', (event) => setDestinationFromPoint(event.lngLat));
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(updateCurrentPositionFromGeolocation, (error) => {
+                    console.error('Error de geolocalización:', error);
+                    setRouteStatus('Error de geolocalización');
+                }, { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 });
+            }
+        });
+
+        gearButton.addEventListener('click', () => settingsPanel.classList.toggle('hidden'));
+        closeSettings.addEventListener('click', () => settingsPanel.classList.add('hidden'));
+        calcRouteButton.addEventListener('click', calculateRoute);
+        recenterButton.addEventListener('click', () => {
+            map.easeTo({ center: currentPosition, duration: 600 });
+        });
+
+        mapProviderSelect.addEventListener('change', () => {
+            updateMapStyle(mapProviderSelect.value);
+        });
+
+        mapModeSelect.addEventListener('change', () => {
+            setMapMode(mapModeSelect.value);
+        });
+
+        routeProviderSelect.addEventListener('change', () => {
+            if (destinationPosition) calculateRoute();
+        });
+
+        buildingsToggle.addEventListener('change', () => {
+            updateBuildingsVisibility();
+        });
+
+        destinationInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                calculateRoute();
+            }
+        });
+
+        let selectedSuggestion = null;
+
+        function hideAddressSuggestionsModal() {
+            const modal = document.getElementById('address-suggestions-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function displayAddressSuggestionsModal(suggestions) {
+            const modal = document.getElementById('address-suggestions-modal');
+            const listElement = modal.querySelector('#address-suggestions-list');
+            const titleElement = modal.querySelector('h2');
+
+            if (suggestions.length === 0) {
+                titleElement.textContent = "No se encontraron direcciones";
+                listElement.innerHTML = '<li>No hay resultados.</li>';
+            } else {
+                titleElement.textContent = `${suggestions.length} coincidencia${suggestions.length !== 1 ? 's' : ''}`;
+                listElement.innerHTML = '';
+                suggestions.forEach(suggestion => {
+                    const li = document.createElement('li');
+                    li.textContent = suggestion.display_name;
+                    li.dataset.lat = suggestion.lat;
+                    li.dataset.lon = suggestion.lon;
+                    li.addEventListener('click', () => {
+                        showWaypointPlacementPopup(suggestion.display_name, suggestion.lat, suggestion.lon);
+                        hideAddressSuggestionsModal();
+                    });
+                    listElement.appendChild(li);
+                });
+            }
+            modal.classList.remove('hidden');
+        }
+
+        async function fetchAddressSuggestions(query) {
+            if (!query || query.length < 4) {
+                hideAddressSuggestionsModal();
+                return;
+            }
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&accept-language=es`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+                const data = await response.json();
+                const results = data.map(item => ({
+                    display_name: item.display_name,
+                    lat: parseFloat(item.lat),
+                    lon: parseFloat(item.lon)
+                }));
+                displayAddressSuggestionsModal(results);
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+                hideAddressSuggestionsModal();
+            }
+        }
+
+        async function snapCoordsToRoad(lat, lon) {
+            try {
+                const baseUrl = routeProviderSelect.value === 'osrm' ? 'https://router.project-osrm.org' : 'https://routing.openstreetmap.de';
+                const nearestUrl = `${baseUrl}/nearest/v1/driving/${lon},${lat}?number=1`;
+                const nearestResponse = await fetch(nearestUrl);
+                if (!nearestResponse.ok) {
+                    console.warn(`OSRM /nearest falló, se usarán coordenadas originales.`);
+                    return { lat: lat, lng: lon };
+                }
+                const nearestData = await nearestResponse.json();
+                if (nearestData.code === "Ok" && nearestData.waypoints && nearestData.waypoints.length > 0) {
+                    const snappedCoords = nearestData.waypoints[0].location;
+                    return { lat: snappedCoords[1], lng: snappedCoords[0] };
+                } else {
+                    console.warn("OSRM /nearest no encontró un punto válido, se usarán coordenadas originales.");
+                    return { lat: lat, lng: lon };
+                }
+            } catch (error) {
+                console.error("Error en snapCoordsToRoad:", error);
+                return { lat: lat, lng: lon };
+            }
+        }
+
+        function showWaypointPlacementPopup(displayName, lat, lon) {
+            if (!map) return;
+
+            const tempMarkerElement = document.createElement('div');
+            tempMarkerElement.className = 'waypoint-marker';
+            tempMarkerElement.style.cssText = `
+                background-color: rgba(255, 140, 0, 0.9);
+                border: 3px solid white;
+                width: 50px; height: 50px;
+                font-size: 28px; font-weight: bold;
+                display: flex; align-items: center; justify-content: center;
+                border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            `;
+            tempMarkerElement.textContent = 'F';
+
+            const tempMarker = new maplibregl.Marker({
+                element: tempMarkerElement,
+                draggable: false,
+                anchor: 'center'
+            }).setLngLat([lon, lat]).addTo(map);
+            
+            const popupContent = document.createElement('div');
+            popupContent.style.cssText = `
+                font-family: 'Segoe UI', Roboto, sans-serif;
+                text-align: center;
+                color: #eee;
+                width: 320px;
+                padding: 20px;
+                background-color: #2c2c2e;
+                border-radius: 12px;
+                box-sizing: border-box;
+            `;
+            popupContent.innerHTML = `
+                <style>
+                    .placement-popup-btn {
+                        width: 100%; padding: 12px; margin-top: 10px; border: none;
+                        border-radius: 8px; font-weight: bold; font-size: 1rem;
+                        cursor: pointer; transition: transform 0.1s, background-color 0.2s;
+                        color: white;
+                    }
+                    .placement-popup-btn:active { transform: scale(0.98); }
+                    .placement-popup-btn.add { background-color: #34c759; }
+                    .placement-popup-btn.drag { background-color: #ff9500; }
+                    .placement-popup-btn.cancel { background-color: #444; }
+                </style>
+                <p style="font-size: 1.1rem; font-weight: bold; margin: 0 0 12px 0; color: #FFD700; word-wrap: break-word;">${displayName}</p>
+                <button id="placement-add-destination" class="placement-popup-btn add">Añadir como Destino</button>
+                ${waypoints.length > 0 ? '<button id="placement-add-stopover" class="placement-popup-btn add">Añadir como Parada Intermedia</button>' : ''}
+                <button id="placement-drag" class="placement-popup-btn drag">Ajustar Posición</button>
+                <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
+            `;
+
+            const confirmationPopup = new maplibregl.Popup({
+                closeButton: false,
+                closeOnClick: false,
+                anchor: 'bottom',
+                offset: 40,
+                className: 'waypoint-popup'
+            })
+            .setLngLat([lon, lat])
+            .setDOMContent(popupContent)
+            .addTo(map);
+            
+            const popupElement = confirmationPopup.getElement();
+            if (popupElement) {
+                popupElement.style.zIndex = '12000';
+                popupElement.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+            map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 15), duration: 1500, pitch: 45 });
+
+            const cleanup = () => {
+                tempMarker.remove();
+                confirmationPopup.remove();
+            };
+
+            const addDestinationBtn = popupContent.querySelector('#placement-add-destination');
+            const addStopoverBtn = popupContent.querySelector('#placement-add-stopover');
+            const dragBtn = popupContent.querySelector('#placement-drag');
+            const cancelBtn = popupContent.querySelector('#placement-cancel');
+
+            addDestinationBtn.onclick = async (e) => {
+                e.preventDefault(); e.stopPropagation();
+                const finalCoords = tempMarker.getLngLat();
+                cleanup();
+                setRouteStatus('Ajustando a la carretera...');
+                const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
+                if (waypoints.length > 0) {
+                    waypoints[waypoints.length - 1] = { display_name: displayName, lat: snapped.lat, lng: snapped.lng };
+                } else {
+                    waypoints = [{ display_name: displayName, lat: snapped.lat, lng: snapped.lng }];
+                }
+                calculateRoute();
+            };
+
+            if (addStopoverBtn) {
+                addStopoverBtn.onclick = async (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const finalCoords = tempMarker.getLngLat();
+                    cleanup();
+                    setRouteStatus('Ajustando a la carretera...');
+                    const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
+                    waypoints.push({ display_name: displayName, lat: snapped.lat, lng: snapped.lng });
+                    calculateRoute();
+                };
+            }
+
+            dragBtn.onclick = (e) => {
+                e.preventDefault(); e.stopPropagation();
+                tempMarker.setDraggable(true);
+                tempMarkerElement.style.cursor = 'grabbing';
+                tempMarkerElement.style.backgroundColor = 'rgba(255, 140, 0, 1)';
+                confirmationPopup.remove(); 
+                setRouteStatus("Arrastra el marcador 'F' y suéltalo para añadir.");
+                
+                tempMarker.on('dragend', async () => {
+                    const finalCoords = tempMarker.getLngLat();
+                    tempMarker.remove(); 
+                    setRouteStatus('Ajustando a la carretera...');
+                    const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
+                    waypoints.push({ display_name: displayName, lat: snapped.lat, lng: snapped.lng });
+                    calculateRoute();
+                });
+            };
+
+            cancelBtn.onclick = (e) => {
+                e.preventDefault(); e.stopPropagation();
+                cleanup();
+            };
+        }
+
+        destinationInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            if (query.length > 3) {
+                fetchAddressSuggestions(query);
+            } else {
+                hideAddressSuggestionsModal();
+            }
+        });
+
+        destinationInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) {
+                    fetchAddressSuggestions(query);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
