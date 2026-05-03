@@ -17778,7 +17778,25 @@ function handleLocateMeClick(isExplicitAction = false) {
                      });
                 }
                 updateInitialUserPosition(coords, navigationMapInstance);
-            }, () => showToast("No se pudo obtener tu ubicación.", "warning"));
+            }, () => {
+                if (navigationMapInstance) {
+                    const center = navigationMapInstance.getCenter();
+                    const fallbackCoords = {
+                        latitude: center.lat,
+                        longitude: center.lng,
+                        accuracy: 0,
+                        heading: 0,
+                        speed: 0,
+                        altitude: 0
+                    };
+                    navigationCurrentLocation = { ...fallbackCoords };
+                    updateInitialUserPosition(fallbackCoords, navigationMapInstance);
+                    navigationMapInstance.flyTo({ center: [center.lng, center.lat], zoom: 17, duration: 1000, essential: true });
+                    showToast("No se pudo obtener el GPS real, usando la ubicación actual del mapa.", "warning");
+                } else {
+                    showToast("No se pudo obtener tu ubicación.", "warning");
+                }
+            });
         }
     } else {
         if (isExplicitAction) {
