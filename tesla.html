@@ -1046,6 +1046,56 @@ const originalBookmarks = [
         return false;
     }
 
+    function normalizeGraphMode(mode) {
+        if (!mode) return null;
+        if (mode === 'Desviación Ruta') return 'Desviación ETA';
+        return mode;
+    }
+
+    function populateRouteAltitudeProfile() {
+        if (currentGraphMode !== 'Altitud' || !navigationCurrentRouteData?.routes?.[0] || graphDataPoints.altitude.length > 0) {
+            return;
+        }
+        const route = navigationCurrentRouteData.routes[0];
+        const coords = route.geometry?.coordinates;
+        if (!Array.isArray(coords) || coords.length < 2) {
+            return;
+        }
+
+        const sampleCount = Math.min(40, coords.length);
+        const step = Math.max(1, Math.floor(coords.length / sampleCount));
+        const altProfile = [];
+        const labels = [];
+        const hasTerrainQuery = typeof navigationMapInstance?.queryTerrainElevation === 'function';
+
+        for (let i = 0; i < coords.length; i += step) {
+            const point = coords[i];
+            if (!Array.isArray(point) || point.length < 2) continue;
+            let altitude = null;
+            if (typeof point[2] === 'number' && !isNaN(point[2])) {
+                altitude = point[2];
+            } else if (hasTerrainQuery) {
+                try {
+                    altitude = navigationMapInstance.queryTerrainElevation({ lng: point[0], lat: point[1] });
+                } catch (e) {
+                    altitude = null;
+                }
+            }
+            if (altitude === null || altitude === undefined || isNaN(altitude)) {
+                altitude = 0;
+            }
+            altProfile.push(altitude);
+            labels.push(`${altProfile.length}`);
+        }
+
+        if (altProfile.length > 0) {
+            graphDataPoints.altitude = altProfile;
+            if (graphLabels.length < altProfile.length) {
+                graphLabels = labels;
+            }
+        }
+    }
+
     let compassAndModeControl = null;
     let navigationWaypoints = [];
     let navigationRouteLayer = null;
@@ -1115,7 +1165,7 @@ const originalBookmarks = [
     let directToNavOnLoad = false;
     let mapLayersControlLocationsPreview = null;
     let navigationChart = null;
-    let currentGraphMode = localStorage.getItem(GRAPH_STATE_KEY) || 'Desviación Ruta';
+    let currentGraphMode = normalizeGraphMode(localStorage.getItem(GRAPH_STATE_KEY)) || 'Desviación ETA';
     let graphPlotState = { lastPlotTime: null, lastPlotCoords: null };
     let graphIntervalDuration = 0; 
     let graphIntervalTimer = null;
@@ -1360,7 +1410,12 @@ const originalBookmarks = [
     const VOICE_GUIDANCE_KEY = 'boardinggate_voice_guidance';
     let voiceGuidanceEnabled = false;
     const voiceSynthesis = window.speechSynthesis;
-    
+    let speechSynthesisSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    let availableVoices = [];
+    let selectedVoice = null;
+    let voiceSynthesisReady = false;
+    let lastNavigationInstructionText = '';
+
     const easeInOutQuad = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
    
     const managedKeys = [ 
@@ -2838,6 +2893,7 @@ pois: {
                 if (minimapContainer) {
                     minimapContainer.classList.toggle('hidden', !shouldBeVisible);
                 }
+                drawRouteOnMinimap();
             } else {
                 if (minimapContainer) {
                     minimapContainer.classList.add('hidden');
@@ -3125,7 +3181,7 @@ async function toggleNavigationState(isRecalculationStop = false, isRecovery = f
             const toastMessage = isRecovery ? "Navegación reanudada." : "Navegación iniciada. Esperando movimiento...";
             showToast(toastMessage, "success");
 
-            currentGraphMode = localStorage.getItem(GRAPH_STATE_KEY) || 'Desviación ETA';
+            currentGraphMode = normalizeGraphMode(localStorage.getItem(GRAPH_STATE_KEY)) || 'Desviación ETA';
             initializeNavigationGraph();
             const radaresRutaCheckbox = document.getElementById('radares-ruta-checkbox'); if (radaresRutaCheckbox && radaresRutaCheckbox.checked) { toggleRadaresRuta(true); }
             const tareasRutaCheckbox = document.getElementById('tareas-ruta-checkbox'); if (tareasRutaCheckbox && tareasRutaCheckbox.checked) { toggleTareasRuta(true); }
@@ -5595,13 +5651,22 @@ async function openNavigationMap(isRecovery = false) {
                 // 1. Intentar obtener la ubicación real inmediatamente ANTES de crear el mapa
                 let initialCenter = [ -3.70379, 40.41678 ]; // Madrid por defecto
                 let initialZoom = 17; // Zoom a nivel de calle por defecto
+
+                try {
+                    const initialGpsPos = await getInitialGpsPositionForMap();
+                    if (initialGpsPos && typeof initialGpsPos.latitude === 'number' && typeof initialGpsPos.longitude === 'number' && !(initialGpsPos.latitude === 0 && initialGpsPos.longitude === 0)) {
+                        initialCenter = [ initialGpsPos.longitude, initialGpsPos.latitude ];
+                    }
+                } catch (e) {
+                    console.warn('No se pudo obtener la posición inicial antes de crear el mapa:', e);
+                }
                 
-                // 2. Recuperar última posición conocida para evitar saltos bruscos
+                // 2. Recuperar última posición conocida para evitar saltos bruscos si no hay GPS inmediato
                 const lastPosJSON = localStorage.getItem('boardinggate_nav_recovery_flag');
                 if (lastPosJSON) {
                     try {
                         const lastData = JSON.parse(lastPosJSON);
-                        if (lastData.lastKnownLocation) {
+                        if (lastData.lastKnownLocation && (initialCenter[0] === -3.70379 && initialCenter[1] === 40.41678)) {
                             initialCenter = [ lastData.lastKnownLocation.longitude, lastData.lastKnownLocation.latitude ];
                         }
                     } catch(e) {}
@@ -7243,35 +7308,112 @@ function saveSettings() {
 
 let lastSpokenText = "";
 function speakNavigationInstruction(text) {
-    if (!voiceGuidanceEnabled || !text) return;
-    
+    if (!text) return;
+    lastNavigationInstructionText = text;
+
+    if (!voiceGuidanceEnabled) return;
+
     // Evitar repetir la misma instrucción en menos de 5 segundos
     if (text === lastSpokenText) return;
     lastSpokenText = text;
     setTimeout(() => { lastSpokenText = ""; }, 5000);
 
     console.log("Locución GPS:", text);
-    
+    speakTextWithVoice(text);
+}
+
+function speakTextWithVoice(text) {
+    if (!text) return false;
+
     try {
-        // Usar el servicio de Google Translate para generar el audio (MP3)
-        // tl=es (Español), client=tw-ob (indispensable para que funcione sin API key)
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
-        
-        const audio = new Audio();
-        audio.src = audioUrl;
-        audio.preload = 'auto';
-        
-        // Intentar reproducir con una pequeña demora para asegurar que el navegador lo procesa bien
-        setTimeout(() => {
-            audio.play().catch(e => {
-                console.warn("Error al reproducir audio TTS remoto:", e);
-                // Si falla por autoplay, intentamos silenciar y luego reproducir (algunos navegadores lo permiten)
-                // Pero para navegación la voz es esencial, así que solo logueamos.
-            });
-        }, 100);
+        if (!speechSynthesisSupported) {
+            console.warn("SpeechSynthesis no disponible en este navegador.");
+            return false;
+        }
+
+        if (!voiceSynthesisReady) {
+            refreshAvailableVoices();
+            if (!voiceSynthesisReady) {
+                console.warn("No hay voces disponibles para SpeechSynthesis.");
+                return false;
+            }
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.volume = 1;
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        }
+
+        voiceSynthesis.cancel();
+        voiceSynthesis.speak(utterance);
+        return true;
     } catch (err) {
-        console.error("Error en el motor de voz remoto:", err);
+        console.error("Error en SpeechSynthesis:", err);
+        return false;
     }
+}
+
+function refreshAvailableVoices() {
+    if (!speechSynthesisSupported) {
+        availableVoices = [];
+        selectedVoice = null;
+        voiceSynthesisReady = false;
+        return;
+    }
+
+    availableVoices = voiceSynthesis.getVoices() || [];
+    selectedVoice = availableVoices.find(v => v.lang && v.lang.toLowerCase().startsWith('es')) || availableVoices[0] || null;
+    voiceSynthesisReady = availableVoices.length > 0;
+    updateVoiceGuidanceStatusDisplay();
+}
+
+function updateVoiceGuidanceStatusDisplay() {
+    const statusElement = document.getElementById('voice-guidance-status');
+    if (!statusElement) return;
+
+    if (!speechSynthesisSupported) {
+        statusElement.textContent = 'SpeechSynthesis no soportado';
+        statusElement.style.color = '#ffb74d';
+        return;
+    }
+
+    const voiceCount = availableVoices.length;
+    const voiceName = selectedVoice ? selectedVoice.name : 'sin voz disponible';
+    statusElement.textContent = voiceSynthesisReady ? `Voces disponibles: ${voiceCount} (${voiceName})` : 'Sin voces disponibles';
+    statusElement.style.color = voiceSynthesisReady ? '#90ee90' : '#ffcc00';
+}
+
+function handleVoiceGuidanceTest() {
+    refreshAvailableVoices();
+    updateVoiceGuidanceStatusDisplay();
+
+    if (!speechSynthesisSupported) {
+        showToast('SpeechSynthesis no está disponible en este navegador.', 'warning');
+        return;
+    }
+    if (!voiceSynthesisReady) {
+        showToast('No hay voces disponibles. Asegúrate de interactuar con el navegador primero.', 'warning');
+        return;
+    }
+
+    const text = lastNavigationInstructionText || 'Hola, probando la guía de voz.';
+    if (speakTextWithVoice(text)) {
+        showToast('Probando voz...', 'info');
+    } else {
+        showToast('No se pudo reproducir la prueba de voz.', 'error');
+    }
+}
+
+if (speechSynthesisSupported) {
+    refreshAvailableVoices();
+    voiceSynthesis.onvoiceschanged = () => {
+        refreshAvailableVoices();
+        updateVoiceGuidanceStatusDisplay();
+    };
 }
     
  
@@ -7379,7 +7521,7 @@ function loadSavedSettings() {
         pdrsRutaCheckbox.checked = savedPdrsCheckState === 'true'; 
     }
     
-    currentGraphMode = localStorage.getItem(GRAPH_STATE_KEY) || 'Desviación ETA';
+    currentGraphMode = normalizeGraphMode(localStorage.getItem(GRAPH_STATE_KEY)) || 'Desviación ETA';
     const userIdInput = document.getElementById('user-id');
     const modelInput = document.getElementById('tesla-model');
     const yearInput = document.getElementById('tesla-year');
@@ -10899,8 +11041,9 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
     
     // Mostrar/ocultar dirección actual (GPS)
     const gpsAddressDisplay = document.getElementById('gps-address-display');
+    const shouldShowGpsAddress = route && ((isNavigating || isFreeDriveActive) || shouldShowMinimap);
     if (gpsAddressDisplay) {
-        gpsAddressDisplay.style.display = (isNavigating || isFreeDriveActive) ? 'block' : 'none';
+        gpsAddressDisplay.style.display = shouldShowGpsAddress ? 'block' : 'none';
     }
 
     if (miniNavCard.style.display === 'flex') {
@@ -12183,7 +12326,7 @@ function updateStartNavigationButtonState() {
     if (loadRouteBtn) {
         loadRouteBtn.classList.remove('hidden');
     }
-    const hasGraphData = graphDataPoints && (graphDataPoints.speed.length > 0 || graphDataPoints.altitude.length > 0);
+    const hasGraphData = graphDataPoints && (graphDataPoints.speed.length > 0 || graphDataPoints.altitude.length > 0 || (navigationCurrentRouteData && navigationCurrentRouteData.routes && navigationCurrentRouteData.routes[0]));
     graphCard.classList.toggle('hidden', !hasGraphData || currentGraphMode === 'Gráfica off');
     
     if (!hasEnoughWaypointsForRoute && !isNavigating && !isFreeDriveActive) {
@@ -12505,6 +12648,10 @@ function showNavigationMapHelpModal() {
                                  <input type="checkbox" id="voice-guidance-checkbox">
                                  <span>Guiado por voz</span>
                              </label>
+                             <div class="voice-guidance-controls" style="margin-top: 8px; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                 <button type="button" id="voice-guidance-test-button" class="reset-visuals-btn" style="padding: 6px 10px; min-width: auto;">Probar voz</button>
+                                 <span id="voice-guidance-status" style="font-size: 0.85rem; color: #c0c0c0; white-space: nowrap;">Cargando...</span>
+                             </div>
                              
                              <div class="slider-control" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
                                 <label for="dynamic-radar-radius-slider">Radio Radares Dinámicos:</label>
@@ -12647,10 +12794,20 @@ function showNavigationMapHelpModal() {
             showToast(`Guiado por voz ${voiceGuidanceEnabled ? 'ACTIVADO' : 'DESACTIVADO'}.`, 'info');
             
             if (voiceGuidanceEnabled) {
+                if (!speechSynthesisSupported || !voiceSynthesisReady) {
+                    showToast('SpeechSynthesis no está disponible o no hay voces instaladas en este Chromium.', 'warning');
+                }
                 speakNavigationInstruction("Guiado por voz activado.");
             }
+            updateVoiceGuidanceStatusDisplay();
         });
     }
+
+    const voiceGuidanceTestButton = helpModal.querySelector('#voice-guidance-test-button');
+    if (voiceGuidanceTestButton) {
+        voiceGuidanceTestButton.addEventListener('click', handleVoiceGuidanceTest);
+    }
+    updateVoiceGuidanceStatusDisplay();
     // -----------------------------------------------------
  
     const directToNavCheckboxMapHelp = helpModal.querySelector('#direct-to-nav-checkbox-map-help');
@@ -16747,7 +16904,7 @@ function getChargingPointColorByPower(power) {
     if (isNaN(power)) {
         return '#5e5e5e'; }
     if (power >= 0 && power <= 50) {
-        return '#0f130c'; 
+        return '#1a4f2e'; 
     } else if (power > 50 && power <= 100) {
         return '#007863'; 
     } else if (power > 100 && power <= 250) {
@@ -16831,7 +16988,7 @@ function startFreeDrive(initialCoords) {
     startMemoryManagement(true); 
     updateStartNavigationButtonState();
     updateNavigationButtonColor();
-    currentGraphMode = localStorage.getItem(GRAPH_STATE_KEY) || 'Desviación ETA'; 
+    currentGraphMode = normalizeGraphMode(localStorage.getItem(GRAPH_STATE_KEY)) || 'Desviación ETA'; 
     initializeNavigationGraph();
     updateNavigationProgressDisplay();
 }
@@ -21250,7 +21407,7 @@ function initializeNavigationGraph() {
     const graphCard = document.getElementById('navigation-graph-card');
     const graphContainer = document.getElementById('navigation-graph-container');
     const graphTitleElement = document.getElementById('navigation-graph-title');
-    if (!graphCard || !graphContainer || !graphTitleElement || (!isNavigating && !isFreeDriveActive) || currentGraphMode === 'Gráfica off') {
+    if (!graphCard || !graphContainer || !graphTitleElement || (!isNavigating && !isFreeDriveActive && !navigationCurrentRouteData) || currentGraphMode === 'Gráfica off') {
         if (graphCard) graphCard.classList.add('hidden');
         if (navigationChart) { navigationChart.destroy(); navigationChart = null; }
         return;
@@ -21542,6 +21699,9 @@ function updateNavigationGraphVisibilityAndMode() {
         compassAndModeControl._updateGraphTitle();
     }
     const isEnlarged = graphCard.classList.contains('enlarged');
+    if (currentGraphMode === 'Altitud') {
+        populateRouteAltitudeProfile();
+    }
     if ((navigationCurrentRouteData || isFreeDriveActive) && currentGraphMode !== 'Gráfica off') {
         graphCard.classList.remove('hidden');
         if (!isEnlarged) {
@@ -21550,7 +21710,7 @@ function updateNavigationGraphVisibilityAndMode() {
         }
         if (navigationChart) {
             updateChartData(); 
-        } else if (isNavigating || isFreeDriveActive) {
+        } else if (navigationCurrentRouteData || isNavigating || isFreeDriveActive) {
             initializeNavigationGraph();
         }
     } else {
@@ -23144,7 +23304,7 @@ function displayChargingPointsOnMap() {
     const sourceId = 'pdrs-geojson-source';
     const layersToRemove = [
         'pdr-cards-layer-availability', 'pdr-cards-layer-price', 'pdr-cards-layer-operator', 'pdr-cards-layer-power', 'pdr-cards-layer-bg-halo', 'pdr-cards-layer-bg',
-        'pdr-simple-text-layer', 'pdr-simple-circle-layer'
+        'pdr-simple-icon-layer', 'pdr-simple-text-layer', 'pdr-simple-circle-layer'
     ];
     layersToRemove.forEach(id => { try { if (navigationMapInstance.getLayer(id)) navigationMapInstance.removeLayer(id); } catch(e) {} });
     try { if (navigationMapInstance.getSource(sourceId)) navigationMapInstance.removeSource(sourceId); } catch(e) {}
@@ -23179,7 +23339,8 @@ function displayChargingPointsOnMap() {
     navigationMapInstance.addSource(sourceId, { type: 'geojson', data: geojsonData });
 
     navigationMapInstance.addLayer({ id: 'pdr-simple-circle-layer', type: 'circle', source: sourceId, minzoom: 6, maxzoom: 13.99, filter: ['<=', ['zoom'], 14], paint: { 'circle-radius': 18, 'circle-color': ['get', 'bgColor'], 'circle-opacity': 1, 'circle-stroke-width': ['case', ['==', ['get', 'isCheapest'], true], 3.5, 2], 'circle-stroke-color': ['case', ['==', ['get', 'isCheapest'], true], '#FFD700', 'white'] } });
-    navigationMapInstance.addLayer({ id: 'pdr-simple-text-layer', type: 'symbol', source: sourceId, minzoom: 6, maxzoom: 13.99, filter: ['<=', ['zoom'], 14], layout: { 'text-field': ['concat', ['get', 'power'], 'kW'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 9, 'text-allow-overlap': true }, paint: { 'text-color': 'white', 'text-opacity': 1, 'text-halo-color': '#000', 'text-halo-width': 1 } });
+    navigationMapInstance.addLayer({ id: 'pdr-simple-icon-layer', type: 'symbol', source: sourceId, minzoom: 6, maxzoom: 13.99, filter: ['<=', ['zoom'], 14], layout: { 'icon-image': 'pdr-icon-simple', 'icon-size': 0.36, 'icon-anchor': 'center', 'icon-allow-overlap': true, 'text-optional': true }, paint: { 'icon-opacity': 1 } });
+    navigationMapInstance.addLayer({ id: 'pdr-simple-text-layer', type: 'symbol', source: sourceId, minzoom: 6, maxzoom: 13.99, filter: ['<=', ['zoom'], 14], layout: { 'text-field': ['concat', ['get', 'power'], 'kW'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 9, 'text-offset': [0, 0.9], 'text-allow-overlap': true }, paint: { 'text-color': 'white', 'text-opacity': 1, 'text-halo-color': '#000', 'text-halo-width': 1 } });
     
     navigationMapInstance.addLayer({ id: 'pdr-cards-layer-bg-halo', type: 'circle', source: sourceId, minzoom: 14, maxzoom: 19, filter: ['all', ['>', ['zoom'], 14], ['==', ['get', 'isCheapest'], true]], paint: { 'circle-radius': 48, 'circle-color': '#FFD700', 'circle-opacity': 0.8, 'circle-blur': 1 } });
     navigationMapInstance.addLayer({ id: 'pdr-cards-layer-bg', type: 'circle', source: sourceId, minzoom: 14, maxzoom: 19, filter: ['>', ['zoom'], 14], paint: { 'circle-radius': 45, 'circle-color': ['get', 'bgColor'], 'circle-opacity': 1, 'circle-stroke-width': 3, 'circle-stroke-color': 'white' } });
@@ -26030,7 +26191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setTimeout(loadGoogleMapsScript, 100);
 
-<!--  SCRIPT DE GUIA -->
+// SCRIPT DE GUIA
     
 // ===================================================================
 // NOMBRE: iniciarGuiaInteractivaCompleta
