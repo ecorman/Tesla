@@ -45,6 +45,7 @@
     
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>
+    window.lastManualInteractionTime = 0;
 
     
    function initMap() {} </script>
@@ -168,24 +169,6 @@
           <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
         </div>
 
-        <div class="statcounter-container">
-          <div style="display: inline-flex; align-items: center; gap: 10px;">
-            <script type="text/javascript">
-              var sc_project=13126275;
-              var sc_invisible=0;
-              var sc_security="0fc568cc";
-            </script>
-            <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
-            <noscript><div class="statcounter"><a title="Web Analytics"
-            href="https://statcounter.com/" target="_blank"><img
-            class="statcounter"
-            src="https://c.statcounter.com/13126275/0/0fc568cc/0/"
-            alt="Web Analytics"
-            referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
-            <a href="https://statcounter.com/p13126275/?guest=1" class="footer-subtext">Legionarios de Elon</a>
-          </div>
-        </div>
-
         <p class="footer-subtext">La inteligencia tiene ciertos limites. La locura, casi ninguno 🫶 🤟</p>
     </div>
 </footer>
@@ -200,6 +183,8 @@
        <div id="weather-widget-container" class="weather-widget-right">     
                 <div id="weather-widget-content"></div>
         </div>
+
+
         
         <div id="reminders-location-map-header">
              <div class="button-row">
@@ -256,7 +241,6 @@
                 <button id="reorder-route-stages-button" title="Ordenar Etapas de Ruta"><img src="./PNG/MOVER.PNG" alt="Ordenar Etapas"></button>
                 <button id="map-location-search-button" class="reminders-map-button-action"><img src="./PNG/ANADIRPUNTO.jpg" alt="Añadir Punto Ruta"></button>
                 <button id="clear-map-search-input-button" title="Limpiar búsqueda">X</button>
-                </button>
                 <input type="text" id="map-location-search-input" placeholder="Dirección,sitio,zona /Negocio /Ciudad /CP+Provincia (28001 Madrid /Lidl Lugo)">
                 <input type="text" id="filter-input" placeholder="Filtro"> 
                 <button id="navigation-map-help-button" class="reminders-map-button-action" title="Ayuda del mapa de navegación/radares"><img src="PNG/IMG_4326.PNG" alt="Ayuda"></button>
@@ -265,9 +249,14 @@
             <div id="reminders-location-map-div">
                 <div id="poi-results-list-container" style="display: none;"></div>
                     <div id="mapbox-map-actual-container"></div>
+                    <div id="gps-address-display" style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); right: auto; z-index: 1000; background: rgba(0,0,0,0.6); color: white; padding: 8px 15px; border-radius: 10px; font-family: 'Segoe UI', sans-serif; font-size: 1rem; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; display: none; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                        <div id="gps-address-text" style="font-weight: bold;">Cargando ubicación...</div>
+                        <div id="gps-city-text" style="font-size: 0.85rem; opacity: 0.8;"></div>
+                    </div>
                     <button id="force-show-minimap-button" class="hidden">R</button> 
                     <div id="mini-nav-info-card"></div>
                     <div id="map-info-overlay"></div>
+
 
 <div id="minimap-container" class="hidden">
     <div id="minimap-map-div"></div>
@@ -734,9 +723,9 @@
     
     
     const MAP_STYLES = {
-        "RELIEVE": "https://tiles.openfreemap.org/styles/liberty",
-        "CALLES_LIGHT": "https://tiles.openfreemap.org/styles/bright",
-        "CALLES_DARK": "https://tiles.openfreemap.org/styles/dark",
+        "OPENMAP_RELIEVE": "https://tiles.openfreemap.org/styles/liberty",
+        "OPENMAP_CALLES": "https://tiles.openfreemap.org/styles/bright",
+        "OPENMAP_DARK": "https://tiles.openfreemap.org/styles/dark",
         "GOOGLE_MAP": {
             "version": 8,
             "sources": { "google-tiles": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"], "tileSize": 256 } },
@@ -751,12 +740,19 @@
             "version": 8,
             "sources": { "esri-tiles": { "type": "raster", "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], "tileSize": 256, "attribution": "Esri" } },
             "layers": [{ "id": "esri-tiles", "type": "raster", "source": "esri-tiles", "minzoom": 0, "maxzoom": 22 }]
+        },
+        "ESRI_STREET": {
+            "version": 8,
+            "sources": { "esri-tiles": { "type": "raster", "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"], "tileSize": 256, "attribution": "Esri" } },
+            "layers": [{ "id": "esri-tiles", "type": "raster", "source": "esri-tiles", "minzoom": 0, "maxzoom": 22 }]
         }
     };  
     const MAP_LEGACY_NAME_MAP = {
         "Satélite + Calles": "RELIEVE",
         "Satélite Puro": "SATÉLITE",
-        "Mapa Normal": "CALLES_LIGHT"
+        "Mapa Normal": "CALLES_LIGHT",
+        "RELIEVE": "OPENMAP_RELIEVE",
+        "CALLES": "OPENMAP_CALLES"
     };
     
     const MAP_VIEW_MODES = {
@@ -901,7 +897,7 @@ const originalBookmarks = [
         { name: "CLAUDE", url: "https://claude.ai/new" }, 
         { name: "GEMINI", url: "https://gemini.google.com" }, 
         { name: "NOTEBOOKLM", url: "https://notebooklm.google.com" }, 
-        { name: "Tools Tesla", url: "https://boardinggate.github.io/BGUTIL/index.html", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>" }, 
+        { name: "Tools Tesla", url: "./BGUTIL/index.html", favicon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>" }, 
         { name: "TeslaParaTodos", url: "https://teslaparatodos.com/cine/" }, 
         { name: "BetterTheater", url: "https://abettertheater.com", favicon: "https://www.google.com/s2/favicons?domain=abettertheater.com&sz=64" }, 
         { name: "Filmin", url: "https://www.filmin.es/catalogo/peliculas" }, 
@@ -1029,11 +1025,27 @@ const originalBookmarks = [
     let initialUserLocationMarkerLat = null;
     let initialUserLocationMarkerLng = null;
     let navigationCurrentLocation = null;
+    let needsInitialCentering = true;
     let locationWatchId = null;
-    let shouldCenterOnUser = false;
+    let shouldCenterOnUser = true;
     let navigationFollowUser = true;
+    let isSearchingDestination = false;  // Flag para cuando estamos buscando un destino
     const MIN_MANEUVER_ZOOM_LEVEL = 17;
     let currentMapBearing = 0;
+
+    function shouldAutoCenterOnGps() {
+        if (navigationFollowUser || shouldCenterOnUser) {
+            return true;
+        }
+        if (isSearchingDestination || isManualZoomActive) {
+            return false;
+        }
+        if (isNavigating || isFreeDriveActive) {
+            return true;
+        }
+        return false;
+    }
+
     let compassAndModeControl = null;
     let navigationWaypoints = [];
     let navigationRouteLayer = null;
@@ -1059,7 +1071,7 @@ const originalBookmarks = [
     let currentSimulationSpeedKmph = 85; 
     const SIMULATION_TICK_INTERVAL_MS = 80;
     
-    const OSRM_SERVICE_URL = 'https://router.project-osrm.org/route/v1';
+    const OSRM_SERVICE_URL = 'https://router.project-osrm.org';
     const SAVED_ROUTES_KEY = 'boardinggate_saved_routes';
     const MAX_SAVED_ROUTES = 100;
     let currentRouteNameForSaving = null;
@@ -1439,19 +1451,7 @@ async function add3DBuildingsLayer(mapInstance) {
     }
 
     const layerId = '3d-buildings';
-    
-    // Si la capa ya existe, nos aseguramos de que sea visible
-    if (mapInstance.getLayer(layerId)) {
-        try { mapInstance.setLayoutProperty(layerId, 'visibility', 'visible'); } catch(e){}
-        return;
-    }
-
-    // Solo añadimos edificios si estamos en un modo 3D (perspective o relief)
-    if (typeof mapViewMode !== 'undefined' && mapViewMode !== 'perspective' && mapViewMode !== 'relief') {
-        return;
-    }
-
-    console.log("Inyectando edificios 3D sobre el estilo actual...");
+    const showPreference = localStorage.getItem('boardinggate_show_3d_buildings') === 'true';
 
     // Asegurar fuente de datos (OpenFreeMap Planet)
     if (!mapInstance.getSource('openmaptiles')) {
@@ -1465,196 +1465,84 @@ async function add3DBuildingsLayer(mapInstance) {
         }
     }
 
-    // Añadir la capa de extrusión (edificios con altura)
-    try {
-        mapInstance.addLayer({
-            'id': layerId,
-            'source': 'openmaptiles',
-            'source-layer': 'building',
-            'type': 'fill-extrusion',
-            'minzoom': 13,
-            'paint': {
-                'fill-extrusion-color': '#ffffff',
-                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 20],
-                'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
-                'fill-extrusion-opacity': 0.6
+    const currentPitch = mapInstance.getPitch();
+    // Los edificios solo son visibles si la preferencia está activa Y hay inclinación (pitch > 10)
+    const isVisible = showPreference && (currentPitch > 10);
+
+    if (!mapInstance.getLayer(layerId)) {
+        try {
+            mapInstance.addLayer({
+                'id': layerId,
+                'source': 'openmaptiles',
+                'source-layer': 'building',
+                'type': 'fill-extrusion',
+                'minzoom': 13,
+                'layout': {
+                    'visibility': isVisible ? 'visible' : 'none'
+                },
+                'paint': {
+                    'fill-extrusion-color': '#ffffff',
+                    'fill-extrusion-height': ['number', ['get', 'render_height'], ['get', 'height'], 20],
+                    'fill-extrusion-base': ['number', ['get', 'render_min_height'], ['get', 'min_height'], 0],
+                    'fill-extrusion-opacity': 0.6
+                }
+            });
+
+            // Añadir listener para actualizar visibilidad según el pitch
+            if (!mapInstance._buildingsPitchListenerAttached) {
+                mapInstance.on('pitch', () => {
+                    const pref = localStorage.getItem('boardinggate_show_3d_buildings') === 'true';
+                    const pitch = mapInstance.getPitch();
+                    const visibleNow = pref && (pitch > 10);
+                    if (mapInstance.getLayer(layerId)) {
+                        mapInstance.setLayoutProperty(layerId, 'visibility', visibleNow ? 'visible' : 'none');
+                    }
+                });
+                mapInstance._buildingsPitchListenerAttached = true;
             }
-        });
-    } catch (e) {
-        console.error("Error al añadir capa 3D:", e);
+        } catch (e) {
+            console.error("Error al añadir capa 3D:", e);
+        }
+    } else {
+        // Si ya existe, actualizamos su visibilidad inmediatamente
+        mapInstance.setLayoutProperty(layerId, 'visibility', isVisible ? 'visible' : 'none');
     }
 }
 
 // ===================================================================
-// NOMBRE: showReferralsModal
-function showReferralsModal() {
-    closeOtherModals('referrals-modal');
+// NOMBRE: updateGpsAddressLabel 
+let lastGeocodeTime = 0;
+async function updateGpsAddressLabel(lat, lon) {
+    const now = Date.now();
+    // Throttle: 20 segundos entre peticiones para no saturar Nominatim
+    if (now - lastGeocodeTime < 20000) return;
+    lastGeocodeTime = now;
 
-    const modal = document.createElement('div');
-    modal.id = 'referrals-modal';
-    modal.className = 'referrals-modal-overlay';
-
-    const amazonAffiliateTag = 'comprandoenamazon-21';
-    
-    const amazonItems = [
-        { label: 'Accesorios para Model 3', query: 'accesorios tesla model 3' },
-        { label: 'Accesorios para Model Y', query: 'accesorios tesla model y' },
-        { label: 'Accesorios para Model S', query: 'accesorios tesla model s' },
-        { label: 'Accesorios para Model X', query: 'accesorios tesla model x' },
-        { label: '20 Accesorios Imprescindibles', query: 'accesorios imprescindibles tesla' },
-        { label: 'Cargadores para Móvil Tesla', query: 'cargador inalambrico tesla' },
-        { label: 'Alfombrillas y Almacenamiento', query: 'alfombrillas y organizador tesla' },
-        { label: 'Protectores de Pantalla', query: 'protector pantalla tesla' },
-        { label: 'Productos de Detailing', query: 'productos limpieza coche detailing' },
-        { label: 'Los + Vendidos de Amazon', url: 'https://www.amazon.es/gp/bestsellers' }
-    ];
-
-    // Lógica que construye los enlaces dinámicamente
-    let amazonLinksHtml = amazonItems.map(item => {
-        let finalUrl = '';
-        if (item.query) {
-            finalUrl = `https://www.amazon.es/s?k=${encodeURIComponent(item.query)}&tag=${amazonAffiliateTag}`;
-        } else if (item.url) {
-            finalUrl = `${item.url}?tag=${amazonAffiliateTag}`;
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`, {
+            headers: { 'User-Agent': 'BoardingGateTeslaLauncher/1.0' }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const addressDisplay = document.getElementById('gps-address-display');
+            const addressText = document.getElementById('gps-address-text');
+            const cityText = document.getElementById('gps-city-text');
+            
+            if (addressDisplay && addressText && data.address) {
+                const road = data.address.road || data.address.pedestrian || data.address.suburb || "Calle desconocida";
+                const city = data.address.city || data.address.town || data.address.village || data.address.state || "";
+                const houseNumber = data.address.house_number ? `, ${data.address.house_number}` : "";
+                
+                addressText.textContent = `${road}${houseNumber}`;
+                cityText.textContent = city;
+                addressDisplay.style.display = 'block';
+            }
         }
-
-        return `
-            <a href="${finalUrl}" target="_blank" class="referral-button amazon">
-                <img src="https://www.google.com/s2/favicons?domain=amazon.es&sz=64" alt="Amazon">
-                <span>${item.label}</span>
-            </a>
-        `;
-    }).join('');
-
-    modal.innerHTML = `
-        <style>
-            .referrals-modal-overlay {
-                position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.9);
-                backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-                z-index: 8000; display: flex; justify-content: center; align-items: center;
-                padding: 20px;
-            }
-            .referrals-modal-content {
-                background-color: #2c2c2e; color: #f0f0f0; border-radius: 14px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444;
-                width: 90vw; height: 97vh; max-width: 1160px;
-                display: flex; flex-direction: column; overflow: hidden;
-            }
-            .referrals-header {
-                height: 120px;
-                background-image: url('PNG/store.png');
-                background-size: contain; background-repeat: no-repeat;
-                background-position: center; position: relative;
-                padding: 1.5rem; display: flex; align-items: flex-end;
-            }
-            .referrals-header::before {
-                content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-                background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%);
-            }
-            .referrals-title {
-                font-size: 1.8rem; font-weight: bold; color: white;
-                text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
-                position: relative; z-index: 1;
-            }
-            .referrals-body {
-                padding: 1.5rem; flex-grow: 1; overflow-y: auto;
-            }
-            .referrals-section { margin-bottom: 2rem; }
-            .referrals-section h3 {
-                font-size: 1.3rem; font-weight: bold; color: #007aff;
-                margin-bottom: 1rem; padding-bottom: 0.5rem;
-                border-bottom: 1px solid #444;
-            }
-            .referral-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 1rem;
-            }
-            .referral-button {
-                display: flex; align-items: center; gap: 15px;
-                padding: 15px; background-color: #3a3a3c;
-                border: 1px solid #555; border-radius: 8px;
-                text-decoration: none; color: #f0f0f0;
-                font-size: 1.1rem; font-weight: 500;
-                transition: background-color 0.2s, transform 0.1s;
-                cursor: pointer; width: 100%;
-            }
-            .referral-button:hover { background-color: #4a4a4c; transform: translateY(-2px); }
-            .referral-button img { width: 32px; height: 32px; flex-shrink: 0; }
-            .referral-button.amazon img { border-radius: 4px; }
-            .referrals-footer {
-                padding: 1rem 1.5rem; border-top: 1px solid #444;
-                background-color: #1c1c1e; display: flex; justify-content: flex-end;
-            }
-            .referrals-footer button {
-                background-color: #555; color: white; padding: 12px 25px;
-                font-size: 1.1rem; font-weight: bold; border-radius: 8px;
-                border: none; cursor: pointer;
-            }
-        </style>
-        <div class="referrals-modal-content">
-            <div class="referrals-header">
-                <h2 class="referrals-title">Apoya el Proyecto</h2>
-            </div>
-            <div class="referrals-body">
-                <div class="referrals-section">
-                    <h3>Mis Referidos</h3>
-                    <div class="referral-grid">
-                        <a href="https://t.co/7wMG2AOk10" target="_blank" class="referral-button">
-                            <img src="https://www.google.com/s2/favicons?domain=octopusenergy.es&sz=64" alt="Octopus Energy">
-                            <span>Contrato de Luz (Octopus)</span>
-                        </a>
-                        <a href="https://ts.la/juancarlos162231" target="_blank" class="referral-button">
-                            <img src="https://www.google.com/s2/favicons?domain=tesla.com&sz=64" alt="Tesla">
-                            <span>Comprar un Tesla</span>
-                        </a>
-                        <a href="https://share.tessie.com/JDukqlINZMb" target="_blank" class="referral-button">
-                            <img src="https://www.google.com/s2/favicons?domain=tessie.com&sz=64" alt="Tessie">
-                            <span>App Tessie</span>
-                        </a>
-                        <button onclick="copyBizumNumber()" class="referral-button">
-                            <img src="https://www.google.com/s2/favicons?domain=bizum.es&sz=64" alt="Bizum">
-                            <span>Apoya con un Bizum</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="referrals-section">
-                    <h3>Accesorios en Amazon</h3>
-                    <p style="font-size: 0.9rem; color: #b0b0b0; margin-bottom: 1rem;">
-                        Al comprar a través de estos enlaces, me ayudas a mantener y mejorar esta aplicación sin coste para ti. ¡Gracias por tu apoyo!
-                    </p>
-                    
-                    <p style="background-color: rgba(255, 229, 100, 0.15); border: 1px solid #FFD700; color: #FFD700; padding: 0.75rem; border-radius: 8px; margin: 1rem 0; font-size: 0.95rem; font-weight: 500; text-align: center;">
-                        Recuerda que esta web es accesible desde cualquier dispositivo (PC, móvil, tablet). ¡Puede que te resulte más cómodo usar estos enlaces desde allí!
-                    </p>
-               
-                    <div class="referral-grid">
-                        ${amazonLinksHtml}
-                    </div>
-                </div>
-            </div>
-            <div class="referrals-footer">
-                <button id="close-referrals-modal">Cerrar</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const closeButton = modal.querySelector('#close-referrals-modal');
-    const closeHandler = () => {
-        if (modal.parentNode) modal.remove();
-    };
-    closeButton.addEventListener('click', closeHandler);
+    } catch (error) {
+        console.warn("Error en reverse geocoding:", error);
+    }
 }
 
-function copyBizumNumber() {
-    const bizumNumber = '639083773'; // Tu número de teléfono real
-    const message = `Para apoyar el proyecto a través de Bizum, puedes enviar tu donación al siguiente número:\n\n${bizumNumber}\n\nGracias por tu apoyo.`;
-    
-    alert(message);
-}
-    
 // ===================================================================
 // NOMBRE: setMapLighting 
 function setMapLighting(mapInstance) {
@@ -2321,30 +2209,53 @@ async function configureMapAtmosphere() {
     if (!navigationMapInstance) return;
     await waitForMapStyleLoad(navigationMapInstance);
 
-    if (navigationMapInstance.getTerrain()) {
-        navigationMapInstance.setTerrain(null);
-    }
-    navigationMapInstance.setFog(null);
+    // MapLibre no soporta setFog (es de Mapbox v2+). 
+    // Usamos setTerrain si está disponible y silenciamos errores de métodos no soportados.
+    try {
+        if (navigationMapInstance.getTerrain()) {
+            navigationMapInstance.setTerrain(null);
+        }
+    } catch(e) {}
 
     const currentMode = mapViewMode || localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
 
     if (currentMode === 'relief' || currentMode === 'perspective') {
-        if (!navigationMapInstance.getSource('mapbox-dem')) {
-            navigationMapInstance.addSource('mapbox-dem', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.terrain-rgb',
-                'tileSize': 512,
-                'maxzoom': 16 
-            });
+        const terrainSourceId = 'terrain-dem-source';
+        
+        if (!navigationMapInstance.getSource(terrainSourceId)) {
+            // Nota: El uso de fuentes de relieve requiere una URL válida de tiles DEM (Raster DEM).
+            // Si el usuario dispone de una propia de OpenFreeMap o similar, se puede configurar aquí.
+            const hasMapboxToken = typeof mapboxgl !== 'undefined' && mapboxgl.accessToken;
+            if (hasMapboxToken) {
+                navigationMapInstance.addSource(terrainSourceId, {
+                    'type': 'raster-dem',
+                    'url': 'mapbox://mapbox.terrain-rgb',
+                    'tileSize': 512,
+                    'maxzoom': 16 
+                });
+            }
         }
         
         const exaggeration = (currentMode === 'relief') ? mapTerrainExaggeration : 0.0;
-        navigationMapInstance.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': exaggeration });
+        try {
+            if (navigationMapInstance.getSource(terrainSourceId)) {
+                navigationMapInstance.setTerrain({ 'source': terrainSourceId, 'exaggeration': exaggeration });
+            }
+        } catch(e) {}
         
-        navigationMapInstance.setFog({
-            'range': [0.9, 10], 'color': '#d8e2e8', 'horizon-blend': 0.1,
-            'high-color': '#58636B', 'space-color': '#B3E3FF', 'star-intensity': 0.15
-        });
+        // El "Fog" no existe en MapLibre. Solo lo usamos si el método existe.
+        if (typeof navigationMapInstance.setFog === 'function') {
+            try {
+                navigationMapInstance.setFog({
+                    range: [0.5, 3],
+                    color: '#e6f2ff',
+                    'horizon-blend': 0.5,
+                    'fog-outline-blend': 0.8
+                });
+            } catch (e) {
+                console.warn('setFog no disponible en esta implementación de mapa:', e);
+            }
+        }
         setMapLighting(navigationMapInstance);
     }
 } 
@@ -2645,7 +2556,7 @@ class MapSettingsPanel {
                 label: 'Poblaciones',
                 layers: ['settlement-major-label', 'settlement-minor-label', 'settlement-subdivision-label']
             },
-            pois: {
+pois: {
                 label: 'Negocios/POIs',
                 layers: ['poi-label', 'transit-label', 'airport-label']
             },
@@ -2665,103 +2576,145 @@ class MapSettingsPanel {
         
         const layerSelectorContainer = document.createElement('div');
         layerSelectorContainer.className = 'map-layer-selector';
+        layerSelectorContainer.style.display = 'flex';
+        layerSelectorContainer.style.flexDirection = 'column';
+        layerSelectorContainer.style.gap = '10px';
 
-        const baseMapOptions = ["CALLES", "RELIEVE", "GOOGLE_MAP", "GOOGLE_SAT", "ESRI_SAT"];
-        let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE";
-        
+        const providers = {
+            "OpenFreeMap": ["OPENMAP_RELIEVE", "OPENMAP_CALLES"],
+            "Google": ["GOOGLE_MAP", "GOOGLE_SAT"],
+            "ESRI": ["ESRI_SAT", "ESRI_STREET"]
+        };
+
+        let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "OPENMAP_RELIEVE";
         if (MAP_LEGACY_NAME_MAP[savedLayerName]) {
             savedLayerName = MAP_LEGACY_NAME_MAP[savedLayerName];
             localStorage.setItem(ACTIVE_MAP_LAYER_KEY, savedLayerName);
         }
-        if (savedLayerName === "CALLES_LIGHT" || savedLayerName === "CALLES_DARK") {
-             savedLayerName = "CALLES";
-        }
-        if (!baseMapOptions.includes(savedLayerName)) {
-            savedLayerName = "RELIEVE";
-        }
 
+        // --- MODO OSCURO (Solo para OpenMap) ---
         const streetThemeCheckboxContainer = document.createElement('div');
         streetThemeCheckboxContainer.id = 'street-theme-checkbox-container';
-        streetThemeCheckboxContainer.style.marginLeft = '30px';
+        // En lugar de display: none, usamos visibility para evitar que el layout salte
+        streetThemeCheckboxContainer.style.visibility = (savedLayerName.startsWith('OPENMAP')) ? 'visible' : 'hidden';
+        streetThemeCheckboxContainer.style.paddingLeft = '10px';
+        streetThemeCheckboxContainer.style.marginBottom = '5px';
         streetThemeCheckboxContainer.innerHTML = `
-            <label style="display: flex; align-items: center; gap: 8px;">
+            <label class="layer-visibility-toggle" style="font-size: 0.9rem; opacity: 0.8;">
                 <input type="checkbox" id="street-theme-checkbox">
-                <span>Tono Oscuro</span>
+                <span>Modo Oscuro</span>
             </label>
         `;
         const streetThemeCheckbox = streetThemeCheckboxContainer.querySelector('#street-theme-checkbox');
         const savedTheme = localStorage.getItem(this.streetMapThemeKey) || 'dark'; 
         streetThemeCheckbox.checked = savedTheme === 'dark';
 
-        
-        
+        // --- EDIFICIOS 3D ---
+        const building3DCheckboxContainer = document.createElement('div');
+        building3DCheckboxContainer.className = 'map-layer-visibility-selector';
+        building3DCheckboxContainer.style.marginTop = '5px';
+        building3DCheckboxContainer.style.paddingTop = '5px';
+        building3DCheckboxContainer.style.borderTop = '1px solid rgba(255,255,255,0.1)';
+        building3DCheckboxContainer.innerHTML = `
+            <label class="layer-visibility-toggle">
+                <input type="checkbox" id="show-3d-buildings-checkbox">
+                <span>Edificios 3D (Solo OpenMap)</span>
+            </label>
+        `;
+        const building3DCheckbox = building3DCheckboxContainer.querySelector('#show-3d-buildings-checkbox');
+        building3DCheckbox.checked = localStorage.getItem('boardinggate_show_3d_buildings') === 'true';
+
         const updateStyle = () => {
             const selectedRadio = layerSelectorContainer.querySelector('input[name="map-style-selector"]:checked');
             if (!selectedRadio) return;
 
             const baseStyle = selectedRadio.value;
             let finalStyle;
-            let finalLayerNameForStorage = baseStyle;
 
-            if (baseStyle === 'CALLES') {
+            if (baseStyle === 'OPENMAP_CALLES') {
                 const isDark = streetThemeCheckbox.checked;
-                finalStyle = isDark ? MAP_STYLES.CALLES_DARK : MAP_STYLES.CALLES_LIGHT;
-                streetThemeCheckboxContainer.style.opacity = '1';
-                streetThemeCheckboxContainer.style.pointerEvents = 'auto';
+                finalStyle = isDark ? MAP_STYLES.OPENMAP_DARK : MAP_STYLES.OPENMAP_CALLES;
+                streetThemeCheckboxContainer.style.visibility = 'visible';
                 localStorage.setItem(this.streetMapThemeKey, isDark ? 'dark' : 'light');
+            } else if (baseStyle === 'OPENMAP_RELIEVE') {
+                finalStyle = MAP_STYLES.OPENMAP_RELIEVE;
+                streetThemeCheckboxContainer.style.visibility = 'visible';
             } else {
                 finalStyle = MAP_STYLES[baseStyle];
-                streetThemeCheckboxContainer.style.opacity = '0.5';
-                streetThemeCheckboxContainer.style.pointerEvents = 'none';
+                streetThemeCheckboxContainer.style.visibility = 'hidden';
             }
 
             if (navigationMapInstance) {
                 navigationMapInstance.setStyle(finalStyle);
-                localStorage.setItem(ACTIVE_MAP_LAYER_KEY, finalLayerNameForStorage);
+                localStorage.setItem(ACTIVE_MAP_LAYER_KEY, baseStyle);
                 
                 navigationMapInstance.once('style.load', () => {
-                    // Intentar añadir 3D en cualquier modo seleccionado
                     setTimeout(() => add3DBuildingsLayer(navigationMapInstance), 1000);
                     reAddCustomMapLayersAndSources(navigationMapInstance);
                     plotRemindersOnNavigationMap();
                 });
             }
         };
-        
-        baseMapOptions.forEach(name => {
-            const optionContainer = document.createElement('div');
-            const label = document.createElement('label');
-            const input = document.createElement('input');
-            input.type = 'radio';
-            input.name = 'map-style-selector';
-            input.value = name;
-            if (name === savedLayerName) {
-                input.checked = true;
-            }
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(` ${name}`));
-            optionContainer.appendChild(label);
-            
-            if (name === "CALLES") {
-                optionContainer.appendChild(streetThemeCheckboxContainer);
-            }
-            layerSelectorContainer.appendChild(optionContainer);
 
-            input.addEventListener('change', () => {
-                streetThemeCheckboxContainer.style.display = (input.value === 'CALLES' && input.checked) ? 'block' : 'none';
-                updateStyle();
+        // Renderizar proveedores con el estilo de la columna de visibilidad
+        Object.keys(providers).forEach(providerName => {
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'map-layer-visibility-selector';
+            groupContainer.style.marginBottom = '10px';
+
+            const title = document.createElement('h3');
+            title.textContent = providerName;
+            groupContainer.appendChild(title);
+
+            providers[providerName].forEach(styleKey => {
+                const label = document.createElement('label');
+                label.className = 'layer-visibility-toggle';
+                label.style.cursor = 'pointer';
+
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'map-style-selector';
+                input.value = styleKey;
+                input.checked = styleKey === savedLayerName;
+
+                label.appendChild(input);
+                const readableName = styleKey.split('_').pop().replace('SAT', 'Satélite').replace('MAP', 'Estándar').replace('RELIEVE', 'Relieve').replace('CALLES', 'Calles').replace('STREET', 'Calles');
+                label.appendChild(document.createTextNode(readableName));
+                groupContainer.appendChild(label);
+
+                if (styleKey === 'OPENMAP_CALLES') {
+                    groupContainer.appendChild(streetThemeCheckboxContainer);
+                }
+
+                input.addEventListener('change', updateStyle);
             });
+            layerSelectorContainer.appendChild(groupContainer);
         });
-        
+
+        layerSelectorContainer.appendChild(building3DCheckboxContainer);
+
+        building3DCheckbox.addEventListener('change', () => {
+            localStorage.setItem('boardinggate_show_3d_buildings', building3DCheckbox.checked);
+            add3DBuildingsLayer(navigationMapInstance);
+        });
+
         streetThemeCheckbox.addEventListener('change', updateStyle);
         streetThemeCheckboxContainer.style.display = (savedLayerName === 'CALLES') ? 'block' : 'none';
 
         const viewSelector = document.createElement('div');
         viewSelector.className = 'map-view-selector';
         const viewModes = { 'NORTE': { pitch: 0, bearing: 0, mode: 'static' }, 'AVANCE': { pitch: 0, bearing: null, mode: 'heading' }, '3D': { pitch: 62, bearing: null, mode: 'perspective' }, '3D RELIEVE': { pitch: 73, bearing: null, mode: 'relief' } };
+        const viewModeDescriptions = {
+            'NORTE': 'Vista 2D plana con el Norte siempre arriba.',
+            'AVANCE': 'Vista 2D plana que gira siguiendo la dirección del coche.',
+            '3D': 'Vista en perspectiva (inclinada) que gira con el coche.',
+            '3D RELIEVE': 'Vista en perspectiva con relieve montañoso 3D.'
+        };
         const savedViewMode = localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
         Object.keys(viewModes).forEach(name => {
-            const label = document.createElement('label'); const input = document.createElement('input');
+            const label = document.createElement('label');
+            label.title = viewModeDescriptions[name] || '';
+            const input = document.createElement('input');
             input.type = 'radio'; input.name = 'map-view-selector'; const modeDetails = viewModes[name];
             input.value = modeDetails.mode; if (modeDetails.mode === savedViewMode) input.checked = true;
             
@@ -2919,14 +2872,13 @@ class MapSettingsPanel {
         rTitle.textContent = 'PROVEEDOR DE RUTA';
         routingSelector.appendChild(rTitle);
 
-        const providers = [
+        const routingProviders = [
             { id: 'google', name: 'Google Maps' },
-            { id: 'mapbox', name: 'Mapbox' },
             { id: 'osrm', name: 'OSRM (Libre)' }
         ];
         const currentProvider = localStorage.getItem('boardinggate_routing_service') || 'osrm';
 
-        providers.forEach(p => {
+        routingProviders.forEach(p => {
             const label = document.createElement('label');
             label.className = 'layer-visibility-toggle';
             label.style.display = 'block';
@@ -2986,28 +2938,17 @@ function handleZoomToggleButtonClick(button) {
 
     } else {
         if (navigationCurrentLocation) {
-            
-    navigationFollowUser = true; updateLocateMeButtonsUI();
-    shouldCenterOnUser = true;
-    if (currentPos) {
-        navigationMapInstance.jumpTo({
-            center: [currentPos.longitude, currentPos.latitude],
-            zoom: 15.5,
-            essential: true
-        });
-    }
-
-                        navigationFollowUser = true;
+            navigationFollowUser = true;
             shouldCenterOnUser = true;
             clearLocateMeReactivationTimer();
             updateLocateMeButtonsUI();
-                        
+
             toggleRouteDetailOverlays(true);
 
-            const animationOptions = { 
-                center: [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude], 
+            const animationOptions = {
+                center: [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude],
                 zoom: zoomToggleMemory || 17,
-                duration: 1400 
+                duration: 1400
             };
             
             if (mapViewMode === 'perspective' || mapViewMode === 'relief') {
@@ -3019,11 +2960,10 @@ function handleZoomToggleButtonClick(button) {
             zoomToggleMemory = null;
             
             button.dataset.zoomState = 'car';
-        
         } else {
             showToast("Ubicación actual no disponible para hacer zoom.", "warning");
         }
-    }  
+    }
     updateAllZoomToggleButtonsVisuals();
 }
 
@@ -3051,6 +2991,7 @@ async function toggleNavigationState(isRecalculationStop = false, isRecovery = f
             markerAnimationState.currentMapPitch = navigationMapInstance.getPitch();
             markerAnimationState.currentMapBearing = navigationMapInstance.getBearing();
             navigationMapInstance.flyTo({ center: [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude], zoom: targetZoom, pitch: targetPitch, bearing: targetBearing, duration: 1500 });
+            setTimeout(() => { isFlying = false; }, 2000);
             navigationMapInstance.once('moveend', () => { isFlying = false; });
         }
         
@@ -3829,7 +3770,6 @@ class CustomMapControlsGroup {
         pitchDisplay.title = 'Pulsar para restaurar inclinación por defecto del modo actual';
         pitchDisplay.addEventListener('click', (e) => {
             e.stopPropagation();
-            triggerManualMapInteraction();
 
             const viewModes = {
                 'NORTE': { pitch: 0, bearing: 0, mode: 'static', terrain: false },
@@ -3887,7 +3827,6 @@ class CustomMapControlsGroup {
     }
 
     adjustMapOffset(axis, amount) {
-        triggerManualMapInteraction(); 
         if (axis === 'y') {
             mapOffsetY = Math.max(-75, Math.min(75, mapOffsetY + amount));
         } else if (axis === 'x') {
@@ -3901,7 +3840,6 @@ class CustomMapControlsGroup {
     }
 
     adjustMapPitch(amount) {
-        triggerManualMapInteraction(); 
         const currentPitch = this._map.getPitch();
         const newPitch = Math.max(0, Math.min(85, currentPitch + amount));
         mapPitchValue = newPitch; 
@@ -5154,7 +5092,7 @@ async function initiateControlledReload() {
                     }
                 
                     if (!recoveryInfo.isRichRecovery) {
-                        const tempRouteUrl = `${OSRM_SERVICE_URL}/driving/${navigationWaypoints.map(wp => `${wp.lng},${wp.lat}`).join(';')}?overview=full&geometries=geojson&steps=true`;
+                        const tempRouteUrl = `${OSRM_SERVICE_URL}/route/v1/driving/${navigationWaypoints.map(wp => `${wp.lng},${wp.lat}`).join(';')}?overview=full&geometries=geojson&steps=true`;
                         const tempRouteResponse = await fetch(tempRouteUrl);
                         const tempRouteData = await tempRouteResponse.json();
                         
@@ -5525,6 +5463,7 @@ async function openNavigationMap(isRecovery = false) {
                 } catch(e) { console.error("Error al redimensionar mapa en reanudación:", e); }
             }
         }, 50);
+        needsInitialCentering = true;
         startGpsWatching();
         startWeatherUpdates(navigationCurrentLocation); // Reanuda las actualizaciones del tiempo
         if (isNavigating || isFreeDriveActive) {
@@ -5532,6 +5471,13 @@ async function openNavigationMap(isRecovery = false) {
         }
         if (!markerAnimationState.animationFrameId) {
              markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
+        }
+
+        // Si ya tenemos posición, forzamos el centrado/seguimiento inmediatamente
+        if (navigationCurrentLocation) {
+            console.log("[Mapa] Reabriendo mapa, forzando centrado GPS...");
+            handleLocateMeClick(true);
+            needsInitialCentering = false;
         }
 
         return; // Salimos para evitar crear un nuevo mapa.
@@ -5594,7 +5540,12 @@ async function openNavigationMap(isRecovery = false) {
             minimapTriggerButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (showRouteMinimapPreference) {
-                    minimapForceShowUntil = Date.now() + 30000;
+                    // Usar un valor muy alto para que no expire solo, o 0 para cerrar
+                    if (minimapForceShowUntil > Date.now()) {
+                        minimapForceShowUntil = 0;
+                    } else {
+                        minimapForceShowUntil = Date.now() + (3600 * 1000); // 1 hora (básicamente permanente)
+                    }
                     updateTurnByTurnDisplay(navigationCurrentRouteData?.routes?.[0], lastCarDistanceAlongRouteForNavLogic);
                 }
             });
@@ -5616,7 +5567,7 @@ async function openNavigationMap(isRecovery = false) {
         } else {
             try {
                 const STREET_MAP_THEME_KEY = 'boardinggate_streetMapTheme';
-                let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE";
+                let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "OPENMAP_RELIEVE";
 
                 
     console.log("Debug: Intentando inicializar MapLibre...");
@@ -5631,27 +5582,27 @@ async function openNavigationMap(isRecovery = false) {
     }
 
                 let initialStyle;
-                if (savedLayerName === "CALLES") {
+                if (savedLayerName === "OPENMAP_CALLES" || savedLayerName === "CALLES") {
                     const streetTheme = localStorage.getItem(STREET_MAP_THEME_KEY) || 'dark';
-                    initialStyle = (streetTheme === 'light') ? MAP_STYLES.CALLES_LIGHT : MAP_STYLES.CALLES_DARK;
+                    initialStyle = (streetTheme === 'light') ? MAP_STYLES.OPENMAP_CALLES : MAP_STYLES.OPENMAP_DARK;
                 } else {
                     const finalLayerName = MAP_LEGACY_NAME_MAP[savedLayerName] || savedLayerName;
-                    initialStyle = MAP_STYLES[finalLayerName] || MAP_STYLES["HIBRIDO"];
+                    initialStyle = MAP_STYLES[finalLayerName] || MAP_STYLES["OPENMAP_RELIEVE"];
                 }
                                
                 if (!isRecovery) { showToast("INICIALIZANDO MAPA...", "info", 0, false, "map-init-toast"); }
       
-                // Intento de obtener última posición para evitar vista mundial
-                const lastPosJSON = localStorage.getItem('boardinggate_nav_recovery_flag');
+                // 1. Intentar obtener la ubicación real inmediatamente ANTES de crear el mapa
                 let initialCenter = [ -3.70379, 40.41678 ]; // Madrid por defecto
-                let initialZoom = 13;
+                let initialZoom = 17; // Zoom a nivel de calle por defecto
                 
+                // 2. Recuperar última posición conocida para evitar saltos bruscos
+                const lastPosJSON = localStorage.getItem('boardinggate_nav_recovery_flag');
                 if (lastPosJSON) {
                     try {
                         const lastData = JSON.parse(lastPosJSON);
                         if (lastData.lastKnownLocation) {
                             initialCenter = [ lastData.lastKnownLocation.longitude, lastData.lastKnownLocation.latitude ];
-                            initialZoom = 16;
                         }
                     } catch(e) {}
                 }
@@ -5670,6 +5621,9 @@ async function openNavigationMap(isRecovery = false) {
                     minzoom: 2,
                     maxzoom: 19
                 });
+
+                // Silenciar advertencias de iconos faltantes para todos los estilos
+                navigationMapInstance.on('styleimagemissing', () => { /* Ignorar silenciosamente */ });
 
                 navigationMapInstance.on('style.load', () => {
                     console.log("Style loaded, adding 3D buildings...");
@@ -5694,14 +5648,38 @@ async function openNavigationMap(isRecovery = false) {
                 if (!navigationMapInstance._interactionListenersAttached) {
                     const mapCanvas = navigationMapInstance.getCanvasContainer();
                     let touchStartPos = null, hasMovedEnoughToDrag = false;
-                    const DRAG_THRESHOLD = 10; 
-                    const onTouchStart = (e) => { if (e.touches && e.touches.length > 1) { handleManualMapInteraction(); return; } const touch = e.touches ? e.touches[0] : e; touchStartPos = { x: touch.clientX, y: touch.clientY }; hasMovedEnoughToDrag = false; };
-                    const onTouchMove = (e) => { if (hasMovedEnoughToDrag || !touchStartPos || (e.touches && e.touches.length > 1)) return; const touch = e.touches ? e.touches[0] : e; const deltaX = Math.abs(touch.clientX - touchStartPos.x); const deltaY = Math.abs(touch.clientY - touchStartPos.y); if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) { hasMovedEnoughToDrag = true; handleManualMapInteraction(); } };
-                    const onTouchEnd = () => { touchStartPos = null; hasMovedEnoughToDrag = false; };
-                    mapCanvas.addEventListener('touchstart', onTouchStart, { passive: true });
-                    mapCanvas.addEventListener('touchmove', onTouchMove, { passive: true });
-                    mapCanvas.addEventListener('touchend', onTouchEnd, { passive: true });
-                 navigationMapInstance.on('pitchend', (e) => { if (e.originalEvent) { const newPitch = navigationMapInstance.getPitch(); if (Math.abs(newPitch - mapPitchValue) > 0.1) { isPitchManuallyOverridden = true;  mapPitchValue = newPitch; /*saveSettings();*/ } } });
+                    const DRAG_THRESHOLD = 5; 
+                    
+                    const onInteractionStart = (e) => { 
+                        if (e.touches && e.touches.length > 1) { handleManualMapInteraction(); return; } 
+                        const pos = e.touches ? e.touches[0] : e; 
+                        touchStartPos = { x: pos.clientX, y: pos.clientY }; 
+                        hasMovedEnoughToDrag = false; 
+                    };
+                    
+                    const onInteractionMove = (e) => { 
+                        if (hasMovedEnoughToDrag || !touchStartPos || (e.touches && e.touches.length > 1)) return; 
+                        const pos = e.touches ? e.touches[0] : e; 
+                        const deltaX = Math.abs(pos.clientX - touchStartPos.x); 
+                        const deltaY = Math.abs(pos.clientY - touchStartPos.y); 
+                        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) { 
+                            hasMovedEnoughToDrag = true; 
+                            handleManualMapInteraction(); 
+                        } 
+                    };
+                    
+                    const onInteractionEnd = () => { touchStartPos = null; hasMovedEnoughToDrag = false; };
+
+                    mapCanvas.addEventListener('touchstart', onInteractionStart, { passive: true });
+                    mapCanvas.addEventListener('touchmove', onInteractionMove, { passive: true });
+                    mapCanvas.addEventListener('touchend', onInteractionEnd, { passive: true });
+                    
+                    // Soporte para Ratón (PC Testing)
+                    mapCanvas.addEventListener('mousedown', onInteractionStart);
+                    mapCanvas.addEventListener('mousemove', onInteractionMove);
+                    mapCanvas.addEventListener('mouseup', onInteractionEnd);
+
+                    navigationMapInstance.on('pitchend', (e) => { if (e.originalEvent) { const newPitch = navigationMapInstance.getPitch(); if (Math.abs(newPitch - mapPitchValue) > 0.1) { isPitchManuallyOverridden = true;  mapPitchValue = newPitch; } } });
                     navigationMapInstance._interactionListenersAttached = true; 
                 }
 
@@ -5722,23 +5700,33 @@ async function openNavigationMap(isRecovery = false) {
                         };
                         
                         const handlePressStart = (e) => {
-                            if (isAddReminderAtLocationModeActive || isSimulatingGpsLocation) {
+                            if (isAddReminderAtLocationModeActive) {
                                 return;
                             }
                             clearLongPressTimer();
                             longPressTimer = setTimeout(() => {
-                                addWaypoint(e.lngLat);
-                                longPressTimer = null; 
+                                const lngLat = e.lngLat || (e.point ? navigationMapInstance.unproject(e.point) : null);
+                                if (lngLat) {
+                                    addWaypoint(lngLat);
+                                }
+                                longPressTimer = null;
                             }, LONG_PRESS_DURATION);
                         };
 
                         navigationMapInstance.on('mousedown', handlePressStart);
                         navigationMapInstance.on('touchstart', handlePressStart);
                         
-                        const handleManualInteraction = () => {
-                            if (isFlying) return; // Ignorar si es un movimiento automático (flyTo)
+                        const handleManualInteraction = (e) => {
+                            if (!e || !e.originalEvent) {
+                                // Ignorar eventos generados por API de cámara o animaciones internas
+                                return;
+                            }
+                            if (isFlying || window.isAnimatingMarkerUpdate) {
+                                // Ignorar eventos de cámara durante flyTo o animaciones del marcador
+                                return;
+                            }
                             clearLongPressTimer();
-                            triggerManualMapInteraction();
+                            triggerManualMapInteraction(e.type || 'event');
                         };
 
                         navigationMapInstance.on('dragstart', handleManualInteraction);
@@ -5748,6 +5736,9 @@ async function openNavigationMap(isRecovery = false) {
                         
                         navigationMapInstance.on('mouseup', clearLongPressTimer);
                         navigationMapInstance.on('touchend', clearLongPressTimer);
+                        navigationMapInstance.on('mousemove', clearLongPressTimer);
+                        navigationMapInstance.on('touchmove', clearLongPressTimer);
+                        navigationMapInstance.on('touchcancel', clearLongPressTimer);
                         
                         navigationMapInstance.on('click', async (e) => {
                             if (isAddReminderAtLocationModeActive) { handleMapClickToAddReminder(e); return; } 
@@ -5852,6 +5843,7 @@ async function openNavigationMap(isRecovery = false) {
 
                         // Inicializar marcador del coche
                         updateInitialUserPosition(currentPos, navigationMapInstance); 
+                        needsInitialCentering = true;
                         startGpsWatching();               
                         resolve();
 
@@ -7265,18 +7257,20 @@ function speakNavigationInstruction(text) {
         // tl=es (Español), client=tw-ob (indispensable para que funcione sin API key)
         const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
         
-        const audio = new Audio(audioUrl);
-        audio.play().catch(e => {
-            console.warn("El navegador bloqueó el audio automático. Se requiere interacción del usuario primero.", e);
-            // Fallback al sistema nativo por si acaso funciona en este dispositivo
-            if (window.speechSynthesis) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'es-ES';
-                window.speechSynthesis.speak(utterance);
-            }
-        });
+        const audio = new Audio();
+        audio.src = audioUrl;
+        audio.preload = 'auto';
+        
+        // Intentar reproducir con una pequeña demora para asegurar que el navegador lo procesa bien
+        setTimeout(() => {
+            audio.play().catch(e => {
+                console.warn("Error al reproducir audio TTS remoto:", e);
+                // Si falla por autoplay, intentamos silenciar y luego reproducir (algunos navegadores lo permiten)
+                // Pero para navegación la voz es esencial, así que solo logueamos.
+            });
+        }, 100);
     } catch (err) {
-        console.error("Error en el motor de voz:", err);
+        console.error("Error en el motor de voz remoto:", err);
     }
 }
     
@@ -10167,7 +10161,7 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
 // =====================================================================================
 //  updateMapCamera
 function updateMapCamera(coords, mapInstanceToUse) {
-    if (!shouldCenterOnUser && !navigationFollowUser) {
+    if (!shouldAutoCenterOnGps()) {
         return;
     }
     
@@ -10440,8 +10434,17 @@ function startGpsWatching() {
                 altitude: position.coords.altitude
             };
 
+            const isFirstLock = !navigationCurrentLocation;
             navigationCurrentLocation = coordsForUpdate;
             updateInitialUserPosition(coordsForUpdate, navigationMapInstance);
+            updateGpsAddressLabel(coordsForUpdate.latitude, coordsForUpdate.longitude);
+
+            // Si es necesario centrar (por ser el primer bloqueo o reapertura) y no estamos simulando
+            if (needsInitialCentering && !isSimulatingGpsLocation) {
+                console.log("[GPS] Centrado automático solicitado, centrando mapa...");
+                handleLocateMeClick(true);
+                needsInitialCentering = false;
+            }
 
             if (!isNavigating && navigationWaypoints.length >= 2) {
                 const isRouteDataFullyAvailable = navigationCurrentRouteData &&
@@ -10515,13 +10518,10 @@ function processSimulatedGpsPosition(forceExactPosition = false) {
         lastPositionForStats = { ...navigationCurrentLocation };
     }
     
-    // Asegurar que la cámara sigue la posición simulada
-    if (!navigationFollowUser) {
-        navigationFollowUser = true;
-        shouldCenterOnUser = true;
-    }
+    // (Asegurar seguimiento movido al inicio explícito de simulación para permitir interacción manual)
 
     updateInitialUserPosition(navigationCurrentLocation, navigationMapInstance);
+    updateGpsAddressLabel(navigationCurrentLocation.latitude, navigationCurrentLocation.longitude);
 
     if (!automatedSimulationIntervalId) { 
         showToast(`Posición GPS simulada: ${simulatedGpsLocation.latitude.toFixed(4)}, ${simulatedGpsLocation.longitude.toFixed(4)}`, "info");
@@ -10608,19 +10608,15 @@ function decodePolyline(encoded) {
 // ===================================================================
 // NOMBRE: fetchRouteData 
 async function fetchRouteData(coordsString, startHeading = null) {
-    const OSRM_PRIMARY_KEY = 'boardinggate_useOsrmAsPrimary';
     const ROUTING_SERVICE_KEY = 'boardinggate_routing_service';
     
-    // Prioridad: 1. Selección explícita, 2. Flag antiguo, 3. Por defecto OSRM para estabilidad
-    let activeServiceType = localStorage.getItem(ROUTING_SERVICE_KEY);
-    if (!activeServiceType) {
-        activeServiceType = (localStorage.getItem(OSRM_PRIMARY_KEY) !== 'false') ? 'osrm' : 'mapbox';
-    }
+    // Prioridad: 1. Selección explícita, 2. Por defecto OSRM para evitar Mapbox
+    let activeServiceType = 'osrm'; // FORCED to avoid Google CORS issues
   
     const osrmService = {
         name: 'OSRM',
         buildUrl: (coords) => {
-            return `${OSRM_SERVICE_URL}/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=false&annotations=true`;
+            return `${OSRM_SERVICE_URL}/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=false&annotations=true`;
         },
         processResponse: async (response) => {
             if (!response.ok) {
@@ -10636,37 +10632,6 @@ async function fetchRouteData(coordsString, startHeading = null) {
         }
     };
 
-    const mapboxService = {
-        name: 'Mapbox',
-        buildUrl: (coords) => {
-            const accessToken = window.APP_CONFIG.keys.mapbox;
-            const params = new URLSearchParams({
-                alternatives: 'false',
-                geometries: 'geojson',
-                overview: 'full',
-                steps: 'true',
-                banner_instructions: 'true',
-                voice_instructions: 'true', 
-                language: 'es',
-                access_token: accessToken
-            });
-            return `https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?${params.toString()}`
-        },
-        processResponse: async (response) => {
-            if (!response.ok) {
-                let errorData = { message: `Mapbox HTTP error ${response.status}` };
-                try { errorData = await response.json(); } catch (e) {}
-                throw new Error(errorData.message || response.statusText);
-            }
-            const data = await response.json();
-            if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-                throw new Error(data.message || "No se encontraron rutas en Mapbox.");
-            }
-            const adaptedRoute = adaptMapboxRouteToOSRMFormat(data.routes[0]);
-            return { routeData: { code: 'Ok', routes: [adaptedRoute], waypoints: data.waypoints }, serviceUsed: 'Mapbox' };
-        }
-    };
-
     const googleService = {
         name: 'Google',
         buildUrl: (coords) => {
@@ -10675,14 +10640,19 @@ async function fetchRouteData(coordsString, startHeading = null) {
             const destination = points[points.length - 1].split(',').reverse().join(',');
             const waypoints = points.slice(1, -1).map(p => p.split(',').reverse().join(',')).join('|');
             
-            const params = new URLSearchParams({
+            const paramsObj = {
                 origin: origin,
                 destination: destination,
-                waypoints: waypoints ? `via:${waypoints}` : '',
                 mode: 'driving',
                 language: 'es',
                 key: window.APP_CONFIG.keys.googleMaps
-            });
+            };
+            
+            if (waypoints) {
+                paramsObj.waypoints = `via:${waypoints}`;
+            }
+
+            const params = new URLSearchParams(paramsObj);
             return `https://maps.googleapis.com/maps/api/directions/json?${params.toString()}`;
         },
         processResponse: async (response) => {
@@ -10721,12 +10691,11 @@ async function fetchRouteData(coordsString, startHeading = null) {
 
     const services = {
         'osrm': osrmService,
-        'mapbox': mapboxService,
         'google': googleService
     };
 
     const primaryService = services[activeServiceType] || osrmService;
-    const fallbackService = (activeServiceType === 'mapbox') ? osrmService : mapboxService;
+    const fallbackService = (activeServiceType === 'google') ? osrmService : googleService;
     
     const buildUrlWithCorrectBearings = (service, coords) => {
         if (service.name === 'Google') return service.buildUrl(coords);
@@ -10748,29 +10717,30 @@ async function fetchRouteData(coordsString, startHeading = null) {
         return `${baseUrl}?${params.toString()}`;
     };
 
-    const MAX_PRIMARY_RETRIES = 5;
+    const MAX_PRIMARY_RETRIES = 2; // Reducido para fallar antes si hay CORS
 
     for (let attempt = 1; attempt <= MAX_PRIMARY_RETRIES; attempt++) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos de timeout
+        const timeoutId = setTimeout(() => controller.abort(), 1500); 
   
         try {
             const primaryUrl = buildUrlWithCorrectBearings(primaryService, coordsString);
-            
-            const primaryResponse = await fetch(primaryUrl, { signal: controller.signal });
-            clearTimeout(timeoutId); // Si la petición tiene éxito, cancelamos el timeout
-          
+            const primaryResponse = await fetch(primaryUrl, { 
+                signal: controller.signal,
+                mode: 'cors' 
+            });
+            clearTimeout(timeoutId);
             return await primaryService.processResponse(primaryResponse);
         } catch (primaryError) {
-            clearTimeout(timeoutId); // Asegurarse de limpiar el timeout también en caso de error
-            console.warn(`[Route Fetch] Fallo en intento #${attempt} con ${primaryService.name}:`, primaryError.name === 'AbortError' ? 'Timeout de 5s alcanzado' : primaryError);
-
-            if (attempt === MAX_PRIMARY_RETRIES) {
-                console.log(`%c[Route Service] ${primaryService.name} falló ${MAX_PRIMARY_RETRIES} veces. Usando FALLBACK: ${fallbackService.name}...`, 'color: #dc3545; font-weight: bold;');
-                showToast(`${primaryService.name} falló. Probando con ${fallbackService.name}...`, "warning", 5000);
+            clearTimeout(timeoutId);
+            const isCorsError = primaryError instanceof TypeError && primaryError.message === 'Failed to fetch';
+            
+            if (isCorsError || attempt === MAX_PRIMARY_RETRIES) {
+                console.log(`%c[Route Service] ${primaryService.name} falló (CORS o error). Usando FALLBACK: ${fallbackService.name}...`, 'color: #dc3545; font-weight: bold;');
+                showToast(`${primaryService.name} falló. Usando ${fallbackService.name}`, "warning", 3000);
                 break;
             } else {
-                await new Promise(resolve => setTimeout(resolve, 600));
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
         }
     }
@@ -10925,6 +10895,12 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
     if (showMinimapButton) {
         const shouldShowTButton = showRouteMinimapPreference && !shouldShowMinimap;
         showMinimapButton.classList.toggle('hidden', !shouldShowTButton);
+    }
+    
+    // Mostrar/ocultar dirección actual (GPS)
+    const gpsAddressDisplay = document.getElementById('gps-address-display');
+    if (gpsAddressDisplay) {
+        gpsAddressDisplay.style.display = (isNavigating || isFreeDriveActive) ? 'block' : 'none';
     }
 
     if (miniNavCard.style.display === 'flex') {
@@ -11959,6 +11935,7 @@ function updateUserIdDisplay() {
 // ===================================================================
 // NOMBRE: handleGpsSimulationToggle 
 function handleGpsSimulationToggle() {
+    console.log("[DEBUG] handleGpsSimulationToggle called. Current state: " + isSimulatingGpsLocation);
     const simulateGpsButton = document.getElementById('toggle-simulate-gps-button');
     const mapDiv = document.getElementById('reminders-location-map-div');
     if (isSimulatingGpsLocation) { 
@@ -11985,6 +11962,10 @@ function handleGpsSimulationToggle() {
             });
         } else {
             isSimulatingGpsLocation = true;
+            navigationFollowUser = true;
+            shouldCenterOnUser = true;
+            clearLocateMeReactivationTimer();
+            updateLocateMeButtonsUI();
             if (simulateGpsButton) simulateGpsButton.classList.add('active-simulate-gps-mode'); 
             if (mapDiv) mapDiv.classList.add('simulating-gps-click-mode'); 
             showToast("Modo simulación GPS por clic ACTIVADO. Carga una ruta para recorrido automático o toca el mapa.", "info", 6000);
@@ -13325,121 +13306,138 @@ function updateNavigationProgressDisplay(route, carDistanceAlongTheRoute = 0) {
 //==================================================================
 function animateMarkerAndMap(timestamp) {
     try {
-    const now = timestamp || performance.now();
-    if (now - lastMapUpdateTime < MAP_UPDATE_INTERVAL_MS) {
-        markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
-        return;
-    }
-    lastMapUpdateTime = now;
-    
-    if (!initialUserLocationMarker || !navigationMapInstance || isFlying) {
-        markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
-        return;
-    }
+        const now = timestamp || performance.now();
+        if (now - lastMapUpdateTime < MAP_UPDATE_INTERVAL_MS) {
+            markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
+            return;
+        }
+        lastMapUpdateTime = now;
+        
+        if (!initialUserLocationMarker || !navigationMapInstance || isFlying) {
+            markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
+            return;
+        }
 
-    if (!markerAnimationState.lastTimestamp) {
+        if (!markerAnimationState.lastTimestamp) {
+            markerAnimationState.lastTimestamp = timestamp;
+            markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
+            return;
+        }
+
+        // Auto-re-centrado tras inactividad manual (10 segundos)
+        if (!navigationFollowUser && !isFlying && (typeof lastManualInteractionTime !== 'undefined') && (Date.now() - lastManualInteractionTime > 10000)) {
+            if (isNavigating || isSimulatingGpsLocation) {
+                const dbgBtnR = document.getElementById('zoom-locate-me-button');
+                if (dbgBtnR) {
+                    dbgBtnR.title = "Auto-reanudado a las " + new Date().toLocaleTimeString();
+                    dbgBtnR.style.border = "2px solid green";
+                }
+                navigationFollowUser = true;
+                shouldCenterOnUser = true;
+                updateLocateMeButtonsUI();
+                showToast("Reanudando seguimiento automático...", "info");
+            }
+        }
+
+        const deltaTime = timestamp - markerAnimationState.lastTimestamp;
         markerAnimationState.lastTimestamp = timestamp;
-        markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
-        return;
-    }
+        const clampedDeltaTime = Math.min(deltaTime, 33);
 
-    const deltaTime = timestamp - markerAnimationState.lastTimestamp;
-    markerAnimationState.lastTimestamp = timestamp;
-    const clampedDeltaTime = Math.min(deltaTime, 33);
+        const posLerpFactor = 1.0 - Math.exp(-clampedDeltaTime * lerpRatePosition);
+        const rotLerpFactor = 1.0 - Math.exp(-clampedDeltaTime * lerpRateRotation);
+        const zoomPitchLerpFactor = 1.0 - Math.exp(-clampedDeltaTime * lerpRateZoom);
 
-    const posLerpFactor = 1.0 - Math.exp(-clampedDeltaTime * lerpRatePosition);
-    const rotLerpFactor = 1.0 - Math.exp(-clampedDeltaTime * lerpRateRotation);
-    const zoomPitchLerpFactor = 1.0 - Math.exp(-clampedDeltaTime * lerpRateZoom);
-
-    if (markerAnimationState.currentLngLat && markerAnimationState.targetLngLat) {
-        markerAnimationState.currentLngLat.lng += (markerAnimationState.targetLngLat.lng - markerAnimationState.currentLngLat.lng) * posLerpFactor;
-        markerAnimationState.currentLngLat.lat += (markerAnimationState.targetLngLat.lat - markerAnimationState.currentLngLat.lat) * posLerpFactor;
-        initialUserLocationMarker.setLngLat(markerAnimationState.currentLngLat);
-        
-        if (groundAnchorMarker) {
-            groundAnchorMarker.setLngLat(markerAnimationState.currentLngLat);
+        if (markerAnimationState.currentLngLat && markerAnimationState.targetLngLat) {
+            markerAnimationState.currentLngLat.lng += (markerAnimationState.targetLngLat.lng - markerAnimationState.currentLngLat.lng) * posLerpFactor;
+            markerAnimationState.currentLngLat.lat += (markerAnimationState.targetLngLat.lat - markerAnimationState.currentLngLat.lat) * posLerpFactor;
+            initialUserLocationMarker.setLngLat(markerAnimationState.currentLngLat);
+            
+            if (groundAnchorMarker) {
+                groundAnchorMarker.setLngLat(markerAnimationState.currentLngLat);
+            }
         }
-     }
-    let deltaIconRotation = markerAnimationState.targetIconRotation - markerAnimationState.currentIconRotation;
-    if (deltaIconRotation > 180) deltaIconRotation -= 360;
-    if (deltaIconRotation < -180) deltaIconRotation += 360;
-    markerAnimationState.currentIconRotation += deltaIconRotation * rotLerpFactor;
-    initialUserLocationMarker.setRotation(markerAnimationState.currentIconRotation);
+        let deltaIconRotation = markerAnimationState.targetIconRotation - markerAnimationState.currentIconRotation;
+        if (deltaIconRotation > 180) deltaIconRotation -= 360;
+        if (deltaIconRotation < -180) deltaIconRotation += 360;
+        markerAnimationState.currentIconRotation += deltaIconRotation * rotLerpFactor;
+        initialUserLocationMarker.setRotation(markerAnimationState.currentIconRotation);
 
-    if (shouldCenterOnUser || navigationFollowUser) {
-        
-        if (markerAnimationState.currentMapCenter && markerAnimationState.targetLngLat) {
-            markerAnimationState.currentMapCenter.lng += (markerAnimationState.targetLngLat.lng - markerAnimationState.currentMapCenter.lng) * posLerpFactor;
-            markerAnimationState.currentMapCenter.lat += (markerAnimationState.targetLngLat.lat - markerAnimationState.currentMapCenter.lat) * posLerpFactor;
-        } else if (markerAnimationState.targetLngLat) {
-            // Inicializar currentMapCenter si es null
-            markerAnimationState.currentMapCenter = { lng: markerAnimationState.targetLngLat.lng, lat: markerAnimationState.targetLngLat.lat };
-        }
-
-        if (markerAnimationState.currentMapAltitude !== null && markerAnimationState.targetMapAltitude !== null) {
-            markerAnimationState.currentMapAltitude += (markerAnimationState.targetMapAltitude - markerAnimationState.currentMapAltitude) * posLerpFactor;
-        } else {
-             markerAnimationState.currentMapAltitude = markerAnimationState.targetMapAltitude;
-        }
-        
-        let deltaMapBearing = markerAnimationState.targetMapBearing - markerAnimationState.currentMapBearing;
-        if (deltaMapBearing > 180) deltaMapBearing -= 360;
-        if (deltaMapBearing < -180) deltaMapBearing += 360;
-        markerAnimationState.currentMapBearing += deltaMapBearing * rotLerpFactor;
-        
-        markerAnimationState.currentMapZoom += (markerAnimationState.targetMapZoom - markerAnimationState.currentMapZoom) * zoomPitchLerpFactor;
-        markerAnimationState.currentMapPitch += (markerAnimationState.targetMapPitch - markerAnimationState.currentMapPitch) * zoomPitchLerpFactor;
-        
-        markerAnimationState.currentMapOffsetX += (markerAnimationState.targetMapOffsetX - markerAnimationState.currentMapOffsetX) * zoomPitchLerpFactor;
-        markerAnimationState.currentMapOffsetY += (markerAnimationState.targetMapOffsetY - markerAnimationState.currentMapOffsetY) * zoomPitchLerpFactor;
-
-        // Solo calcular offset de cámara si currentMapCenter está inicializado
-        if (markerAnimationState.currentMapCenter) {
-            let offsetXToUse = markerAnimationState.currentMapOffsetX;
-            let offsetYToUse = markerAnimationState.currentMapOffsetY;
-
-            const savedViewMode = localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
-            if (savedViewMode === 'relief') {
-                offsetXToUse = Math.max(-10, Math.min(offsetXToUse, 10));
-                offsetYToUse = Math.max(-20, Math.min(offsetYToUse, 20));
+        if (shouldAutoCenterOnGps() && !isSearchingDestination) {
+            
+            if (markerAnimationState.currentMapCenter && markerAnimationState.targetLngLat) {
+                markerAnimationState.currentMapCenter.lng += (markerAnimationState.targetLngLat.lng - markerAnimationState.currentMapCenter.lng) * posLerpFactor;
+                markerAnimationState.currentMapCenter.lat += (markerAnimationState.targetLngLat.lat - markerAnimationState.currentMapCenter.lat) * posLerpFactor;
+            } else if (markerAnimationState.targetLngLat) {
+                // Inicializar currentMapCenter si es null
+                markerAnimationState.currentMapCenter = { lng: markerAnimationState.targetLngLat.lng, lat: markerAnimationState.targetLngLat.lat };
             }
 
-            const canvas = navigationMapInstance.getCanvas();
-            const pitchInRadians = (markerAnimationState.currentMapPitch * Math.PI) / 180;
-            const cameraHeightAboveCar = 150; 
-            
-            const verticalOffsetFactor = offsetYToUse / 100;
-            const groundDistanceOffset = (cameraHeightAboveCar * Math.tan(pitchInRadians)) * verticalOffsetFactor * -1;
-
-            const metersPerPixel = 156543.03 * Math.cos(markerAnimationState.currentMapCenter.lat * Math.PI / 180) / Math.pow(2, markerAnimationState.currentMapZoom);
-            const pixelOffsetX = canvas.clientWidth * (offsetXToUse / 100);
-            const horizontalDistanceOffset = metersPerPixel * pixelOffsetX * -1;
-
-            const totalDistance = Math.sqrt(Math.pow(groundDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
-            const angleAdjustment = Math.atan2(horizontalDistanceOffset, groundDistanceOffset) * (180 / Math.PI);
-
-            _turfCarPointForAnimation.geometry.coordinates[0] = markerAnimationState.currentMapCenter.lng;
-            _turfCarPointForAnimation.geometry.coordinates[1] = markerAnimationState.currentMapCenter.lat;
-            const finalBearingForOffset = markerAnimationState.currentMapBearing - 180 + angleAdjustment;
-            const cameraAnchorPoint = turf.destination(_turfCarPointForAnimation, totalDistance / 1000, finalBearingForOffset, { units: 'kilometers' });
-            
-            const cameraOptions = {
-                center: cameraAnchorPoint.geometry.coordinates,
-                zoom: markerAnimationState.currentMapZoom,
-                bearing: markerAnimationState.currentMapBearing,
-                pitch: markerAnimationState.currentMapPitch,
-                offset: [0, 0]
-            };
-            
-            if (markerAnimationState.currentMapAltitude !== null && !isNaN(markerAnimationState.currentMapAltitude)) {
-                cameraOptions.altitude = markerAnimationState.currentMapAltitude;
+            if (markerAnimationState.currentMapAltitude !== null && markerAnimationState.targetMapAltitude !== null) {
+                markerAnimationState.currentMapAltitude += (markerAnimationState.targetMapAltitude - markerAnimationState.currentMapAltitude) * posLerpFactor;
+            } else {
+                markerAnimationState.currentMapAltitude = markerAnimationState.targetMapAltitude;
             }
+            
+            let deltaMapBearing = markerAnimationState.targetMapBearing - markerAnimationState.currentMapBearing;
+            if (deltaMapBearing > 180) deltaMapBearing -= 360;
+            if (deltaMapBearing < -180) deltaMapBearing += 360;
+            markerAnimationState.currentMapBearing += deltaMapBearing * rotLerpFactor;
+            
+            markerAnimationState.currentMapZoom += (markerAnimationState.targetMapZoom - markerAnimationState.currentMapZoom) * zoomPitchLerpFactor;
+            markerAnimationState.currentMapPitch += (markerAnimationState.targetMapPitch - markerAnimationState.currentMapPitch) * zoomPitchLerpFactor;
+            
+            markerAnimationState.currentMapOffsetX += (markerAnimationState.targetMapOffsetX - markerAnimationState.currentMapOffsetX) * zoomPitchLerpFactor;
+            markerAnimationState.currentMapOffsetY += (markerAnimationState.targetMapOffsetY - markerAnimationState.currentMapOffsetY) * zoomPitchLerpFactor;
 
-            navigationMapInstance.jumpTo(cameraOptions);
+            // Solo calcular offset de cámara si currentMapCenter está inicializado
+            if (markerAnimationState.currentMapCenter) {
+                let offsetXToUse = markerAnimationState.currentMapOffsetX;
+                let offsetYToUse = markerAnimationState.currentMapOffsetY;
+
+                const savedViewMode = localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
+                if (savedViewMode === 'relief') {
+                    offsetXToUse = Math.max(-10, Math.min(offsetXToUse, 10));
+                    offsetYToUse = Math.max(-20, Math.min(offsetYToUse, 20));
+                }
+
+                const canvas = navigationMapInstance.getCanvas();
+                const pitchInRadians = (markerAnimationState.currentMapPitch * Math.PI) / 180;
+                const cameraHeightAboveCar = 150; 
+                
+                const verticalOffsetFactor = offsetYToUse / 100;
+                const groundDistanceOffset = (cameraHeightAboveCar * Math.tan(pitchInRadians)) * verticalOffsetFactor * -1;
+
+                const metersPerPixel = 156543.03 * Math.cos(markerAnimationState.currentMapCenter.lat * Math.PI / 180) / Math.pow(2, markerAnimationState.currentMapZoom);
+                const pixelOffsetX = canvas.clientWidth * (offsetXToUse / 100);
+                const horizontalDistanceOffset = metersPerPixel * pixelOffsetX * -1;
+
+                const totalDistance = Math.sqrt(Math.pow(groundDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
+                const angleAdjustment = Math.atan2(horizontalDistanceOffset, groundDistanceOffset) * (180 / Math.PI);
+
+                _turfCarPointForAnimation.geometry.coordinates[0] = markerAnimationState.currentMapCenter.lng;
+                _turfCarPointForAnimation.geometry.coordinates[1] = markerAnimationState.currentMapCenter.lat;
+                const finalBearingForOffset = markerAnimationState.currentMapBearing - 180 + angleAdjustment;
+                const cameraAnchorPoint = turf.destination(_turfCarPointForAnimation, totalDistance / 1000, finalBearingForOffset, { units: 'kilometers' });
+                
+                const cameraOptions = {
+                    center: cameraAnchorPoint.geometry.coordinates,
+                    zoom: markerAnimationState.currentMapZoom,
+                    bearing: markerAnimationState.currentMapBearing,
+                    pitch: markerAnimationState.currentMapPitch,
+                    offset: [0, 0]
+                };
+                
+                if (markerAnimationState.currentMapAltitude !== null && !isNaN(markerAnimationState.currentMapAltitude)) {
+                    cameraOptions.altitude = markerAnimationState.currentMapAltitude;
+                }
+
+                window.isAnimatingMarkerUpdate = true;
+                navigationMapInstance.jumpTo(cameraOptions);
+                window.isAnimatingMarkerUpdate = false;
+            }
         }
-    }
     } catch(e) {
-        console.warn('[animateMarkerAndMap] Error caught, restarting loop:', e.message);
+        // Error silently handled
     }
     markerAnimationState.animationFrameId = requestAnimationFrame(animateMarkerAndMap);
 }
@@ -13624,8 +13622,9 @@ function startAutomatedRouteSimulation(speedKmph, continueFromDistance = null) {
     if (!navigationFollowUser) {
         navigationFollowUser = true;
         shouldCenterOnUser = true;
-        updateLocateMeButtonsUI();
     }
+    clearLocateMeReactivationTimer();
+    updateLocateMeButtonsUI();
     
     if (typeof continueFromDistance === 'number' && continueFromDistance >= 0) {
         simulatedDistanceAlongRoute = continueFromDistance;
@@ -14563,7 +14562,7 @@ function handleProgressiveManeuverZoom(currentStep, distanceToManeuver, carDista
     
     const ZOOM_PEAK_DISTANCE = 50;
     const HOLD_ZOOM_THRESHOLD = 300; // Aumentamos ligeramente para ser más robusto en encadenamientos.
-    const currentMapLayerName = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE").toLowerCase();
+    const currentMapLayerName = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "OPENMAP_RELIEVE").toLowerCase();
     const isSatelliteWithLabels = currentMapLayerName.includes("satélite") && currentMapLayerName.includes("calles");
     const MANEUVER_PEAK_ZOOM_LEVEL = Math.min(isSatelliteWithLabels ? 17.5 : 18.5, 19.5);
     
@@ -16409,7 +16408,7 @@ async function fetchAndDisplayAlternativeRoutes(waypointId) {
     if (!startWaypoint) return;
     const endWaypoint = navigationWaypoints[endWaypointIndex];
 
-    const url = `${OSRM_SERVICE_URL}/driving/${startWaypoint.lng},${startWaypoint.lat};${endWaypoint.lng},${endWaypoint.lat}?alternatives=true&overview=full&geometries=geojson&steps=false`;
+    const url = `${OSRM_SERVICE_URL}/route/v1/driving/${startWaypoint.lng},${startWaypoint.lat};${endWaypoint.lng},${endWaypoint.lat}?alternatives=true&overview=full&geometries=geojson&steps=false`;
 
     try {
         const response = await fetch(url);
@@ -17525,6 +17524,9 @@ function handleLocateMeClick(isExplicitAction = false) {
     }
     
     shouldCenterOnUser = navigationFollowUser;
+    if (navigationFollowUser) {
+        isSearchingDestination = false;
+    }
 
     if (navigationFollowUser) {
         toggleRouteDetailOverlays(true);  
@@ -17560,7 +17562,17 @@ function handleLocateMeClick(isExplicitAction = false) {
                 flyToOptions.bearing = navigationCurrentLocation.heading || 0;
             }
 
-            navigationMapInstance.flyTo(flyToOptions);
+            if (isExplicitAction) {
+                navigationMapInstance.jumpTo(flyToOptions);
+                isFlying = false;
+                if (typeof navigationMapInstance !== 'undefined' && navigationMapInstance && typeof markerAnimationState !== 'undefined' && markerAnimationState) {
+                    markerAnimationState.currentMapCenter = navigationMapInstance.getCenter();
+                    markerAnimationState.currentMapZoom = navigationMapInstance.getZoom();
+                }
+            } else {
+                navigationMapInstance.flyTo(flyToOptions);
+                setTimeout(() => { isFlying = false; if (typeof navigationMapInstance !== 'undefined' && navigationMapInstance && typeof markerAnimationState !== 'undefined' && markerAnimationState) { markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); } }, 2000);
+            }
             
             navigationMapInstance.once('moveend', () => {
                 isFlying = false;
@@ -17574,24 +17586,35 @@ function handleLocateMeClick(isExplicitAction = false) {
                 markerAnimationState.targetMapPitch = navigationMapInstance.getPitch();
                 markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
             });
-
         } else {
+            // Si no tenemos posición aún (ej: al cargar por primera vez), la pedimos
             getCurrentLocation(coords => {
                 if (navigationMapInstance) {
-                     const locateOptions = { center: [coords.longitude, coords.latitude], zoom: 17 };
+                     navigationFollowUser = true;
+                     shouldCenterOnUser = true;
+                     const locateOptions = { center: [coords.longitude, coords.latitude], zoom: 17, duration: 1000, essential: true };
                      const mode = mapViewMode || 'static';
                      if (mode === 'perspective' || mode === 'relief') {
                          locateOptions.pitch = mapPitchValue;
                      }
+                     
+                     isFlying = true;
                      navigationMapInstance.flyTo(locateOptions);
+                     setTimeout(() => { isFlying = false; if (typeof navigationMapInstance !== 'undefined' && navigationMapInstance && typeof markerAnimationState !== 'undefined' && markerAnimationState) { markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); } }, 2000);
+                     navigationMapInstance.once('moveend', () => {
+                         isFlying = false;
+                     });
                 }
                 updateInitialUserPosition(coords, navigationMapInstance);
             }, () => showToast("No se pudo obtener tu ubicación.", "warning"));
         }
     } else {
         if (isExplicitAction) {
+            isSearchingDestination = false;
+            console.log("[DEBUG] handleLocateMeClick: Limpiando temporizador (isExplicitAction = true)");
             clearLocateMeReactivationTimer();
         } else {
+            console.log("[DEBUG] handleLocateMeClick: INICIANDO temporizador de reactivación (isExplicitAction = false, toggle)");
             startLocateMeReactivationTimer();
         }
     }
@@ -18053,6 +18076,7 @@ async function incrementUserCount() {
      }
 }   
 
+
 // ===================================================================
 // NOMBRE: getGpsWithRetries 
 
@@ -18079,6 +18103,7 @@ async function updateCurrentAddress(lat, lon) {
             const element = document.getElementById('current-location-address-text');
             if (element && displayStr) {
                 element.textContent = displayStr;
+                element.style.display = 'block';
                 lastGeocodePos = { lat, lon };
             }
         }
@@ -18323,7 +18348,11 @@ async function restoreBackupFromFirebase(isAutoLoad = false) {
                 `Introduce el PIN para "${primaryId}":`,
                 (enteredPin) => {
                     if (enteredPin === firebaseData.backupPassword) {
-                        if (confirm(`Backup para "${primaryId}" desbloqueado.\n\n¿Estás seguro de que quieres restaurar estos datos?\n\n¡ATENCIÓN! Se sobreescribirán TODOS tus datos locales actuales (grid, recordatorios, etc.). Esta acción NO se puede deshacer.`)) {
+                        if (confirm(`Backup para "${primaryId}" desbloqueado.
+
+¿Estás seguro de que quieres restaurar estos datos?
+
+¡ATENCIÓN! Se sobreescribirán TODOS tus datos locales actuales (grid, recordatorios, etc.). Esta acción NO se puede deshacer.`)) {
                             applyChanges();
                         } else {
                             statusEl.textContent = 'Restauración cancelada.';
@@ -19812,16 +19841,6 @@ function createOtherButtons() {
         reloadButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; location.reload(); });
     }
 
-    if (!document.getElementById('store-button')) {
-        const storeButton = document.createElement('span');
-        storeButton.id = 'store-button';
-        storeButton.innerHTML = `<img src="PNG/store.png" alt="Tienda/Referidos">`;
-        document.body.appendChild(storeButton);
-        storeButton.addEventListener('click', () => {
-            if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return;
-            showReferralsModal(); // Función que crearemos a continuación
-        });
-    }
     
     if (!document.getElementById('keyword-assignment-button')) {
          const keywordButton = document.createElement('span');
@@ -19861,7 +19880,7 @@ function createOtherButtons() {
          
          utilsButton.addEventListener('click', () => { 
              if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; 
-             window.open('https://boardinggate.github.io/BGUTIL/index.html', '_blank'); 
+             window.open('./BGUTIL/index.html', '_blank'); 
          });
          
          utilsButton.addEventListener('mouseenter', () => { utilsButton.style.transform = 'scale(1.15)'; });
@@ -20503,7 +20522,8 @@ async function showVersionsModal() {
         saveSettings();
         await checkVersionsIconOpacity();
     } catch (e) {
-        versionsContent.textContent = `Error al cargar el histórico:\n${e.message}`;
+        versionsContent.textContent = `Error al cargar el histórico:
+${e.message}`;
     }
 }    
     
@@ -21445,6 +21465,7 @@ function handleLoadOrDeleteRouteClick(button) {
                 bearing: targetBearing,
                 duration: 1500
             });
+            setTimeout(() => { isFlying = false; if (typeof navigationMapInstance !== 'undefined' && navigationMapInstance && typeof markerAnimationState !== 'undefined' && markerAnimationState) { markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); } }, 2000);
             navigationMapInstance.once('moveend', () => { isFlying = false; });
         }
     
@@ -21841,6 +21862,7 @@ function toggleMapImmersiveMode() {
 // ===================================================================
 // NOMBRE: reactivateRealGpsAfterSimulation 
 function reactivateRealGpsAfterSimulation() {
+    clearLocateMeReactivationTimer();
     if (locationWatchId === null && 'geolocation' in navigator && 'watchPosition' in navigator.geolocation) {
         locationWatchId = navigator.geolocation.watchPosition(
             (position) => {
@@ -21924,7 +21946,7 @@ function getRouteStyleProperties() {
     }
     
     const isPitched = navigationMapInstance.getPitch() > 20;
-    const isStreetsView = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "RELIEVE") === 'CALLES';
+    const isStreetsView = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "OPENMAP_RELIEVE") === 'OPENMAP_CALLES';
 
     const mainWidthExpression = isPitched 
         ? ['interpolate', ['linear'], ['zoom'], 13.49, 7, 13.5, 16] 
@@ -22031,43 +22053,48 @@ function handleWaypointPlacement(displayName, lat, lon) {
     const tempMarkerElement = document.createElement('div');
     tempMarkerElement.className = 'navigation-waypoint-marker';
     tempMarkerElement.style.cssText = `
-        background-color: rgba(255, 140, 0, 0.7); /* Naranja translúcido */
-        opacity: 0.8; /* Transparencia del propio marcador */
-        border: 2px solid white;
-        width: 45px;
-        height: 45px;
-        font-size: 24px;
-        font-weight: bold;
+        background-color: rgba(255, 140, 0, 0.9);
+        border: 3px solid white;
+        width: 50px; height: 50px;
+        font-size: 28px; font-weight: bold;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5);
     `;
-    tempMarkerElement.textContent = 'F'; // Letra "F" en lugar de "?"
+    tempMarkerElement.textContent = 'F';
 
     const tempMarker = new maplibregl.Marker({
         element: tempMarkerElement,
-        draggable: false, // Inicialmente no es arrastrable
+        draggable: false,
         anchor: 'center'
     }).setLngLat([lon, lat]).addTo(navigationMapInstance);
     
     const popupContent = document.createElement('div');
     popupContent.style.cssText = `
-        font-family: sans-serif;
+        font-family: 'Segoe UI', Roboto, sans-serif;
         text-align: center;
-        color: #333;
-        width: 270px;
+        color: #eee;
+        width: 380px;
+        padding: 20px;
+        background-color: #2c2c2e;
+        border-radius: 12px;
+        box-sizing: border-box;
     `;
     popupContent.innerHTML = `
         <style>
             .placement-popup-btn {
-                width: 100%; padding: 8px; margin-top: 6px; border: none;
-                border-radius: 6px; font-weight: bold; font-size: 0.80rem;
-                cursor: pointer; transition: background-color 0.2s;
+                width: 100%; padding: 12px; margin-top: 10px; border: none;
+                border-radius: 8px; font-weight: bold; font-size: 1.1rem;
+                cursor: pointer; transition: transform 0.1s, background-color 0.2s;
+                color: white;
             }
-            .placement-popup-btn.add { background-color: #34c759; color: white; }
-            .placement-popup-btn.drag { background-color: #ff9500; color: white; }
-            .placement-popup-btn.cancel { background-color: #555; color: white; }
+            .placement-popup-btn:active { transform: scale(0.98); }
+            .placement-popup-btn.add { background-color: #34c759; }
+            .placement-popup-btn.drag { background-color: #ff9500; }
+            .placement-popup-btn.cancel { background-color: #444; }
         </style>
-        <p style="font-size: 0.85rem; font-weight: bold; margin: 0 0 8px 0; color: #111;">${displayName}</p>
-        <button id="placement-add" class="placement-popup-btn add">Añadir Aquí</button>
-        <button id="placement-drag" class="placement-popup-btn drag">Arrastrar y Añadir</button>
+        <p style="font-size: 1.1rem; font-weight: bold; margin: 0 0 12px 0; color: #FFD700; word-wrap: break-word;">${displayName}</p>
+        <button id="placement-add" class="placement-popup-btn add">Añadir a la Ruta</button>
+        <button id="placement-drag" class="placement-popup-btn drag">Ajustar Posición</button>
         <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
     `;
 
@@ -22075,8 +22102,8 @@ function handleWaypointPlacement(displayName, lat, lon) {
         closeButton: false,
         closeOnClick: false,
         anchor: 'bottom',
-        offset: 35,
-        className: 'charging-point-popup' // Reutilizamos un estilo de popup oscuro
+        offset: 40,
+        className: 'charging-point-popup custom-placement-popup' 
     })
     .setLngLat([lon, lat])
     .setDOMContent(popupContent)
@@ -22084,11 +22111,13 @@ function handleWaypointPlacement(displayName, lat, lon) {
     
     const popupElement = confirmationPopup.getElement();
     if (popupElement) {
-        popupElement.style.opacity = '0.85'; // 85% de opacidad (60% es 0.6)
+        popupElement.style.zIndex = '12000';
+        popupElement.addEventListener('click', (e) => e.stopPropagation());
     }
 
     isFlying = true;
-    navigationMapInstance.flyTo({ center: [lon, lat], zoom: 14.5, duration: 1500 });
+    navigationMapInstance.flyTo({ center: [lon, lat], zoom: 15, duration: 1500, pitch: 0 });
+    setTimeout(() => { isFlying = false; if (typeof navigationMapInstance !== 'undefined' && navigationMapInstance && typeof markerAnimationState !== 'undefined' && markerAnimationState) { markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); } }, 2000);
     navigationMapInstance.once('moveend', () => { isFlying = false; });
 
     const cleanup = () => {
@@ -22100,19 +22129,22 @@ function handleWaypointPlacement(displayName, lat, lon) {
     const dragBtn = popupContent.querySelector('#placement-drag');
     const cancelBtn = popupContent.querySelector('#placement-cancel');
 
-    addBtn.addEventListener('click', async () => {
+    addBtn.onclick = async (e) => {
+        e.preventDefault(); e.stopPropagation();
         const finalCoords = tempMarker.getLngLat();
         cleanup();
         showToast("Ajustando a la carretera...", "info", 1500);
         const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
         addWaypoint(snapped, displayName);
-    });
+    };
 
-    dragBtn.addEventListener('click', () => {
+    dragBtn.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
         tempMarker.setDraggable(true);
         tempMarkerElement.style.cursor = 'grabbing';
-        confirmationPopup.remove(); // Cerramos el popup para no estorbar al arrastrar
-        showToast("Arrastra el marcador a la posición deseada y suéltalo para añadir.", "info", 4000);
+        tempMarkerElement.style.backgroundColor = 'rgba(255, 140, 0, 1)';
+        confirmationPopup.remove(); 
+        showToast("Arrastra el marcador 'F' y suéltalo para añadir.", "info", 4000);
         
         tempMarker.on('dragend', async () => {
             const finalCoords = tempMarker.getLngLat();
@@ -22121,10 +22153,13 @@ function handleWaypointPlacement(displayName, lat, lon) {
             const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
             addWaypoint(snapped, displayName);
         });
-    });
+    };
 
-    cancelBtn.addEventListener('click', cleanup);
-}    
+    cancelBtn.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        cleanup();
+    };
+}
 
 // ===================================================================
 // NOMBRE: displayAddressSuggestionsModal 
@@ -22546,6 +22581,7 @@ function showHelpModal(options = {}) {
     // NOMBRE: stopAutomatedRouteSimulation
     function stopAutomatedRouteSimulation() {
         stopAutomatedRouteSimulationInternal();
+        clearLocateMeReactivationTimer();
         isSimulatingGpsLocation = false;
         const mapDiv = document.getElementById('reminders-location-map-div');
         if (mapDiv) {
@@ -22556,6 +22592,7 @@ function showHelpModal(options = {}) {
             simulateGpsButton.classList.remove('active-simulate-gps-mode');
             simulateGpsButton.title = "Activar Simulación GPS (recorrido automático o clic manual)";
         }
+        needsInitialCentering = true;
         startGpsWatching();
         setNavigationMapClickHandler();
     }
@@ -22923,9 +22960,12 @@ function clearLocateMeReactivationTimer() {
 // NOMBRE: startLocateMeReactivationTimer 
 
 function startLocateMeReactivationTimer() {
+    console.log("[DEBUG] startLocateMeReactivationTimer INICIADO a las " + new Date().toLocaleTimeString());
+    console.trace("[DEBUG] Stack trace para startLocateMeReactivationTimer:");
     clearLocateMeReactivationTimer();
 
     window.followMeReactivationTimer = setTimeout(() => {
+        console.log("[DEBUG] ⏰ TEMPORIZADOR EXPIRADO - Reactivando seguimiento automático a las " + new Date().toLocaleTimeString());
         setMapImmersiveMode(false); // Desactiva el modo inmersivo, restaurando todo a la normalidad
         const mapModal = document.getElementById('reminders-location-map-modal');
         if (mapModal) {
@@ -22990,6 +23030,7 @@ function triggerArrivalSequence() {
             bearing: targetBearing,
             duration: 1500
         });
+        setTimeout(() => { isFlying = false; if (typeof navigationMapInstance !== 'undefined' && navigationMapInstance && typeof markerAnimationState !== 'undefined' && markerAnimationState) { markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); } }, 2000);
         navigationMapInstance.once('moveend', () => { isFlying = false; });
     }
     
@@ -22998,10 +23039,18 @@ function triggerArrivalSequence() {
 
 // ===================================================================
 // NOMBRE: triggerManualMapInteraction 
-function triggerManualMapInteraction() {
+function triggerManualMapInteraction(source = 'unknown') {
+    console.log("[DEBUG] triggerManualMapInteraction called from [" + source + "] at " + new Date().toLocaleTimeString());
+    if (source !== 'event') console.trace("[DEBUG] Stack Trace for " + source);
+    window.lastManualInteractionTime = Date.now();
     isManualZoomActive = true;
-    navigationFollowUser = false;
+    navigationFollowUser = false;  // Detenemos el recenter automático cuando el usuario interactúa manualmente
     shouldCenterOnUser = false;
+    const dbgBtn = document.getElementById('zoom-locate-me-button');
+    if (dbgBtn) {
+        dbgBtn.title = "Desact. por: " + source + " (" + new Date().toLocaleTimeString() + ")";
+        dbgBtn.style.border = "2px solid red";
+    }
 
     setMapImmersiveMode(true); // Activa el modo inmersivo para ocultar todo
     const mapModal = document.getElementById('reminders-location-map-modal');
@@ -23029,6 +23078,7 @@ function triggerManualMapInteraction() {
         }
     }
   
+    console.log("[DEBUG] triggerManualMapInteraction: INICIANDO temporizador de reactivación tras interacción manual (" + source + ")");
     startLocateMeReactivationTimer();
     updateLocateMeButtonsUI();
 }
@@ -23036,6 +23086,7 @@ function triggerManualMapInteraction() {
 // NOMBRE: handleManualMapInteraction 
 function handleManualMapInteraction() {
     if (!navigationFollowUser) {
+        console.log("[DEBUG] handleManualMapInteraction: INICIANDO temporizador (navigationFollowUser = false)");
         startLocateMeReactivationTimer();
         return;
     }
@@ -23534,12 +23585,15 @@ async function searchAndAddWaypoint(addressQuery = null, searchAsPoi = false) {
         
         await addWaypoint(snappedLatLng, displayName);
         
+        // Activar el flag de búsqueda de destino y detener el recenter automático para que el mapa se quede en el destino
+        isSearchingDestination = true;
+        navigationFollowUser = false;
         if (navigationMapInstance) navigationMapInstance.flyTo({ center: [initialLon, initialLat], zoom: 15 });
         if (searchInput) {
             searchInput.value = '';
             searchInput.dispatchEvent(new Event('input'));
         }
-        showToast("Ubicación añadida a la ruta", "success");
+        showToast("Ubicación añadida a la ruta - Toca para continuar", "success");
 
     } catch (error) {
         showToast(`Error al buscar dirección: ${error.message}`, "error", 4000, true);
@@ -23603,7 +23657,7 @@ async function updateWaypointTypesAndLabels() {
 // ===================================================================
 // NOMBRE: getRouteForSingleLeg (MODIFICADA - SIN L.latLng)
 async function getRouteForSingleLeg(lon1, lat1, lon2, lat2) {
-    const url = `${OSRM_SERVICE_URL}/driving/${lon1},${lat1};${lon2},${lat2}?overview=false&alternatives=false&steps=false&annotations=false`;
+    const url = `${OSRM_SERVICE_URL}/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false&alternatives=false&steps=false&annotations=false`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -24969,9 +25023,12 @@ function startResourceMonitor() {
         const fps = fpsCounter.fps;
 
         const messageContent = `<pre style="margin:0; padding:0; font-family:monospace; font-size:0.90rem;">` +
-            `MEMORIA EN USO:   ${used.padStart(12)}\n` +
-            `MEMORIA RESERVADA: ${total.padStart(12)}\n` +
-            `MEMORIA LÍMITE:   ${limit.padStart(12)}\n` +
+            `MEMORIA EN USO:   ${used.padStart(12)}
+` +
+            `MEMORIA RESERVADA: ${total.padStart(12)}
+` +
+            `MEMORIA LÍMITE:   ${limit.padStart(12)}
+` +
             `FPS:              ${String(fps).padStart(12)}` +
             `</pre>`;
             
@@ -25455,7 +25512,11 @@ async function handleAiRouteRequest() {
                         }))
                     };
                     // Añadimos el JSON al final del texto de la IA
-                    aiTextResponse += `\n\n\`\`\`json\n${JSON.stringify(forcedJson)}\n\`\`\``;
+                    aiTextResponse += `
+
+\`\`\`json
+${JSON.stringify(forcedJson)}
+\`\`\``;
                 }
 
                 // Pasamos la respuesta (ahora garantizada con JSON) a la función que pinta los botones
@@ -25564,25 +25625,31 @@ async function ai_tool_get_business_details(args) {
                 const today = new Date().getDay();
                 const dayIndex = (today === 0) ? 6 : today - 1;
                 const isOpenNow = placeDetails.isOpen();
-                summary += `\n- Horario: ${placeDetails.regularOpeningHours.weekdayDescriptions[dayIndex]}. Ahora mismo está ${isOpenNow ? 'abierto' : 'cerrado'}.`;
+                summary += `
+- Horario: ${placeDetails.regularOpeningHours.weekdayDescriptions[dayIndex]}. Ahora mismo está ${isOpenNow ? 'abierto' : 'cerrado'}.`;
             } else {
-                summary += "\n- No encontré información sobre su horario.";
+                summary += `
+- No encontré información sobre su horario.`;
             }
         }
-       if (fieldsToFetch.has('rating')) {
+        if (fieldsToFetch.has('rating')) {
             if (placeDetails.rating) {
-                summary += `\n- Valoración: Tiene ${placeDetails.rating} estrellas de un total de ${placeDetails.userRatingCount} opiniones.`;
+                summary += `
+- Valoración: Tiene ${placeDetails.rating} estrellas de un total de ${placeDetails.userRatingCount} opiniones.`;
             }
             if (placeDetails.reviews && placeDetails.reviews.length > 0) {
                 const topReview = placeDetails.reviews[0];
-                summary += `\n- Reseña principal: "${topReview.text ? topReview.text.originalText.substring(0, 150) : 'Sin texto'}..." (${topReview.rating} estrellas).`;
+                summary += `
+- Reseña principal: "${topReview.text ? topReview.text.originalText.substring(0, 150) : 'Sin texto'}..." (${topReview.rating} estrellas).`;
             }
         }
         if (fieldsToFetch.has('nationalPhoneNumber') && placeDetails.nationalPhoneNumber) {
-            summary += `\n- Teléfono: ${placeDetails.nationalPhoneNumber}.`;
+            summary += `
+- Teléfono: ${placeDetails.nationalPhoneNumber}.`;
         }
         if (fieldsToFetch.has('websiteURI') && placeDetails.websiteURI) {
-            summary += `\n- Web (para menús o precios): ${placeDetails.websiteURI}.`;
+            summary += `
+- Web (para menús o precios): ${placeDetails.websiteURI}.`;
         }
         
         return { summary: summary };
