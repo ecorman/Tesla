@@ -5709,6 +5709,13 @@ async function openNavigationMap(isRecovery = false) {
                 
                 compassAndModeControl = new CompassAndStatsControl();
                 navigationMapInstance.addControl(compassAndModeControl, 'bottom-left');
+
+                const geolocateControl = new maplibregl.GeolocateControl({
+                    positionOptions: { enableHighAccuracy: true },
+                    trackUserLocation: true,
+                    showUserLocation: true
+                });
+                navigationMapInstance.addControl(geolocateControl, 'top-right');
                 
                 if (!navigationMapInstance._interactionListenersAttached) {
                     const mapCanvas = navigationMapInstance.getCanvasContainer();
@@ -5780,6 +5787,14 @@ async function openNavigationMap(isRecovery = false) {
 
                         navigationMapInstance.on('mousedown', handlePressStart);
                         navigationMapInstance.on('touchstart', handlePressStart);
+
+                        if (typeof geolocateControl !== 'undefined' && geolocateControl && typeof geolocateControl.trigger === 'function') {
+                            try {
+                                geolocateControl.trigger();
+                            } catch (geolocateError) {
+                                console.warn('No se pudo disparar geolocate automaticamente:', geolocateError);
+                            }
+                        }
                         
                         const handleManualInteraction = (e) => {
                             if (!e || !e.originalEvent) {
