@@ -20715,6 +20715,16 @@ ${e.message}`;
                     });
                 },
                 (error) => {
+                    const fallbackCoords = (navigationCurrentLocation && typeof navigationCurrentLocation.latitude === 'number' && typeof navigationCurrentLocation.longitude === 'number' && !(navigationCurrentLocation.latitude === 0 && navigationCurrentLocation.longitude === 0))
+                        ? { ...navigationCurrentLocation }
+                        : null;
+
+                    if (fallbackCoords) {
+                        console.warn("GPS temporalmente no disponible. Usando última posición conocida.");
+                        callback(fallbackCoords);
+                        return;
+                    }
+
                     let message = "No se pudo obtener la ubicación.";
                     switch (error.code) {
                         case error.PERMISSION_DENIED:
