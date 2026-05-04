@@ -1292,8 +1292,14 @@
                 wpDiv.addEventListener('drop', (e) => {
                     e.preventDefault();
                     if (draggedItemIndex !== null && draggedItemIndex !== index) {
-                        const item = waypoints.splice(draggedItemIndex, 1)[0];
-                        waypoints.splice(index, 0, item);
+                        const allPoints = [...waypoints, { display_name: destinationInput.value, lat: destinationPosition[1], lng: destinationPosition[0] }];
+                        const item = allPoints.splice(draggedItemIndex, 1)[0];
+                        allPoints.splice(index, 0, item);
+                        
+                        const newDest = allPoints.pop();
+                        destinationInput.value = newDest.display_name;
+                        destinationPosition = [newDest.lng, newDest.lat];
+                        waypoints = allPoints;
                         calculateRoute();
                     }
                     draggedItemIndex = null;
@@ -1307,7 +1313,34 @@
                 const letter = String.fromCharCode(66 + waypoints.length);
                 const wpDiv = document.createElement('div');
                 wpDiv.className = 'route-point end';
-                wpDiv.innerHTML = `<div class="point-icon" style="visibility: hidden; background: transparent; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">${letter}</div><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${destinationInput.value}">${destinationInput.value}</div>`;
+                wpDiv.draggable = true;
+                wpDiv.style.cursor = 'grab';
+                
+                wpDiv.innerHTML = `<div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">${letter}</div><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${destinationInput.value}">${destinationInput.value}</div>`;
+                
+                wpDiv.addEventListener('dragstart', (e) => {
+                    draggedItemIndex = waypoints.length;
+                    wpDiv.style.opacity = '0.5';
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                wpDiv.addEventListener('dragend', () => wpDiv.style.opacity = '1');
+                wpDiv.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+                wpDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggedItemIndex !== null && draggedItemIndex !== waypoints.length) {
+                        const allPoints = [...waypoints, { display_name: destinationInput.value, lat: destinationPosition[1], lng: destinationPosition[0] }];
+                        const item = allPoints.splice(draggedItemIndex, 1)[0];
+                        allPoints.splice(waypoints.length, 0, item);
+                        
+                        const newDest = allPoints.pop();
+                        destinationInput.value = newDest.display_name;
+                        destinationPosition = [newDest.lng, newDest.lat];
+                        waypoints = allPoints;
+                        calculateRoute();
+                    }
+                    draggedItemIndex = null;
+                });
+                
                 list.appendChild(wpDiv);
                 
                 const lastCoord = routeData.geometry.coordinates[routeData.geometry.coordinates.length - 1];
