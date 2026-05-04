@@ -1195,6 +1195,10 @@
 
         function fitRouteBounds() {
             if (!routeData || !routeData.geometry) return;
+            
+            // Reset temporary padding to avoid interference with car offset
+            map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+
             const bounds = new maplibregl.LngLatBounds();
             routeData.geometry.coordinates.forEach(coord => bounds.extend(coord));
             
