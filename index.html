@@ -560,6 +560,7 @@
 
     <div id="top-toolbar">
         <div class="toolbar-group">
+            <button id="toolbar-close-btn" class="icon-button" title="Ocultar barra">☰</button>
             <button id="gear-button" class="icon-button" title="Abrir ajustes de mapa">⚙️</button>
             <button id="display-settings-button" class="icon-button" title="Ajustes de visualización">🎚️</button>
             <button id="search-toggle-btn" class="icon-button" title="Buscar destino">🔍</button>
@@ -731,16 +732,16 @@
                 <div>
                     <label for="car-offset-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
                         <span>Altura de visión (0 = centro)</span>
-                        <span id="car-offset-val" style="font-weight: bold; color: #1a73e8;">40%</span>
+                        <span id="car-offset-val" style="font-weight: bold; color: #1a73e8;">60%</span>
                     </label>
-                    <input type="range" id="car-offset-slider" min="0" max="80" value="40" style="width: 100%; accent-color: #1a73e8;">
+                    <input type="range" id="car-offset-slider" min="0" max="80" value="60" style="width: 100%; accent-color: #1a73e8;">
                 </div>
                 <div>
                     <label for="zoom-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
                         <span>Zoom por defecto</span>
-                        <span id="zoom-val" style="font-weight: bold; color: #1a73e8;">17</span>
+                        <span id="zoom-val" style="font-weight: bold; color: #1a73e8;">18</span>
                     </label>
-                    <input type="range" id="zoom-slider" min="12" max="21" step="0.5" value="17" style="width: 100%; accent-color: #1a73e8;">
+                    <input type="range" id="zoom-slider" min="12" max="21" step="0.5" value="18" style="width: 100%; accent-color: #1a73e8;">
                 </div>
                 <div>
                     <label for="pitch-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
@@ -758,7 +759,7 @@
     <script>
         const defaultCenter = [3.0, 40.0];
         const defaultZoom = 4;
-        let NAV_ZOOM = 17;
+        let NAV_ZOOM = 18;
         let isRoutePanelDetailed = false;
         let map;
 
@@ -796,11 +797,12 @@
         let countdownInterval = null;
         let countdownSeconds = 0;
         let carHeading = 0;
-        let currentCarOffset = 40;
+        let currentCarOffset = 60;
         let toolbarTimeout = null;
 
         const topToolbar = document.getElementById('top-toolbar');
         const toolbarToggleBtn = document.getElementById('toolbar-toggle-btn');
+        const toolbarCloseBtn = document.getElementById('toolbar-close-btn');
 
         function hideToolbar() {
             topToolbar.style.transform = 'translateY(-110%)';
@@ -818,6 +820,10 @@
         }
 
         toolbarToggleBtn.addEventListener('click', showToolbar);
+        toolbarCloseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hideToolbar();
+        });
         
         // Call this to initialize
         setTimeout(hideToolbar, 3000); // Give 3 seconds of initial visibility then hide
@@ -1334,6 +1340,28 @@
             }
         }
 
+        function enableNavigationMode() {
+            isNavigationMode = true;
+            if (navigationTimeout) clearTimeout(navigationTimeout);
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            updateCountdownDisplay();
+            setRouteStatus('Modo navegación reanudado');
+            
+            // Re-center using padding logic
+            updateMapPadding();
+            
+            if (currentPosition) {
+                map.easeTo({ 
+                    center: currentPosition, 
+                    zoom: NAV_ZOOM,
+                    pitch: currentMapMode === '3d' ? currentPitch : 0,
+                    bearing: (currentMapMode === '3d' && carHeading) ? carHeading : 0,
+                    duration: 1200 
+                });
+            }
+        }
+
         function disableNavigationMode() {
             isNavigationMode = false;
             if (navigationTimeout) clearTimeout(navigationTimeout);
@@ -1351,18 +1379,7 @@
                 }
             }, 1000);
             
-            navigationTimeout = setTimeout(() => {
-                isNavigationMode = true;
-                updateCountdownDisplay();
-                setRouteStatus('Modo navegación reanudado');
-                map.easeTo({ 
-                    center: currentPosition, 
-                    zoom: NAV_ZOOM,
-                    pitch: currentMapMode === '3d' ? currentPitch : 0,
-                    bearing: currentMapMode === '3d' ? carHeading : 0,
-                    duration: 1200 
-                });
-            }, NAVIGATION_RESTORE_TIME);
+            navigationTimeout = setTimeout(enableNavigationMode, NAVIGATION_RESTORE_TIME);
         }
 
         function getRouteOrigin() {
@@ -2035,6 +2052,7 @@
             cancelBtn.onclick = (e) => {
                 e.preventDefault(); e.stopPropagation();
                 cleanup();
+                enableNavigationMode();
             };
         }
 
