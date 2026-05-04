@@ -1445,34 +1445,26 @@
         }
 
         async function calculateRoute() {
-            let destinationCoords = null;
-            if (waypoints.length === 0) {
-                if (destinationPosition) {
-                    destinationCoords = destinationPosition;
+            if (!destinationPosition) {
+                const query = destinationInput.value.trim();
+                const coords = parseCoordinates(query);
+                if (coords) {
+                    destinationPosition = [coords.lon, coords.lat];
+                } else if (query.length > 0) {
+                    setRouteStatus('Selecciona un resultado de búsqueda o introduce lat,lng.');
+                    fetchAddressSuggestions(query);
+                    return;
                 } else {
-                    const query = destinationInput.value.trim();
-                    const coords = parseCoordinates(query);
-                    if (coords) {
-                        destinationCoords = [coords.lon, coords.lat];
-                    } else if (query.length > 0) {
-                        setRouteStatus('Selecciona un resultado de búsqueda o introduce lat,lng.');
-                        fetchAddressSuggestions(query);
-                        return;
-                    } else {
-                        setRouteStatus('Añade un destino');
-                        return;
-                    }
+                    setRouteStatus('Añade un destino');
+                    return;
                 }
             }
-            if (waypoints.length > 0) {
-                destinationCoords = [waypoints[waypoints.length - 1].lng, waypoints[waypoints.length - 1].lat];
-            }
-            destinationPosition = destinationCoords;
+
             const origin = getRouteOrigin();
             setRouteStatus('Calculando ruta...');
             const provider = routeProviderSelect.value;
             try {
-                const response = await fetchRoute(provider, origin, destinationPosition, altRoutesToggle?.checked ?? false, waypoints.slice(0, -1));
+                const response = await fetchRoute(provider, origin, destinationPosition, altRoutesToggle?.checked ?? false, waypoints);
                 displayRoutes(response);
             } catch (error) {
                 setRouteStatus('Error al calcular ruta');
