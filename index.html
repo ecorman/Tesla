@@ -1197,7 +1197,19 @@
             if (!routeData || !routeData.geometry) return;
             const bounds = new maplibregl.LngLatBounds();
             routeData.geometry.coordinates.forEach(coord => bounds.extend(coord));
-            map.fitBounds(bounds, { padding: 30, maxZoom: 18, pitch: 0, bearing: 0, duration: 1500 });
+            
+            const panel = document.getElementById('route-panel');
+            const isPanelVisible = panel && !panel.classList.contains('hidden');
+            // Si el panel de la izquierda está visible, necesitamos mucho más margen a la izquierda (320px + margen)
+            const leftPadding = isPanelVisible ? 400 : 100;
+            
+            map.fitBounds(bounds, { 
+                padding: { top: 100, bottom: 100, left: leftPadding, right: 100 }, 
+                maxZoom: 18, 
+                pitch: 0, 
+                bearing: 0, 
+                duration: 1500 
+            });
             disableNavigationMode();
         }
 
