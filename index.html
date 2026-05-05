@@ -1865,7 +1865,12 @@
             if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
                 carHeading = position.coords.heading;
                 const iconContainer = vehicleEl.querySelector('.v-icon-container');
-                if (iconContainer) iconContainer.style.transform = `rotate(${carHeading}deg)`;
+                if (iconContainer) {
+                    // En modo navegación (con el mapa rotado), el coche siempre debe apuntar hacia arriba (0 deg relativo al viewport)
+                    // En modo libre, el coche apunta a su rumbo real.
+                    const displayRotation = isNavigationMode ? 0 : carHeading;
+                    iconContainer.style.transform = `rotate(${displayRotation}deg)`;
+                }
             }
 
             currentPosition = newPosition;
