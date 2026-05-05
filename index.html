@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoardingGate Tesla Navegación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=8pI7q7Yv"></script>
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
         :root {
             color-scheme: dark;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: #111;
             color: #f5f5f5;
         }
@@ -843,8 +845,41 @@
                     </label>
                     <input type="range" id="restore-time-slider" min="5" max="60" value="15" style="width: 100%; accent-color: #1a73e8;">
                 </div>
+                <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                    <button id="open-voice-test" class="option-button" style="width: 100%; background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #60a5fa;">🔊 Probar Síntesis de Voz</button>
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- Modal de Test de Voz -->
+    <div id="voice-test-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(450px, 90vw); background: rgba(20,20,22,0.98); border: 2px solid #3b82f6; border-radius: 24px; padding: 1.5rem; z-index: 11000; box-shadow: 0 50px 100px rgba(0,0,0,0.8); backdrop-filter: blur(20px);">
+        <div class="options-header" style="margin-bottom: 1.5rem;">
+            <h2 style="color: #60a5fa; margin: 0;">Test de Compatibilidad de Voz</h2>
+            <button id="close-voice-test" style="background:transparent; border:none; color:#aaa; font-size:1.1rem; cursor:pointer;">✕</button>
+        </div>
+        <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 1.5rem;">Tesla suele bloquear el audio automático. Haz clic en los botones para ver cuál funciona:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <strong style="display: block; margin-bottom: 0.5rem; color: #fff;">Método 1: Native Web Speech API</strong>
+                <p style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">Estándar del navegador. A veces no tiene voces en español instaladas.</p>
+                <button id="test-voice-native" class="option-button" style="width: 100%;">Hablar (Nativo)</button>
+            </div>
+            
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <strong style="display: block; margin-bottom: 0.5rem; color: #fff;">Método 2: ResponsiveVoice (JS)</strong>
+                <p style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">Librería externa optimizada para compatibilidad.</p>
+                <button id="test-voice-responsive" class="option-button" style="width: 100%;">Hablar (ResponsiveVoice)</button>
+            </div>
+
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <strong style="display: block; margin-bottom: 0.5rem; color: #fff;">Método 3: Google Translate TTS</strong>
+                <p style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">Carga un archivo MP3 generado por Google.</p>
+                <button id="test-voice-google" class="option-button" style="width: 100%;">Hablar (Google MP3)</button>
+            </div>
+        </div>
+        <div id="voice-test-status" style="margin-top: 1rem; text-align: center; color: #34c759; font-weight: bold; min-height: 1.2rem;"></div>
     </div>
 
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
@@ -2288,6 +2323,57 @@
                 localStorage.setItem('tesla_restore_time', NAVIGATION_RESTORE_TIME);
             });
         }
+
+        // --- Lógica de Test de Voz ---
+        const openVoiceTest = document.getElementById('open-voice-test');
+        const closeVoiceTest = document.getElementById('close-voice-test');
+        const voiceTestModal = document.getElementById('voice-test-modal');
+        const voiceStatus = document.getElementById('voice-test-status');
+
+        openVoiceTest.addEventListener('click', () => {
+            voiceTestModal.classList.remove('hidden');
+        });
+
+        closeVoiceTest.addEventListener('click', () => {
+            voiceTestModal.classList.add('hidden');
+        });
+
+        // Método 1: Nativo
+        document.getElementById('test-voice-native').addEventListener('click', () => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance("Hola. Esto es una prueba de voz nativa en español.");
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+                voiceStatus.textContent = "Probando Nativo...";
+            } else {
+                voiceStatus.textContent = "Error: Nativo no soportado";
+            }
+        });
+
+        // Método 2: ResponsiveVoice
+        document.getElementById('test-voice-responsive').addEventListener('click', () => {
+            if (typeof responsiveVoice !== 'undefined') {
+                responsiveVoice.speak("Hola. Esto es una prueba de voz usando Responsive Voice.", "Spanish Female");
+                voiceStatus.textContent = "Probando ResponsiveVoice...";
+            } else {
+                voiceStatus.textContent = "Error: ResponsiveVoice no cargado";
+            }
+        });
+
+        // Método 3: Google TTS MP3
+        document.getElementById('test-voice-google').addEventListener('click', () => {
+            const text = "Hola. Probando audio de Google.";
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
+            
+            const audio = new Audio(url);
+            audio.play().then(() => {
+                voiceStatus.textContent = "Probando Google MP3...";
+            }).catch(e => {
+                voiceStatus.textContent = "Error: Bloqueo de audio";
+                console.error(e);
+            });
+        });
 
         recenterButton.addEventListener('click', () => {
             if (navigationTimeout) clearTimeout(navigationTimeout);
