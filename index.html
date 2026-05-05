@@ -553,6 +553,21 @@
         .route-point.start .point-icon { background: #1a73e8; }
         .route-point.waypoint .point-icon { background: #f0a30a; }
         .route-point.end .point-icon { background: #34c759; }
+
+        .auto-close-countdown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #1a73e8;
+            width: 0%;
+            z-index: 1100;
+            transition: width 1s linear;
+            border-top-left-radius: inherit;
+            border-top-right-radius: inherit;
+            pointer-events: none;
+            box-shadow: 0 0 5px rgba(26, 115, 232, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -810,23 +825,106 @@
             toolbarToggleBtn.style.pointerEvents = 'auto';
         }
 
+        // Auto-close logic for all windows
+        const autoCloseTimers = {};
+        const AUTO_CLOSE_DURATION = 20000;
+
+        function startAutoCloseTimer(id) {
+            stopAutoCloseTimer(id);
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            let countdownEl = el.querySelector('.auto-close-countdown');
+            if (!countdownEl) {
+                countdownEl = document.createElement('div');
+                countdownEl.className = 'auto-close-countdown';
+                el.insertBefore(countdownEl, el.firstChild);
+            }
+            
+            let timeLeft = AUTO_CLOSE_DURATION;
+            countdownEl.style.transition = 'none';
+            countdownEl.style.width = '100%';
+            
+            // Small delay to trigger transition
+            setTimeout(() => {
+                countdownEl.style.transition = `width ${AUTO_CLOSE_DURATION}ms linear`;
+                countdownEl.style.width = '0%';
+            }, 50);
+
+            autoCloseTimers[id] = setTimeout(() => {
+                closePanel(id);
+            }, AUTO_CLOSE_DURATION);
+        }
+
+        function stopAutoCloseTimer(id) {
+            if (autoCloseTimers[id]) {
+                clearTimeout(autoCloseTimers[id]);
+                delete autoCloseTimers[id];
+            }
+            const el = document.getElementById(id);
+            if (el) {
+                const countdownEl = el.querySelector('.auto-close-countdown');
+                if (countdownEl) {
+                    countdownEl.style.transition = 'none';
+                    countdownEl.style.width = '0%';
+                }
+            }
+        }
+
+        function closePanel(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (id === 'top-toolbar') {
+                hideToolbar();
+            } else if (id === 'route-panel') {
+                el.classList.add('hidden');
+                if (!isNavigationMode) enableNavigationMode();
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
         function showToolbar() {
             topToolbar.style.transform = 'translateY(0)';
             toolbarToggleBtn.style.opacity = '0';
             toolbarToggleBtn.style.pointerEvents = 'none';
-            
-            if (toolbarTimeout) clearTimeout(toolbarTimeout);
-            toolbarTimeout = setTimeout(hideToolbar, 20000);
+            startAutoCloseTimer('top-toolbar');
         }
 
         toolbarToggleBtn.addEventListener('click', showToolbar);
         toolbarCloseBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             hideToolbar();
+            stopAutoCloseTimer('top-toolbar');
         });
         
-        // Call this to initialize
-        setTimeout(hideToolbar, 3000); // Give 3 seconds of initial visibility then hide
+        // Initial state
+        setTimeout(() => {
+            hideToolbar();
+        }, 3000); 
+
+        // Mutation observer to detect visibility changes in other panels
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const target = mutation.target;
+                    const id = target.id;
+                    const panels = ['settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal'];
+                    if (!panels.includes(id)) return;
+
+                    if (!target.classList.contains('hidden')) {
+                        startAutoCloseTimer(id);
+                    } else {
+                        stopAutoCloseTimer(id);
+                    }
+                }
+            });
+        });
+
+        ['settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) observer.observe(el, { attributes: true });
+        });
         let currentPitch = 60;
         const NAVIGATION_RESTORE_TIME = 15000;
 
@@ -2038,6 +2136,21 @@
             if (popupElement) {
                 popupElement.style.zIndex = '12000';
                 popupElement.addEventListener('click', (e) => e.stopPropagation());
+                
+                // Add countdown to popup
+                const countdown = document.createElement('div');
+                countdown.className = 'auto-close-countdown';
+                countdown.style.width = '100%';
+                popupElement.appendChild(countdown);
+                
+                setTimeout(() => {
+                    countdown.style.transition = 'width 20000ms linear';
+                    countdown.style.width = '0%';
+                }, 50);
+                
+                setTimeout(() => {
+                    if (activeWaypointPopup === confirmationPopup) cleanup();
+                }, 20000);
             }
 
             map.flyTo({ 
