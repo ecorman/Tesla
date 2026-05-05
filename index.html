@@ -581,18 +581,7 @@
             gap: 0.8rem;
             cursor: pointer;
             width: 100%;
-            padding: 0.5rem 0;
-        }
-        .route-point .summary-line .toggle-arrow {
-            color: #1a73e8;
-            font-weight: bold;
-            font-size: 1.1rem;
-            width: 15px;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-        .route-point.expanded .summary-line .toggle-arrow {
-            transform: rotate(90deg);
+            padding: 0.6rem 0;
         }
         .route-point .content-column {
             flex: 1;
@@ -610,9 +599,7 @@
         }
         .route-point .expanded-details {
             display: none;
-            margin-top: 0.4rem;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            padding-top: 0.5rem;
+            margin-top: 0.3rem;
             animation: fadeIn 0.2s ease-out;
         }
         .route-point.expanded .expanded-details {
@@ -1431,7 +1418,15 @@
 
             const startDiv = document.createElement('div');
             startDiv.className = 'route-point start';
-            startDiv.innerHTML = `<div class="point-icon" style="visibility: hidden; background: transparent; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">A</div><div>Posición Actual</div>`;
+            startDiv.innerHTML = `
+                <div class="summary-line" style="cursor: default;">
+                    <div class="point-icon" style="visibility: hidden; background: transparent; width: auto; font-size: 1.2rem;">≡</div>
+                    <div class="point-icon">A</div>
+                    <div class="content-column">
+                        <div class="summary-name">Posición Actual</div>
+                    </div>
+                </div>
+            `;
             list.appendChild(startDiv);
             
             renderLegSteps(0);
@@ -1458,16 +1453,15 @@
                     .addTo(map);
                 waypointMapMarkers.push(marker);
 
-                const info = wp.addrInfo || { name: wp.display_name || 'Parada', full_html: wp.display_name };
+                const info = wp.addrInfo || { name: wp.display_name || 'Parada', expanded_html: wp.display_name };
                 wpDiv.innerHTML = `
                     <div class="summary-line">
                         <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
                         <div class="point-icon">${letter}</div>
-                        <div class="toggle-arrow">></div>
                         <div class="content-column">
                             <div class="summary-name">${info.name}</div>
                             <div class="expanded-details">
-                                ${info.full_html}
+                                ${info.expanded_html || info.address || ''}
                             </div>
                         </div>
                     </div>
@@ -1519,11 +1513,10 @@
                     <div class="summary-line">
                         <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
                         <div class="point-icon">${letter}</div>
-                        <div class="toggle-arrow">></div>
                         <div class="content-column">
                             <div class="summary-name">${info.name}</div>
                             <div class="expanded-details">
-                                ${info.full_html}
+                                ${info.expanded_html || info.address || ''}
                             </div>
                         </div>
                     </div>
@@ -2142,6 +2135,13 @@
             return {
                 name: siteName || addressLine,
                 address: addressLine,
+                expanded_html: `<div class="addr-line" style="font-size:0.95rem; color:#ccc; margin-top:0.2rem;">${addressLine}</div>
+                                <div class="addr-loc" style="font-size:0.85rem; color:#bbb;">${cpLocality}</div>
+                                ${district ? `<div style="font-size:0.8rem; color:#aaa;">${district}</div>` : ''}
+                                ${county ? `<div style="font-size:0.8rem; color:#aaa;">${county}</div>` : ''}
+                                ${region && region !== county ? `<div style="font-size:0.8rem; color:#aaa;">${region}</div>` : ''}
+                                ${province && province !== locality ? `<div style="font-size:0.8rem; color:#aaa;">${province}</div>` : ''}
+                                ${country && (!currentCountry || country.toLowerCase() !== currentCountry.toLowerCase()) ? `<div class="addr-country" style="font-size:0.8rem; color:#888; margin-top:0.2rem; border-top:1px solid rgba(255,255,255,0.08); padding-top:0.2rem;">${country}</div>` : ''}`,
                 full_html: htmlRows.join('')
             };
         }
