@@ -1893,7 +1893,7 @@
         }
 
         function getDynamicPitch(speedKmh) {
-            if (currentMapMode !== '3d') return 0;
+            if (currentMapMode !== '3d' && currentMapMode !== 'relieve') return 0;
             // El usuario elige currentPitch como su base (velocidad 0)
             const minPitch = currentPitch; 
             const maxPitch = Math.min(85, currentPitch + 15); 
@@ -1947,7 +1947,7 @@
                         center: newPosition, 
                         zoom: NAV_ZOOM, 
                         duration: 6000,
-                        pitch: currentPitch,
+                        pitch: activePitch, // Usar activePitch aquí también
                         bearing: carHeading,
                         padding: { top: targetTopPadding, bottom: 0, left: 0, right: 0 },
                         essential: true
@@ -1963,18 +1963,21 @@
                 
                 if (isInitialFlying) return;
 
+                const targetBearing = currentMapMode === '3d' ? (carHeading || 0) : 0;
+
                 if (map.getZoom() < 10) {
                     map.flyTo({ 
                         center: newPosition, 
                         zoom: NAV_ZOOM, 
                         duration: 2500,
-                        pitch: currentPitch,
-                        bearing: carHeading
+                        pitch: activePitch,
+                        bearing: targetBearing
                     });
                 } else {
                     map.easeTo({ 
                         center: currentPosition, 
                         pitch: activePitch,
+                        bearing: targetBearing,
                         duration: 1000 
                     });
                 }
