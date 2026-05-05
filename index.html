@@ -1938,7 +1938,7 @@
 
             // If zooming with mouse/touch, keep car centered
             if (isNavigationMode && e.originalEvent && currentPosition) {
-                map.setCenter(currentPosition);
+                map.jumpTo({ center: currentPosition });
             }
         });
 
@@ -1950,9 +1950,6 @@
                     left: 0,
                     right: 0
                 });
-                if (isNavigationMode && currentPosition) {
-                    map.easeTo({ center: currentPosition, duration: 300 });
-                }
             }
         }
 
