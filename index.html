@@ -842,12 +842,14 @@
     <script>
         const defaultCenter = [-3.70379, 40.41678];
         const defaultZoom = 2.5;
-        let NAV_ZOOM = 18;
-        let currentPitch = 65; // Desired navigation pitch
+        let NAV_ZOOM = parseFloat(localStorage.getItem('tesla_nav_zoom')) || 18;
+        let currentPitch = parseInt(localStorage.getItem('tesla_current_pitch')) || 65; // Desired navigation pitch
         let isRoutePanelDetailed = false;
         let map;
         let hasDoneInitialFly = false;
         let isInitialFlying = false;
+        let currentMapMode = localStorage.getItem('tesla_map_mode') || '3d';
+        let currentMapProvider = localStorage.getItem('tesla_map_provider') || 'google-satellite';
 
         const routeStatus = document.getElementById('route-status');
         const routeProviderLabel = document.getElementById('route-provider-label');
@@ -875,7 +877,7 @@
         let clickDestinationMarker = null;
         let routeLayers = [];
         let waypoints = [];
-        let currentBuildingsProvider = 'off';
+        let currentBuildingsProvider = localStorage.getItem('tesla_buildings_provider') || 'google';
         let activeWaypointMarker = null;
         let activeWaypointPopup = null;
         let waypointMapMarkers = [];
@@ -884,7 +886,7 @@
         let countdownInterval = null;
         let countdownSeconds = 0;
         let carHeading = 0;
-        let currentCarOffset = 60;
+        let currentCarOffset = parseFloat(localStorage.getItem('tesla_car_offset')) || 60;
         let currentSpeedKmh = 0;
         let toolbarTimeout = null;
 
@@ -1103,7 +1105,7 @@
 
         map = new maplibregl.Map({
             container: 'map',
-            style: MAP_STYLES['google-satellite'],
+            style: MAP_STYLES[currentMapProvider],
             center: defaultCenter,
             zoom: defaultZoom,
             pitch: 0, // Inicia zenital
@@ -1121,6 +1123,17 @@
                 'space-color': 'rgb(135, 206, 250)', // Light sky blue for space (removes black)
                 'star-intensity': 0
             });
+            
+            // Restore persistent state
+            updateBuildingsProvider();
+            selectMapMode(currentMapMode);
+            
+            // UI Sync
+            mapProviderSelect.value = currentMapProvider;
+            const savedRouteProvider = localStorage.getItem('tesla_route_provider');
+            if (savedRouteProvider) routeProviderSelect.value = savedRouteProvider;
+            
+            refreshOptionsButtons();
         });
 
         function createFallbackSpriteImageData() {
@@ -1135,8 +1148,7 @@
             }
         });
 
-        let currentMapProvider = 'google-satellite';
-        let currentMapMode = '3d';
+        // Providers initialized at the top of script for persistence
 
         function updateMapStyle(styleKey) {
             messageBar.textContent = 'Cargando...';
@@ -1196,6 +1208,7 @@
             currentMapProvider = provider;
             mapProviderSelect.value = provider;
             updateMapStyle(provider);
+            localStorage.setItem('tesla_map_provider', provider);
             refreshOptionsButtons();
         }
 
@@ -1203,11 +1216,13 @@
             currentMapMode = mode;
             mapModeSelect.value = mode;
             setMapMode(mode);
+            localStorage.setItem('tesla_map_mode', mode);
             refreshOptionsButtons();
         }
 
         function selectRouteProvider(provider) {
             routeProviderSelect.value = provider;
+            localStorage.setItem('tesla_route_provider', provider);
             refreshOptionsButtons();
             if (destinationPosition) calculateRoute();
         }
@@ -1215,6 +1230,7 @@
         function selectBuildingsProvider(provider) {
             currentBuildingsProvider = provider;
             updateBuildingsProvider();
+            localStorage.setItem('tesla_buildings_provider', provider);
             refreshOptionsButtons();
         }
 
@@ -2200,6 +2216,7 @@
         zoomSlider.addEventListener('input', (e) => {
             NAV_ZOOM = parseFloat(e.target.value);
             zoomVal.textContent = NAV_ZOOM;
+            localStorage.setItem('tesla_nav_zoom', NAV_ZOOM);
             if (isNavigationMode) {
                 map.easeTo({ zoom: NAV_ZOOM, duration: 300 });
             }
@@ -2208,6 +2225,7 @@
         pitchSlider.addEventListener('input', (e) => {
             currentPitch = parseInt(e.target.value);
             pitchVal.textContent = `${currentPitch}°`;
+            localStorage.setItem('tesla_current_pitch', currentPitch);
             if (currentMapMode === '3d' || currentMapMode === 'relieve') {
                 map.easeTo({ pitch: currentPitch, duration: 300 });
             }
