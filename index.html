@@ -807,6 +807,7 @@
 
         let currentPosition = defaultCenter.slice();
         let destinationPosition = null;
+        let destinationName = '';
         let routeData = null;
         let carMarker = null;
         let clickDestinationMarker = null;
@@ -1421,12 +1422,12 @@
                 wpDiv.addEventListener('drop', (e) => {
                     e.preventDefault();
                     if (draggedItemIndex !== null && draggedItemIndex !== index) {
-                        const allPoints = [...waypoints, { display_name: destinationInput.value, lat: destinationPosition[1], lng: destinationPosition[0] }];
+                        const allPoints = [...waypoints, { display_name: destinationName, lat: destinationPosition[1], lng: destinationPosition[0] }];
                         const item = allPoints.splice(draggedItemIndex, 1)[0];
                         allPoints.splice(index, 0, item);
                         
                         const newDest = allPoints.pop();
-                        destinationInput.value = newDest.display_name;
+                        destinationName = newDest.display_name;
                         destinationPosition = [newDest.lng, newDest.lat];
                         waypoints = allPoints;
                         calculateRoute();
@@ -1438,14 +1439,14 @@
                 renderLegSteps(index + 1);
             });
 
-            if (destinationInput.value) {
+            if (destinationName) {
                 const letter = String.fromCharCode(66 + waypoints.length);
                 const wpDiv = document.createElement('div');
                 wpDiv.className = 'route-point end';
                 wpDiv.draggable = true;
                 wpDiv.style.cursor = 'grab';
                 
-                wpDiv.innerHTML = `<div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">${letter}</div><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${destinationInput.value}">${destinationInput.value}</div>`;
+                wpDiv.innerHTML = `<div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">${letter}</div><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${destinationName}">${destinationName}</div>`;
                 
                 wpDiv.addEventListener('dragstart', (e) => {
                     draggedItemIndex = waypoints.length;
@@ -1457,12 +1458,12 @@
                 wpDiv.addEventListener('drop', (e) => {
                     e.preventDefault();
                     if (draggedItemIndex !== null && draggedItemIndex !== waypoints.length) {
-                        const allPoints = [...waypoints, { display_name: destinationInput.value, lat: destinationPosition[1], lng: destinationPosition[0] }];
+                        const allPoints = [...waypoints, { display_name: destinationName, lat: destinationPosition[1], lng: destinationPosition[0] }];
                         const item = allPoints.splice(draggedItemIndex, 1)[0];
                         allPoints.splice(waypoints.length, 0, item);
                         
                         const newDest = allPoints.pop();
-                        destinationInput.value = newDest.display_name;
+                        destinationName = newDest.display_name;
                         destinationPosition = [newDest.lng, newDest.lat];
                         waypoints = allPoints;
                         calculateRoute();
@@ -1837,6 +1838,7 @@
             
             if (isHidden) {
                 container.classList.remove('hidden');
+                destinationInput.value = ''; // Limpiar el campo al abrir
                 showRecentSearches();
                 setTimeout(() => {
                     const input = document.getElementById('destination-input');
@@ -2320,6 +2322,7 @@
                 const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
                 
                 destinationInput.value = displayName;
+                destinationName = displayName;
                 destinationPosition = [snapped.lng, snapped.lat];
                 waypoints = []; // Clear intermediate waypoints when setting new main destination
                 
