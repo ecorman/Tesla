@@ -696,10 +696,10 @@
     <div id="left-panels-container">
         <div id="navigation-bottom-progress-bar" class="nav-bottom-bar hidden">
             <div class="nav-bottom-content">
-                <span id="turn-icon-display" style="font-size: 2.2rem; margin-right: 15px;">➡️</span>
+                <div id="turn-icon-display" style="width: 50px; height: 50px; margin-right: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"></div>
                 <div style="display: flex; flex-direction: column;">
                     <span id="maneuver-text-display" style="font-size: 1.3rem; font-weight: bold; line-height: 1.2;">Calculando...</span>
-                    <span id="distance-to-turn-formatted" style="font-size: 1.4rem; color: #58a6ff; font-weight: bold;">-- m</span>
+                    <span id="distance-to-turn-formatted" style="font-size: 1.2rem; color: #58a6ff; font-weight: bold;">-- m • -- min</span>
                 </div>
             </div>
             <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 12px 0;">
@@ -1898,8 +1898,14 @@
                 let distFormatted = distanceToNextManeuver > 1000 
                     ? (distanceToNextManeuver/1000).toFixed(1) + ' km' 
                     : Math.round(distanceToNextManeuver) + ' m';
-                document.getElementById('distance-to-turn-formatted').textContent = distFormatted;
+                
+                // Estimar tiempo hasta maniobra según distancia restante del tramo
+                let timeToTurnSecs = nextStep.duration * (distanceToNextManeuver / Math.max(1, nextStep.distance));
+                let timeFormatted = timeToTurnSecs >= 60 
+                    ? Math.round(timeToTurnSecs / 60) + ' min' 
+                    : Math.round(timeToTurnSecs) + ' s';
 
+                document.getElementById('distance-to-turn-formatted').textContent = `${distFormatted} • ${timeFormatted}`;
                 document.getElementById('turn-icon-display').innerHTML = getTurnIcon(nextStep.maneuver);
 
                 // Update remaining ETA
