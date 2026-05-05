@@ -392,18 +392,13 @@
             border: 1px solid rgba(255,255,255,0.14) !important;
             color: #fff !important;
         }
-        #address-suggestions-modal, #waypoint-type-modal {
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            left: 0;
-            width: 100%;
-            background: linear-gradient(180deg, rgba(18,18,20,0.96), rgba(14,14,16,0.95));
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 24px;
-            padding: 1rem;
-            z-index: 20;
-            box-shadow: 0 30px 90px rgba(0,0,0,0.45);
-            backdrop-filter: blur(14px);
+        #address-suggestions-modal {
+            background: linear-gradient(180deg, rgba(18,18,20,0.98), rgba(14,14,16,0.96));
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 28px;
+            padding: 1.5rem;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
         }
         #address-suggestions-modal h2, #waypoint-type-modal h2 {
             margin: 0 0 1rem 0;
@@ -594,16 +589,6 @@
                     <optgroup label="Google"><option value="google-streets">Google Calles</option><option value="google-satellite" selected>Google Satélite</option></optgroup>
                 </select>
             </div>
-            <div id="search-container" class="hidden">
-                <input type="text" id="destination-input" placeholder="Buscar destino..." autocomplete="off" />
-                <div id="address-suggestions-modal" class="hidden">
-                    <h2>Sugerencias de Dirección</h2>
-                    <ul id="address-suggestions-list"></ul>
-                    <div class="modal-buttons">
-                        <button id="close-address-suggestions-modal">Cancelar</button>
-                    </div>
-                </div>
-            </div>
         </div>
         <div class="toolbar-right">
             <div class="toolbar-action">
@@ -620,6 +605,19 @@
                     <option value="osrm">OSMR</option>
                     <option value="osmde">OSM.DE</option>
                 </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="search-container" class="hidden">
+        <div id="address-suggestions-modal">
+            <h2>Buscar Destino</h2>
+            <input type="text" id="destination-input" placeholder="Escribe una dirección..." autocomplete="off" style="width: 100%; margin-bottom: 1rem;" />
+            <div id="suggestions-box">
+                <ul id="address-suggestions-list"></ul>
+            </div>
+            <div class="modal-buttons">
+                <button id="close-address-suggestions-modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -921,7 +919,7 @@
             });
         });
 
-        ['settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal'].forEach(id => {
+        ['settings-panel', 'display-settings-panel', 'route-panel', 'search-container'].forEach(id => {
             const el = document.getElementById(id);
             if (el) observer.observe(el, { attributes: true });
         });
@@ -944,7 +942,7 @@
             });
         }
 
-        ['top-toolbar', 'settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal'].forEach(id => {
+        ['top-toolbar', 'settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal', 'search-container'].forEach(id => {
             setupTimerResetOnInteraction(id);
         });
         let currentPitch = 60;
@@ -1815,13 +1813,19 @@
         const searchToggleBtn = document.getElementById('search-toggle-btn');
         searchToggleBtn.addEventListener('click', () => {
             const container = document.getElementById('search-container');
-            container.classList.toggle('hidden');
-            if (!container.classList.contains('hidden')) {
+            const isHidden = container.classList.contains('hidden');
+            
+            if (isHidden) {
+                container.classList.remove('hidden');
                 document.getElementById('destination-input').focus();
                 showRecentSearches();
             } else {
-                hideAddressSuggestionsModal();
+                container.classList.add('hidden');
             }
+        });
+
+        document.getElementById('close-address-suggestions-modal').addEventListener('click', () => {
+            document.getElementById('search-container').classList.add('hidden');
         });
 
         document.getElementById('navigation-bottom-progress-bar').addEventListener('click', (e) => {
@@ -1956,8 +1960,8 @@
         const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org/search?format=json&limit=12&accept-language=es';
 
         function hideAddressSuggestionsModal() {
-            const modal = document.getElementById('address-suggestions-modal');
-            if (modal) modal.classList.add('hidden');
+            const container = document.getElementById('search-container');
+            if (container) container.classList.add('hidden');
         }
 
         function displayAddressSuggestionsModal(suggestions) {
