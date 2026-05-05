@@ -1663,8 +1663,7 @@
             updateCountdownDisplay();
             setRouteStatus('Modo navegación reanudado');
             
-            // Re-center using padding logic
-            updateMapPadding();
+            // Re-center using padding logic - ahora incluido directamente en easeTo infra
             
             if (currentPosition) {
                 const activePitch = getDynamicPitch(currentSpeedKmh);
@@ -1679,12 +1678,17 @@
                     targetBearing = 0;
                 }
                 
+                // Incluimos el padding directamente en la animación para evitar conflictos con setPadding
+                const targetTopPadding = (hasDoneInitialFly) ? (window.innerHeight * (currentCarOffset / 100)) : 0;
+                
                 map.easeTo({ 
                     center: currentPosition, 
                     zoom: NAV_ZOOM,
                     pitch: targetPitch,
                     bearing: targetBearing,
-                    duration: 1200 
+                    padding: { top: targetTopPadding, bottom: 0, left: 0, right: 0 },
+                    duration: 1200,
+                    essential: true
                 });
             }
         }
