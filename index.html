@@ -807,7 +807,7 @@
                         <span>Inclinación 3D (grados)</span>
                         <span id="pitch-val" style="font-weight: bold; color: #1a73e8;">60°</span>
                     </label>
-                    <input type="range" id="pitch-slider" min="0" max="85" value="60" style="width: 100%; accent-color: #1a73e8;">
+                    <input type="range" id="pitch-slider" min="0" max="85" value="65" style="width: 100%; accent-color: #1a73e8;">
                 </div>
             </div>
         </div>
@@ -820,7 +820,7 @@
         const defaultCenter = [-3.70379, 40.41678];
         const defaultZoom = 2.5;
         let NAV_ZOOM = 18;
-        let currentPitch = 60; // Desired navigation pitch
+        let currentPitch = 65; // Desired navigation pitch
         let isRoutePanelDetailed = false;
         let map;
         let hasDoneInitialFly = false;
@@ -1088,13 +1088,13 @@
 
         map.on('style.load', () => {
             map.setProjection({ type: 'globe' });
-            // Add atmosphere (fog) for a blue sky look
+            // Add atmosphere (fog) for a bright blue sky look
             map.setFog({
-                color: 'rgb(186, 210, 235)', // Sky blue
-                'high-color': 'rgb(36, 92, 223)', // Deep blue
-                'horizon-blend': 0.02,
-                'space-color': 'rgb(11, 11, 25)', // Deep space
-                'star-intensity': 0.6
+                color: 'rgb(135, 206, 235)', // Sky blue (horizon)
+                'high-color': 'rgb(30, 144, 255)', // Deep sky blue (above)
+                'horizon-blend': 0.1,
+                'space-color': 'rgb(135, 206, 250)', // Light sky blue for space (removes black)
+                'star-intensity': 0
             });
         });
 
