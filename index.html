@@ -2507,7 +2507,7 @@
                     ${addrInfo.full_html}
                 </div>
                 <button id="placement-add-destination" class="placement-popup-btn add">Nueva Ruta (Borrar todo)</button>
-                ${(destinationPosition) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir Parada (${nextNumber})</button>` : ''}
+                ${(destinationPosition) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir al final (${nextNumber})</button>` : ''}
                 <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
             `;
 
@@ -2590,7 +2590,21 @@
                     cleanup();
                     setRouteStatus('Ajustando a la carretera...');
                     const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
-                    waypoints.push({ addrInfo: addrInfo, lat: snapped.lat, lng: snapped.lng });
+                    
+                    // Convertimos el destino actual en una parada intermedia
+                    if (destinationPosition && destinationAddrInfo) {
+                        waypoints.push({ 
+                            addrInfo: destinationAddrInfo, 
+                            lat: destinationPosition[1], 
+                            lng: destinationPosition[0] 
+                        });
+                    }
+                    
+                    // El nuevo punto es ahora el destino final
+                    destinationAddrInfo = addrInfo;
+                    destinationPosition = [snapped.lng, snapped.lat];
+                    destinationInput.value = addrInfo.name;
+                    
                     calculateRoute();
                     hideToolbar();
                 };
