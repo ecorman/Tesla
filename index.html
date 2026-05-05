@@ -574,6 +574,33 @@
             pointer-events: none;
             box-shadow: 0 0 5px rgba(26, 115, 232, 0.5);
         }
+
+        .route-point .summary-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            width: 100%;
+        }
+        .route-point .summary-line::before {
+            content: '>';
+            color: #1a73e8;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .route-point.expanded .summary-line::before {
+            transform: rotate(90deg);
+        }
+        .route-point .expanded-details {
+            display: none;
+            margin-top: 0.5rem;
+            padding-left: 2.2rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 0.5rem;
+        }
+        .route-point.expanded .expanded-details {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -807,7 +834,7 @@
 
         let currentPosition = defaultCenter.slice();
         let destinationPosition = null;
-        let destinationName = '';
+        let destinationAddrInfo = null;
         let routeData = null;
         let carMarker = null;
         let clickDestinationMarker = null;
@@ -1410,7 +1437,23 @@
                     .addTo(map);
                 waypointMapMarkers.push(marker);
 
-                wpDiv.innerHTML = `<div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">${letter}</div><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${wp.display_name}">${wp.display_name}</div>`;
+                const info = wp.addrInfo || { name: wp.display_name || 'Parada', full_html: wp.display_name };
+                wpDiv.innerHTML = `
+                    <div class="summary-line">
+                        <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
+                        <div class="point-icon">${letter}</div>
+                        <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${info.name}</div>
+                    </div>
+                    <div class="expanded-details">
+                        ${info.full_html}
+                    </div>
+                `;
+                
+                wpDiv.addEventListener('click', (e) => {
+                    if (e.target.closest('.point-icon')) return;
+                    wpDiv.classList.toggle('expanded');
+                    fitRouteBounds();
+                });
                 
                 wpDiv.addEventListener('dragstart', (e) => {
                     draggedItemIndex = index;
@@ -1422,12 +1465,12 @@
                 wpDiv.addEventListener('drop', (e) => {
                     e.preventDefault();
                     if (draggedItemIndex !== null && draggedItemIndex !== index) {
-                        const allPoints = [...waypoints, { display_name: destinationName, lat: destinationPosition[1], lng: destinationPosition[0] }];
+                        const allPoints = [...waypoints, { addrInfo: destinationAddrInfo, lat: destinationPosition[1], lng: destinationPosition[0] }];
                         const item = allPoints.splice(draggedItemIndex, 1)[0];
                         allPoints.splice(index, 0, item);
                         
                         const newDest = allPoints.pop();
-                        destinationName = newDest.display_name;
+                        destinationAddrInfo = newDest.addrInfo;
                         destinationPosition = [newDest.lng, newDest.lat];
                         waypoints = allPoints;
                         calculateRoute();
@@ -1439,14 +1482,30 @@
                 renderLegSteps(index + 1);
             });
 
-            if (destinationName) {
+            if (destinationAddrInfo) {
                 const letter = String.fromCharCode(66 + waypoints.length);
                 const wpDiv = document.createElement('div');
                 wpDiv.className = 'route-point end';
                 wpDiv.draggable = true;
                 wpDiv.style.cursor = 'grab';
                 
-                wpDiv.innerHTML = `<div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div><div class="point-icon">${letter}</div><div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${destinationName}">${destinationName}</div>`;
+                const info = destinationAddrInfo;
+                wpDiv.innerHTML = `
+                    <div class="summary-line">
+                        <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
+                        <div class="point-icon">${letter}</div>
+                        <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${info.name}</div>
+                    </div>
+                    <div class="expanded-details">
+                        ${info.full_html}
+                    </div>
+                `;
+
+                wpDiv.addEventListener('click', (e) => {
+                    if (e.target.closest('.point-icon')) return;
+                    wpDiv.classList.toggle('expanded');
+                    fitRouteBounds();
+                });
                 
                 wpDiv.addEventListener('dragstart', (e) => {
                     draggedItemIndex = waypoints.length;
@@ -1458,12 +1517,12 @@
                 wpDiv.addEventListener('drop', (e) => {
                     e.preventDefault();
                     if (draggedItemIndex !== null && draggedItemIndex !== waypoints.length) {
-                        const allPoints = [...waypoints, { display_name: destinationName, lat: destinationPosition[1], lng: destinationPosition[0] }];
+                        const allPoints = [...waypoints, { addrInfo: destinationAddrInfo, lat: destinationPosition[1], lng: destinationPosition[0] }];
                         const item = allPoints.splice(draggedItemIndex, 1)[0];
                         allPoints.splice(waypoints.length, 0, item);
                         
                         const newDest = allPoints.pop();
-                        destinationName = newDest.display_name;
+                        destinationAddrInfo = newDest.addrInfo;
                         destinationPosition = [newDest.lng, newDest.lat];
                         waypoints = allPoints;
                         calculateRoute();
@@ -2322,7 +2381,7 @@
                 const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
                 
                 destinationInput.value = displayName;
-                destinationName = displayName;
+                destinationAddrInfo = addrInfo;
                 destinationPosition = [snapped.lng, snapped.lat];
                 waypoints = []; // Clear intermediate waypoints when setting new main destination
                 
@@ -2340,7 +2399,7 @@
                     cleanup();
                     setRouteStatus('Ajustando a la carretera...');
                     const snapped = await snapCoordsToRoad(finalCoords.lat, finalCoords.lng);
-                    waypoints.push({ display_name: displayName, lat: snapped.lat, lng: snapped.lng });
+                    waypoints.push({ addrInfo: addrInfo, lat: snapped.lat, lng: snapped.lng });
                     calculateRoute();
                     hideToolbar();
                 };
