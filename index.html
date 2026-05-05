@@ -1792,17 +1792,38 @@
         }
 
         function getTurnIcon(maneuver) {
-            const turnType = maneuver.type;
-            const turnModifier = maneuver.modifier;
-            let icon = '⬆️';
-            if (turnModifier && turnModifier.includes('right')) icon = '↗️';
-            if (turnModifier && turnModifier.includes('left')) icon = '↖️';
-            if (turnModifier && turnModifier.includes('sharp right')) icon = '↪️';
-            if (turnModifier && turnModifier.includes('sharp left')) icon = '↩️';
-            if (turnModifier && turnModifier.includes('uturn')) icon = '⤵️';
-            if (turnType === 'roundabout') icon = '🔄';
-            if (turnType === 'arrive') icon = '🏁';
-            return icon;
+            if (!maneuver) return '🏁';
+            const type = maneuver.type || '';
+            const modifier = maneuver.modifier || '';
+            let src = 'PNG/continue.png';
+
+            if (type.includes('roundabout') && typeof maneuver.exit === 'number' && maneuver.exit >= 1 && maneuver.exit <= 5) {
+                src = `PNG/S${maneuver.exit}.PNG`;
+            } else if (type.includes('roundabout') || type.includes('rotary')) {
+                src = 'PNG/roundabout.png';
+            } else if (type === 'depart') {
+                src = 'PNG/depart.png';
+            } else if (type === 'arrive') {
+                src = 'PNG/arrive.png';
+            } else if (modifier.includes('uturn')) {
+                src = 'PNG/uturn.png';
+            } else if (modifier.includes('sharp right')) {
+                src = 'PNG/sharp-right.png';
+            } else if (modifier.includes('sharp left')) {
+                src = 'PNG/sharp-left.png';
+            } else if (modifier.includes('slight right') || modifier.includes('bear right')) {
+                src = 'PNG/bear-right.png';
+            } else if (modifier.includes('slight left') || modifier.includes('bear left')) {
+                src = 'PNG/bear-left.png';
+            } else if (modifier.includes('right')) {
+                src = 'PNG/turn-right.png';
+            } else if (modifier.includes('left')) {
+                src = 'PNG/turn-left.png';
+            } else if (modifier.includes('ramp')) {
+                src = 'PNG/ramp.png';
+            }
+
+            return `<img src="${src}" style="width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1);" />`;
         }
 
         const maneuverTexts = { 
