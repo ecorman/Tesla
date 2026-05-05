@@ -1819,9 +1819,14 @@
                 const eta = new Date(Date.now() + remainingTimeSecs * 1000);
                 document.getElementById('final-destination-eta').textContent = eta.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            } catch (e) {
-                console.error("Error calculating progress", e);
-            }
+        function getDynamicPitch(speedKmh) {
+            if (currentMapMode !== '3d') return 0;
+            // Range from 45 (slow/stopped) to 65 (fast)
+            const minPitch = 45;
+            const maxPitch = 65;
+            const speedThreshold = 100; // km/h for max pitch
+            const pitch = minPitch + (Math.min(speedKmh, speedThreshold) / speedThreshold) * (maxPitch - minPitch);
+            return pitch;
         }
 
         async function updateCurrentPositionFromGeolocation(position) {
@@ -1842,6 +1847,10 @@
             }
 
             currentPosition = newPosition;
+            
+            const speedKmh = (position.coords.speed || 0) * 3.6;
+            currentPitch = getDynamicPitch(speedKmh);
+            
             updateNavigationProgress();
             if (carMarker) carMarker.setLngLat(currentPosition);
             else createCarMarker();
@@ -1856,7 +1865,11 @@
                         bearing: currentMapMode === '3d' ? 30 : 0
                     });
                 } else {
-                    map.panTo(currentPosition, { duration: 1000 });
+                    map.easeTo({ 
+                        center: currentPosition, 
+                        pitch: currentPitch,
+                        duration: 1000 
+                    });
                 }
             }
         }
