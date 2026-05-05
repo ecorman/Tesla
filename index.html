@@ -693,7 +693,7 @@
     <div id="map"></div>
 
     <div id="left-panels-container">
-        <div id="navigation-bottom-progress-bar" class="nav-bottom-bar">
+        <div id="navigation-bottom-progress-bar" class="nav-bottom-bar hidden">
             <div id="status-bubble" class="status-bubble hidden"></div>
             <div class="nav-bottom-content">
                 <span id="turn-icon-display" style="font-size: 2.2rem; margin-right: 15px;">➡️</span>
@@ -1867,9 +1867,9 @@
 
         function getDynamicPitch(speedKmh) {
             if (currentMapMode !== '3d') return 0;
-            // Usar currentPitch (ajustado por el usuario) como el máximo para el cálculo dinámico
-            const maxPitch = currentPitch;
-            const minPitch = Math.min(45, maxPitch - 10); // Al menos 10 grados de rango
+            // El usuario elige currentPitch como su base (velocidad 0)
+            const minPitch = currentPitch; 
+            const maxPitch = Math.min(85, currentPitch + 15); 
             const speedThreshold = 100; 
             const pitch = minPitch + (Math.min(speedKmh, speedThreshold) / speedThreshold) * (maxPitch - minPitch);
             return pitch;
