@@ -818,8 +818,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script>
         const defaultCenter = [-3.70379, 40.41678];
-        const defaultZoom = 1.0;
+        const defaultZoom = 2.5;
         let NAV_ZOOM = 18;
+        let currentPitch = 60; // Desired navigation pitch
         let isRoutePanelDetailed = false;
         let map;
         let hasDoneInitialFly = false;
@@ -1081,6 +1082,7 @@
             style: MAP_STYLES['google-satellite'],
             center: defaultCenter,
             zoom: defaultZoom,
+            pitch: 0, // Inicia zenital
             antialias: true,
             maxPitch: 85
         });
@@ -1878,14 +1880,17 @@
                 if (!hasDoneInitialFly) {
                     console.log("Starting initial cinematic fly from Madrid to:", newPosition);
                     hasDoneInitialFly = true;
-                    // Actualizar el padding antes de volar para que el coche acabe en la posición de navegación
-                    updateMapPadding();
+                    
+                    // Calculamos el padding final de navegación
+                    const targetTopPadding = window.innerHeight * (currentCarOffset / 100);
+                    
                     map.flyTo({ 
                         center: newPosition, 
                         zoom: NAV_ZOOM, 
                         duration: 6000,
                         pitch: currentPitch,
                         bearing: carHeading,
+                        padding: { top: targetTopPadding, bottom: 0, left: 0, right: 0 },
                         essential: true
                     });
                 } else if (map.getZoom() < 10) {
