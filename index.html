@@ -2096,8 +2096,11 @@
 
         async function fetchAddressSuggestions(query) {
             const now = Date.now();
-            if (!query || query.length < 4) {
-                hideAddressSuggestionsModal();
+            const listElement = document.getElementById('address-suggestions-list');
+            
+            if (!query || query.length < 3) {
+                if (listElement) listElement.innerHTML = '';
+                showRecentSearches(); // Show recents if empty query
                 return;
             }
             if (query === lastAddressQuery) {
@@ -2174,12 +2177,14 @@
         }
 
         function scheduleAddressSuggestionFetch(query) {
-            if (!query || query.length < 4) {
-                hideAddressSuggestionsModal();
+            if (!query || query.length < 3) {
+                const listElement = document.getElementById('address-suggestions-list');
+                if (listElement && query.length === 0) showRecentSearches();
+                else if (listElement) listElement.innerHTML = '';
                 return;
             }
             clearTimeout(suggestionFetchTimeout);
-            suggestionFetchTimeout = setTimeout(() => fetchAddressSuggestions(query), 450);
+            suggestionFetchTimeout = setTimeout(() => fetchAddressSuggestions(query), 400);
         }
 
         async function snapCoordsToRoad(lat, lon) {
