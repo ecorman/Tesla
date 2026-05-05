@@ -1277,14 +1277,15 @@
                         'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
                         'fill-extrusion-opacity': 0.8
                     };
-                } else if (currentBuildingsProvider === 'mapbox') {
-                    sourceId = 'mapbox-buildings';
+                } else {
+                    // Default to OpenFreeMap for 'google' or others
+                    sourceId = 'openfreemap-buildings';
                     sourceConfig = {
                         type: 'vector',
-                        url: 'https://tiles.openfreemap.org/planet'  // Placeholder: cambiar a Mapbox si se configura token
+                        url: 'https://tiles.openfreemap.org/planet'
                     };
                     layerPaint = {
-                        'fill-extrusion-color': '#666',
+                        'fill-extrusion-color': '#aaa',
                         'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
                         'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
                         'fill-extrusion-opacity': 0.8
