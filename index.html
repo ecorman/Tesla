@@ -2478,7 +2478,7 @@
                 activeWaypointPopup = null;
             }
 
-            const nextNumber = waypoints.length + 2;
+            const nextNumber = destinationPosition ? (waypoints.length + 3) : 2;
             const tempMarkerElement = document.createElement('div');
             tempMarkerElement.className = 'waypoint-marker';
             tempMarkerElement.style.cssText = `
@@ -2506,8 +2506,8 @@
                 <div style="margin-bottom: 1rem;">
                     ${addrInfo.full_html}
                 </div>
-                <button id="placement-add-destination" class="placement-popup-btn add">Nueva Ruta (Borrar todo)</button>
-                ${(destinationPosition) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir al final (${nextNumber})</button>` : ''}
+                <button id="placement-add-destination" class="placement-popup-btn add">Nueva Ruta</button>
+                ${(destinationPosition) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir Parada (${nextNumber})</button>` : ''}
                 <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
             `;
 
