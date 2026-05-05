@@ -816,11 +816,12 @@
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script>
-        const defaultCenter = [3.0, 40.0];
-        const defaultZoom = 4;
+        const defaultCenter = [0.0, 20.0];
+        const defaultZoom = 1.5;
         let NAV_ZOOM = 18;
         let isRoutePanelDetailed = false;
         let map;
+        let hasDoneInitialFly = false;
 
         const routeStatus = document.getElementById('route-status');
         const routeProviderLabel = document.getElementById('route-provider-label');
@@ -1856,13 +1857,23 @@
             else createCarMarker();
 
             if (isNavigationMode) {
-                if (map.getZoom() < 10) {
+                if (!hasDoneInitialFly) {
+                    hasDoneInitialFly = true;
                     map.flyTo({ 
                         center: newPosition, 
-                        zoom: 15, 
+                        zoom: NAV_ZOOM, 
+                        duration: 5000,
+                        pitch: currentPitch,
+                        bearing: carHeading,
+                        essential: true
+                    });
+                } else if (map.getZoom() < 10) {
+                    map.flyTo({ 
+                        center: newPosition, 
+                        zoom: NAV_ZOOM, 
                         duration: 2500,
-                        pitch: currentMapMode === '3d' ? 60 : 0,
-                        bearing: currentMapMode === '3d' ? 30 : 0
+                        pitch: currentPitch,
+                        bearing: carHeading
                     });
                 } else {
                     map.easeTo({ 
