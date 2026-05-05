@@ -578,28 +578,49 @@
         .route-point .summary-line {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.8rem;
             cursor: pointer;
             width: 100%;
+            padding: 0.5rem 0;
         }
-        .route-point .summary-line::before {
-            content: '>';
+        .route-point .summary-line .toggle-arrow {
             color: #1a73e8;
             font-weight: bold;
+            font-size: 1.1rem;
+            width: 15px;
+            text-align: center;
             transition: transform 0.2s;
         }
-        .route-point.expanded .summary-line::before {
+        .route-point.expanded .summary-line .toggle-arrow {
             transform: rotate(90deg);
+        }
+        .route-point .content-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .route-point .summary-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .route-point .expanded-details {
             display: none;
-            margin-top: 0.5rem;
-            padding-left: 2.2rem;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 0.4rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
             padding-top: 0.5rem;
+            animation: fadeIn 0.2s ease-out;
         }
         .route-point.expanded .expanded-details {
             display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -1442,14 +1463,18 @@
                     <div class="summary-line">
                         <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
                         <div class="point-icon">${letter}</div>
-                        <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${info.name}</div>
-                    </div>
-                    <div class="expanded-details">
-                        ${info.full_html}
+                        <div class="toggle-arrow">></div>
+                        <div class="content-column">
+                            <div class="summary-name">${info.name}</div>
+                            <div class="expanded-details">
+                                ${info.full_html}
+                            </div>
+                        </div>
                     </div>
                 `;
                 
                 wpDiv.addEventListener('click', (e) => {
+                    // Solo expandir si se hace clic en la flecha o en el nombre, no en los iconos de arrastre
                     if (e.target.closest('.point-icon')) return;
                     wpDiv.classList.toggle('expanded');
                     fitRouteBounds();
@@ -1494,10 +1519,13 @@
                     <div class="summary-line">
                         <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
                         <div class="point-icon">${letter}</div>
-                        <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${info.name}</div>
-                    </div>
-                    <div class="expanded-details">
-                        ${info.full_html}
+                        <div class="toggle-arrow">></div>
+                        <div class="content-column">
+                            <div class="summary-name">${info.name}</div>
+                            <div class="expanded-details">
+                                ${info.full_html}
+                            </div>
+                        </div>
                     </div>
                 `;
 
