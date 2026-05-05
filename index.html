@@ -1316,9 +1316,9 @@
             const coords = allCoords.map(c => `${c[0]},${c[1]}`).join(';');
             let url;
             if (provider === 'osmde') {
-                url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=false`;
+                url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=true`;
             } else {
-                url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=${alternatives ? 'true' : 'false'}`;
+                url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=true`;
             }
             const response = await fetch(url);
             if (!response.ok) throw new Error('No se pudo obtener la ruta');
@@ -1420,8 +1420,8 @@
             startDiv.className = 'route-point start';
             startDiv.innerHTML = `
                 <div class="summary-line" style="cursor: default;">
-                    <div class="point-icon" style="visibility: hidden; background: transparent; width: auto; font-size: 1.2rem;">≡</div>
-                    <div class="point-icon">A</div>
+                    <div class="point-icon" style="visibility: hidden; background: transparent; font-size: 1.2rem;">≡</div>
+                    <div class="point-icon">1</div>
                     <div class="content-column">
                         <div class="summary-name">Posición Actual</div>
                     </div>
@@ -1438,7 +1438,7 @@
                 wpDiv.draggable = true;
                 wpDiv.style.cursor = 'grab';
                 
-                const letter = String.fromCharCode(66 + index); // B, C...
+                const pointNumber = index + 2; 
                 
                 const markerEl = document.createElement('div');
                 markerEl.style.cssText = `
@@ -1447,7 +1447,7 @@
                     display: flex; align-items: center; justify-content: center;
                     border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
                 `;
-                markerEl.textContent = letter;
+                markerEl.textContent = pointNumber;
                 const marker = new maplibregl.Marker({ element: markerEl, anchor: 'center' })
                     .setLngLat([wp.lng, wp.lat])
                     .addTo(map);
@@ -1456,8 +1456,8 @@
                 const info = wp.addrInfo || { name: wp.display_name || 'Parada', expanded_html: wp.display_name };
                 wpDiv.innerHTML = `
                     <div class="summary-line">
-                        <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
-                        <div class="point-icon">${letter}</div>
+                        <div class="point-icon" style="background: transparent; color: #888; font-size: 1.2rem;">≡</div>
+                        <div class="point-icon">${pointNumber}</div>
                         <div class="content-column">
                             <div class="summary-name">${info.name}</div>
                             <div class="expanded-details">
@@ -1502,7 +1502,7 @@
             });
 
             if (destinationAddrInfo) {
-                const letter = String.fromCharCode(66 + waypoints.length);
+                const pointNumber = waypoints.length + 2;
                 const wpDiv = document.createElement('div');
                 wpDiv.className = 'route-point end';
                 wpDiv.draggable = true;
@@ -1511,8 +1511,8 @@
                 const info = destinationAddrInfo;
                 wpDiv.innerHTML = `
                     <div class="summary-line">
-                        <div class="point-icon" style="background: transparent; color: #888; width: auto; font-size: 1.2rem;">≡</div>
-                        <div class="point-icon">${letter}</div>
+                        <div class="point-icon" style="background: transparent; color: #888; font-size: 1.2rem;">≡</div>
+                        <div class="point-icon">${pointNumber}</div>
                         <div class="content-column">
                             <div class="summary-name">${info.name}</div>
                             <div class="expanded-details">
@@ -2317,7 +2317,7 @@
                 activeWaypointPopup = null;
             }
 
-            const nextLetter = String.fromCharCode(66 + waypoints.length);
+            const nextNumber = waypoints.length + 2;
             const tempMarkerElement = document.createElement('div');
             tempMarkerElement.className = 'waypoint-marker';
             tempMarkerElement.style.cssText = `
@@ -2329,7 +2329,7 @@
                 display: flex; align-items: center; justify-content: center;
                 border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             `;
-            tempMarkerElement.textContent = nextLetter;
+            tempMarkerElement.textContent = nextNumber;
 
             const tempMarker = new maplibregl.Marker({
                 element: tempMarkerElement,
@@ -2346,7 +2346,7 @@
                     ${addrInfo.full_html}
                 </div>
                 <button id="placement-add-destination" class="placement-popup-btn add">Nuevo Destino</button>
-                ${(waypoints.length > 0 || routeData) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir Destino (${nextLetter})</button>` : ''}
+                ${(waypoints.length > 0 || routeData) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir Destino (${nextNumber})</button>` : ''}
                 <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
             `;
 
