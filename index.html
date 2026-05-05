@@ -1640,13 +1640,6 @@
             }
 
             setRouteStatus('Destino fijado. Elige una acción.');
-            
-            if (activeWaypointMarker) {
-                activeWaypointMarker.remove();
-                activeWaypointMarker = null;
-            }
-
-            showWaypointPlacementPopup(displayName, lngLat.lat, lngLat.lng);
         }
 
         function getTurnIcon(maneuver) {
