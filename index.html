@@ -2051,11 +2051,6 @@
             if (zoomVal) zoomVal.textContent = zoom.toFixed(1);
             
             updateStatusBubble();
-
-            // Si el usuario cambia el zoom manualmente, guardamos su preferencia
-            if (!isNavigationMode) {
-                NAV_ZOOM = zoom;
-            }
         });
 
         map.on('pitch', () => {
@@ -2068,11 +2063,6 @@
             if (pitchVal) pitchVal.textContent = `${Math.round(pitch)}°`;
             
             updateStatusBubble();
-
-            // Si no está en modo navegación automática, guardamos su preferencia
-            if (!isNavigationMode) {
-                currentPitch = pitch;
-            }
         });
 
         function updateMapPadding() {
