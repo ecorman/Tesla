@@ -817,7 +817,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script>
         const defaultCenter = [0.0, 20.0];
-        const defaultZoom = 1.5;
+        const defaultZoom = 1.0;
         let NAV_ZOOM = 18;
         let isRoutePanelDetailed = false;
         let map;
@@ -1083,6 +1083,7 @@
             antialias: true,
             maxPitch: 85
         });
+        map.setProjection({ name: 'globe' });
 
         function createFallbackSpriteImageData() {
             return new ImageData(1, 1);
@@ -1864,10 +1865,11 @@
             if (isNavigationMode) {
                 if (!hasDoneInitialFly) {
                     hasDoneInitialFly = true;
+                    console.log("Starting initial cinematic fly to:", newPosition);
                     map.flyTo({ 
                         center: newPosition, 
                         zoom: NAV_ZOOM, 
-                        duration: 5000,
+                        duration: 6000,
                         pitch: currentPitch,
                         bearing: carHeading,
                         essential: true
