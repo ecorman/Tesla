@@ -370,6 +370,10 @@
             color: white;
             transition: opacity 0.3s, transform 0.3s;
         }
+        .nav-bottom-content {
+            display: flex;
+            align-items: center;
+        }
         #navigation-top-info-bar {
             display: flex;
             align-items: center;
@@ -1866,14 +1870,30 @@
         };
 
         function getTurnText(maneuver, name) {
-            const key = `${maneuver.type}-${maneuver.modifier || ''}`;
-            const keyFallback = `${maneuver.type}-`;
+            if (!maneuver) return 'Sigue recto';
+            const type = maneuver.type || '';
+            const modifier = maneuver.modifier || '';
+            const key = `${type}-${modifier}`;
+            const keyFallback = `${type}-`;
             let text = maneuverTexts[key] || maneuverTexts[keyFallback] || 'Sigue recto';
+            
+            // Lógica específica para rotondas (primera, segunda salida, etc.)
+            if (type.includes('roundabout') || type.includes('rotary')) {
+                const exit = maneuver.exit;
+                if (exit) {
+                    const ordinals = ['primera', 'segunda', 'tercera', 'cuarta', 'quinta', 'sexta', 'séptima', 'octava'];
+                    const ordinal = ordinals[exit - 1] || `${exit}ª`;
+                    text = `En la rotonda, toma la ${ordinal} salida`;
+                }
+            }
+
             if (name) {
                 if (text === 'Inicia la ruta' || text.startsWith('Continúa')) {
                     text += ` por ${name}`;
-                } else if (!text.includes('destino')) {
+                } else if (!text.includes('destino') && !text.includes('salida')) {
                     text += ` hacia ${name}`;
+                } else if (text.includes('salida')) {
+                    text += ` en dirección ${name}`;
                 }
             }
             return text;
