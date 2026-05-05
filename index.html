@@ -878,6 +878,19 @@
                 <p style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">Carga un archivo MP3 generado por Google.</p>
                 <button id="test-voice-google" class="option-button" style="width: 100%;">Hablar (Google MP3)</button>
             </div>
+
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <strong style="display: block; margin-bottom: 0.5rem; color: #fff;">Método 4: Web Audio (Beep)</strong>
+                <p style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">Genera un pitido puro. Si suena, el audio del navegador funciona.</p>
+                <button id="test-voice-beep" class="option-button" style="width: 100%;">Emitir Pitido</button>
+            </div>
+
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <strong style="display: block; margin-bottom: 0.5rem; color: #fff;">Método 5: IFrame Hack</strong>
+                <p style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">Intenta reproducir el audio dentro de un marco invisible.</p>
+                <button id="test-voice-iframe" class="option-button" style="width: 100%;">Probar IFrame</button>
+                <div id="iframe-voice-container" style="display:none;"></div>
+            </div>
         </div>
         <div id="voice-test-status" style="margin-top: 1rem; text-align: center; color: #34c759; font-weight: bold; min-height: 1.2rem;"></div>
     </div>
@@ -2386,6 +2399,42 @@
                 voiceStatus.textContent = "Error: Audio bloqueado o sin conexión";
                 console.error(e);
             });
+        });
+
+        // Método 4: Web Audio (Beep)
+        document.getElementById('test-voice-beep').addEventListener('click', () => {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // La
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 500);
+                voiceStatus.textContent = "Emitiendo pitido (440Hz)...";
+            } catch (e) {
+                voiceStatus.textContent = "Error: Web Audio no soportado";
+            }
+        });
+
+        // Método 5: IFrame Hack
+        document.getElementById('test-voice-iframe').addEventListener('click', () => {
+            const text = "Hola. Prueba de audio mediante marco flotante.";
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
+            
+            const container = document.getElementById('iframe-voice-container');
+            container.innerHTML = `<iframe src="${url}" allow="autoplay"></iframe>`;
+            voiceStatus.textContent = "Cargando IFrame...";
+            
+            setTimeout(() => {
+                voiceStatus.textContent = "¿Has escuchado algo?";
+            }, 3000);
         });
 
         recenterButton.addEventListener('click', () => {
