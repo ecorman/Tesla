@@ -1197,14 +1197,16 @@
             currentMapMode = mode;
             let pitch = 0;
             let bearing = 0;
-            if (mode === '3d') {
+            if (mode === '3d' && hasDoneInitialFly) {
                 pitch = currentPitch;
                 bearing = 30;
-            } else if (mode === 'relieve') {
+            } else if (mode === 'relieve' && hasDoneInitialFly) {
                 pitch = currentPitch;
                 bearing = 0;
             }
-            map.easeTo({ pitch, bearing, duration: 1200 });
+            if (hasDoneInitialFly) {
+                map.easeTo({ pitch, bearing, duration: 1200 });
+            }
             updateBuildingsProvider();
         }
 
