@@ -392,13 +392,24 @@
             border: 1px solid rgba(255,255,255,0.14) !important;
             color: #fff !important;
         }
+        #search-container {
+            position: absolute;
+            top: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(640px, 94vw);
+            z-index: 10000;
+            transition: opacity 0.3s;
+            pointer-events: auto;
+        }
         #address-suggestions-modal {
+            display: block !important;
             background: linear-gradient(180deg, rgba(18,18,20,0.98), rgba(14,14,16,0.96));
-            border: 1px solid rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.22);
             border-radius: 28px;
             padding: 1.5rem;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
-            backdrop-filter: blur(20px);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+            backdrop-filter: blur(25px);
         }
         #address-suggestions-modal h2, #waypoint-type-modal h2 {
             margin: 0 0 1rem 0;
@@ -1611,14 +1622,21 @@
 
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lngLat.lat}&lon=${lngLat.lng}&zoom=18&addressdetails=1&accept-language=es`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.display_name) {
-                        displayName = data.display_name;
-                    }
-                }
-            } catch (err) {
-                console.error("Reverse geocoding error:", err);
+                if (!response.ok) throw new Error('Reverse geocoding failed');
+                const data = await response.json();
+                const addrInfo = formatAddressDetails(data);
+                showWaypointPlacementPopup(addrInfo, lngLat.lat, lngLat.lng);
+            } catch (error) {
+                console.error(error);
+                // Fallback to coordinates with standard object structure
+                const coordsStr = `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`;
+                showWaypointPlacementPopup({ 
+                    name: coordsStr, 
+                    address: 'Ubicación seleccionada en el mapa', 
+                    details: 'Sin información de dirección disponible',
+                    full_html: `<div class="addr-name" style="font-weight:bold; font-size:1.1rem; color:#fff;">${coordsStr}</div>
+                                <div class="addr-line" style="font-size:0.95rem; color:#ccc; margin-top:0.2rem;">Ubicación seleccionada</div>`
+                }, lngLat.lat, lngLat.lng);
             }
 
             setRouteStatus('Destino fijado. Elige una acción.');
@@ -1732,9 +1750,17 @@
             }
         }
 
-        function updateCurrentPositionFromGeolocation(position) {
+        async function updateCurrentPositionFromGeolocation(position) {
             const newPosition = [position.coords.longitude, position.coords.latitude];
             
+            if (!currentCountry) {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPosition[1]}&lon=${newPosition[0]}&zoom=3&accept-language=es`);
+                    const data = await res.json();
+                    if (data && data.address && data.address.country) currentCountry = data.address.country;
+                } catch(e) {}
+            }
+
             if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
                 carHeading = position.coords.heading;
                 const iconContainer = vehicleEl.querySelector('.v-icon-container');
@@ -1811,14 +1837,18 @@
         });
 
         const searchToggleBtn = document.getElementById('search-toggle-btn');
-        searchToggleBtn.addEventListener('click', () => {
+        searchToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const container = document.getElementById('search-container');
             const isHidden = container.classList.contains('hidden');
             
             if (isHidden) {
                 container.classList.remove('hidden');
-                document.getElementById('destination-input').focus();
                 showRecentSearches();
+                setTimeout(() => {
+                    const input = document.getElementById('destination-input');
+                    if (input) input.focus();
+                }, 100);
             } else {
                 container.classList.add('hidden');
             }
@@ -1957,7 +1987,58 @@
 
         // Geoapify API endpoint (open, sin API key requerida para demo)
         const GEOAPIFY_ENDPOINT = 'https://api.geoapify.com/v1/geocode/search?format=json&limit=12&lang=es';
-        const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org/search?format=json&limit=12&accept-language=es';
+        let currentCountry = null;
+        const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org/search?format=json&limit=12&accept-language=es&addressdetails=1';
+
+        function formatAddressDetails(data) {
+            if (!data) return { name: 'Desconocido', address: '', details: '', full_html: 'Desconocido' };
+
+            // Manejar tanto formato Nominatim como Geoapify (simplificado)
+            const addr = data.address || data.properties || {};
+            
+            // 1.- Nombre del sitio
+            let siteName = data.name || '';
+            if (!siteName && data.display_name) siteName = data.display_name.split(',')[0];
+            if (!siteName) siteName = addr.name || addr.label || 'Ubicación';
+            
+            // 2.- Direccion (Calle y Numero)
+            let addressLine = [addr.road || addr.street, addr.house_number || addr.housenumber].filter(Boolean).join(' ');
+            if (!addressLine && data.display_name) {
+                const parts = data.display_name.split(',');
+                if (parts.length > 2) addressLine = parts.slice(1, 3).join(',').trim();
+            }
+            if (!addressLine) addressLine = addr.formatted || addr.label || '';
+            
+            // 3.- C.P. - Localidad - Comarca si procede (Provincia) - Pais (si no es el de la ubicacion del GPS)
+            const postcode = addr.postcode || '';
+            const locality = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || '';
+            const region = addr.county || addr.district || '';
+            const province = addr.state || addr.province || '';
+            const country = addr.country || '';
+            
+            let line3Parts = [postcode, locality, region].filter(Boolean);
+            let line3 = line3Parts.join(' - ');
+            if (province && province !== locality) {
+                if (line3) line3 += ` (${province})`;
+                else line3 = province;
+            }
+            
+            // Mostrar país si es diferente al detectado por GPS
+            if (country) {
+                if (!currentCountry || country.toLowerCase() !== currentCountry.toLowerCase()) {
+                    line3 = line3 ? `${line3} - ${country}` : country;
+                }
+            }
+            
+            return {
+                name: siteName,
+                address: addressLine,
+                details: line3,
+                full_html: `<div class="addr-name" style="font-weight:bold; font-size:1.1rem; color:#fff;">${siteName}</div>
+                            <div class="addr-line" style="font-size:0.95rem; color:#ccc; margin-top:0.2rem;">${addressLine}</div>
+                            <div class="addr-details" style="font-size:0.85rem; color:#aaa; margin-top:0.1rem;">${line3}</div>`
+            };
+        }
 
         function hideAddressSuggestionsModal() {
             const container = document.getElementById('search-container');
@@ -1976,13 +2057,17 @@
                 titleElement.textContent = `${suggestions.length} coincidencia${suggestions.length !== 1 ? 's' : ''}`;
                 listElement.innerHTML = '';
                 suggestions.forEach(suggestion => {
+                    const addrInfo = formatAddressDetails(suggestion);
                     const li = document.createElement('li');
-                    li.textContent = suggestion.display_name;
+                    li.innerHTML = addrInfo.full_html;
+                    li.style.display = 'flex';
+                    li.style.flexDirection = 'column';
+                    li.style.gap = '0.1rem';
                     li.dataset.lat = suggestion.lat;
                     li.dataset.lon = suggestion.lon;
                     li.addEventListener('click', () => {
-                        saveRecentSearch(suggestion);
-                        showWaypointPlacementPopup(suggestion.display_name, suggestion.lat, suggestion.lon);
+                        saveRecentSearch(suggestion.display_name);
+                        showWaypointPlacementPopup(addrInfo, suggestion.lat, suggestion.lon);
                         hideAddressSuggestionsModal();
                         document.getElementById('search-container').classList.add('hidden');
                     });
@@ -2017,7 +2102,7 @@
                     if (!response.ok) throw new Error(`Error Nominatim: ${response.status}`);
                     const data = await response.json();
                     const results = data.map(item => ({
-                        display_name: item.display_name,
+                        ...item,
                         lat: parseFloat(item.lat),
                         lon: parseFloat(item.lon)
                     }));
@@ -2058,6 +2143,7 @@
                 }
 
                 const results = data.results.map(item => ({
+                    ...item,
                     display_name: item.formatted || `${item.name || ''}, ${item.country || ''}`,
                     lat: item.lat,
                     lon: item.lon
@@ -2102,9 +2188,13 @@
             }
         }
 
-        function showWaypointPlacementPopup(displayName, lat, lon) {
+        function showWaypointPlacementPopup(addrData, lat, lon) {
             if (!map) return;
             
+            // Si addrData es un string, lo convertimos a objeto mínimo
+            const addrInfo = (typeof addrData === 'string') ? { name: addrData, address: '', details: '', full_html: addrData } : addrData;
+            const displayName = addrInfo.name || addrInfo.full_html;
+
             disableNavigationMode();
 
             if (activeWaypointMarker) {
@@ -2139,7 +2229,9 @@
             const popupContent = document.createElement('div');
             popupContent.className = 'waypoint-popup-content-inner';
             popupContent.innerHTML = `
-                <p class="waypoint-popup-heading">${displayName}</p>
+                <div style="margin-bottom: 1rem;">
+                    ${addrInfo.full_html}
+                </div>
                 <button id="placement-add-destination" class="placement-popup-btn add">Añadir como Destino</button>
                 ${(waypoints.length > 0 || routeData) ? '<button id="placement-add-stopover" class="placement-popup-btn add">Añadir como parada</button>' : ''}
                 <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
@@ -2237,35 +2329,40 @@
         }
 
         function getRecentSearches() {
-            try { return JSON.parse(localStorage.getItem('recentSearches') || '[]'); } 
+            try { return JSON.parse(localStorage.getItem('tesla_recent_searches') || '[]'); } 
             catch (e) { return []; }
         }
 
         function saveRecentSearch(suggestion) {
+            let query = typeof suggestion === 'string' ? suggestion : (suggestion.display_name || suggestion.name);
+            if (!query) return;
             let recents = getRecentSearches();
-            recents = recents.filter(r => r.lat !== suggestion.lat && r.lon !== suggestion.lon);
-            recents.unshift(suggestion);
-            if (recents.length > 5) recents = recents.slice(0, 5);
-            localStorage.setItem('recentSearches', JSON.stringify(recents));
+            recents = recents.filter(r => r !== query);
+            recents.unshift(query);
+            localStorage.setItem('tesla_recent_searches', JSON.stringify(recents.slice(0, 5)));
         }
 
         function showRecentSearches() {
             const recents = getRecentSearches();
-            if (recents.length === 0) return;
             const modal = document.getElementById('address-suggestions-modal');
             const listElement = modal.querySelector('#address-suggestions-list');
             const titleElement = modal.querySelector('h2');
             
+            if (recents.length === 0) {
+                titleElement.textContent = "Buscar Destino";
+                listElement.innerHTML = '<li style="color:#888; font-size:0.9rem;">Escribe arriba para buscar un lugar...</li>';
+                modal.classList.remove('hidden');
+                return;
+            }
+            
             titleElement.textContent = "Búsquedas Recientes";
             listElement.innerHTML = '';
-            recents.forEach(suggestion => {
+            recents.forEach(query => {
                 const li = document.createElement('li');
-                li.innerHTML = `<span style="color: #888; margin-right: 8px;">🕒</span> ${suggestion.display_name}`;
+                li.innerHTML = `<span style="color: #1a73e8; margin-right: 12px;">🕒</span> ${query}`;
                 li.addEventListener('click', () => {
-                    saveRecentSearch(suggestion);
-                    showWaypointPlacementPopup(suggestion.display_name, suggestion.lat, suggestion.lon);
-                    hideAddressSuggestionsModal();
-                    document.getElementById('search-container').classList.add('hidden');
+                    destinationInput.value = query;
+                    fetchAddressSuggestions(query);
                 });
                 listElement.appendChild(li);
             });
