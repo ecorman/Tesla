@@ -1902,7 +1902,7 @@
             }
         });
 
-        map.on('zoom', () => {
+        map.on('zoom', (e) => {
             const z = map.getZoom();
             if (z < 13) {
                 vehicleEl.classList.add('low-zoom');
@@ -1910,8 +1910,9 @@
                 vehicleEl.classList.remove('low-zoom');
             }
 
-            // Auto 2D/3D switch based on zoom
-            if (currentMapMode === '3d') {
+            // Auto 2D/3D switch based on zoom - ONLY for user-initiated zoom
+            // This prevents interrupting the initial flyTo transition
+            if (currentMapMode === '3d' && e.originalEvent) {
                 if (z < 12 && map.getPitch() > 0) {
                     map.easeTo({ pitch: 0, duration: 400 });
                 } else if (z >= 12 && map.getPitch() === 0) {
