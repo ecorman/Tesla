@@ -609,6 +609,28 @@
             from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .status-bubble {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 2000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            gap: 15px;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        .status-bubble.hidden { opacity: 0; }
     </style>
 </head>
 <body>
@@ -671,8 +693,9 @@
     <div id="map"></div>
 
     <div id="left-panels-container">
-        <div id="navigation-bottom-progress-bar" class="hidden">
-            <div id="navigation-top-info-bar">
+        <div id="navigation-bottom-progress-bar" class="nav-bottom-bar">
+            <div id="status-bubble" class="status-bubble hidden"></div>
+            <div class="nav-bottom-content">
                 <span id="turn-icon-display" style="font-size: 2.2rem; margin-right: 15px;">➡️</span>
                 <div style="display: flex; flex-direction: column;">
                     <span id="maneuver-text-display" style="font-size: 1.3rem; font-weight: bold; line-height: 1.2;">Calculando...</span>
@@ -824,6 +847,7 @@
         let isRoutePanelDetailed = false;
         let map;
         let hasDoneInitialFly = false;
+        let isInitialFlying = false;
 
         const routeStatus = document.getElementById('route-status');
         const routeProviderLabel = document.getElementById('route-provider-label');
@@ -1886,8 +1910,10 @@
                 if (!hasDoneInitialFly) {
                     console.log("Starting initial cinematic fly from Madrid to:", newPosition);
                     hasDoneInitialFly = true;
+                    isInitialFlying = true;
                     
-                    // Calculamos el padding final de navegación
+                    if (!carMarker) createCarMarker();
+                    
                     const targetTopPadding = window.innerHeight * (currentCarOffset / 100);
                     
                     map.flyTo({ 
@@ -1899,7 +1925,18 @@
                         padding: { top: targetTopPadding, bottom: 0, left: 0, right: 0 },
                         essential: true
                     });
-                } else if (map.getZoom() < 10) {
+                    
+                    map.once('moveend', () => {
+                        isInitialFlying = false;
+                        console.log("Initial cinematic fly finished");
+                    });
+                    
+                    return;
+                }
+                
+                if (isInitialFlying) return;
+
+                if (map.getZoom() < 10) {
                     map.flyTo({ 
                         center: newPosition, 
                         zoom: NAV_ZOOM, 
@@ -1923,7 +1960,27 @@
             }
         });
 
-        let zoomMessageTimeout;
+        function updateStatusBubble() {
+            const bubble = document.getElementById('status-bubble');
+            if (!bubble || !map) return;
+            
+            const zoom = map.getZoom().toFixed(1);
+            const pitch = Math.round(map.getPitch());
+            const offset = hasDoneInitialFly ? currentCarOffset : 0;
+            
+            bubble.innerHTML = `
+                <span>🔍 ${zoom}</span>
+                <span>📐 ${pitch}°</span>
+                <span>📍 ${offset}%</span>
+            `;
+            bubble.classList.remove('hidden');
+            
+            if (window.statusBubbleTimeout) clearTimeout(window.statusBubbleTimeout);
+            window.statusBubbleTimeout = setTimeout(() => {
+                bubble.classList.add('hidden');
+            }, 3000);
+        }
+
         map.on('zoom', () => {
             const zoom = map.getZoom();
             if (zoom < 13) {
@@ -1938,15 +1995,7 @@
             if (zoomSlider) zoomSlider.value = zoom;
             if (zoomVal) zoomVal.textContent = zoom.toFixed(1);
             
-            // Mostrar mensaje de zoom
-            if (messageBar) {
-                messageBar.textContent = `Zoom: ${zoom.toFixed(1)}`;
-                messageBar.classList.add('show');
-                if (zoomMessageTimeout) clearTimeout(zoomMessageTimeout);
-                zoomMessageTimeout = setTimeout(() => {
-                    messageBar.classList.remove('show');
-                }, 2000);
-            }
+            updateStatusBubble();
 
             // Si el usuario cambia el zoom manualmente, guardamos su preferencia
             if (!isNavigationMode) {
@@ -1963,6 +2012,8 @@
             if (pitchSlider) pitchSlider.value = pitch;
             if (pitchVal) pitchVal.textContent = `${Math.round(pitch)}°`;
             
+            updateStatusBubble();
+
             // Si no está en modo navegación automática, guardamos su preferencia
             if (!isNavigationMode) {
                 currentPitch = pitch;
@@ -1995,7 +2046,7 @@
             setMapMode(currentMapMode);
             refreshOptionsButtons();
             updateBuildingsProvider();
-            createCarMarker();
+            // Eliminado createCarMarker de aquí para esperar al GPS
             map.getCanvas().style.cursor = 'crosshair';
             map.on('click', (event) => setDestinationFromPoint(event.lngLat));
             if (navigator.geolocation) {
