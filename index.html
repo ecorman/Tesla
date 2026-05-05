@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoardingGate Tesla Navegación</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=8pI7q7Yv"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js" onload="console.log('ResponsiveVoice loaded')" onerror="console.error('ResponsiveVoice failed to load')"></script>
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
         :root {
@@ -2340,11 +2340,19 @@
 
         // Método 1: Nativo
         document.getElementById('test-voice-native').addEventListener('click', () => {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance("Hola. Esto es una prueba de voz nativa en español.");
+            const synth = window.speechSynthesis;
+            if (synth) {
+                const voices = synth.getVoices();
+                if (voices.length === 0) {
+                    voiceStatus.textContent = "Esperando voces nativas...";
+                    // Algunos navegadores cargan las voces de forma asíncrona
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        voiceStatus.textContent = "Voces cargadas. Prueba de nuevo.";
+                    };
+                }
+                const utterance = new SpeechSynthesisUtterance("Hola. Probando voz nativa.");
                 utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                window.speechSynthesis.speak(utterance);
+                synth.speak(utterance);
                 voiceStatus.textContent = "Probando Nativo...";
             } else {
                 voiceStatus.textContent = "Error: Nativo no soportado";
@@ -2354,10 +2362,14 @@
         // Método 2: ResponsiveVoice
         document.getElementById('test-voice-responsive').addEventListener('click', () => {
             if (typeof responsiveVoice !== 'undefined') {
-                responsiveVoice.speak("Hola. Esto es una prueba de voz usando Responsive Voice.", "Spanish Female");
-                voiceStatus.textContent = "Probando ResponsiveVoice...";
+                try {
+                    responsiveVoice.speak("Hola. Probando Responsive Voice.", "Spanish Female");
+                    voiceStatus.textContent = "Probando ResponsiveVoice...";
+                } catch (e) {
+                    voiceStatus.textContent = "Error al ejecutar ResponsiveVoice";
+                }
             } else {
-                voiceStatus.textContent = "Error: ResponsiveVoice no cargado";
+                voiceStatus.textContent = "Error: Script no cargado (¿Bloqueado?)";
             }
         });
 
@@ -2366,11 +2378,12 @@
             const text = "Hola. Probando audio de Google.";
             const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
             
+            voiceStatus.textContent = "Cargando audio de Google...";
             const audio = new Audio(url);
             audio.play().then(() => {
-                voiceStatus.textContent = "Probando Google MP3...";
+                voiceStatus.textContent = "Reproduciendo Google MP3...";
             }).catch(e => {
-                voiceStatus.textContent = "Error: Bloqueo de audio";
+                voiceStatus.textContent = "Error: Audio bloqueado o sin conexión";
                 console.error(e);
             });
         });
