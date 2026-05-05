@@ -1919,10 +1919,38 @@
         });
 
         map.on('zoom', () => {
-            if (map.getZoom() < 13) {
+            const zoom = map.getZoom();
+            if (zoom < 13) {
                 vehicleEl.classList.add('low-zoom');
             } else {
                 vehicleEl.classList.remove('low-zoom');
+            }
+            
+            // Sincronizar UI de configuración
+            const zoomSlider = document.getElementById('zoom-slider');
+            const zoomVal = document.getElementById('zoom-val');
+            if (zoomSlider) zoomSlider.value = zoom;
+            if (zoomVal) zoomVal.textContent = zoom.toFixed(1);
+            
+            // Si el usuario cambia el zoom manualmente, guardamos su preferencia
+            if (!isNavigationMode) {
+                // Si no está en modo navegación, el usuario está "personalizando" la vista
+                NAV_ZOOM = zoom;
+            }
+        });
+
+        map.on('pitch', () => {
+            const pitch = map.getPitch();
+            
+            // Sincronizar UI de configuración
+            const pitchSlider = document.getElementById('pitch-slider');
+            const pitchVal = document.getElementById('pitch-val');
+            if (pitchSlider) pitchSlider.value = pitch;
+            if (pitchVal) pitchVal.textContent = `${Math.round(pitch)}°`;
+            
+            // Si no está en modo navegación automática, guardamos su preferencia
+            if (!isNavigationMode) {
+                currentPitch = pitch;
             }
         });
 
