@@ -1908,12 +1908,18 @@
             } else {
                 vehicleEl.classList.remove('low-zoom');
             }
+            updateMapPadding();
         });
 
         function updateMapPadding() {
             if (map) {
+                const zoom = map.getZoom();
+                // At low zoom (globe/world), center the vehicle (0 padding). 
+                // At high zoom (driving), use the offset.
+                const targetOffset = zoom < 10 ? 0 : currentCarOffset;
+                
                 map.setPadding({
-                    top: window.innerHeight * (currentCarOffset / 100),
+                    top: window.innerHeight * (targetOffset / 100),
                     bottom: 0,
                     left: 0,
                     right: 0
