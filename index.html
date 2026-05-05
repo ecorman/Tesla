@@ -1902,8 +1902,25 @@
             }
         });
 
+        function updateDynamicOffset(z) {
+            // zoom 18+ -> offset 60 (bottom)
+            // zoom 12- -> offset 0 (center)
+            const minZoom = 10;
+            const maxZoom = 18;
+            if (z <= minZoom) return 0;
+            if (z >= maxZoom) return 60;
+            
+            const ratio = (z - minZoom) / (maxZoom - minZoom);
+            return ratio * 60;
+        }
+
         map.on('zoom', (e) => {
             const z = map.getZoom();
+            
+            // Dynamic offset based on zoom
+            currentCarOffset = updateDynamicOffset(z);
+            updateMapPadding();
+
             if (z < 13) {
                 vehicleEl.classList.add('low-zoom');
             } else {
@@ -1911,13 +1928,17 @@
             }
 
             // Auto 2D/3D switch based on zoom - ONLY for user-initiated zoom
-            // This prevents interrupting the initial flyTo transition
             if (currentMapMode === '3d' && e.originalEvent) {
                 if (z < 12 && map.getPitch() > 0) {
                     map.easeTo({ pitch: 0, duration: 400 });
                 } else if (z >= 12 && map.getPitch() === 0) {
                     map.easeTo({ pitch: currentPitch, duration: 400 });
                 }
+            }
+
+            // If zooming with mouse/touch, keep car centered
+            if (isNavigationMode && e.originalEvent && currentPosition) {
+                map.setCenter(currentPosition);
             }
         });
 
