@@ -2423,18 +2423,26 @@
             }
         });
 
-        // Método 5: IFrame Hack
+        // Método 5: Blob Audio Fetch
         document.getElementById('test-voice-iframe').addEventListener('click', () => {
-            const text = "Hola. Prueba de audio mediante marco flotante.";
+            const text = "Hola. Prueba mediante descarga de datos de audio.";
+            // Intentamos usar un servicio que suele permitir CORS
             const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=es&client=tw-ob`;
             
-            const container = document.getElementById('iframe-voice-container');
-            container.innerHTML = `<iframe src="${url}" allow="autoplay"></iframe>`;
-            voiceStatus.textContent = "Cargando IFrame...";
-            
-            setTimeout(() => {
-                voiceStatus.textContent = "¿Has escuchado algo?";
-            }, 3000);
+            voiceStatus.textContent = "Intentando descarga directa...";
+            fetch(url, { mode: 'no-cors' }) // 'no-cors' para evitar el bloqueo inicial aunque no podamos leer el contenido, pero Audio() lo cargará
+                .then(() => {
+                    const audio = new Audio(url);
+                    audio.crossOrigin = "anonymous";
+                    return audio.play();
+                })
+                .then(() => {
+                    voiceStatus.textContent = "Reproduciendo (Google Direct)...";
+                })
+                .catch(e => {
+                    voiceStatus.textContent = "Error: El navegador bloqueó la conexión directa.";
+                    console.error(e);
+                });
         });
 
         recenterButton.addEventListener('click', () => {
