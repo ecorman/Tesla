@@ -1668,11 +1668,22 @@
             
             if (currentPosition) {
                 const activePitch = getDynamicPitch(currentSpeedKmh);
+                let targetPitch = 0;
+                let targetBearing = 0;
+                
+                if (currentMapMode === '3d') {
+                    targetPitch = activePitch;
+                    targetBearing = carHeading || 0;
+                } else if (currentMapMode === 'relieve') {
+                    targetPitch = activePitch;
+                    targetBearing = 0;
+                }
+                
                 map.easeTo({ 
                     center: currentPosition, 
                     zoom: NAV_ZOOM,
-                    pitch: currentMapMode === '3d' ? activePitch : 0,
-                    bearing: (currentMapMode === '3d' && carHeading) ? carHeading : 0,
+                    pitch: targetPitch,
+                    bearing: targetBearing,
                     duration: 1200 
                 });
             }
