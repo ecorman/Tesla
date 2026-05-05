@@ -2179,16 +2179,8 @@
         recenterButton.addEventListener('click', () => {
             if (navigationTimeout) clearTimeout(navigationTimeout);
             if (countdownInterval) clearInterval(countdownInterval);
-            isNavigationMode = true;
-            updateCountdownDisplay();
-            map.easeTo({ 
-                center: currentPosition, 
-                zoom: NAV_ZOOM,
-                pitch: currentMapMode === '3d' ? currentPitch : 0,
-                bearing: currentMapMode === '3d' ? carHeading : 0,
-                duration: 1200 
-            });
-            setRouteStatus('Modo navegación');
+            enableNavigationMode();
+            setRouteStatus('Navegación centrada');
         });
 
         document.addEventListener('click', (e) => {
