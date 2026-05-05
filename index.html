@@ -2289,17 +2289,19 @@
                 activeWaypointPopup = null;
             }
 
+            const nextLetter = String.fromCharCode(66 + waypoints.length);
             const tempMarkerElement = document.createElement('div');
             tempMarkerElement.className = 'waypoint-marker';
             tempMarkerElement.style.cssText = `
-                background-color: rgba(255, 140, 0, 0.9);
+                background-color: #f0a30a; 
+                color: white; 
                 border: 3px solid white;
-                width: 50px; height: 50px;
-                font-size: 28px; font-weight: bold;
+                width: 48px; height: 48px;
+                font-size: 24px; font-weight: bold;
                 display: flex; align-items: center; justify-content: center;
-                border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             `;
-            tempMarkerElement.textContent = 'F';
+            tempMarkerElement.textContent = nextLetter;
 
             const tempMarker = new maplibregl.Marker({
                 element: tempMarkerElement,
