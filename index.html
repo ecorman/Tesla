@@ -885,6 +885,7 @@
         let countdownSeconds = 0;
         let carHeading = 0;
         let currentCarOffset = 60;
+        let currentSpeedKmh = 0;
         let toolbarTimeout = null;
 
         const topToolbar = document.getElementById('top-toolbar');
@@ -1666,10 +1667,11 @@
             updateMapPadding();
             
             if (currentPosition) {
+                const activePitch = getDynamicPitch(currentSpeedKmh);
                 map.easeTo({ 
                     center: currentPosition, 
                     zoom: NAV_ZOOM,
-                    pitch: currentMapMode === '3d' ? currentPitch : 0,
+                    pitch: currentMapMode === '3d' ? activePitch : 0,
                     bearing: (currentMapMode === '3d' && carHeading) ? carHeading : 0,
                     duration: 1200 
                 });
@@ -1913,8 +1915,8 @@
 
             currentPosition = newPosition;
             
-            const speedKmh = (position.coords.speed || 0) * 3.6;
-            const activePitch = getDynamicPitch(speedKmh);
+            currentSpeedKmh = (position.coords.speed || 0) * 3.6;
+            const activePitch = getDynamicPitch(currentSpeedKmh);
             
             updateNavigationProgress();
             if (carMarker) carMarker.setLngLat(currentPosition);
