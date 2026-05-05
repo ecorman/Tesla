@@ -1843,10 +1843,10 @@
 
         function getDynamicPitch(speedKmh) {
             if (currentMapMode !== '3d') return 0;
-            // Range from 45 (slow/stopped) to 65 (fast)
-            const minPitch = 45;
-            const maxPitch = 65;
-            const speedThreshold = 100; // km/h for max pitch
+            // Usar currentPitch (ajustado por el usuario) como el máximo para el cálculo dinámico
+            const maxPitch = currentPitch;
+            const minPitch = Math.min(45, maxPitch - 10); // Al menos 10 grados de rango
+            const speedThreshold = 100; 
             const pitch = minPitch + (Math.min(speedKmh, speedThreshold) / speedThreshold) * (maxPitch - minPitch);
             return pitch;
         }
@@ -1876,7 +1876,7 @@
             currentPosition = newPosition;
             
             const speedKmh = (position.coords.speed || 0) * 3.6;
-            currentPitch = getDynamicPitch(speedKmh);
+            const activePitch = getDynamicPitch(speedKmh);
             
             updateNavigationProgress();
             if (carMarker) carMarker.setLngLat(currentPosition);
@@ -1910,7 +1910,7 @@
                 } else {
                     map.easeTo({ 
                         center: currentPosition, 
-                        pitch: currentPitch,
+                        pitch: activePitch,
                         duration: 1000 
                     });
                 }
@@ -1923,6 +1923,7 @@
             }
         });
 
+        let zoomMessageTimeout;
         map.on('zoom', () => {
             const zoom = map.getZoom();
             if (zoom < 13) {
@@ -1937,9 +1938,18 @@
             if (zoomSlider) zoomSlider.value = zoom;
             if (zoomVal) zoomVal.textContent = zoom.toFixed(1);
             
+            // Mostrar mensaje de zoom
+            if (messageBar) {
+                messageBar.textContent = `Zoom: ${zoom.toFixed(1)}`;
+                messageBar.classList.add('show');
+                if (zoomMessageTimeout) clearTimeout(zoomMessageTimeout);
+                zoomMessageTimeout = setTimeout(() => {
+                    messageBar.classList.remove('show');
+                }, 2000);
+            }
+
             // Si el usuario cambia el zoom manualmente, guardamos su preferencia
             if (!isNavigationMode) {
-                // Si no está en modo navegación, el usuario está "personalizando" la vista
                 NAV_ZOOM = zoom;
             }
         });
