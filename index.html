@@ -1470,6 +1470,20 @@
             `;
             list.appendChild(startDiv);
             
+            // Marker para el punto 1 (inicio)
+            const startMarkerEl = document.createElement('div');
+            startMarkerEl.style.cssText = `
+                background-color: #3b82f6; color: white; border: 2px solid white;
+                width: 28px; height: 28px; font-size: 13px; font-weight: bold;
+                display: flex; align-items: center; justify-content: center;
+                border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            `;
+            startMarkerEl.textContent = '1';
+            const startMarker = new maplibregl.Marker({ element: startMarkerEl, anchor: 'center' })
+                .setLngLat(currentPosition)
+                .addTo(map);
+            waypointMapMarkers.push(startMarker);
+            
             renderLegSteps(0);
 
             let draggedItemIndex = null;
@@ -1602,7 +1616,7 @@
                     display: flex; align-items: center; justify-content: center;
                     border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
                 `;
-                markerEl.textContent = letter;
+                markerEl.textContent = pointNumber;
                 const marker = new maplibregl.Marker({ element: markerEl, anchor: 'center' })
                     .setLngLat(lastCoord)
                     .addTo(map);
