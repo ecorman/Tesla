@@ -174,7 +174,7 @@
         #settings-panel,
         #display-settings-panel {
             position: absolute;
-            top: 1rem;
+            top: 5rem;
             left: 50%;
             transform: translateX(-50%);
             width: min(640px, 94vw);
@@ -924,6 +924,28 @@
         ['settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal'].forEach(id => {
             const el = document.getElementById(id);
             if (el) observer.observe(el, { attributes: true });
+        });
+
+        // Function to reset timer on interaction
+        function setupTimerResetOnInteraction(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            ['mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+                el.addEventListener(evt, () => {
+                    // Reset if visible
+                    const isVisible = (id === 'top-toolbar') ? 
+                        (el.style.transform === 'translateY(0px)' || el.style.transform === 'translateY(0)') :
+                        !el.classList.contains('hidden');
+                    
+                    if (isVisible) {
+                        startAutoCloseTimer(id);
+                    }
+                }, { passive: true });
+            });
+        }
+
+        ['top-toolbar', 'settings-panel', 'display-settings-panel', 'route-panel', 'address-suggestions-modal'].forEach(id => {
+            setupTimerResetOnInteraction(id);
         });
         let currentPitch = 60;
         const NAVIGATION_RESTORE_TIME = 15000;
