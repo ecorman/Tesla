@@ -1903,23 +1903,27 @@
         });
 
         map.on('zoom', () => {
-            if (map.getZoom() < 13) {
+            const z = map.getZoom();
+            if (z < 13) {
                 vehicleEl.classList.add('low-zoom');
             } else {
                 vehicleEl.classList.remove('low-zoom');
             }
-            updateMapPadding();
+
+            // Auto 2D/3D switch based on zoom
+            if (currentMapMode === '3d') {
+                if (z < 12 && map.getPitch() > 0) {
+                    map.easeTo({ pitch: 0, duration: 400 });
+                } else if (z >= 12 && map.getPitch() === 0) {
+                    map.easeTo({ pitch: currentPitch, duration: 400 });
+                }
+            }
         });
 
         function updateMapPadding() {
             if (map) {
-                const zoom = map.getZoom();
-                // At low zoom (globe/world), center the vehicle (0 padding). 
-                // At high zoom (driving), use the offset.
-                const targetOffset = zoom < 10 ? 0 : currentCarOffset;
-                
                 map.setPadding({
-                    top: window.innerHeight * (targetOffset / 100),
+                    top: window.innerHeight * (currentCarOffset / 100),
                     bottom: 0,
                     left: 0,
                     right: 0
