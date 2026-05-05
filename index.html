@@ -1986,50 +1986,74 @@
         function formatAddressDetails(data) {
             if (!data) return { name: 'Desconocido', address: '', details: '', full_html: 'Desconocido' };
 
-            // Manejar tanto formato Nominatim como Geoapify (simplificado)
             const addr = data.address || data.properties || {};
             
-            // 1.- Nombre del sitio
+            // Identificar si el nombre es un POI o solo parte de la dirección
             let siteName = data.name || '';
-            if (!siteName && data.display_name) siteName = data.display_name.split(',')[0];
-            if (!siteName) siteName = addr.name || addr.label || 'Ubicación';
+            const road = addr.road || addr.street || '';
+            const houseNumber = addr.house_number || addr.housenumber || '';
+            
+            // Si el nombre coincide con la calle o el número, no lo usamos como "Nombre del Sitio"
+            if (siteName && (siteName === houseNumber || siteName === road || (road + ' ' + houseNumber).includes(siteName))) {
+                siteName = '';
+            }
+            if (!siteName && data.display_name && !data.display_name.includes(road)) {
+                siteName = data.display_name.split(',')[0];
+            }
             
             // 2.- Direccion (Calle y Numero)
-            let addressLine = [addr.road || addr.street, addr.house_number || addr.housenumber].filter(Boolean).join(' ');
+            let addressLine = [road, houseNumber].filter(Boolean).join(' ');
             if (!addressLine && data.display_name) {
                 const parts = data.display_name.split(',');
                 if (parts.length > 2) addressLine = parts.slice(1, 3).join(',').trim();
             }
             if (!addressLine) addressLine = addr.formatted || addr.label || '';
             
-            // 3.- C.P. - Localidad - Comarca si procede (Provincia) - Pais (si no es el de la ubicacion del GPS)
+            // 3.- Componentes de Ubicación
             const postcode = addr.postcode || '';
             const locality = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || '';
-            const region = addr.county || addr.district || '';
+            const district = addr.suburb || addr.neighbourhood || ''; 
+            const county = addr.county || '';
+            const region = addr.district || '';
             const province = addr.state || addr.province || '';
             const country = addr.country || '';
             
-            let line3Parts = [postcode, locality, region].filter(Boolean);
-            let line3 = line3Parts.join(' - ');
-            if (province && province !== locality) {
-                if (line3) line3 += ` (${province})`;
-                else line3 = province;
+            let htmlRows = [];
+            
+            // Fila 1: Nombre POI (si existe)
+            if (siteName) {
+                htmlRows.push(`<div class="addr-name" style="font-weight:bold; font-size:1.15rem; color:#fff; margin-bottom:0.3rem;">${siteName}</div>`);
             }
             
-            // Mostrar país si es diferente al detectado por GPS
+            // Fila 2: Calle y Número
+            if (addressLine) {
+                htmlRows.push(`<div class="addr-line" style="font-size:1rem; color:#eee; margin-bottom:0.2rem;">${addressLine}</div>`);
+            }
+            
+            // Fila 3: C.P. y Localidad
+            let cpLocality = [postcode, locality].filter(Boolean).join(' ');
+            if (cpLocality) {
+                htmlRows.push(`<div class="addr-loc" style="font-size:0.9rem; color:#ccc;">${cpLocality}</div>`);
+            }
+            
+            // Filas adicionales: Comarca, Región, Provincia (si proceden)
+            if (district) htmlRows.push(`<div style="font-size:0.85rem; color:#bbb;">${district}</div>`);
+            if (county) htmlRows.push(`<div style="font-size:0.85rem; color:#bbb;">${county}</div>`);
+            if (region && region !== county) htmlRows.push(`<div style="font-size:0.85rem; color:#bbb;">${region}</div>`);
+            if (province && province !== locality) htmlRows.push(`<div style="font-size:0.85rem; color:#bbb;">${province}</div>`);
+            
+            // Fila final: País (separada)
             if (country) {
-                if (!currentCountry || country.toLowerCase() !== currentCountry.toLowerCase()) {
-                    line3 = line3 ? `${line3} - ${country}` : country;
+                const isDifferentCountry = !currentCountry || country.toLowerCase() !== currentCountry.toLowerCase();
+                if (isDifferentCountry) {
+                    htmlRows.push(`<div class="addr-country" style="font-size:0.85rem; color:#999; margin-top:0.3rem; border-top:1px solid rgba(255,255,255,0.12); padding-top:0.3rem;">${country}</div>`);
                 }
             }
             
             return {
-                name: siteName,
+                name: siteName || addressLine,
                 address: addressLine,
-                details: line3,
-                full_html: `<div class="addr-name" style="font-weight:bold; font-size:1.1rem; color:#fff;">${siteName}</div>
-                            <div class="addr-line" style="font-size:0.95rem; color:#ccc; margin-top:0.2rem;">${addressLine}</div>
-                            <div class="addr-details" style="font-size:0.85rem; color:#aaa; margin-top:0.1rem;">${line3}</div>`
+                full_html: htmlRows.join('')
             };
         }
 
