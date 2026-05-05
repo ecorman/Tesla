@@ -1751,7 +1751,7 @@
             setRouteStatus('Obteniendo dirección...');
             
             activeWaypointMarker = new maplibregl.Marker({ color: '#ffd700' })
-                .setLngLat(destinationPosition)
+                .setLngLat([lngLat.lng, lngLat.lat])
                 .addTo(map);
 
             let displayName = `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`;
