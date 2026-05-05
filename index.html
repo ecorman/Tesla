@@ -1900,7 +1900,7 @@
                     : Math.round(distanceToNextManeuver) + ' m';
                 document.getElementById('distance-to-turn-formatted').textContent = distFormatted;
 
-                document.getElementById('turn-icon-display').textContent = getTurnIcon(nextStep.maneuver);
+                document.getElementById('turn-icon-display').innerHTML = getTurnIcon(nextStep.maneuver);
 
                 // Update remaining ETA
                 const remainingDistance = routeData.distance - traveledDistanceMeters;
