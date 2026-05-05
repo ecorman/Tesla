@@ -2317,8 +2317,8 @@
                 <div style="margin-bottom: 1rem;">
                     ${addrInfo.full_html}
                 </div>
-                <button id="placement-add-destination" class="placement-popup-btn add">Añadir como Destino</button>
-                ${(waypoints.length > 0 || routeData) ? '<button id="placement-add-stopover" class="placement-popup-btn add">Añadir como parada</button>' : ''}
+                <button id="placement-add-destination" class="placement-popup-btn add">Nuevo Destino</button>
+                ${(waypoints.length > 0 || routeData) ? `<button id="placement-add-stopover" class="placement-popup-btn add">Añadir Destino (${nextLetter})</button>` : ''}
                 <button id="placement-cancel" class="placement-popup-btn cancel">Cancelar</button>
             `;
 
