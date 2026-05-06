@@ -1001,6 +1001,7 @@
         let toolbarTimeout = null;
         let nextStepDistance = 0;
         let currentCountry = null;
+        let isCameraMoving = false;
 
         const topToolbar = document.getElementById('top-toolbar');
         const toolbarToggleBtn = document.getElementById('toolbar-toggle-btn');
@@ -1046,8 +1047,11 @@
             return { zoom, pitch };
         }
 
-        function applyNavigationCamera(essential = false) {
+        function applyNavigationCamera(essential = false, method = 'easeTo') {
             if (!map || !isNavigationMode) return;
+            // Skip regular updates if camera already animating to avoid task_queue errors
+            if (isCameraMoving && !essential) return;
+
             const mode = navSettings.activeMode;
             const { zoom, pitch } = getDynamicCameraState();
             
@@ -1055,7 +1059,7 @@
                 center: currentPosition,
                 zoom: zoom,
                 pitch: pitch,
-                duration: 1500,
+                duration: method === 'flyTo' ? 4000 : 800,
                 essential: essential
             };
 
@@ -1074,7 +1078,12 @@
             }
 
             updateMapPadding();
-            map.easeTo(options);
+            isCameraMoving = true;
+            if (method === 'flyTo') {
+                map.flyTo(options);
+            } else {
+                map.easeTo(options);
+            }
         }
 
         // Auto-close logic for all windows
@@ -2111,7 +2120,7 @@
                 <span style="color:#1a73e8; font-weight:bold;">${mode.toUpperCase()}</span>
                 <span>🔍 ${zoom}</span>
                 <span>📐 ${pitch}°</span>
-                <span>📍 ${s.x}%/${s.y}%</span>
+                <span>📍 ${s.x}% / ${s.y}%</span>
             `;
             bubble.classList.remove('hidden');
             
@@ -2149,7 +2158,7 @@
                     hasDoneInitialFly = true;
                     isInitialFlying = true;
                     
-                    applyNavigationCamera(true);
+                    applyNavigationCamera(true, 'flyTo');
                     
                     map.once('moveend', () => { isInitialFlying = false; });
                     return;
@@ -2161,31 +2170,17 @@
         }
 
         map.on('movestart', (e) => {
+            isCameraMoving = true;
             if (e.originalEvent) {
                 disableNavigationMode();
             }
         });
 
-        function updateStatusBubble() {
-            const bubble = document.getElementById('status-bubble');
-            if (!bubble || !map) return;
-            
-            const zoom = map.getZoom().toFixed(1);
-            const pitch = Math.round(map.getPitch());
-            const offset = hasDoneInitialFly ? currentCarOffset : 0;
-            
-            bubble.innerHTML = `
-                <span>🔍 ${zoom}</span>
-                <span>📐 ${pitch}°</span>
-                <span>📍 ${offset}%</span>
-            `;
-            bubble.classList.remove('hidden');
-            
-            if (window.statusBubbleTimeout) clearTimeout(window.statusBubbleTimeout);
-            window.statusBubbleTimeout = setTimeout(() => {
-                bubble.classList.add('hidden');
-            }, 3000);
-        }
+        map.on('moveend', () => {
+            isCameraMoving = false;
+        });
+
+
 
         map.on('zoom', () => {
             const zoom = map.getZoom();
@@ -2201,25 +2196,11 @@
             updateStatusBubble();
         });
 
-        function updateMapPadding() {
-            if (map) {
-                // Solo aplicar offset (padding superior) si ya hemos hecho el vuelo inicial (modo navegación)
-                const topPadding = hasDoneInitialFly ? window.innerHeight * (currentCarOffset / 100) : 0;
-                map.setPadding({
-                    top: topPadding,
-                    bottom: 0,
-                    left: 0,
-                    right: 0
-                });
-                if (isNavigationMode && currentPosition && hasDoneInitialFly) {
-                    map.easeTo({ center: currentPosition, duration: 300 });
-                }
-            }
-        }
+        map.on('resize', () => {
+            if (isNavigationMode) updateMapPadding();
+        });
 
         map.on('load', () => {
-            updateMapPadding();
-            window.addEventListener('resize', updateMapPadding);
 
             mapProviderSelect.value = currentMapProvider;
             mapModeSelect.value = currentMapMode;
