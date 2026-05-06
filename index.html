@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoardingGate Tesla Navegación</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://code.responsivevoice.org/responsivevoice.js" onload="console.log('ResponsiveVoice loaded')" onerror="console.error('ResponsiveVoice failed to load')"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=8pI7q7Yv" onload="console.log('ResponsiveVoice loaded')" onerror="console.error('ResponsiveVoice failed to load')"></script>
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
         :root {
@@ -517,13 +517,36 @@
         .placement-popup-btn.drag {
             background: rgba(255,149,0,0.18);
             border-color: rgba(255,149,0,0.28);
-        }
         .placement-popup-btn.cancel {
             background: rgba(255,255,255,0.08);
             border-color: rgba(255,255,255,0.16);
         }
-        .placement-popup-btn:active {
-            transform: scale(0.98);
+        .mode-tab {
+            flex: 1;
+            padding: 0.6rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .mode-tab.active {
+            background: rgba(26, 115, 232, 0.2);
+            border-color: #1a73e8;
+            color: #fff;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: #f5f5f5;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        #mode-settings-container input[type="range"] {
+            accent-color: #1a73e8;
         }
         #route-panel {
             width: min(380px, 90vw);
@@ -811,44 +834,65 @@
 
     <div id="display-settings-panel" class="hidden">
         <div class="options-header">
-            <h2>Ajustes de visualización</h2>
+            <h2>Configuración de Navegación</h2>
             <button id="close-display-settings">Cerrar</button>
         </div>
-        <p class="top-note">Ajusta la posición del vehículo en pantalla y la inclinación 3D por defecto.</p>
-        <div class="options-section">
-            <div style="display: flex; flex-direction: column; gap: 1.2rem; padding: 0.5rem 0;">
-                <div>
-                    <label for="car-offset-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
-                        <span>Altura de visión (0 = centro)</span>
-                        <span id="car-offset-val" style="font-weight: bold; color: #1a73e8;">60%</span>
-                    </label>
-                    <input type="range" id="car-offset-slider" min="0" max="80" value="60" style="width: 100%; accent-color: #1a73e8;">
+        
+        <div class="mode-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <button class="mode-tab active" data-mode="northUp">Norte ↑</button>
+            <button class="mode-tab" data-mode="nav2D">Nav 2D</button>
+            <button class="mode-tab" data-mode="nav3D">Nav 3D</button>
+        </div>
+
+        <div id="mode-settings-container" style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Dinámicamente poblado por JS -->
+            <div class="setting-item">
+                <label>Posición Vehículo (X / Y)</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="range" id="nav-pos-x" min="10" max="90" value="50" style="flex:1;">
+                    <input type="range" id="nav-pos-y" min="10" max="90" value="70" style="flex:1;">
                 </div>
-                <div>
-                    <label for="zoom-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
-                        <span>Zoom por defecto</span>
-                        <span id="zoom-val" style="font-weight: bold; color: #1a73e8;">18</span>
-                    </label>
-                    <input type="range" id="zoom-slider" min="12" max="21" step="0.5" value="18" style="width: 100%; accent-color: #1a73e8;">
-                </div>
-                <div>
-                    <label for="pitch-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
-                        <span>Inclinación 3D (grados)</span>
-                        <span id="pitch-val" style="font-weight: bold; color: #1a73e8;">60°</span>
-                    </label>
-                    <input type="range" id="pitch-slider" min="0" max="85" value="65" style="width: 100%; accent-color: #1a73e8;">
-                </div>
-                <div>
-                    <label for="restore-time-slider" style="display: flex; justify-content: space-between; color: #f5f5f5; margin-bottom: 0.5rem; font-size: 0.95rem;">
-                        <span>Tiempo re-centrado (seg)</span>
-                        <span id="restore-time-val" style="font-weight: bold; color: #1a73e8;">15s</span>
-                    </label>
-                    <input type="range" id="restore-time-slider" min="5" max="60" value="15" style="width: 100%; accent-color: #1a73e8;">
-                </div>
-                <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                    <button id="open-voice-test" class="option-button" style="width: 100%; background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #60a5fa;">🔊 Probar Síntesis de Voz</button>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #1a73e8; margin-top: 4px;">
+                    <span id="nav-pos-x-val">X: 50%</span>
+                    <span id="nav-pos-y-val">Y: 70%</span>
                 </div>
             </div>
+
+            <div class="setting-item">
+                <label>Rango de Zoom (Corto / Largo)</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="range" id="nav-zoom-short" min="12" max="21" step="0.1" value="19" style="flex:1;">
+                    <input type="range" id="nav-zoom-long" min="12" max="21" step="0.1" value="16" style="flex:1;">
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #1a73e8; margin-top: 4px;">
+                    <span id="nav-zoom-short-val">19.0 (Cerca)</span>
+                    <span id="nav-zoom-long-val">16.0 (Lejos)</span>
+                </div>
+            </div>
+
+            <div id="pitch-settings" class="setting-item">
+                <label>Rango Inclinación (Corto / Largo)</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="range" id="nav-pitch-short" min="0" max="85" value="30" style="flex:1;">
+                    <input type="range" id="nav-pitch-long" min="0" max="85" value="75" style="flex:1;">
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #1a73e8; margin-top: 4px;">
+                    <span id="nav-pitch-short-val">30°</span>
+                    <span id="nav-pitch-long-val">75°</span>
+                </div>
+            </div>
+
+            <div class="setting-item" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                <label for="restore-time-slider" style="display: flex; justify-content: space-between;">
+                    <span>Tiempo re-centrado</span>
+                    <span id="restore-time-val" style="color: #1a73e8;">15s</span>
+                </label>
+                <input type="range" id="restore-time-slider" min="5" max="60" value="15" style="width: 100%;">
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <button id="open-voice-test" class="option-button" style="width: 100%; background: rgba(59, 130, 246, 0.1); border-color: #3b82f6; color: #60a5fa; font-size: 0.8rem;">🔊 Test de Voz</button>
         </div>
     </div>
 
@@ -901,8 +945,16 @@
     <script>
         const defaultCenter = [-3.70379, 40.41678];
         const defaultZoom = 2.5;
-        let NAV_ZOOM = parseFloat(localStorage.getItem('tesla_nav_zoom')) || 18;
-        let currentPitch = parseInt(localStorage.getItem('tesla_current_pitch')) || 65; // Desired navigation pitch
+        
+        // --- Nuevos Ajustes de Navegación ---
+        const DEFAULT_NAV_SETTINGS = {
+            activeMode: 'nav3D',
+            northUp: { x: 50, y: 50, zShort: 18.5, zLong: 15.5, pShort: 0, pLong: 0 },
+            nav2D:   { x: 50, y: 75, zShort: 19.0, zLong: 16.5, pShort: 0, pLong: 0 },
+            nav3D:   { x: 50, y: 82, zShort: 19.5, zLong: 17.0, pShort: 25, pLong: 75 }
+        };
+
+        let navSettings = JSON.parse(localStorage.getItem('tesla_nav_settings')) || DEFAULT_NAV_SETTINGS;
         let isRoutePanelDetailed = false;
         let map;
         let hasDoneInitialFly = false;
@@ -945,9 +997,9 @@
         let countdownInterval = null;
         let countdownSeconds = 0;
         let carHeading = 0;
-        let currentCarOffset = parseFloat(localStorage.getItem('tesla_car_offset')) || 60;
         let currentSpeedKmh = 0;
         let toolbarTimeout = null;
+        let nextStepDistance = 0;
 
         const topToolbar = document.getElementById('top-toolbar');
         const toolbarToggleBtn = document.getElementById('toolbar-toggle-btn');
@@ -957,6 +1009,71 @@
             topToolbar.style.transform = 'translateY(-110%)';
             toolbarToggleBtn.style.opacity = '1';
             toolbarToggleBtn.style.pointerEvents = 'auto';
+        }
+
+        function updateMapPadding() {
+            if (!map || !isNavigationMode) return;
+            const h = window.innerHeight;
+            const w = window.innerWidth;
+            const mode = navSettings.activeMode;
+            const s = navSettings[mode];
+
+            const py = s.y / 100;
+            const px = s.x / 100;
+
+            const top = Math.max(0, h * (2 * py - 1));
+            const bottom = Math.max(0, h * (1 - 2 * py));
+            const left = Math.max(0, w * (2 * px - 1));
+            const right = Math.max(0, w * (1 - 2 * px));
+
+            map.setPadding({ top, bottom, left, right });
+        }
+
+        function getDynamicCameraState() {
+            const mode = navSettings.activeMode;
+            const s = navSettings[mode];
+            let factor = 0; 
+            
+            if (routeData && nextStepDistance > 0) {
+                factor = Math.min(1, Math.max(0, (nextStepDistance - 100) / 700));
+            } else {
+                factor = Math.min(1, Math.max(0, (currentSpeedKmh - 20) / 80));
+            }
+
+            const zoom = s.zShort + (s.zLong - s.zShort) * factor;
+            const pitch = s.pShort + (s.pLong - s.pShort) * factor;
+            return { zoom, pitch };
+        }
+
+        function applyNavigationCamera(essential = false) {
+            if (!map || !isNavigationMode) return;
+            const mode = navSettings.activeMode;
+            const { zoom, pitch } = getDynamicCameraState();
+            
+            const options = {
+                center: currentPosition,
+                zoom: zoom,
+                pitch: pitch,
+                duration: 1500,
+                essential: essential
+            };
+
+            if (mode === 'northUp') {
+                options.bearing = 0;
+                if (carMarker) {
+                    const icon = carMarker.getElement().querySelector('.v-icon-container');
+                    if (icon) icon.style.transform = `rotate(${carHeading}deg)`;
+                }
+            } else {
+                options.bearing = carHeading;
+                if (carMarker) {
+                    const icon = carMarker.getElement().querySelector('.v-icon-container');
+                    if (icon) icon.style.transform = `rotate(0deg)`;
+                }
+            }
+
+            updateMapPadding();
+            map.easeTo(options);
         }
 
         // Auto-close logic for all windows
@@ -1298,10 +1415,10 @@
             let pitch = 0;
             let bearing = 0;
             if (mode === '3d' && hasDoneInitialFly) {
-                pitch = currentPitch;
+                pitch = 60;
                 bearing = 30;
             } else if (mode === 'relieve' && hasDoneInitialFly) {
-                pitch = currentPitch;
+                pitch = 60;
                 bearing = 0;
             }
             if (hasDoneInitialFly) {
@@ -1471,7 +1588,6 @@
 
             fitRouteBounds();
             
-            updateCarHeading(routeData.geometry.coordinates);
             updateNavigationProgress();
             updateRoutePanel();
         }
@@ -1716,25 +1832,6 @@
             }
         }
 
-        function updateCarHeading(coords) {
-            // Solo usar orientación de ruta si no tenemos heading por GPS (o es 0/null)
-            if (!coords || coords.length < 2) return;
-            const [lon1, lat1] = coords[0];
-            const [lon2, lat2] = coords[1];
-            // Calculo simple de bearing
-            const rad = Math.PI / 180;
-            const dLon = (lon2 - lon1) * rad;
-            const lat1Rad = lat1 * rad;
-            const lat2Rad = lat2 * rad;
-            const y = Math.sin(dLon) * Math.cos(lat2Rad);
-            const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-            let bearing = Math.atan2(y, x) / rad;
-            
-            // No sobrescribir si el coche ya está rotando por GPS constantemente
-            // carHeading = bearing;
-            // vehicleEl.style.transform = `rotate(${carHeading}deg)`;
-        }
-
         function updateCountdownDisplay() {
             const el = document.getElementById('nav-countdown');
             if (isNavigationMode) {
@@ -1747,41 +1844,10 @@
         }
 
         function enableNavigationMode() {
+            if (!map) return;
             isNavigationMode = true;
             if (navigationTimeout) clearTimeout(navigationTimeout);
             if (countdownInterval) clearInterval(countdownInterval);
-            
-            updateCountdownDisplay();
-            setRouteStatus('Modo navegación reanudado');
-            
-            // Re-center using padding logic - ahora incluido directamente en easeTo infra
-            
-            if (currentPosition) {
-                const activePitch = getDynamicPitch(currentSpeedKmh);
-                let targetPitch = 0;
-                let targetBearing = 0;
-                
-                if (currentMapMode === '3d') {
-                    targetPitch = activePitch;
-                    targetBearing = carHeading || 0;
-                } else if (currentMapMode === 'relieve') {
-                    targetPitch = activePitch;
-                    targetBearing = 0;
-                }
-                
-                // Incluimos el padding directamente en la animación para evitar conflictos con setPadding
-                const targetTopPadding = (hasDoneInitialFly) ? (window.innerHeight * (currentCarOffset / 100)) : 0;
-                
-                map.easeTo({ 
-                    center: currentPosition, 
-                    zoom: NAV_ZOOM,
-                    pitch: targetPitch,
-                    bearing: targetBearing,
-                    padding: { top: targetTopPadding, bottom: 0, left: 0, right: 0 },
-                    duration: 1200,
-                    essential: true
-                });
-            }
         }
 
         function disableNavigationMode() {
@@ -1996,6 +2062,7 @@
                         currentStep = step;
                         nextStep = currentRouteSteps[i + 1] || step;
                         distanceToNextManeuver = accumulatedDistance - traveledDistanceMeters;
+                        nextStepDistance = distanceToNextManeuver;
                         break;
                     }
                 }
@@ -2030,14 +2097,27 @@
             }
         }
 
-        function getDynamicPitch(speedKmh) {
-            if (currentMapMode !== '3d' && currentMapMode !== 'relieve') return 0;
-            // El usuario elige currentPitch como su base (velocidad 0)
-            const minPitch = currentPitch; 
-            const maxPitch = Math.min(85, currentPitch + 15); 
-            const speedThreshold = 100; 
-            const pitch = minPitch + (Math.min(speedKmh, speedThreshold) / speedThreshold) * (maxPitch - minPitch);
-            return pitch;
+        function updateStatusBubble() {
+            const bubble = document.getElementById('status-bubble');
+            if (!bubble || !map) return;
+            
+            const zoom = map.getZoom().toFixed(1);
+            const pitch = Math.round(map.getPitch());
+            const mode = navSettings.activeMode;
+            const s = navSettings[mode];
+            
+            bubble.innerHTML = `
+                <span style="color:#1a73e8; font-weight:bold;">${mode.toUpperCase()}</span>
+                <span>🔍 ${zoom}</span>
+                <span>📐 ${pitch}°</span>
+                <span>📍 ${s.x}%/${s.y}%</span>
+            `;
+            bubble.classList.remove('hidden');
+            
+            if (window.statusBubbleTimeout) clearTimeout(window.statusBubbleTimeout);
+            window.statusBubbleTimeout = setTimeout(() => {
+                bubble.classList.add('hidden');
+            }, 3000);
         }
 
         async function updateCurrentPositionFromGeolocation(position) {
@@ -2053,72 +2133,29 @@
 
             if (position.coords.heading !== null && !isNaN(position.coords.heading)) {
                 carHeading = position.coords.heading;
-                const iconContainer = vehicleEl.querySelector('.v-icon-container');
-                if (iconContainer) {
-                    // En modo navegación (con el mapa rotado), el coche siempre debe apuntar hacia arriba (0 deg relativo al viewport)
-                    // En modo libre, el coche apunta a su rumbo real.
-                    const displayRotation = isNavigationMode ? 0 : carHeading;
-                    iconContainer.style.transform = `rotate(${displayRotation}deg)`;
-                }
             }
 
             currentPosition = newPosition;
-            
             currentSpeedKmh = (position.coords.speed || 0) * 3.6;
-            const activePitch = getDynamicPitch(currentSpeedKmh);
             
             updateNavigationProgress();
+            
             if (carMarker) carMarker.setLngLat(currentPosition);
             else createCarMarker();
 
             if (isNavigationMode) {
                 if (!hasDoneInitialFly) {
-                    console.log("Starting initial cinematic fly from Madrid to:", newPosition);
                     hasDoneInitialFly = true;
                     isInitialFlying = true;
                     
-                    if (!carMarker) createCarMarker();
+                    applyNavigationCamera(true);
                     
-                    const targetTopPadding = window.innerHeight * (currentCarOffset / 100);
-                    
-                    map.flyTo({ 
-                        center: newPosition, 
-                        zoom: NAV_ZOOM, 
-                        duration: 6000,
-                        pitch: activePitch, // Usar activePitch aquí también
-                        bearing: carHeading,
-                        padding: { top: targetTopPadding, bottom: 0, left: 0, right: 0 },
-                        essential: true
-                    });
-                    
-                    map.once('moveend', () => {
-                        isInitialFlying = false;
-                        console.log("Initial cinematic fly finished");
-                    });
-                    
+                    map.once('moveend', () => { isInitialFlying = false; });
                     return;
                 }
                 
                 if (isInitialFlying) return;
-
-                const targetBearing = currentMapMode === '3d' ? (carHeading || 0) : 0;
-
-                if (map.getZoom() < 10) {
-                    map.flyTo({ 
-                        center: newPosition, 
-                        zoom: NAV_ZOOM, 
-                        duration: 2500,
-                        pitch: activePitch,
-                        bearing: targetBearing
-                    });
-                } else {
-                    map.easeTo({ 
-                        center: currentPosition, 
-                        pitch: activePitch,
-                        bearing: targetBearing,
-                        duration: 1000 
-                    });
-                }
+                applyNavigationCamera(false);
             }
         }
 
@@ -2156,25 +2193,10 @@
             } else {
                 vehicleEl.classList.remove('low-zoom');
             }
-            
-            // Sincronizar UI de configuración
-            const zoomSlider = document.getElementById('zoom-slider');
-            const zoomVal = document.getElementById('zoom-val');
-            if (zoomSlider) zoomSlider.value = zoom;
-            if (zoomVal) zoomVal.textContent = zoom.toFixed(1);
-            
             updateStatusBubble();
         });
 
         map.on('pitch', () => {
-            const pitch = map.getPitch();
-            
-            // Sincronizar UI de configuración
-            const pitchSlider = document.getElementById('pitch-slider');
-            const pitchVal = document.getElementById('pitch-val');
-            if (pitchSlider) pitchSlider.value = pitch;
-            if (pitchVal) pitchVal.textContent = `${Math.round(pitch)}°`;
-            
             updateStatusBubble();
         });
 
@@ -2336,6 +2358,65 @@
                 localStorage.setItem('tesla_restore_time', NAVIGATION_RESTORE_TIME);
             });
         }
+
+        // --- Nueva Lógica de Configuración de Navegación ---
+        function syncNavUI() {
+            const mode = navSettings.activeMode;
+            const s = navSettings[mode];
+            
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+            
+            document.getElementById('nav-pos-x').value = s.x;
+            document.getElementById('nav-pos-y').value = s.y;
+            document.getElementById('nav-pos-x-val').textContent = `X: ${s.x}%`;
+            document.getElementById('nav-pos-y-val').textContent = `Y: ${s.y}%`;
+            
+            document.getElementById('nav-zoom-short').value = s.zShort;
+            document.getElementById('nav-zoom-long').value = s.zLong;
+            document.getElementById('nav-zoom-short-val').textContent = `${s.zShort.toFixed(1)} (Cerca)`;
+            document.getElementById('nav-zoom-long-val').textContent = `${s.zLong.toFixed(1)} (Lejos)`;
+            
+            document.getElementById('nav-pitch-short').value = s.pShort;
+            document.getElementById('nav-pitch-long').value = s.pLong;
+            document.getElementById('nav-pitch-short-val').textContent = `${s.pShort}°`;
+            document.getElementById('nav-pitch-long-val').textContent = `${s.pLong}°`;
+            
+            document.getElementById('pitch-settings').style.opacity = mode === 'nav3D' ? '1' : '0.4';
+            document.getElementById('pitch-settings').style.pointerEvents = mode === 'nav3D' ? 'auto' : 'none';
+        }
+
+        document.querySelectorAll('.mode-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                navSettings.activeMode = tab.dataset.mode;
+                saveNavSettings();
+                syncNavUI();
+                applyNavigationCamera(true);
+            });
+        });
+
+        function saveNavSettings() {
+            localStorage.setItem('tesla_nav_settings', JSON.stringify(navSettings));
+        }
+
+        ['nav-pos-x', 'nav-pos-y', 'nav-zoom-short', 'nav-zoom-long', 'nav-pitch-short', 'nav-pitch-long'].forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                const mode = navSettings.activeMode;
+                const val = parseFloat(e.target.value);
+                
+                if (id === 'nav-pos-x') navSettings[mode].x = val;
+                if (id === 'nav-pos-y') navSettings[mode].y = val;
+                if (id === 'nav-zoom-short') navSettings[mode].zShort = val;
+                if (id === 'nav-zoom-long') navSettings[mode].zLong = val;
+                if (id === 'nav-pitch-short') navSettings[mode].pShort = val;
+                if (id === 'nav-pitch-long') navSettings[mode].pLong = val;
+                
+                saveNavSettings();
+                syncNavUI();
+                applyNavigationCamera(true);
+            });
+        });
+
+        syncNavUI();
 
         // --- Lógica de Test de Voz ---
         const openVoiceTest = document.getElementById('open-voice-test');
