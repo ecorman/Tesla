@@ -1000,6 +1000,7 @@
         let currentSpeedKmh = 0;
         let toolbarTimeout = null;
         let nextStepDistance = 0;
+        let currentCountry = null;
 
         const topToolbar = document.getElementById('top-toolbar');
         const toolbarToggleBtn = document.getElementById('toolbar-toggle-btn');
@@ -2310,39 +2311,8 @@
         });
         closeDisplaySettings.addEventListener('click', () => displaySettingsPanel.classList.add('hidden'));
 
-        calcRouteButton.addEventListener('click', calculateRoute);
-        
-        const carOffsetSlider = document.getElementById('car-offset-slider');
-        const carOffsetVal = document.getElementById('car-offset-val');
-        const pitchSlider = document.getElementById('pitch-slider');
-        const pitchVal = document.getElementById('pitch-val');
-
-        const zoomSlider = document.getElementById('zoom-slider');
-        const zoomVal = document.getElementById('zoom-val');
-
-        carOffsetSlider.addEventListener('input', (e) => {
-            currentCarOffset = parseInt(e.target.value);
-            carOffsetVal.textContent = `${currentCarOffset}%`;
-            updateMapPadding();
-        });
-
-        zoomSlider.addEventListener('input', (e) => {
-            NAV_ZOOM = parseFloat(e.target.value);
-            zoomVal.textContent = NAV_ZOOM;
-            localStorage.setItem('tesla_nav_zoom', NAV_ZOOM);
-            if (isNavigationMode) {
-                map.easeTo({ zoom: NAV_ZOOM, duration: 300 });
-            }
-        });
-
-        pitchSlider.addEventListener('input', (e) => {
-            currentPitch = parseInt(e.target.value);
-            pitchVal.textContent = `${currentPitch}°`;
-            localStorage.setItem('tesla_current_pitch', currentPitch);
-            if (currentMapMode === '3d' || currentMapMode === 'relieve') {
-                map.easeTo({ pitch: currentPitch, duration: 300 });
-            }
-        });
+        const calcRouteButton = document.getElementById('calc-route-button');
+        if (calcRouteButton) calcRouteButton.addEventListener('click', calculateRoute);
 
         const restoreTimeSlider = document.getElementById('restore-time-slider');
         const restoreTimeVal = document.getElementById('restore-time-val');
@@ -2565,7 +2535,6 @@
 
         // Geoapify API endpoint (open, sin API key requerida para demo)
         const GEOAPIFY_ENDPOINT = 'https://api.geoapify.com/v1/geocode/search?format=json&limit=12&lang=es';
-        let currentCountry = null;
         const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org/search?format=json&limit=12&accept-language=es&addressdetails=1';
 
         function formatAddressDetails(data) {
