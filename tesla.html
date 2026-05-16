@@ -8,6 +8,44 @@
     <meta name="keywords" content="Tesla, lanzador, dashboard, navegador, mapas, radares, BoardingGate, Tesla apps, Tesla Model 3, Tesla Model Y, Tesla web browser, YouTube Tesla, navegación Tesla">
     <meta name="author" content="BoardingGate">
     <meta name="robots" content="index, follow">
+    
+    <style>
+        /* === BOOT CRITICAL: fondo negro y contenido oculto hasta que JS decida qué mostrar === */
+        /* Mientras NO estemos en boot-ready, forzamos fondo negro y ocultamos TODO */
+        body:not(.boot-ready) { background: #000 !important; }
+        body:not(.boot-ready) main, 
+        body:not(.boot-ready) footer, 
+        body:not(.boot-ready) .notices-icon-container, 
+        body:not(.boot-ready) #grid-filter-container,
+        body:not(.boot-ready) .toggle-image, 
+        body:not(.boot-ready) .toggle-sign, 
+        body:not(.boot-ready) .scroll-toggle-button,
+        body:not(.boot-ready) #config-button, 
+        body:not(.boot-ready) #personal-button, 
+        body:not(.boot-ready) #radar-button, 
+        body:not(.boot-ready) #home-button,
+        body:not(.boot-ready) #reload-button, 
+        body:not(.boot-ready) #keyword-assignment-button, 
+        body:not(.boot-ready) #password-toggle-button,
+        body:not(.boot-ready) #versions-button, 
+        body:not(.boot-ready) #info-button, 
+        body:not(.boot-ready) #store-button, 
+        body:not(.boot-ready) #utils-button,
+        body:not(.boot-ready) #unified-reminder-window, 
+        body:not(.boot-ready) #config-modal, 
+        body:not(.boot-ready) #chat-modal-overlay,
+        body:not(.boot-ready) #address-suggestions-modal, 
+        body:not(.boot-ready) #locations-preview-modal, 
+        body:not(.boot-ready) #simulation-modal,
+        body:not(.boot-ready) #simulation-speed-modal, 
+        body:not(.boot-ready) #deviation-modal, 
+        body:not(.boot-ready) #arrival-stats-modal,
+        body:not(.boot-ready) #intersection-preview-map-window, 
+        body:not(.boot-ready) #alert-modal-overlay, 
+        body:not(.boot-ready) #proximity-alert-modal {
+            display: none !important;
+        }
+    </style>
     <script src="PNG/zbuildgs.js"></script> 
     <meta property="og:title" content="BoardingGate: Navegador avanzado y Favoritos web para Tesla">
     <meta property="og:description" content="Un dashboard optimizado para la pantalla de tu Tesla. Accede a mapas, navegación con radares, recordatorios, y tus webs favoritas.">
@@ -54,14 +92,10 @@
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
 </head>
-    
-<style>    
+<body class="min-h-screen bg-black">
 
-    
-</style>
-    
-</head>
-<body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
+    <!-- Boot Splash: pantalla negra que cubre todo hasta que el mapa o grid esté listo -->
+    <div id="boot-splash" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:999999;"></div>
 
     <div id="recovery-screenshot-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100001; pointer-events: none;"></div>
     <script>
@@ -110,25 +144,21 @@
         <div class="reminder-count-header" id="reminder-window-title">
             <div class="reminder-title-container">
                 <span style="font-size: 1.3rem;" id="reminder-count-text-container">
-                    <span id="current-reminder-index">1</span> de <span id="total-reminder-count">X</span> Recordatorios
+                    <!-- Contenido dinámico -->
                 </span>
                 <span class="swipe-hint" id="reminder-swipe-hint" style="font-size: smaller;">
-                    (deslice lateralmente)
+                    <!-- Contenido dinámico -->
               </span>
             </div>
             <button id="hide-all-reminders-button" title="Posponer 1 minuto todos los recordatorios visibles">OCULTAR</button>
         </div>
         <div id="reminder-swiper-container" aria-live="polite">
         </div>
-        <span id="reminder-window-desc" class="hidden">Deslice para ver los recordatorios vencidos. Use los botones para gestionar cada recordatorio.</span>
+        <span id="reminder-window-desc" class="hidden"></span>
     </div>
 
-    <div id="grid-filter-container">
-        <input type="text" id="grid-filter-input" placeholder="Filtrar grid...">
-        <button id="clear-filter-button" title="Limpiar filtro">×</button>
-    </div>
 
-<main>
+<main style="display: none;">
     <div id="open-chat-area" style="cursor: pointer;" title="Abrir Chat">
         <div id="user-info-header">
             <span id="user-count-globe"></span>
@@ -144,33 +174,9 @@
     </div>
 </main>
     
-<div class="notices-icon-container">
-    <img src="./PNG/IMG_4194.jpg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon">
-    <div class="notices-container">
-        <div class="notice-wrapper">
-            <span class="notice" id="current-notice"></span>
-        </div>
-    </div>
-</div>
 
-<footer>
-    <div class="footer-content">
-        <div class="header-container">
-            <img src="./PNG/LOGOTESLA.jpg" class="header-logo">
-            <div class="title-container">
-                <h1 class="text-2xl font-bold inline">
-                    <span class="text-2xl">BoardingGate</span>
-                    <span class="text-base">Lanzador</span>
-                    <span id="version" class="version-text"></span>
-                </h1>
-            </div>
-        </div>
-        <div class="footer-line">
-          <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
-        </div>
-
-        <p class="footer-subtext">La inteligencia tiene ciertos limites. La locura, casi ninguno 🫶 🤟</p>
-    </div>
+<footer id="app-footer" style="display: none;">
+    <!-- Contenido inyectado por JS cuando boot-ready -->
 </footer>
 
 <div id="reminders-location-map-modal" class="map-modal-hidden">
@@ -188,7 +194,7 @@
         
         <div id="reminders-location-map-header">
              <div class="button-row">
-                <button id="close-reminders-location-map" class="reminders-map-button-action" title="Cerrar mapa y navegación"><img src="PNG/SALIR.PNG" alt="Salir"></button>
+                <!-- Botón Salir eliminado por petición del usuario -->
                 <button id="map-config-button" class="reminders-map-button-action" title="Abrir configuración"><img src="PNG/config.jpg" alt="Configuración"></button>
                 <button id="locate-me-on-reminders-map" class="reminders-map-button-action" title="Mostrar mi posición actual y activar seguimiento"><img src="PNG/ESTASAQUI.PNG" alt="Estás Aquí"></button>
                 <button id="start-navigation-button" class="reminders-map-button-action" title="Iniciar/Terminar Navegación"><img src="PNG/INICIARNAVEGACION.PNG" alt="Iniciar Navegación"></button>
@@ -373,206 +379,31 @@
     </ul>
 </div>
 
-<div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin">
+<div id="scroll-toggle" class="scroll-toggle-button" title="Ir al inicio o fin" style="display: none;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
 </div>
 
 <div id="route-concat-choice-modal" class="hidden">
-    <h2>EXISTE UN TRAZADO PREVIO</h2>
-    <p>¿Qué deseas hacer con la nueva ruta?</p>
+    <h2 id="route-concat-title"></h2>
+    <p id="route-concat-desc"></p>
     <div class="modal-top-buttons">
         <button id="concat-choice-append">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke-width="2.5" stroke="white">
-                <path d="M4 12H20" stroke-linecap="round"/>
-                <path d="M12 4V20" stroke-linecap="round"/>
-                <path d="M8 8C4 8 4 16 8 16" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M16 8C20 8 20 16 16 16" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>UNIR AMBAS RUTAS</span>
-            <span class="button-countdown-timer unified-countdown-style"></span>
+            <!-- SVG y Texto inyectados -->
         </button>
         <button id="concat-choice-replace">
-            <span class="icon-emoji">🔄</span>
-            <span>REEMPLAZARLA</span>
+            <span class="icon-emoji"></span>
+            <span></span>
         </button>
         <button id="concat-choice-cancel">
-            <span class="icon-emoji">❌</span>
-            <span>Cancelar</span>
+            <span class="icon-emoji"></span>
+            <span></span>
         </button>
     </div>
 </div>
 
 <div id="config-modal" class="hidden">
-    <div class="modal-top-buttons">
-        <h2>Configuración y Datos</h2>
-        <button id="config-close-modal" style="padding: 0.5rem 1rem; font-size:1rem;">Cerrar</button>
-    </div>
-    <div class="tab-buttons">
-        <button class="config-tab-button active" data-tab-target="#tab-content-usuario">Usuario</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-pin">Clave Acceso</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-radares">RADARES</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-backup-restore">Backup/Restore</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-borrar">Borrar Datos</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-normas">Normas uso</button>
-    </div>
-    <div class="tab-contents">
-        <div id="tab-content-usuario" class="config-tab-content active">
-            <h3>Datos de Usuario y Sincronización</h3>
-            <p style="font-size:.9rem;color:#555;margin-bottom:1.5rem;text-align:center;">
-                Introduce un nombre de usuario único para guardar y recuperar tus datos en la nube.
-            </p>
-            <p style="font-size: .95rem; color: #005A9C; margin-bottom: 1.5rem; text-align: left; background-color: #e6f7ff; padding: 10px; border-radius: 5px; border-left: 5px solid #007bff;">
-                <strong>Modo Compañero (Móvil):</strong> Para sincronizar datos desde tu móvil, usa tu nombre de usuario seguido de <strong>@MOVIL o MÓVIL</strong> (ej: `MI_USUARIO@MOVIL`).
-                Al iniciar sesión, se cargarán los ÚLTIMOS DATOS que el coche haya GUARDADO EN LA NUBE. Cada cambio que hagas en el móvil (crear rutas, etc.) se guardará automáticamente en la nube para que esté disponible en el coche al CARGAR. 
-                 -----IMPORTANTE!!!!---- SI QUIERES ENVIAR DATOS DESDE EL MÓVIL RECUERDA ANTES FORZAR UNA RECARGA DE LA PÁGINA EN EL COCHE (debes tener el check activo de copias automáticas) O REALIZAR MANUALMENTE UN BACKUP</p>
-            <div class="user-data-grid">
-                <div><label for="user-id">* ID Usuario (Único, no se puede cambiar):</label><input type="text" id="user-id" name="userId" required></div>
-                <div><label for="tesla-model">Modelo Tesla:</label><input type="text" id="tesla-model" name="teslaModel"></div>
-                <div><label for="tesla-year">Año Modelo:</label><input type="number" id="tesla-year" name="teslaYear" min="2012" max="2099"></div>
-                <div><label for="tesla-province">Provincia:</label><input type="text" id="tesla-province" name="teslaProvince"></div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="allow-dms" name="allowDMs"><label for="allow-dms">Permitir MDs (vía admin)</label>
-                    <span id="map-session-status" style="margin-left: 20px; font-size: 0.85em; color: #555;"></span>
-                </div>
-                
-                <div class="checkbox-container" style="border-top: 1px solid #ccc; padding-top: 1rem; margin-top: 1rem;">
-                    <input type="checkbox" id="config-auto-backup-on-load" name="autoBackup">
-                    <label for="config-auto-backup-on-load">Sincronizar/Hacer copia de seguridad automática al cargar la página (en el coche)</label>
-                </div>
-            </div>
-            <div class="user-buttons-container" style="margin-top:1.5rem;">
-                <button id="config-save-user-firebase" style="background-color:#16A34A;color:white;">Validar usuario y/o Sincronizar/Guardar en la nube</button>
-            </div>
-            <p id="config-user-status" class="status-message"></p>
-            </div>
-         <div id="tab-content-pin" class="config-tab-content">
-             <h3>Clave de Acceso (Local)</h3>
-             <div class="pin-buttons-container" style="margin-bottom: 1rem;">
-                 <button id="config-save-pin" style="background-color:#2563EB;color:white;">Guardar Clave y Preferencias</button>
-                 <button id="config-remove-pin" style="background-color:#dc3545;color:white;">Quitar Clave</button>
-             </div>
-             <p style="font-size: 0.9rem; color: #555; margin-bottom: 1rem;">Establece una clave de 4 cifras para proteger el acceso inicial a la página</p>
-             <div class="pin-config-layout">
-                 <div class="pin-input-group">
-                     <label for="config-pin-set">Establecer/Cambiar Clave:</label>
-                     <input type="password" id="config-pin-set" maxlength="4" pattern="\\d{4}" inputmode="numeric" placeholder="4 cifras">
-                 </div>
-                 <div class="pin-input-group">
-                     <label for="config-pin-confirm">Confirmar Clave:</label>
-                     <input type="password" id="config-pin-confirm" maxlength="4" pattern="\\d{4}" inputmode="numeric" placeholder="Repetir 4 cifras">
-                 </div>
-             </div>
-             <div class="checkbox-container" style="margin-top: 1.5rem; border-top: 1px solid #ccc; padding-top: 1rem;">
-                <input type="checkbox" id="config-direct-to-nav" name="directToNav">
-                <label for="config-direct-to-nav">Entrar directamente al Navegador de rutas</label>
-            </div>
-            
-             <p id="config-pin-status" class="status-message"></p>
-         </div>
-         <div id="tab-content-radares" class="config-tab-content">
-            <h3>Importar / Borrar Radares y Otros POIs</h3>
-            <div class="radar-action-buttons" style="margin-bottom: 1rem;">
-                <button id="import-radars-button">IMPORTAR RADARES y otros</button>
-                <button id="delete-filtered-radars-button">BORRAR CACHÉ (según filtro)</button>
-            </div>
-            <p style="font-size:0.85rem; color:#444; margin-bottom:0.5rem;">
-                Para <strong>importar</strong>, el filtro de "Palabras Clave" buscará coincidencias (OR) en el nombre del POI (ej: provincia, población, tipo).
-                Los filtros de Lat/Lon pueden ser un valor único (aprox.) o un rango (ej: "<code>40.1 40.5</code>" para buscar entre esas latitudes). Si un filtro está vacío, no se aplica.
-            </p>
-             <p style="font-size:0.85rem; color:#444; margin-bottom:1rem;">
-                 Los POIs importados (RADARES) se guardarán con un radio de <strong>400 metros</strong> y excluidos de la lista por defecto.
-             </p>
-            <p style="font-size:0.85rem; color:#444; margin-bottom:1.5rem;">
-                Para <strong>borrar</strong>: Si NO se especifica NINGÚN filtro, se borrarán TODOS los recordatorios de tipo "RADAR" o excluidos de lista. Si se especifica algún filtro, se borrarán los que cumplan TODAS las condiciones activas (Palabras Clave OR, Latitud Y Longitud).
-            </p>
-            <div class="radar-filter-group">
-                <div>
-                    <label for="radar-filter-lat">Latitud (valor o "min max"):</label>
-                    <input type="text" id="radar-filter-lat" placeholder="Ej: 40.123 o 40.0 40.5">
-                </div>
-                <div>
-                    <label for="radar-filter-lon">Longitud (valor o "min max"):</label>
-                    <input type="text" id="radar-filter-lon" placeholder="Ej: -3.567 o -4.0 -3.0">
-                </div>
-                <div style="grid-column: span 2;">
-                    <label for="radar-filter-keywords">Palabras Clave (en nombre POI, separadas por espacio, condición OR):</label>
-                    <input type="text" id="radar-filter-keywords" placeholder="Ej: FIJO CAMUFLADO MADRID">
-                </div>
-            </div>
-            <div class="radar-import-options">
-                <input type="checkbox" id="import-extra-radars-checkbox">
-                <label for="import-extra-radars-checkbox">Importar también radares móviles, semáforo, etc (usa ficheros KLM adicionales)</label>
-            </div>
-             <div id="radar-import-progress-container" style="display:none;">
-                 <progress id="radar-import-progress-bar" value="0" max="100"></progress>
-                 <p id="radar-import-status" class="status-message"></p>
-             </div>
-         </div>
-        <div id="tab-content-backup-restore" class="config-tab-content">
-            <h3>Recuperar Backup / Hacer Copia en la Nube</h3>
-            <p style="margin-bottom:1.2rem;">
-                Para <strong>Recuperar</strong>, introduce tu ID de usuario y pulsa el botón naranja.<br>
-                Para <strong>Hacer una Copia de Seguridad</strong>, asegúrate de que tu ID está introducido en la pestaña "Usuario" y pulsa el botón verde.
-            </p>
-            
-            <div class="user-data-grid" style="grid-template-columns: 1fr auto; align-items: end; gap: 1rem;">
-                <div style="grid-column: 1 / 2;">
-                    <label for="restore-user-id">ID Usuario a recuperar:</label>
-                    <input type="text" id="restore-user-id" placeholder="Tu apodo único (el que está en la pestaña usuario)...">
-                </div>
-                <div style="grid-column: 2 / 3; display: flex; flex-direction: column; gap: 0.5rem;">
-                    <button id="config-restore-backup-firebase" style="background-color:#E65100;color:white;width:100%;padding: 0.6rem 1rem;">Recuperar Backup de la nube</button>
-                    <button id="config-save-user-firebase-from-backup-tab" style="background-color:#16A34A;color:white;width:100%;padding: 0.6rem 1rem;">Hacer la copia de seguridad en la nube</button>
-                </div>
-            </div>
-            <p id="config-restore-status" class="status-message"></p>
-            <hr style="margin: 2rem 0;">
-            <h3>Backup/Restore Local (Manual)</h3>
-            <p style="font-size:.85rem; color:#555;">Esto es para copias manuales de texto. No interactúa con la nube</p>
-            <div class="backup-restore-container" style="margin-top:1rem;">
-                 <div>
-                    <h4>Crear Backup Local</h4>
-                     <button id="config-generate-backup" style="background-color:#2563EB;color:white; margin-bottom: 1rem;">Generar Código</button>
-                    <textarea id="config-backup-display" readonly style="display:none;"></textarea>
-                    <p id="config-backup-status" class="status-message"></p>
-                </div>
-                <div>
-                    <h4>Restaurar Copia Local</h4>
-                    <button id="config-restore-backup" style="background-color:#10B981;color:white; margin-bottom: 1rem;">Restaurar</button>
-                    <textarea id="config-restore-input" placeholder="Pega el código de backup local aquí..."></textarea>
-                </div>
-            </div>
-        </div>
-        
-        <div id="tab-content-borrar" class="config-tab-content borrar-container">
-            <h3>Borrar Datos Locales</h3>
-             <button id="config-restore-grid-button">RESTAURAR EL GRID ORIGINAL DE BOTONES</button>
-             <p id="config-restore-grid-status" class="status-message" style="margin-bottom: 1.5rem;"></p>
-            <h3 style="border-top: 1px solid #ccc; padding-top: 1.5rem; margin-top:1.5rem;">Acción Irreversible</h3>
-            <button id="config-clear-cache" style="margin-bottom: 0.5rem;">Borrar TODO</button>
-            <p>Elimina TODOS los datos locales.</p>
-            <p><strong style="color:red;">¡Sin deshacer!</strong> Ten backup.</p>
-        </div>
-        <div id="tab-content-normas" class="config-tab-content">
-             <h3 style="text-align: center; font-size: 1.4rem; color: #c0392b; margin-bottom: 1rem;">Aviso Importante: Uso de la Aplicación de Navegación</h3>
-             <div style="text-align: left; font-size: 0.95rem; line-height: 1.5; color: #333; max-height: 45vh; overflow-y: auto; padding-right: 10px;">
-                 <p>¡Bienvenido/a a nuestra aplicación de navegación de rutas para coche! Hemos diseñado esta herramienta con la mejor intención de ayudarte a planificar tus viajes.</p>
-                 <p style="margin-top: 1rem;">Sin embargo, es fundamental que entiendas que el uso de esta aplicación es <strong>bajo tu propia y exclusiva responsabilidad</strong>. Al utilizar nuestra web, aceptas plenamente las siguientes condiciones:</p>
-                 <ul style="list-style-type: disc; margin-left: 20px; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                     <li><strong>Responsabilidad del usuario:</strong> Eres el único/a responsable de la toma de decisiones al volante. Nuestra aplicación es una herramienta de apoyo y nunca debe sustituir tu juicio, la observación directa de las condiciones de la vía, las señales de tráfico o la normativa de circulación vigente.</li>
-                     <li><strong>Supervisión constante:</strong> La aplicación debe ser utilizada siempre bajo tu supervisión activa. La información proporcionada (cartografía, trazados, indicaciones, etc.) puede no estar actualizada en tiempo real o contener imprecisiones. Las condiciones de la carretera, el tráfico o las regulaciones pueden cambiar sin previo aviso.</li>
-                     <li><strong>Conducción segura:</strong> Prioriza siempre la seguridad. Evita manipular la aplicación mientras conduces y presta toda tu atención a la carretera. Detente en un lugar seguro para consultar la ruta si es necesario.</li>
-                     <li><strong>Errores y fallos:</strong> Aunque nos esforzamos por ofrecer un servicio fiable, no podemos garantizar que la aplicación esté libre de errores, interrupciones o fallos. No nos hacemos responsables de ningún daño, perjuicio o incidente que pueda derivarse del uso o la imposibilidad de uso de esta aplicación.</li>
-                     <li><strong>Actualizaciones:</strong> Te recomendamos mantener tu navegador y sistema operativo actualizados para el mejor funcionamiento de la aplicación, aunque no podemos garantizar la compatibilidad total con todos los dispositivos y versiones.</li>
-                 </ul>
-                 <p style="margin-top: 1rem;">Al continuar utilizando esta aplicación, confirmas que has leído, entendido y aceptado este descargo de responsabilidad. ¡Disfruta de tu viaje con precaución!</p>
-             </div>
-             <div style="text-align: center; margin-top: 1.5rem;">
-                 <button id="accept-terms-button" style="background-color:#28a745; color:white; padding: 0.8rem 2rem; font-size: 1.2rem; border-radius: 0.25rem;">Acepto</button>
-             </div>
-         </div>
-    </div>
+    <!-- Contenido inyectado por JS para evitar flashes -->
 </div>   
 <div id="simulation-modal" class="hidden">
 </div>
@@ -581,18 +412,18 @@
 </div>
 
 <div id="locations-preview-modal" class="hidden">
-    <h2 id="locations-preview-title">Ubicaciones (filtrado según tabla)</h2>
+    <h2 id="locations-preview-title"></h2>
     <div id="locations-preview-map-container" style="height: calc(100% - 100px); width: 100%;"></div>
     <div class="modal-top-buttons" style="justify-content: center; margin-top: 1rem;">
-        <button id="close-locations-preview">Salir</button>
+        <button id="close-locations-preview"></button>
     </div>
 </div>
 
 <div id="address-suggestions-modal" class="hidden">
-    <h2 id="address-suggestions-title">Sugerencias de Dirección</h2>
+    <h2 id="address-suggestions-title"></h2>
     <ul id="address-suggestions-list"></ul>
     <div class="modal-top-buttons" style="justify-content: flex-end; margin-top: 1rem;">
-        <button id="close-address-suggestions-modal" style="flex: 0 1 auto; min-width: 120px;">Cancelar</button>
+        <button id="close-address-suggestions-modal" style="flex: 0 1 auto; min-width: 120px;"></button>
     </div>
 </div>
 
@@ -619,32 +450,7 @@
 <div id="maneuver-flashing-border-overlay" class="hidden"></div>
     
 <div id="chat-modal-overlay" class="hidden">
-    <div id="chat-modal-content">
-        <div id="chat-left-column">
-            
-            <div id="chat-input-area">
-                <div id="chat-permission-warning" class="hidden"></div>
-                <textarea id="chat-message-input" rows="4" maxlength="500" placeholder="Escribe un mensaje... (antecede @usuario para mensaje privado, o pulsa en el lateral. Para referirse simplemente nómbralo). Vida de los mensajes 96 horas. En el coche usa los comandos de voz. Elon cree en la humanidad, the White Monkey y yo también, ser educad@s."></textarea>
-              
-                <div id="chat-input-footer">
-                    <div id="chat-buttons">
-                        <button id="chat-send-button">Enviar</button>
-                        <button id="chat-exit-button">Salir</button>
-                    </div>
-                    <div id="chat-char-counter">500</div>
-                </div>
-            </div>
-            
-            <div id="chat-messages-container"></div>
-        </div>
-
-        <div id="chat-right-column">
-            <div id="chat-users-filter-container">
-                <input type="text" id="chat-user-filter-input" placeholder="Filtrar por cualquier dato...">
-            </div>
-            <div id="chat-users-list"></div>
-        </div>
-    </div>
+    <!-- Contenido inyectado por JS -->
 </div>
     <div id="route-recovery-overlay" class="hidden">
         <div class="recovery-spinner"></div>
@@ -703,6 +509,21 @@
 //ofu mapbox
                                                                                                                                                                                                     // maplibregl no necesita accessToken para OpenFreeMap                                                                                                   
 
+    // === CORE STATE & GLOBAL CONSTANTS ===
+    window.TOTAL_CELLS = 96;
+    window.COLS = 6;
+    window.cellElements = [];
+    window.toggleButtonElements = {};
+    window.currentBookmarks = [];
+    window.currentToggleRanges = [];
+    window.isEditMode = false;
+    window.isAssignmentMode = false;
+    window.isKeywordAssignmentMode = false;
+    window.isDarkMode = false;
+    window.isActive = true;
+    window.isFooterVisible = true;
+    window.customData = { bookmarks: {}, toggles: {} };
+    window.grid = null; 
     
 //=======================================================        
     
@@ -976,19 +797,16 @@ const originalBookmarks = [
     let navigationTargetZoom = null;
     let currentSmoothedMapCenter = null;
     let lastMobileSyncTimestamp = 0;
-    const TOTAL_CELLS = 96; const COLS = 6; const grid = document.getElementById('bookmark-grid');
-    let isDarkMode = false; let pressStartTime = null; let reminderPressStartTime = null; let isActive = true; let isFooterVisible = true; let notices = []; let currentNoticeIndex = 0; let fromReminderModal = false;
-    let isEditMode = false; let isAssignmentMode = false;
-    let isKeywordAssignmentMode = false;
+    // State variables moved to top-level for early initialization
+    let pressStartTime = null; let reminderPressStartTime = null; let fromReminderModal = false;
     let currentlyAssigningToggleStart = null;
-    let customData = { bookmarks: {}, toggles: {} };
-    let cellElements = []; let toggleButtonElements = {}; let currentBookmarks = []; let currentToggleRanges = [];
     let onOffToggle, weatherButton, reminderButton, zoomButton, darkModeToggle, versionsButton, infoButton;
     let radarButton;
     let firstPersonalizationSession = !sessionStorage.getItem('personalizationHelpShown');
     let editingTargetElement = null; let draggedItem = null; let draggedItemIndex = null; let dragOverIndex = null;
     let touchStartX = 0; let touchStartY = 0; let currentTouchTarget = null;
     let isPasswordActive = false; let storedPin = null;
+    let notices = []; let currentNoticeIndex = 0;
     
     let reminderCheckIntervalId = null;
     let remindersSpatialIndex = {}; 
@@ -5424,6 +5242,7 @@ async function fetchOverpassData(query) {
 // ===================================================================
 // NOMBRE: closeNavigationMap 
 function closeNavigationMap(force = false) {
+    applyMainUISettings();
     const aiModal = document.getElementById('ai-route-modal');
     if (aiModal) aiModal.classList.add('hidden');
 
@@ -5451,12 +5270,17 @@ function closeNavigationMap(force = false) {
         
         sessionStorage.setItem(TEMP_PREVENT_DIRECT_NAV_KEY, 'true');
 
-        const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
-        const footer = document.querySelector('footer'); if (footer) footer.style.display = 'block';
-        const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'flex';
-        const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
-        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
-        const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'flex';
+        // No mostramos los "restos" si el mapa se está ocultando temporalmente
+        if (!force) {
+            const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
+            const footer = document.querySelector('footer'); if (footer) footer.style.display = 'block';
+            const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'flex';
+            const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
+            document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
+            const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'flex';
+            populateDynamicUI();
+            document.body.classList.add('boot-ready');
+        }
         
         return; }
  
@@ -5560,12 +5384,16 @@ function closeNavigationMap(force = false) {
         directToNavOnLoad = false;
     }
  
-    const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
-    const footer = document.querySelector('footer'); if (footer) footer.style.display = 'block';
-    const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'flex';
-    const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
-    document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
-    const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'flex';
+    if (!force) {
+        const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
+        const footer = document.querySelector('footer'); if (footer) footer.style.display = 'block';
+        const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'flex';
+        const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
+        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
+        const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'flex';
+        populateDynamicUI();
+        document.body.classList.add('boot-ready');
+    }
 }
 
 // ===================================================================
@@ -6024,13 +5852,20 @@ async function openNavigationMap(isRecovery = false) {
 // ===================================================================
 // NOMBRE: initializeApp 
 async function initializeApp() {
+    console.log("[Boot] Initializing Tesla Dashboard Application...");
     navigationMapInstance = null; 
-   
+    
+    // 1. Ensure DOM references
+    grid = document.getElementById('bookmark-grid');
+    if (!grid) {
+        console.warn("[Boot] 'bookmark-grid' not found in DOM.");
+    }
+
+    // 2. Load Core Data
     const recoveryExecuted = await checkForAndExecuteCrashRecovery();
     loadCustomData();
     loadSavedSettings();
     applyMapVisualSettings();
-    applyMainUISettings();
     isMobileSession = parseUserId(localStorage.getItem('userData_userId')).isMobile; 
     if (isMobileSession) {
         document.body.classList.add('mobile-view');
@@ -6049,8 +5884,13 @@ async function initializeApp() {
     const allowDMs = JSON.parse(localStorage.getItem('userData_allowDMs') || 'false');
     const canAccessMaps = (userId && userId.trim() !== '' && allowDMs);
     const shouldForceOpenNavigation = termsAccepted && canAccessMaps;
-  
-    if (((shouldDirectToNav && !tempPreventDirectNav) || recoveryExecuted || shouldForceOpenNavigation) && termsAccepted && canAccessMaps) {
+    const shouldGoToMap = ((shouldDirectToNav && !tempPreventDirectNav) || recoveryExecuted || shouldForceOpenNavigation);
+
+    if (!shouldGoToMap) {
+        applyMainUISettings();
+    }
+
+    if (shouldGoToMap) {
         if(!recoveryExecuted) sessionStorage.setItem('isInDirectToMapMode', 'true');
         directToNavOnLoad = true;
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
@@ -6058,19 +5898,17 @@ async function initializeApp() {
         const noticesIconContainer = document.querySelector('.notices-icon-container'); if (noticesIconContainer) noticesIconContainer.style.display = 'none';
         const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
         document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'none');
-        document.getElementById('grid-filter-container').style.display = 'none';
+        const gridFilterContainer = document.getElementById('grid-filter-container'); if (gridFilterContainer) gridFilterContainer.style.display = 'none';
         
         if (!recoveryExecuted) {
             openNavigationMap();
+            if (termsAccepted && !canAccessMaps) {
+                 setTimeout(() => { showConfigModal(); }, 1500); 
+            }
         }
+        // Quitar splash negro tras dar tiempo al mapa a mostrarse
+        setTimeout(() => { const s = document.getElementById('boot-splash'); if (s) s.remove(); }, 600);
     } else {
-        if (shouldDirectToNav && !tempPreventDirectNav && termsAccepted && !canAccessMaps) {
-            const message = "PARA ACCEDER A MAPAS, ES IMPRESCINDIBLE QUE CREE EN CONFIGURACIÓN UN NOMBRE DE USUARIO ÚNICO (y debe estar activado Permitir MDs también y BACKUP AUTOMÁTICO)...";
-            const duration = 10000; 
-            showToast(message, 'error', duration);
-            setTimeout(() => { showConfigModal(); }, duration);
-        }
-
         sessionStorage.removeItem('isInDirectToMapMode');
         directToNavOnLoad = false;
         sessionStorage.removeItem(TEMP_PREVENT_DIRECT_NAV_KEY); 
@@ -6080,11 +5918,15 @@ async function initializeApp() {
         const noticesIconContainer = document.querySelector('.notices-icon-container'); if (noticesIconContainer) noticesIconContainer.style.display = 'flex';
         const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
         document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
-        document.getElementById('grid-filter-container').style.display = 'flex';
+        const gridFilterContainer = document.getElementById('grid-filter-container'); if (gridFilterContainer) gridFilterContainer.style.display = 'flex';
+        // Activar visibilidad del grid: quitar bloqueo CSS y splash
+        populateDynamicUI();
+        document.body.classList.add('boot-ready');
+        const splashEl = document.getElementById('boot-splash'); if (splashEl) splashEl.remove();
     }
     initializeConfigModalListeners();
     try { await updateVersion(); } catch (e) { }
-    try { await loadNotices(); startNoticeRotation(); } catch (e) { }
+    // try { await loadNotices(); startNoticeRotation(); } catch (e) { }
     if (reminderCheckIntervalId) { clearInterval(reminderCheckIntervalId); }
     if (!termsAccepted) {
         showConfigModal();
@@ -7742,14 +7584,17 @@ async function updateDynamicRadars(isInitialLoadCheck = false) {
 // ===================================================================
 // NOMBRE: applyMainUISettings 
 // RESUMEN: Aplica todas las configuraciones visuales de la interfaz principal (toggles, filtros, etc.).
+let mainUISettingsApplied = false;
 function applyMainUISettings() {
+    if (mainUISettingsApplied) return;
     renderGrid();
     createOtherButtons();
     renderToggleButtons();
     updateButtonStyles();
     filterGridItems();
     setTimeout(adjustButtonPositions, 100);
-}    
+    mainUISettingsApplied = true;
+}
 
 // ===================================================================
 // NOMBRE: showPoiInfoModal 
@@ -15654,11 +15499,11 @@ function assignMapButtonListeners() {
                     toggleRangeCalcMode();
                     break;
                  case 'map-config-button':
-                    const currentMapContext = sessionStorage.getItem('mapContext');
-                    if (isNavigationMapActive && currentMapContext) {
+                    const mapContextToSave = sessionStorage.getItem('mapContext');
+                    if (isNavigationMapActive && mapContextToSave) {
                         sessionStorage.setItem('boardinggate_map_should_reopen_after_config', 'true');
-                        sessionStorage.setItem('mapContextToReopenAfterConfig', currentMapContext);
-                        closeNavigationMap(true);
+                        sessionStorage.setItem('mapContextToReopenAfterConfig', mapContextToSave);
+                        // Ya no cerramos el mapa, solo mostramos el modal encima
                     }
                     showConfigModal();
                     break;
@@ -15892,9 +15737,12 @@ async function openChatModal() {
         messageInput.listenerAdded = true;
     }
 
-    const newExitButton = document.getElementById('chat-exit-button').cloneNode(true);
-    document.getElementById('chat-exit-button').parentNode.replaceChild(newExitButton, document.getElementById('chat-exit-button'));
-    newExitButton.addEventListener('click', closeChatModal);
+    const exitBtn = document.getElementById('chat-exit-button');
+    if (exitBtn) {
+        const newExitButton = exitBtn.cloneNode(true);
+        exitBtn.parentNode.replaceChild(newExitButton, exitBtn);
+        newExitButton.addEventListener('click', closeChatModal);
+    }
 
     const newSendButton = sendButton.cloneNode(true);
     sendButton.parentNode.replaceChild(newSendButton, sendButton);
@@ -19245,11 +19093,13 @@ function showConfigModal() {
             input.value = '';
         }
     });
-    modal.querySelector('#config-pin-set').value = '';
-    modal.querySelector('#config-pin-confirm').value = '';
-    modal.querySelector('#config-backup-display').value = '';
-    modal.querySelector('#config-restore-input').value = '';
-    if(modal.querySelector('#config-backup-display')) modal.querySelector('#config-backup-display').style.display = 'none';
+    const pinSetEl = modal.querySelector('#config-pin-set'); if (pinSetEl) pinSetEl.value = '';
+    const pinConfirmEl = modal.querySelector('#config-pin-confirm'); if (pinConfirmEl) pinConfirmEl.value = '';
+    const backupDisplayEl = modal.querySelector('#config-backup-display'); if (backupDisplayEl) {
+        backupDisplayEl.value = '';
+        backupDisplayEl.style.display = 'none';
+    }
+    const restoreInputEl = modal.querySelector('#config-restore-input'); if (restoreInputEl) restoreInputEl.value = '';
     const userIdInput = modal.querySelector('#user-id');
     const storedUserId = localStorage.getItem('userData_userId');
     if (userIdInput) userIdInput.value = storedUserId || '';
@@ -19272,6 +19122,7 @@ function showConfigModal() {
         autoBackupCheckbox.checked = savedAutoBackup === null ? true : JSON.parse(savedAutoBackup);
     }
 
+    modal.classList.add('active-modal');
     modal.classList.remove('hidden');
     const closeButtonConfig = modal.querySelector('#config-close-modal');
     addModalAutoCloseTimer(modal, closeButtonConfig, 'config-modal', 120000);
@@ -19770,7 +19621,49 @@ function updateRouteAndCarIconStyle() {
 }
     
 // ===================================================================
-function loadCustomData() { const savedData = localStorage.getItem('customGridData'); currentBookmarks = []; currentToggleRanges = []; customData = { bookmarks: {}, toggles: {} }; if (savedData) { try { customData = JSON.parse(savedData) || { bookmarks: {}, toggles: {} }; } catch (e) { customData = { bookmarks: {}, toggles: {} }; } } if (!customData.bookmarks) customData.bookmarks = {}; if (!customData.toggles) customData.toggles = {}; currentBookmarks = Array.from({ length: TOTAL_CELLS }).map((_, index) => { if (customData.bookmarks.hasOwnProperty(index)) { return customData.bookmarks[index] ? { ...customData.bookmarks[index] } : null; } else { const original = index < originalBookmarks.length ? originalBookmarks[index] : null; return original ? { ...original } : null; } }); currentToggleRanges = originalToggleRanges.map(originalRange => { const customToggle = customData.toggles[originalRange.start]; const rangeCopy = { ...originalRange }; if (customToggle) { if (typeof customToggle.label === 'string') rangeCopy.label = customToggle.label; if (Array.isArray(customToggle.assignedIndexes)) rangeCopy.assignedIndexes = [...customToggle.assignedIndexes]; } if (!rangeCopy.assignedIndexes) rangeCopy.assignedIndexes = Array.from({ length: rangeCopy.end - originalRange.start + 1 }, (_, i) => originalRange.start + i); return rangeCopy; }); }
+function loadCustomData() { 
+    console.log("[Data] Loading custom grid data...");
+    const savedData = localStorage.getItem('customGridData'); 
+    currentBookmarks = []; 
+    currentToggleRanges = []; 
+    customData = { bookmarks: {}, toggles: {} }; 
+    
+    if (savedData) { 
+        try { 
+            customData = JSON.parse(savedData) || { bookmarks: {}, toggles: {} }; 
+        } catch (e) { 
+            console.error("[Data] Error parsing customGridData from localStorage:", e);
+            customData = { bookmarks: {}, toggles: {} }; 
+        } 
+    } 
+    
+    if (!customData.bookmarks) customData.bookmarks = {}; 
+    if (!customData.toggles) customData.toggles = {}; 
+    
+    const total = (typeof TOTAL_CELLS !== 'undefined') ? TOTAL_CELLS : 96;
+
+    currentBookmarks = Array.from({ length: total }).map((_, index) => { 
+        if (customData.bookmarks.hasOwnProperty(index)) { 
+            return customData.bookmarks[index] ? { ...customData.bookmarks[index] } : null; 
+        } else { 
+            const original = index < originalBookmarks.length ? originalBookmarks[index] : null; 
+            return original ? { ...original } : null; 
+        } 
+    }); 
+    
+    currentToggleRanges = originalToggleRanges.map(originalRange => { 
+        const customToggle = customData.toggles[originalRange.start]; 
+        const rangeCopy = { ...originalRange }; 
+        if (customToggle) { 
+            if (typeof customToggle.label === 'string') rangeCopy.label = customToggle.label; 
+            if (Array.isArray(customToggle.assignedIndexes)) rangeCopy.assignedIndexes = [...customToggle.assignedIndexes]; 
+        } 
+        if (!rangeCopy.assignedIndexes) {
+            rangeCopy.assignedIndexes = Array.from({ length: rangeCopy.end - originalRange.start + 1 }, (_, i) => originalRange.start + i); 
+        }
+        return rangeCopy; 
+    }); 
+}
      
 // ===================================================================
 function loadReminders() { updateReminderCount(); }
@@ -20075,18 +19968,259 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
     // ===================================================================
     async function updateVersion() { try { const lmd = await getLastModifiedDate(); const v = formatVersionDate(lmd); const el = document.getElementById('version'); if (el) el.textContent = `versión: ${v}`; } catch (e) { const el = document.getElementById('version'); if (el) el.textContent = 'versión: error'; } }
     
+    function populateDynamicUI() {
+        const footer = document.getElementById('app-footer');
+        if (footer && footer.innerHTML.trim() === '<!-- Contenido inyectado por JS cuando boot-ready -->') {
+            footer.innerHTML = `
+                <div class="footer-content">
+                    <div class="header-container">
+                        <img src="./PNG/LOGOTESLA.jpg" class="header-logo">
+                        <div class="title-container">
+                            <h1 class="text-2xl font-bold inline">
+                                <span class="text-2xl">BoardingGate</span>
+                                <span class="text-base">Lanzador</span>
+                                <span id="version" class="version-text"></span>
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="footer-line">
+                      <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
+                    </div>
+                    <p class="footer-subtext">La inteligencia tiene ciertos limites. La locura, casi ninguno 🫶 🤟</p>
+                </div>
+            `;
+            updateVersion();
+        }
+
+        const configModal = document.getElementById('config-modal');
+        if (configModal && (configModal.innerHTML.trim() === '' || configModal.innerHTML.trim() === '<!-- Contenido inyectado por JS para evitar flashes -->')) {
+            configModal.innerHTML = `
+                <div id="config-modal-container">
+                    <div class="modal-top-buttons">
+                        <h2>Configuración y Datos</h2>
+                        <button id="config-close-modal" style="padding: 0.5rem 1rem; font-size:1rem;">Cerrar</button>
+                    </div>
+                    <div class="tab-buttons">
+                        <button class="config-tab-button active" data-tab-target="#tab-content-usuario">Usuario</button>
+                        <button class="config-tab-button" data-tab-target="#tab-content-pin">Clave Acceso</button>
+                        <button class="config-tab-button" data-tab-target="#tab-content-radares">RADARES</button>
+                        <button class="config-tab-button" data-tab-target="#tab-content-backup-restore">Backup/Restore</button>
+                        <button class="config-tab-button" data-tab-target="#tab-content-borrar">Borrar Datos</button>
+                        <button class="config-tab-button" data-tab-target="#tab-content-normas">Normas uso</button>
+                    </div>
+                    <div class="tab-contents">
+                        <div id="tab-content-usuario" class="config-tab-content active">
+                            <h3>Datos de Usuario y Sincronización</h3>
+                            <p style="font-size:.9rem;color:#555;margin-bottom:1.5rem;text-align:center;">Introduce un nombre de usuario único para guardar y recuperar tus datos en la nube.</p>
+                            <div class="user-data-grid">
+                                <div><label for="user-id">* ID Usuario:</label><input type="text" id="user-id" name="userId" required></div>
+                                <div><label for="tesla-model">Modelo Tesla:</label><input type="text" id="tesla-model" name="teslaModel"></div>
+                                <div><label for="tesla-year">Año Modelo:</label><input type="number" id="tesla-year" name="teslaYear" min="2012" max="2099"></div>
+                                <div><label for="tesla-province">Provincia:</label><input type="text" id="tesla-province" name="teslaProvince"></div>
+                                <div class="checkbox-container">
+                                    <input type="checkbox" id="allow-dms" name="allowDMs"><label for="allow-dms">Permitir MDs (vía admin)</label>
+                                </div>
+                                <div class="checkbox-container">
+                                    <input type="checkbox" id="config-auto-backup-on-load" name="autoBackup"><label for="config-auto-backup-on-load">Sincronizar automáticamente</label>
+                                </div>
+                            </div>
+                            <div class="user-buttons-container"><button id="config-save-user-firebase" style="background-color:#16A34A;color:white;">Sincronizar / Guardar</button></div>
+                            <p id="config-user-status" class="status-message"></p>
+                        </div>
+                        <!-- ... (Rest of tabs remain same, just wrapped) ... -->
+
+                    <div id="tab-content-pin" class="config-tab-content">
+                        <h3>Clave de Acceso</h3>
+                        <div class="form-group">
+                            <label for="config-pin-set">Nueva Clave:</label>
+                            <input type="password" id="config-pin-set" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="config-pin-confirm">Confirmar Clave:</label>
+                            <input type="password" id="config-pin-confirm" inputmode="numeric">
+                        </div>
+                        <p id="config-pin-status" class="status-message"></p>
+                        <button id="config-save-pin">Guardar Clave</button>
+                        <button id="config-remove-pin" style="background:#dc3545;">Eliminar Clave</button>
+                    </div>
+
+                    <div id="tab-content-radares" class="config-tab-content">
+                        <h3>Opciones de Navegación</h3>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="config-direct-to-nav">
+                            <label for="config-direct-to-nav">Inicio directo al mapa</label>
+                        </div>
+                    </div>
+
+                    <div id="tab-content-backup-restore" class="config-tab-content">
+                        <h3>Copia de Seguridad</h3>
+                        <button id="config-export-btn">Generar Backup</button>
+                        <textarea id="config-backup-display" readonly style="display:none;"></textarea>
+                        <p id="config-backup-status" class="status-message"></p>
+                        <hr>
+                        <textarea id="config-restore-input" placeholder="Pegar código aquí..."></textarea>
+                        <button id="config-import-btn">Restaurar Backup</button>
+                        <p id="config-restore-status" class="status-message"></p>
+                    </div>
+
+                    <div id="tab-content-borrar" class="config-tab-content">
+                        <h3>Borrar Datos</h3>
+                        <button id="config-reset-all" style="background:#dc3545;">BORRAR TODO</button>
+                        <button id="config-restore-grid">Restaurar Grid Original</button>
+                        <p id="config-restore-grid-status" class="status-message"></p>
+                    </div>
+
+                    <div id="tab-content-normas" class="config-tab-content">
+                        <h3>Normas de Uso</h3>
+                        <div style="max-height:150px; overflow-y:auto; background:rgba(0,0,0,0.05); padding:10px;">
+                            <p>Al usar esta aplicación aceptas que es experimental y que eres el único responsable de su uso durante la conducción.</p>
+                        </div>
+                        <button id="accept-terms-button">Aceptar Normas</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        const remindersTitle = document.getElementById('reminder-count-text-container');
+        if (remindersTitle && remindersTitle.innerHTML.trim() === '<!-- Contenido dinámico -->') {
+            remindersTitle.innerHTML = '<span id="current-reminder-index">1</span> de <span id="total-reminder-count">X</span> Recordatorios';
+        }
+        const swipeHint = document.getElementById('reminder-swipe-hint');
+        if (swipeHint && swipeHint.innerHTML.trim() === '<!-- Contenido dinámico -->') {
+            swipeHint.innerHTML = '(deslice lateralmente)';
+        }
+        
+        const locTitle = document.getElementById('locations-preview-title'); if(locTitle) locTitle.textContent = 'Ubicaciones (filtrado según tabla)';
+        const locClose = document.getElementById('close-locations-preview'); if(locClose) locClose.textContent = 'Salir';
+        const chatOverlay = document.getElementById('chat-modal-overlay');
+        if (chatOverlay && chatOverlay.innerHTML.trim() === '<!-- Contenido inyectado por JS -->') {
+            chatOverlay.innerHTML = `
+                <div id="chat-modal-content">
+                    <div id="chat-left-column">
+                        <div id="chat-input-area">
+                            <div id="chat-permission-warning" class="hidden"></div>
+                            <textarea id="chat-message-input" rows="4" maxlength="500" placeholder="Escribe un mensaje... (antecede @usuario para mensaje privado, o pulsa en el lateral. Para referirse simplemente nómbralo). Vida de los mensajes 96 horas. En el coche usa los comandos de voz. Elon cree en la humanidad, the White Monkey y yo también, ser educad@s."></textarea>
+                            <div id="chat-input-footer">
+                                <div id="chat-buttons">
+                                    <button id="chat-send-button">Enviar</button>
+                                </div>
+                                <div id="chat-char-counter">500</div>
+                            </div>
+                        </div>
+                        <div id="chat-messages-container"></div>
+                    </div>
+                    <div id="chat-right-column">
+                        <div id="chat-users-filter-container">
+                            <input type="text" id="chat-user-filter-input" placeholder="Filtrar por cualquier dato...">
+                        </div>
+                        <div id="chat-users-list"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const routeConcatModal = document.getElementById('route-concat-choice-modal');
+        if (routeConcatModal && document.getElementById('route-concat-title') && document.getElementById('route-concat-title').textContent === '') {
+            document.getElementById('route-concat-title').textContent = 'EXISTE UN TRAZADO PREVIO';
+            document.getElementById('route-concat-desc').textContent = '¿Qué deseas hacer con la nueva ruta?';
+            const appendBtn = document.getElementById('concat-choice-append');
+            appendBtn.innerHTML = `
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke-width="2.5" stroke="white">
+                    <path d="M4 12H20" stroke-linecap="round"/>
+                    <path d="M12 4V20" stroke-linecap="round"/>
+                    <path d="M8 8C4 8 4 16 8 16" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 8C20 8 20 16 16 16" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>UNIR AMBAS RUTAS</span>
+                <span class="button-countdown-timer unified-countdown-style"></span>
+            `;
+            const replaceBtn = document.getElementById('concat-choice-replace');
+            replaceBtn.querySelector('.icon-emoji').textContent = '🔄';
+            replaceBtn.querySelector('span:not(.icon-emoji)').textContent = 'REEMPLAZARLA';
+            const cancelBtn = document.getElementById('concat-choice-cancel');
+            cancelBtn.querySelector('.icon-emoji').textContent = '❌';
+            cancelBtn.querySelector('span:not(.icon-emoji)').textContent = 'Cancelar';
+        }
+    }
+    
     // ===================================================================
     const getFaviconUrl = (bookmarkData) => { try { const urlToParse = bookmarkData?.url || ''; const customFavicon = bookmarkData?.favicon; if (customFavicon && (customFavicon.startsWith('data:image') || customFavicon.startsWith('http') || customFavicon.startsWith('./'))) return customFavicon; if (urlToParse) { const domain = new URL(urlToParse).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } } catch (e) { } return 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23444"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20"%3EB%3C/text%3E%3C/svg%3E'; };
     
     // ===================================================================
     // NOMBRE: renderGrid
-    function renderGrid() { grid.innerHTML = ''; cellElements = []; Array.from({ length: TOTAL_CELLS }).forEach((_, index) => { const cellContainer = document.createElement('div'); cellContainer.classList.add('grid-cell'); cellContainer.dataset.index = index; const bookmarkData = currentBookmarks[index]; const section = getSectionForIndex(index); const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; if (bookmarkData) { const link = document.createElement('a'); link.className = 'bookmark-item'; link.title = bookmarkData.name; link.style.backgroundColor = bgColor; link.href = bookmarkData.url || "#"; link.dataset.index = index;
-        if (isKeywordAssignmentMode || (bookmarkData.name && bookmarkData.name === "Inicio Tesla") || !bookmarkData.url || bookmarkData.url === '#') { } else { link.target = "_blank"; link.rel = "noopener noreferrer"; }
-        const img = document.createElement('img'); img.src = getFaviconUrl(bookmarkData); img.alt = `Favicon ${bookmarkData.name}`; img.loading = "lazy"; img.onerror = function() { this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23444"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20"%3EB%3C/text%3E%3C/svg%3E'; this.onerror = null; }; if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); const nameSpan = document.createElement('span'); nameSpan.className = 'bookmark-name'; nameSpan.textContent = bookmarkData.name; link.appendChild(img); link.appendChild(nameSpan); cellContainer.appendChild(link); } else { cellContainer.classList.add('empty-slot'); const addIcon = document.createElement('span'); addIcon.textContent = '+'; cellContainer.appendChild(addIcon); cellContainer.style.backgroundColor = bgColor; }
+function renderGrid() { 
+    console.log("[UI] Rendering bookmark grid...");
+    if (!grid) {
+        grid = document.getElementById('bookmark-grid');
+        if (!grid) {
+            console.error("[UI] Error: 'bookmark-grid' not found. Aborting renderGrid.");
+            return;
+        }
+    }
+    
+    grid.innerHTML = ''; 
+    cellElements = []; 
+    
+    const total = (typeof TOTAL_CELLS !== 'undefined') ? TOTAL_CELLS : 96;
+    
+    Array.from({ length: total }).forEach((_, index) => { 
+        const cellContainer = document.createElement('div'); 
+        cellContainer.classList.add('grid-cell'); 
+        cellContainer.dataset.index = index; 
+        
+        const bookmarkData = currentBookmarks[index]; 
+        const section = getSectionForIndex(index); 
+        const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; 
+        
+        if (bookmarkData) { 
+            const link = document.createElement('a'); 
+            link.className = 'bookmark-item'; 
+            link.title = bookmarkData.name; 
+            link.style.backgroundColor = bgColor; 
+            link.href = bookmarkData.url || "#"; 
+            link.dataset.index = index;
+            
+            if (isKeywordAssignmentMode || (bookmarkData.name && bookmarkData.name === "Inicio Tesla") || !bookmarkData.url || bookmarkData.url === '#') { 
+                // No external link attributes
+            } else { 
+                link.target = "_blank"; 
+                link.rel = "noopener noreferrer"; 
+            }
+            
+            const img = document.createElement('img'); 
+            img.src = getFaviconUrl(bookmarkData); 
+            img.alt = `Favicon ${bookmarkData.name}`; 
+            img.loading = "lazy"; 
+            img.onerror = function() { 
+                this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23444"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-size="20"%3EB%3C/text%3E%3C/svg%3E'; 
+                this.onerror = null; 
+            }; 
+            
+            if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); 
+            else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); 
+            
+            const nameSpan = document.createElement('span'); 
+            nameSpan.className = 'bookmark-name'; 
+            nameSpan.textContent = bookmarkData.name; 
+            
+            link.appendChild(img); 
+            link.appendChild(nameSpan); 
+            cellContainer.appendChild(link); 
+        } else { 
+            cellContainer.classList.add('empty-slot'); 
+            const addIcon = document.createElement('span'); 
+            addIcon.textContent = '+'; 
+            cellContainer.appendChild(addIcon); 
+            cellContainer.style.backgroundColor = bgColor; 
+        }
+        
         cellContainer.addEventListener('click', handleGridCellClick);
+        
         if (isEditMode) {
              cellContainer.draggable = true;
-             cellContainer.addEventListener('dragstart', handleDragStart); cellContainer.addEventListener('dragover', handleDragOver);
+             cellContainer.addEventListener('dragstart', handleDragStart); 
+             cellContainer.addEventListener('dragover', handleDragOver);
              cellContainer.addEventListener('dragleave', handleDragLeave);
              cellContainer.addEventListener('drop', handleDrop);
              cellContainer.addEventListener('dragend', handleDragEnd);
@@ -20136,162 +20270,9 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
 // ===================================================================
 // NOMBRE: createOtherButtons
 function createOtherButtons() {
-    if (!document.getElementById('on-off-toggle')) {
-        onOffToggle = document.createElement('img');
-        onOffToggle.className = 'toggle-image';
-        onOffToggle.id = 'on-off-toggle';
-        const savedOnOffState = localStorage.getItem('onOffState');
-        onOffToggle.dataset.state = savedOnOffState ? savedOnOffState : 'on';
-        document.body.appendChild(onOffToggle);
-        onOffToggle.addEventListener('mousedown', () => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) pressStartTime = Date.now(); });
-        onOffToggle.addEventListener('mouseup', () => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) handleOnOffAction(); });
-        onOffToggle.addEventListener('mouseleave', () => { pressStartTime = null; });
-        onOffToggle.addEventListener('touchstart', (e) => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) { e.preventDefault(); pressStartTime = Date.now(); } });
-        onOffToggle.addEventListener('touchend', (e) => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) { e.preventDefault(); handleOnOffAction(); } });
-    }
-    if (!document.getElementById('weather-button')) { 
-        weatherButton = document.createElement('span'); 
-        weatherButton.className = 'toggle-sign icon-btn'; // <-- CLASE AÑADIDA
-        weatherButton.id = 'weather-button'; 
-        weatherButton.innerHTML = '🌤️'; 
-        weatherButton.style.fontSize = '2.5rem'; 
-        document.body.appendChild(weatherButton); 
-        weatherButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; window.open('https://www.ventusky.com/?p=40.2;-4.7;5&l=rain-3h', '_blank'); }); 
-    }
-    if (!document.getElementById('reminder-button')) { reminderButton = document.createElement('span'); reminderButton.className = 'toggle-sign'; reminderButton.id = 'reminder-button'; document.body.appendChild(reminderButton); reminderButton.addEventListener('mousedown', () => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) reminderPressStartTime = Date.now(); }); reminderButton.addEventListener('mouseup', () => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) handleReminderLongPress(); }); reminderButton.addEventListener('mouseleave', () => { reminderPressStartTime = null; }); reminderButton.addEventListener('touchstart', (e) => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) { e.preventDefault(); reminderPressStartTime = Date.now(); } }); reminderButton.addEventListener('touchend', (e) => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) { e.preventDefault(); handleReminderLongPress(); } }); }
-    if (!document.getElementById('zoom-button')) { zoomButton = document.createElement('span'); zoomButton.className = 'toggle-sign'; zoomButton.id = 'zoom-button'; zoomButton.innerHTML = `<img src="./PNG/zoon-.png" alt="Zoom" style="max-width: 60%; max-height: 60%; object-fit: contain;">`; zoomButton.dataset.zoomState = localStorage.getItem('zoomState') || 'off'; document.body.appendChild(zoomButton); zoomButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; const cS = zoomButton.dataset.zoomState; const nS = cS === 'off' ? 'on' : 'off'; applyZoom(nS); zoomButton.dataset.zoomState = nS; updateButtonStyles(); saveSettings(); adjustButtonPositions(); }); }
-    if (!document.getElementById('dark-mode-toggle')) { darkModeToggle = document.createElement('img'); darkModeToggle.className = 'toggle-image'; darkModeToggle.id = 'dark-mode-toggle'; document.body.appendChild(darkModeToggle); darkModeToggle.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; isDarkMode = !isDarkMode; document.body.classList.toggle('dark-mode', isDarkMode); updateButtonStyles(); saveSettings(); }); }
-    if (!document.getElementById('config-button')) {
-        const configButton = document.createElement('span');
-        configButton.id = 'config-button';
-        configButton.innerHTML = `<img src="./PNG/config.jpg" alt="Configuración">`;
-        document.body.appendChild(configButton);
-        configButton.addEventListener('click', () => {
-            if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) {
-                const mapIsCurrentlyOpen = isNavigationMapActive;
-                const currentMapContext = sessionStorage.getItem('mapContext');
-                if (mapIsCurrentlyOpen && currentMapContext) {
-                    sessionStorage.setItem('boardinggate_map_should_reopen_after_config', 'true');
-                    sessionStorage.setItem('mapContextToReopenAfterConfig', currentMapContext);
-                    closeNavigationMap(true);
-                }
-                showConfigModal();
-            }
-        });
-    }
-    if (!document.getElementById('personal-button')) {
-        const personalButton = document.createElement('span');
-        personalButton.id = 'personal-button';
-        personalButton.innerHTML = `<img src="./PNG/personal.png" alt="Personal">`;
-        document.body.appendChild(personalButton);
-        personalButton.addEventListener('click', handlePersonalizationClick);
-    }
-    if (!document.getElementById('radar-button')) {
-        radarButton = document.createElement('span');
-        radarButton.id = 'radar-button';
-        radarButton.innerHTML = `<img src="PNG/AVANCE.PNG" alt="Radar/Ubicaciones/Navegación">`;
-        document.body.appendChild(radarButton);
-        radarButton.addEventListener('click', () => {
-            if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return;
-
-            const userId = localStorage.getItem('userData_userId');
-            const allowDMs = JSON.parse(localStorage.getItem('userData_allowDMs') || 'false');
-
-            if (userId && userId.trim() !== '' && allowDMs) {
-                openNavigationMap();
-                
-                const AUTO_BACKUP_KEY = 'boardinggate_autoBackupOnLoad';
-                const isAutoBackupEnabled = localStorage.getItem(AUTO_BACKUP_KEY) === 'true';
-            
-                if (!isAutoBackupEnabled) {localStorage.setItem(AUTO_BACKUP_KEY, 'true');
-                    
-                    const autoBackupCheckbox = document.getElementById('config-auto-backup-on-load');
-                    if (autoBackupCheckbox) {
-                        autoBackupCheckbox.checked = true;
-                    }
-                    markCacheAsDirty();
-                }
-
-            } else {
-                const message = "PARA ACCEDER A MAPAS, ES IMPRESCINDIBLE QUE CREE EN CONFIGURACIÓN UN NOMBRE DE USUARIO ÚNICO (y debe estar activado Permitir MDs también y BACKUP AUTOMÁTICO)...";
-                const duration = 10000; 
-
-                showToast(message, 'error', duration);
-
-                setTimeout(() => {
-                    showConfigModal();
-                }, duration);
-            }
-             });
-    }
-    if (!document.getElementById('home-button')) {
-        const homeButton = document.createElement('span');
-        homeButton.id = 'home-button';
-        homeButton.innerHTML = `<img src="./PNG/home.webp" alt="Inicio">`;
-        document.body.appendChild(homeButton);
-        homeButton.addEventListener('click', (e) => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) { e.preventDefault(); return; } window.history.back(); });
-    }
-    if (!document.getElementById('reload-button')) {
-        const reloadButton = document.createElement('span');
-        reloadButton.id = 'reload-button';
-        reloadButton.innerHTML = `<img src="./PNG/reload.webp" alt="Recargar">`;
-        document.body.appendChild(reloadButton);
-        reloadButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; location.reload(); });
-    }
-
-    
-    if (!document.getElementById('keyword-assignment-button')) {
-         const keywordButton = document.createElement('span');
-         keywordButton.id = 'keyword-assignment-button';
-         keywordButton.title = "Asignar/Quitar palabra clave filtro";
-         keywordButton.innerHTML = `<img src="./PNG/IMG_4314.PNG" alt="Asignar Keyword">`;
-         document.body.appendChild(keywordButton);
-         keywordButton.addEventListener('click', () => { toggleKeywordAssignmentMode(!isKeywordAssignmentMode); });
-    }
-    if (!document.getElementById('password-toggle-button')) {
-        const passwordButton = document.createElement('span');
-        passwordButton.id = 'password-toggle-button';
-        passwordButton.innerHTML = `<img src="" alt="Clave">`;
-        document.body.appendChild(passwordButton);
-        passwordButton.addEventListener('click', handlePasswordToggleClick);
-    }
-    if (!document.getElementById('versions-button')) {
-         versionsButton = document.createElement('span');
-         versionsButton.id = 'versions-button';
-         versionsButton.innerHTML = `<img src="./PNG/IMG_4309.PNG" alt="Versiones">`;
-         document.body.appendChild(versionsButton);
-         versionsButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; showVersionsModal(); });
-    }
-
-    if (!document.getElementById('utils-button')) {
-         const utilsButton = document.createElement('span');
-         utilsButton.id = 'utils-button';
-         utilsButton.className = 'icon-emoji'; 
-         
-         utilsButton.innerHTML = '🛠️'; 
-         
-         utilsButton.style.fontSize = '1.7rem'; // Tamaño similar a los iconos PNG
-         utilsButton.style.lineHeight = '1';
-         utilsButton.style.textShadow = '1px 1px 3px rgba(0,0,0,0.4)';
-         
-         document.body.appendChild(utilsButton);
-         
-         utilsButton.addEventListener('click', () => { 
-             if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; 
-             window.open('./BGUTIL/index.html', '_blank'); 
-         });
-         
-         utilsButton.addEventListener('mouseenter', () => { utilsButton.style.transform = 'scale(1.15)'; });
-         utilsButton.addEventListener('mouseleave', () => { utilsButton.style.transform = 'scale(1.0)'; });
-    }
-    
-    if (!document.getElementById('info-button')) {
-         infoButton = document.createElement('span');
-         infoButton.id = 'info-button';
-         infoButton.innerHTML = `<img src="./PNG/IMG_4326.PNG" alt="Info">`;
-         document.body.appendChild(infoButton);
-         infoButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; window.open('./manual.html', '_blank'); });
-    }
+    // Esta función ya no crea botones flotantes redundantes sobre el mapa.
+    // Los botones de configuración y navegación ahora están integrados en el panel del mapa.
+    return;
 }
     
     
@@ -26109,7 +26090,8 @@ async function ai_tool_get_business_details(args) {
     // ===================================================================
     function normalizeText(text) { if (!text) return ''; return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
     // ===================================================================
-    async function loadNotices() { try { const r = await fetch('./avisos.txt', { cache: 'no-cache' }); if (!r.ok) throw new Error('Fetch failed'); const txt = await r.text(); notices = txt.split('\n').map(l => l.trim()).filter(l => l.length > 0); if (notices.length === 0) notices = ['No hay avisos.']; } catch (e) { notices = ['Error carga avisos.']; } updateNotice(); }    
+    // Se elimina la carga de avisos ya que el contenedor ha sido retirado.
+    // async function loadNotices() { ... }
     // ===================================================================
     function updateNotice() { const noticeElement = document.getElementById('current-notice'); if (!noticeElement || notices.length === 0) { return; } if (!isActive) { noticeElement.textContent = ''; noticeElement.style.animation = 'none'; return; } noticeElement.textContent = notices[currentNoticeIndex]; noticeElement.style.animation = 'none'; void noticeElement.offsetWidth; noticeElement.style.animation = 'fadeInOut 14s infinite'; currentNoticeIndex = (currentNoticeIndex + 1) % notices.length; } 
     // ===================================================================
@@ -26117,7 +26099,7 @@ async function ai_tool_get_business_details(args) {
     // ===================================================================
     function startNoticeRotation() { if (notices.length === 0) return; if (isActive) updateNotice(); setInterval(updateNotice, 14000); }   
     // ===================================================================
-    function adjustButtonPositions() { const scrollToggle = document.getElementById('scroll-toggle'); if (!scrollToggle) { return; }
+    function adjustButtonPositions() { return; // Desactivado para limpiar la UI de restos de la versión anterior
     const scrollToggleHeight = scrollToggle.offsetHeight; const buttonHeight = 74; const buttonSpacing = 10; const startTop = scrollToggleHeight + 20; const fixedButtons = [ document.getElementById('on-off-toggle'), ...document.querySelectorAll('.range-toggle'), document.getElementById('weather-button'), document.getElementById('reminder-button'), document.getElementById('zoom-button'), document.getElementById('dark-mode-toggle') ].filter(button => button !== null).sort((a, b) => { const startA = parseInt(a.dataset.rangeStart) || Infinity; const startB = parseInt(b.dataset.rangeStart) || Infinity; if (a.id === 'on-off-toggle') return -1; if (b.id === 'on-off-toggle') return 1; if (isFinite(startA) && isFinite(startB)) return startA - startB; if (isFinite(startA)) return -1; if (isFinite(startB)) return 1; const order = ['weather-button', 'reminder-button', 'zoom-button', 'dark-mode-toggle']; return order.indexOf(a.id) - order.indexOf(b.id); }); if (fixedButtons.length < 6) { return; } let currentTop = startTop; fixedButtons.forEach((button) => { button.style.position = 'fixed'; button.style.top = `${currentTop}px`; button.style.left = '10px'; currentTop += buttonHeight + buttonSpacing; }); }
     // ===================================================================
     function getSavedLocations() { try { const locations = localStorage.getItem(SAVED_LOCATIONS_KEY); return locations ? JSON.parse(locations) : Array(MAX_SAVED_LOCATIONS).fill(null); } catch (e) { return Array(MAX_SAVED_LOCATIONS).fill(null); } }   
@@ -26231,9 +26213,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
      if (isPasswordActive && storedPin && !(initialDirectToNavPref && !tempPreventDirectNav)) {
          promptForPin();
+         const pinSplash = document.getElementById('boot-splash'); if (pinSplash) pinSplash.remove();
      } else {
          await initializeApp();
      }
+     // Safety net: quitar splash negro y activar visibilidad después de 5s pase lo que pase
+     setTimeout(() => { populateDynamicUI(); document.body.classList.add('boot-ready'); const s = document.getElementById('boot-splash'); if (s) s.remove(); }, 5000);
 
     assignMapButtonListeners();
     document.body.addEventListener('click', function(event) {
@@ -26547,11 +26532,17 @@ window.iniciarGuiaInteractivaCompleta = function() {
             if (mutation.attributeName === 'class') {
                 const mapModal = mutation.target;
                 const isMapVisible = !mapModal.classList.contains('map-modal-hidden');
-                const tourVisto = localStorage.getItem('boardingGateTourVisto_v6');
+                
+                if (isMapVisible) {
+                    document.body.classList.add('map-active-mode');
+                } else {
+                    document.body.classList.remove('map-active-mode');
+                }
 
+                const tourVisto = localStorage.getItem('boardingGateTourVisto_v6');
                 if (isMapVisible && !tourVisto) {
                     setTimeout(window.iniciarGuiaInteractivaCompleta, 1500);
-                    observer.disconnect();
+                    // No desconectamos para seguir controlando la clase del body
                 }
             }
         });

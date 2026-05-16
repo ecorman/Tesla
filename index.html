@@ -6,7 +6,6 @@
     <title>BoardingGate Tesla Navegación</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=8pI7q7Yv" onload="console.log('ResponsiveVoice loaded')" onerror="console.error('ResponsiveVoice failed to load')"></script>
-    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
         :root {
             color-scheme: dark;
@@ -673,6 +672,7 @@
             <button id="search-toggle-btn" class="icon-button" title="Buscar destino">🔍</button>
             <button id="recenter-button" class="icon-button" title="Centrar el mapa en el coche">📍</button>
             <button id="calc-route" class="icon-button" title="Calcular ruta">🗺️</button>
+            <button id="gps-request-btn" class="icon-button" title="Activar GPS" style="color:#34c759;">📡</button>
         </div>
         <div class="toolbar-center" style="display: flex; justify-content: center; width: 100%;">
             <div class="toolbar-action">
@@ -720,6 +720,21 @@
     </div>
 
     <div id="status-bubble" class="status-bubble hidden"></div>
+    <div id="gps-banner" style="
+        position: absolute; top: 4.5rem; left: 50%; transform: translateX(-50%);
+        z-index: 50; background: rgba(26,115,232,0.92); color: #fff;
+        padding: 0.6rem 1.2rem; border-radius: 20px; font-size: 0.9rem;
+        display: flex; align-items: center; gap: 0.8rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;
+    ">
+        <span id="gps-banner-text">📡 Solicitando GPS...</span>
+        <button id="gps-manual-btn" onclick="document.getElementById('gps-banner').style.display='none'; useManualPosition()" style="
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 0.3rem 0.7rem; border-radius: 10px;
+            cursor: pointer; font-size: 0.85rem;
+        ">Usar Madrid</button>
+    </div>
     <div id="map"></div>
 
     <div id="left-panels-container">
@@ -962,8 +977,8 @@
         let currentMapMode = localStorage.getItem('tesla_map_mode') || '3d';
         let currentMapProvider = localStorage.getItem('tesla_map_provider') || 'google-satellite';
 
-        const routeStatus = document.getElementById('route-status');
-        const routeProviderLabel = document.getElementById('route-provider-label');
+        const routeStatus = null; // element removed from HTML
+        const routeProviderLabel = null; // element removed from HTML
         const gearButton = document.getElementById('gear-button');
         const settingsPanel = document.getElementById('settings-panel');
         const optionsPanel = document.getElementById('settings-panel');
@@ -974,7 +989,7 @@
         const routeProviderSelect = document.getElementById('route-provider');
         const mapProviderSelect = document.getElementById('map-provider');
         const mapModeSelect = document.getElementById('map-mode');
-        const altRoutesToggle = document.getElementById('alt-routes-toggle');
+        const altRoutesToggle = null; // element removed from HTML
         const calcRouteButton = document.getElementById('calc-route');
         const destinationInput = document.getElementById('destination-input');
         const recenterButton = document.getElementById('recenter-button');
@@ -1368,10 +1383,7 @@
         }
 
         function updateMapStyleLabel() {
-            const modeLabel = currentMapMode === '3d' ? '3D' : '2D';
-            mapStyleLabel.textContent = `${mapTypeConfig[currentMapType].label} ${modeLabel}`;
-            mapProviderLabel.textContent = currentMapProvider.toUpperCase();
-            routeProviderLabel.textContent = routeProviderSelect.value.toUpperCase();
+            // Labels removed from HTML - no-op to prevent errors
         }
 
         function refreshOptionsButtons() {
@@ -2129,6 +2141,7 @@
                 bubble.classList.add('hidden');
             }, 3000);
         }
+        // (duplicate updateStatusBubble removed)
 
         async function updateCurrentPositionFromGeolocation(position) {
             const newPosition = [position.coords.longitude, position.coords.latitude];
@@ -2180,8 +2193,6 @@
             isCameraMoving = false;
         });
 
-
-
         map.on('zoom', () => {
             const zoom = map.getZoom();
             if (zoom < 13) {
@@ -2202,22 +2213,136 @@
 
         map.on('load', () => {
 
-            mapProviderSelect.value = currentMapProvider;
-            mapModeSelect.value = currentMapMode;
-            updateMapStyle(currentMapProvider);
-            setMapMode(currentMapMode);
-            refreshOptionsButtons();
-            updateBuildingsProvider();
-            // Eliminado createCarMarker de aquí para esperar al GPS
+            // Style is already set in constructor + handled by map.on('style.load').
+            // Do NOT call updateMapStyle/setMapMode here — that triggers a second setStyle()
+            // which puts the map in a mid-reload state when GPS arrives.
             map.getCanvas().style.cursor = 'crosshair';
-            map.on('click', (event) => setDestinationFromPoint(event.lngLat));
+
+            // Always show car at default position so the map is immediately usable.
+            createCarMarker();
+            hasDoneInitialFly = true;
+            map.flyTo({
+                center: currentPosition,
+                zoom: 14,
+                pitch: navSettings[navSettings.activeMode].pShort,
+                duration: 1500,
+                essential: true
+            });
+
+            // Start GPS — update marker and re-center when real position arrives.
             if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(updateCurrentPositionFromGeolocation, (error) => {
-                    console.error('Error de geolocalización:', error);
-                    setRouteStatus('Error de geolocalización');
-                }, { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 });
+                const gpsBanner = document.getElementById('gps-banner');
+                const gpsBannerText = document.getElementById('gps-banner-text');
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        if (gpsBanner) gpsBanner.style.display = 'none';
+                        updateCurrentPositionFromGeolocation(position);
+                    },
+                    (error) => {
+                        console.error('Error de geolocalización:', error);
+                        if (gpsBannerText) gpsBannerText.textContent = '⚠️ GPS denegado. Usa el botón o busca tu destino.';
+                        if (gpsBanner) gpsBanner.style.background = 'rgba(220,50,50,0.9)';
+                    },
+                    { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 }
+                );
+            } else {
+                const gpsBannerText = document.getElementById('gps-banner-text');
+                if (gpsBannerText) gpsBannerText.textContent = '⚠️ GPS no disponible en este navegador.';
             }
         });
+
+        // --- GPS Permission & Activation Logic ---
+        function requestGPS() {
+            const gpsBanner = document.getElementById('gps-banner');
+            const gpsBannerText = document.getElementById('gps-banner-text');
+            const gpsBtn = document.getElementById('gps-request-btn');
+
+            if (window.location.protocol === 'file:') {
+                gpsBannerText.innerHTML = '⚠️ <b>Modo Local:</b> El GPS y búsquedas requieren un servidor (localhost). Pulsa "Usar Madrid" para probar.';
+                if (gpsBanner) { gpsBanner.style.display = 'flex'; gpsBanner.style.background = 'rgba(210,120,0,0.95)'; }
+                if (gpsBtn) gpsBtn.style.color = '#ff9500';
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                if (gpsBannerText) gpsBannerText.textContent = '⚠️ GPS no disponible en este navegador.';
+                if (gpsBanner) { gpsBanner.style.display = 'flex'; gpsBanner.style.background = 'rgba(220,50,50,0.9)'; }
+                return;
+            }
+
+            if (gpsBannerText) gpsBannerText.textContent = '📡 Solicitando GPS...';
+            if (gpsBanner) { gpsBanner.style.display = 'flex'; gpsBanner.style.background = 'rgba(26,115,232,0.92)'; }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    if (gpsBanner) gpsBanner.style.display = 'none';
+                    if (gpsBtn) gpsBtn.style.color = '#34c759';
+                    updateCurrentPositionFromGeolocation(position);
+                    // Also start watching
+                    navigator.geolocation.watchPosition(
+                        (pos) => updateCurrentPositionFromGeolocation(pos),
+                        (err) => console.warn('Watch error:', err),
+                        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+                    );
+                },
+                (error) => {
+                    if (gpsBtn) gpsBtn.style.color = '#ff453a';
+                    let msg = '⚠️ GPS bloqueado. ';
+                    if (error.code === 1) {
+                        msg += 'Haz clic en el 🔒 en la barra del navegador y permite ubicación.';
+                    } else if (error.code === 2) {
+                        msg += 'GPS no disponible.';
+                    } else {
+                        msg += 'Tiempo de espera agotado.';
+                    }
+                    if (gpsBannerText) gpsBannerText.textContent = msg;
+                    if (gpsBanner) { gpsBanner.style.display = 'flex'; gpsBanner.style.background = 'rgba(220,50,50,0.9)'; }
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+
+        // Check permission state on load
+        if (window.location.protocol === 'file:') {
+             const gpsBanner = document.getElementById('gps-banner');
+             const gpsBannerText = document.getElementById('gps-banner-text');
+             if (gpsBannerText) gpsBannerText.innerHTML = '📂 Ejecutando como archivo local. El GPS está desactivado por seguridad del navegador.';
+             if (gpsBanner) { 
+                gpsBanner.style.display = 'flex'; 
+                gpsBanner.style.background = 'rgba(210,120,0,0.95)';
+             }
+        } else if (navigator.permissions) {
+            navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+                const gpsBanner = document.getElementById('gps-banner');
+                const gpsBannerText = document.getElementById('gps-banner-text');
+                const gpsBtn = document.getElementById('gps-request-btn');
+                if (result.state === 'granted') {
+                    // Already granted - watchPosition in map.on('load') will handle it
+                    if (gpsBtn) gpsBtn.style.color = '#34c759';
+                } else if (result.state === 'denied') {
+                    if (gpsBtn) gpsBtn.style.color = '#ff453a';
+                    if (gpsBannerText) gpsBannerText.textContent = '🔒 GPS bloqueado — Haz clic en el candado en la barra del navegador y permite ubicación, luego pulsa 📡';
+                    if (gpsBanner) gpsBanner.style.background = 'rgba(220,50,50,0.9)';
+                }
+                // 'prompt' = will ask, no action needed
+            });
+        }
+
+        document.getElementById('gps-request-btn').addEventListener('click', requestGPS);
+
+        // Click handler registered once, outside of load/style.load to survive style reloads.
+        // hasDoneInitialFly guard ensures we don't react before map is ready.
+        map.on('click', (event) => {
+            if (hasDoneInitialFly) setDestinationFromPoint(event.lngLat);
+        });
+
+        function useManualPosition() {
+            currentPosition = defaultCenter.slice();
+            if (carMarker) carMarker.setLngLat(currentPosition);
+            else createCarMarker();
+            hasDoneInitialFly = true;
+            map.flyTo({ center: currentPosition, zoom: 14, pitch: 45, duration: 1500, essential: true });
+        }
 
         const searchToggleBtn = document.getElementById('search-toggle-btn');
         searchToggleBtn.addEventListener('click', (e) => {
