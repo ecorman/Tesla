@@ -78,9 +78,18 @@
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
 </head>
-    
+
 <style>
-/* 1. Cuando el mapa está activo, pantalla 100% limpia */
+/* 1. REGLA SUPREMA: Todo elemento con .hidden debe estar COMPLETAMENTE OCULTO */
+.hidden, [hidden], .map-modal-hidden,
+div.hidden, div.map-modal-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 2. Cuando el mapa está activo, pantalla principal oculta */
 body.map-active {
     padding: 0 !important;
     margin: 0 !important;
@@ -100,8 +109,8 @@ body.map-active .scroll-toggle-button {
     display: none !important;
 }
 
-/* 2. Modal del Mapa: Capa base en z-index 10000 (Lienzo 1:1 total) */
-#reminders-location-map-modal {
+/* 3. Modal del Mapa (solo cuando NO está oculto) */
+#reminders-location-map-modal:not(.map-modal-hidden) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -133,7 +142,7 @@ body.map-active .scroll-toggle-button {
     overflow: hidden !important;
 }
 
-/* 3. Cabecera superior izquierda (escala compacta 0.6536) */
+/* 4. Cabecera superior izquierda (escala 0.6536) */
 #reminders-location-map-header {
     flex-shrink: 0 !important;
     width: 100% !important;
@@ -154,7 +163,7 @@ body.map-active .scroll-toggle-button {
     zoom: 0.6536 !important;
 }
 
-/* 4. Lienzo de Mapbox a toda pantalla 1:1 */
+/* 5. Lienzo de Mapbox a toda pantalla 1:1 */
 #reminders-location-map-div {
     flex: 1 1 auto !important;
     width: 100% !important;
@@ -174,7 +183,7 @@ body.map-active .scroll-toggle-button {
     height: 100% !important;
 }
 
-/* 5. Controles del mapa (brújula y zoom) con escala compacta única */
+/* 6. Controles del mapa (brújula y zoom) con escala compacta única */
 .mapboxgl-ctrl-bottom-left,
 .mapboxgl-ctrl-bottom-right {
     zoom: 0.6536 !important;
@@ -190,7 +199,7 @@ body.map-active .scroll-toggle-button {
     transform: none !important;
 }
 
-/* 6. Barra de progreso, minimapa y widget del tiempo (escala compacta 0.6536) */
+/* 7. Barra de progreso, minimapa y widget del tiempo */
 #navigation-bottom-progress-bar,
 #mini-nav-info-card,
 #minimap-container,
@@ -200,22 +209,22 @@ body.map-active .scroll-toggle-button {
     zoom: 0.6536 !important;
 }
 
-/* 7. FONDOS OSCUROS DE LOS MODALES: Cubren el 100% de la pantalla real */
-.route-modal-overlay,
-#route-modal-load-overlay,
-#route-modal-save-overlay,
-#share-stage-modal-overlay,
-.poi-category-modal-overlay,
-.poi-modal-overlay,
-.filter-modal-overlay,
-#pdrs-filter-modal-overlay,
-#alert-modal-overlay,
-#ai-route-modal,
-#quick-reminder-modal,
-#range-calc-modal,
-#versions-modal-overlay,
-#pin-modal-overlay,
-#chat-modal-overlay {
+/* 8. FONDOS OSCUROS DE LOS MODALES: Solo se muestran si NO tienen la clase .hidden */
+.route-modal-overlay:not(.hidden),
+#route-modal-load-overlay:not(.hidden),
+#route-modal-save-overlay:not(.hidden),
+#share-stage-modal-overlay:not(.hidden),
+.poi-category-modal-overlay:not(.hidden),
+.poi-modal-overlay:not(.hidden),
+.filter-modal-overlay:not(.hidden),
+#pdrs-filter-modal-overlay:not(.hidden),
+#alert-modal-overlay:not(.hidden),
+#ai-route-modal:not(.hidden),
+#quick-reminder-modal:not(.hidden),
+#range-calc-modal:not(.hidden),
+#versions-modal-overlay:not(.hidden),
+#pin-modal-overlay:not(.hidden),
+#chat-modal-overlay:not(.hidden) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -228,12 +237,12 @@ body.map-active .scroll-toggle-button {
     zoom: 1 !important;
 }
 
-/* 8. VENTANAS/CAJAS DE TODOS LOS MODALES: Escala idéntica a la pantalla principal (zoom: 0.6536) */
+/* 9. VENTANAS/CAJAS DE LOS MODALES: Escala idéntica a la pantalla principal (0.6536) */
 .route-modal-container,
 #saved-routes-modal,
 #save-route-prompt-modal,
 #share-stage-modal,
-#route-concat-choice-modal,
+#route-concat-choice-modal:not(.hidden),
 .poi-category-modal-content,
 .poi-modal-content,
 .filter-modal-content,
@@ -241,17 +250,17 @@ body.map-active .scroll-toggle-button {
 .ai-modal-content,
 .quick-reminder-content,
 .range-calc-content,
-#config-modal,
+#config-modal:not(.hidden),
 .saved-locations-modal,
-#locations-preview-modal,
-#address-suggestions-modal,
-#simulation-modal,
-#simulation-speed-modal,
-#reorder-stages-modal,
-#deviation-modal,
-#arrival-stats-modal,
+#locations-preview-modal:not(.hidden),
+#address-suggestions-modal:not(.hidden),
+#simulation-modal:not(.hidden),
+#simulation-speed-modal:not(.hidden),
+#reorder-stages-modal:not(.hidden),
+#deviation-modal:not(.hidden),
+#arrival-stats-modal:not(.hidden),
 .choice-modal,
-#proximity-alert-modal,
+#proximity-alert-modal:not(.hidden),
 #reminders-map-help-modal-instance,
 .versions-modal-content,
 #pin-modal-content,
@@ -260,12 +269,13 @@ body.map-active .scroll-toggle-button {
     z-index: 40000 !important;
 }
 
-/* Silenciar en recuperación */
+/* 10. Silenciar en recuperación */
 body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
-</style>    
+</style>
+    
     
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
