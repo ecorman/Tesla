@@ -5455,12 +5455,18 @@ async function openNavigationMap(isRecovery = false) {
   
         setTimeout(() => { 
     if (navigationMapInstance) {
-        // Obligamos al navegador a repintar el layout antes de medir
+        // 1. Forzamos al navegador a recalcular el tamaño del contenedor
         window.dispatchEvent(new Event('resize'));
+        
+        // 2. Primer intento de ajuste de Mapbox
         navigationMapInstance.resize(); 
-        // Pequeño truco extra: volvemos a llamar al resize 200ms después 
-        // porque el navegador del Tesla es lento procesando el zoom 0.65
-        setTimeout(() => { navigationMapInstance.resize(); }, 200);
+
+        // 3. Segundo intento (200ms después) para asegurar que el zoom 
+        // de Tesla ha terminado de asentar los píxeles del lienzo
+        setTimeout(() => { 
+            navigationMapInstance.resize();
+            console.log("Resolución de mapa ajustada al ratio Tesla.");
+        }, 200);
     }
 }, 300);
         
