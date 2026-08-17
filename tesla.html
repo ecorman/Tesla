@@ -5062,7 +5062,9 @@ async function initiateControlledReload() {
         selectedStageRoutes.clear();
         
         const toastId = `recalc-toast-${Date.now()}`;
-        showToast(`Calculando ruta... (Intento ${attempt}/${MAX_RETRIES})`, "info", 0, false, toastId);
+        if (!recoveryInfo) {
+          showToast(`Calculando ruta... (Intento ${attempt}/${MAX_RETRIES})`, "info", 0, false, toastId);
+        }
 
         try {
             let waypointsForAPI = [];
@@ -5698,7 +5700,9 @@ async function openNavigationMap(isRecovery = false) {
                         
                         let currentPos = await getInitialGpsPositionForMap();
                         
-                        startWeatherUpdates(currentPos); 
+                        if (!isRecovery) { 
+                                startWeatherUpdates(currentPos); 
+                        }
                         
                         setMapImmersiveMode(false); 
                         navigationFollowUser = true; 
