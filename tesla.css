@@ -4590,3 +4590,9 @@ body:has(#reminders-location-map-modal:not(.map-modal-hidden)) {
     height: 100% !important;
     flex-grow: 1 !important;
 }
+body.recovering-map-session #weather-widget-container,
+body.recovering-map-session #auto-start-nav-modal {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
