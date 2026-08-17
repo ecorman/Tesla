@@ -4535,3 +4535,46 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     max-width: 53px !important; max-height: 37px !important;
     width: 40px; height: 37px; object-fit: contain; display: block;
 }    
+
+/* 1. Ajuste del Body: Quitamos el margen de Tailwind (p-6) solo cuando el mapa está activo */
+body:has(#reminders-location-map-modal:not(.map-modal-hidden)) {
+    padding: 0 !important;
+}
+
+/* 2. Modal Principal: Mantenemos tu color y flex, pero forzamos resolución total */
+#reminders-location-map-modal {
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 0 !important; /* Eliminamos el hueco de 2px para que sea pantalla completa */
+    background-color: #D8D8D0 !important; /* Mantenemos tu color original */
+    z-index: 9999 !important; /* Lo subimos para que nada lo tape */
+    top: 0 !important;
+    left: 0 !important;
+    border: none !important;
+}
+
+/* 3. Wrapper Interno: Mantenemos tu sombra y color, pero quitamos el borde redondeado 
+      que se ve mal en resolución completa */
+#reminders-location-map-content-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important; /* Forzamos bordes rectos para llenar la pantalla */
+    background-color: #F0EFE4 !important; /* Tu color original */
+    box-shadow: none !important; /* En pantalla completa la sombra no es necesaria */
+}
+
+/* 4. Contenedor del Mapa: Forzamos que use el 100% del alto disponible */
+#reminders-location-map-div {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+    height: 100% !important;
+}
+
+/* 5. El lienzo de Mapbox: Aquí es donde se soluciona la resolución */
+#mapbox-map-actual-container {
+    width: 100% !important;
+    height: 100% !important;
+    flex-grow: 1 !important;
+    position: relative !important;
+}
