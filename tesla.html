@@ -3,6 +3,27 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+
+    <!-- Corrección de resolución para el navegador de Tesla (1254x784) -->
+    <script>
+        (function() {
+            function adaptTeslaResolution() {
+                const isTeslaResolution = (window.innerWidth === 1254 && window.innerHeight === 784) || 
+                                          (window.screen.width === 1254 && window.screen.height === 784);
+                
+                if (isTeslaResolution) {
+                    // Se aplica el zoom inverso (1 / 1.53) para recuperar la proporción anterior
+                    document.documentElement.style.zoom = "0.6536";
+                }
+            }
+            // Ejecución inmediata
+            adaptTeslaResolution();
+            // Ejecución tras carga para asegurar la lectura correcta de dimensiones del viewport
+            window.addEventListener('DOMContentLoaded', adaptTeslaResolution);
+            window.addEventListener('resize', adaptTeslaResolution);
+        })();
+    </script>
+    
     <!-- Metadatos Esenciales para SEO -->
     <meta name="description" content="BoardingGate Lanzador para Tesla: un dashboard y lanzador de aplicaciones web optimizado para la pantalla de tu Tesla. Accede a mapas avanzados, navegación con radares, recordatorios por ubicación, YouTube, y tus webs favoritas.">
     <meta name="keywords" content="Tesla, lanzador, dashboard, navegador, mapas, radares, BoardingGate, Tesla apps, Tesla Model 3, Tesla Model Y, Tesla web browser, YouTube Tesla, navegación Tesla">
