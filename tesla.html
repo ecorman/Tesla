@@ -182,6 +182,57 @@ body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
+
+/* --- ESCALADO COMPACTO DE CONTROLES EN EL MAPA --- */
+
+/* 1. Botonera superior y botón de satélite/toggle */
+#reminders-location-map-header,
+#toggle-map-header-buttons-panel {
+    zoom: 0.6536 !important;
+}
+
+/* 2. Brújula, velocímetro y estadísticas (esquina inferior izquierda) */
+.mapboxgl-ctrl-bottom-left,
+.map-control-custom-map-controls {
+    zoom: 0.6536 !important;
+}
+
+/* 3. Botones de zoom, pitch y ajustes (esquina inferior derecha) */
+.mapboxgl-ctrl-bottom-right,
+#zoom-controls-horizontal,
+.map-settings-popup,
+.map-offset-popup {
+    zoom: 0.6536 !important;
+}
+
+/* 4. Tarjeta de progreso de ruta y minimapa */
+#navigation-bottom-progress-bar,
+#mini-nav-info-card,
+#minimap-container,
+#force-show-minimap-button {
+    zoom: 0.6536 !important;
+}
+
+/* 5. Widget del tiempo flotante */
+#weather-widget-container {
+    zoom: 0.6536 !important;
+}
+
+/* 6. Modales y ventanas flotantes de navegación */
+.route-modal-container,
+.saved-locations-modal,
+#arrival-stats-modal,
+#ai-route-modal .ai-modal-content,
+#quick-reminder-modal .quick-reminder-content,
+.filter-modal-content,
+#reorder-stages-modal,
+#simulation-modal,
+#deviation-modal,
+#auto-start-nav-modal,
+#range-calc-modal {
+    zoom: 0.6536 !important;
+}
+    
 </style>
    
     
