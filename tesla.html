@@ -205,19 +205,23 @@ body.map-active .scroll-toggle-button {
     transform: none !important;
 }
 
-/* 7. FONDOS OSCUROS DE LOS MODALES: Cubren el 100% de la pantalla real */
+/* 7. FONDOS OSCUROS DE TODOS LOS MODALES: Cubren el 100% de la pantalla real */
 .route-modal-overlay:not(.hidden),
 #route-modal-load-overlay:not(.hidden),
 #route-modal-save-overlay:not(.hidden),
+#route-modal-action-overlay:not(.hidden),
 #share-stage-modal-overlay:not(.hidden),
 .poi-category-modal-overlay:not(.hidden),
 .poi-modal-overlay:not(.hidden),
+.ocm-modal-overlay:not(.hidden),
+.ocm-photo-modal-overlay:not(.hidden),
 .filter-modal-overlay:not(.hidden),
 #pdrs-filter-modal-overlay:not(.hidden),
 #alert-modal-overlay:not(.hidden),
 #ai-route-modal:not(.hidden),
 #quick-reminder-modal:not(.hidden),
 #range-calc-modal:not(.hidden),
+.referrals-modal-overlay:not(.hidden),
 #versions-modal-overlay:not(.hidden),
 #pin-modal-overlay:not(.hidden),
 #chat-modal-overlay:not(.hidden) {
@@ -233,40 +237,85 @@ body.map-active .scroll-toggle-button {
     zoom: 1 !important;
 }
 
-/* 8. COMPENSACIÓN DE TAMAÑO PARA MODALES:
-      Ancho virtual expandido para que al aplicar zoom 0.6536 ocupen el 92% real de la pantalla */
+/* 8. GRUPO 1: MODALES GRANDES Y PANORÁMICOS (Aprovechan el 94% real del Tesla) */
+.poi-category-modal-content,
+.poi-modal-content,
 .route-modal-container,
 #saved-routes-modal,
 #save-route-prompt-modal,
 #share-stage-modal,
-.poi-category-modal-content,
-.poi-modal-content,
 .ai-modal-content,
 .quick-reminder-content,
+.reminder-modal,
+.reminder-table-modal,
 .saved-locations-modal,
-#locations-preview-modal:not(.hidden),
+#config-modal:not(.hidden),
 #reorder-stages-modal:not(.hidden),
-#simulation-modal:not(.hidden),
 #arrival-stats-modal:not(.hidden),
-#config-modal:not(.hidden) {
-    width: calc(92vw / 0.6536) !important;
-    max-width: 1650px !important;
-    max-height: calc(92vh / 0.6536) !important;
+#locations-preview-modal:not(.hidden),
+#reminders-map-help-modal-instance,
+.referrals-modal-content {
+    width: calc(94vw / 0.6536) !important;
+    max-width: 1700px !important;
+    max-height: calc(93vh / 0.6536) !important;
     zoom: 0.6536 !important;
     z-index: 40000 !important;
 }
 
-/* Centrado perfecto para Configuración, Estadísticas y Simulación */
+/* Centrado exacto en pantalla */
 #config-modal:not(.hidden),
 #arrival-stats-modal:not(.hidden),
-#locations-preview-modal:not(.hidden) {
+#locations-preview-modal:not(.hidden),
+.reminder-modal:not(.hidden),
+.reminder-table-modal:not(.hidden),
+#reorder-stages-modal:not(.hidden) {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
 }
 
-/* Forzar que las rutas siempre se muestren a 2 columnas */
+/* 9. GRUPO 2: MODALES MEDIANOS Y DE ACCIÓN (Aprovechan el 82% real del Tesla) */
+.filter-modal-content,
+.ocm-modal-content,
+#alert-modal-content,
+.range-calc-content,
+#simulation-modal:not(.hidden),
+#simulation-speed-modal:not(.hidden),
+#deviation-modal:not(.hidden),
+#route-concat-choice-modal:not(.hidden),
+.choice-modal,
+#proximity-alert-modal:not(.hidden),
+#address-suggestions-modal:not(.hidden),
+.versions-modal-content,
+#pin-modal-content,
+#chat-modal-content {
+    width: calc(82vw / 0.6536) !important;
+    max-width: 1250px !important;
+    zoom: 0.6536 !important;
+    z-index: 40000 !important;
+}
+
+#simulation-modal:not(.hidden),
+#simulation-speed-modal:not(.hidden),
+#deviation-modal:not(.hidden),
+#address-suggestions-modal:not(.hidden) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* 10. OPTIMIZACIÓN DE CUADRÍCULAS INTERNAS PARA APROVECHAR EL ANCHO */
+
+/* Cuadrícula de categorías de POIs: botones anchos y cómodos */
+.poi-category-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
+    gap: 12px !important;
+}
+
+/* Lista de Rutas y Favoritos: siempre a 2 columnas completas */
 #saved-routes-modal .route-list,
 .route-modal-panel .route-list {
     display: grid !important;
@@ -274,24 +323,10 @@ body.map-active .scroll-toggle-button {
     gap: 6px 20px !important;
 }
 
-/* Modales medianos (Cargadores, filtros, radio, alertas, avisos) */
-.filter-modal-content,
-#alert-modal-content,
-.range-calc-content,
-#address-suggestions-modal:not(.hidden),
-#simulation-speed-modal:not(.hidden),
-#deviation-modal:not(.hidden),
-#route-concat-choice-modal:not(.hidden),
-.choice-modal,
-#proximity-alert-modal:not(.hidden),
-#reminders-map-help-modal-instance,
-.versions-modal-content,
-#pin-modal-content,
-#chat-modal-content {
-    width: calc(80vw / 0.6536) !important;
-    max-width: 1200px !important;
+/* Lista de resultados de POIs en el mapa */
+#poi-results-list-container {
+    width: 340px !important;
     zoom: 0.6536 !important;
-    z-index: 40000 !important;
 }
 
 /* Silenciar en recuperación */
@@ -300,7 +335,6 @@ body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
 </style>    
-    
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
 
