@@ -71,10 +71,122 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
 </head>
     
-<style>    
+<style>
+/* 1. Estado de pantalla completa activado mediante clase en el body */
+body.map-active {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    display: block !important;
+}
 
-    
+/* Ocultar el contenido de la pantalla principal cuando el mapa está activo */
+body.map-active main,
+body.map-active footer,
+body.map-active .notices-icon-container,
+body.map-active #grid-filter-container,
+body.map-active .toggle-sign,
+body.map-active .toggle-image,
+body.map-active .scroll-toggle-button {
+    display: none !important;
+}
+
+/* 2. Modal del mapa: Ocupa el 100% absoluto de la pantalla física */
+#reminders-location-map-modal:not(.map-modal-hidden) {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background-color: #1a1a1a !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* 3. Estructura interna estirada */
+#reminders-location-map-content-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}
+
+/* 4. Cabecera alineada a la izquierda */
+#reminders-location-map-header {
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 5px 0 !important;
+}
+
+#reminders-location-map-header .button-row {
+    justify-content: flex-start !important;
+    margin-left: 10px !important;
+    width: 100% !important;
+}
+
+/* 5. Contenedor y lienzo de Mapbox: Fuerza a llenar todo el hueco restante */
+#reminders-location-map-div {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    overflow: hidden !important;
+    background-color: #111 !important;
+}
+
+#mapbox-map-actual-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#mapbox-map-actual-container .mapboxgl-canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 6. Z-Index de modales de carga para que salgan siempre por encima */
+.route-modal-overlay,
+#route-modal-load-overlay,
+#route-modal-save-overlay,
+#saved-routes-modal,
+#save-route-prompt-modal,
+.address-suggestions-modal,
+.poi-category-modal-overlay,
+#ai-route-modal {
+    z-index: 30000 !important;
+}
+
+/* Silenciar modales en recuperación */
+body.recovering-map-session #weather-widget-container,
+body.recovering-map-session #auto-start-nav-modal {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
 </style>
+    
     
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
@@ -5287,6 +5399,7 @@ async function fetchOverpassData(query) {
 // ===================================================================
 // NOMBRE: closeNavigationMap 
 function closeNavigationMap(force = false) {
+    document.body.classList.remove('map-active');
     const aiModal = document.getElementById('ai-route-modal');
     if (aiModal) aiModal.classList.add('hidden');
 
@@ -5435,6 +5548,7 @@ function closeNavigationMap(force = false) {
 // NOMBRE: openNavigationMap 
 // ===================================================================
 async function openNavigationMap(isRecovery = false) {
+    document.body.classList.add('map-active'); 
     if (navigationMapInstance && !isRecovery) {
 
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
@@ -5625,6 +5739,9 @@ async function openNavigationMap(isRecovery = false) {
                 
                 navigationMapInstance.on('load', async function() {
                     try {
+                        navigationMapInstance.resize();
+                        setTimeout(() => { if (navigationMapInstance) navigationMapInstance.resize(); }, 150);
+                        setTimeout(() => { if (navigationMapInstance) navigationMapInstance.resize(); }, 400);
                         await wait(300);
 
                         let longPressTimer = null;
