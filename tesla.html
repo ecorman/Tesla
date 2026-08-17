@@ -5453,13 +5453,18 @@ async function openNavigationMap(isRecovery = false) {
         isNavigationMapActive = true;
         sessionStorage.setItem('mapContext', 'navigation');
         
-        setTimeout(() => {
-            if (navigationMapInstance) {
-                try {
-                    navigationMapInstance.resize();
-                } catch(e) { console.error("Error al redimensionar mapa en reanudación:", e); }
-            }
-        }, 50);
+  
+        setTimeout(() => { 
+    if (navigationMapInstance) {
+        // Obligamos al navegador a repintar el layout antes de medir
+        window.dispatchEvent(new Event('resize'));
+        navigationMapInstance.resize(); 
+        // Pequeño truco extra: volvemos a llamar al resize 200ms después 
+        // porque el navegador del Tesla es lento procesando el zoom 0.65
+        setTimeout(() => { navigationMapInstance.resize(); }, 200);
+    }
+}, 300);
+        
         startGpsWatching();
         startWeatherUpdates(navigationCurrentLocation); // Reanuda las actualizaciones del tiempo
         if (isNavigating || isFreeDriveActive) {
@@ -6466,6 +6471,7 @@ function showLoadRouteModal() {
         const overlay = document.createElement('div');
         overlay.id = 'route-modal-load-overlay';
         overlay.className = 'route-modal-overlay';
+        overlay.style.zIndex = "30000"; 
 
         const modalContent = document.createElement('div');
         modalContent.id = 'saved-routes-modal';
@@ -19264,6 +19270,7 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
     const overlay = document.createElement('div');
     overlay.id = 'route-modal-save-overlay';
     overlay.className = 'route-modal-overlay';
+    overlay.style.zIndex = "30000"; 
     
     const modalContent = document.createElement('div');
     modalContent.id = 'save-route-prompt-modal';
