@@ -109,7 +109,7 @@ body.map-active .scroll-toggle-button {
     display: none !important;
 }
 
-/* 3. Modal del Mapa (solo cuando NO está oculto) */
+/* 3. Modal del Mapa a pantalla completa (1:1 nativo) */
 #reminders-location-map-modal:not(.map-modal-hidden) {
     position: fixed !important;
     top: 0 !important;
@@ -142,7 +142,7 @@ body.map-active .scroll-toggle-button {
     overflow: hidden !important;
 }
 
-/* 4. Cabecera superior izquierda (escala 0.6536) */
+/* 4. Cabecera superior izquierda compacta */
 #reminders-location-map-header {
     flex-shrink: 0 !important;
     width: 100% !important;
@@ -183,9 +183,15 @@ body.map-active .scroll-toggle-button {
     height: 100% !important;
 }
 
-/* 6. Controles del mapa (brújula y zoom) con escala compacta única */
+/* 6. Controles del mapa (brújula, zoom, tiempo, barra de avance) */
 .mapboxgl-ctrl-bottom-left,
-.mapboxgl-ctrl-bottom-right {
+.mapboxgl-ctrl-bottom-right,
+#navigation-bottom-progress-bar,
+#mini-nav-info-card,
+#minimap-container,
+#force-show-minimap-button,
+#weather-widget-container,
+#auto-start-nav-modal {
     zoom: 0.6536 !important;
     transform: none !important;
 }
@@ -199,17 +205,7 @@ body.map-active .scroll-toggle-button {
     transform: none !important;
 }
 
-/* 7. Barra de progreso, minimapa y widget del tiempo */
-#navigation-bottom-progress-bar,
-#mini-nav-info-card,
-#minimap-container,
-#force-show-minimap-button,
-#weather-widget-container,
-#auto-start-nav-modal {
-    zoom: 0.6536 !important;
-}
-
-/* 8. FONDOS OSCUROS DE LOS MODALES: Solo se muestran si NO tienen la clase .hidden */
+/* 7. FONDOS OSCUROS DE LOS MODALES: Cubren el 100% de la pantalla real */
 .route-modal-overlay:not(.hidden),
 #route-modal-load-overlay:not(.hidden),
 #route-modal-save-overlay:not(.hidden),
@@ -237,45 +233,73 @@ body.map-active .scroll-toggle-button {
     zoom: 1 !important;
 }
 
-/* 9. VENTANAS/CAJAS DE LOS MODALES: Escala idéntica a la pantalla principal (0.6536) */
+/* 8. COMPENSACIÓN DE TAMAÑO PARA MODALES:
+      Ancho virtual expandido para que al aplicar zoom 0.6536 ocupen el 92% real de la pantalla */
 .route-modal-container,
 #saved-routes-modal,
 #save-route-prompt-modal,
 #share-stage-modal,
-#route-concat-choice-modal:not(.hidden),
 .poi-category-modal-content,
 .poi-modal-content,
-.filter-modal-content,
-#alert-modal-content,
 .ai-modal-content,
 .quick-reminder-content,
-.range-calc-content,
-#config-modal:not(.hidden),
 .saved-locations-modal,
 #locations-preview-modal:not(.hidden),
-#address-suggestions-modal:not(.hidden),
-#simulation-modal:not(.hidden),
-#simulation-speed-modal:not(.hidden),
 #reorder-stages-modal:not(.hidden),
-#deviation-modal:not(.hidden),
+#simulation-modal:not(.hidden),
 #arrival-stats-modal:not(.hidden),
+#config-modal:not(.hidden) {
+    width: calc(92vw / 0.6536) !important;
+    max-width: 1650px !important;
+    max-height: calc(92vh / 0.6536) !important;
+    zoom: 0.6536 !important;
+    z-index: 40000 !important;
+}
+
+/* Centrado perfecto para Configuración, Estadísticas y Simulación */
+#config-modal:not(.hidden),
+#arrival-stats-modal:not(.hidden),
+#locations-preview-modal:not(.hidden) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* Forzar que las rutas siempre se muestren a 2 columnas */
+#saved-routes-modal .route-list,
+.route-modal-panel .route-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px 20px !important;
+}
+
+/* Modales medianos (Cargadores, filtros, radio, alertas, avisos) */
+.filter-modal-content,
+#alert-modal-content,
+.range-calc-content,
+#address-suggestions-modal:not(.hidden),
+#simulation-speed-modal:not(.hidden),
+#deviation-modal:not(.hidden),
+#route-concat-choice-modal:not(.hidden),
 .choice-modal,
 #proximity-alert-modal:not(.hidden),
 #reminders-map-help-modal-instance,
 .versions-modal-content,
 #pin-modal-content,
 #chat-modal-content {
+    width: calc(80vw / 0.6536) !important;
+    max-width: 1200px !important;
     zoom: 0.6536 !important;
     z-index: 40000 !important;
 }
 
-/* 10. Silenciar en recuperación */
+/* Silenciar en recuperación */
 body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
-</style>
-    
+</style>    
     
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
