@@ -5544,7 +5544,13 @@ async function openNavigationMap(isRecovery = false) {
         if (navigationMapInstance) {
             handleLoadOrDeleteRouteClick(null);
             setNavigationMapClickHandler();
-            setTimeout(() => { if (navigationMapInstance) navigationMapInstance.resize(); }, 520);
+            setTimeout(() => { 
+    if (navigationMapInstance) {
+        // Esto fuerza al navegador a recalcular el layout antes del resize
+        window.dispatchEvent(new Event('resize'));
+        navigationMapInstance.resize(); 
+    }
+}, 300);
             resolve();
         } else {
             try {
