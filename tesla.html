@@ -100,7 +100,7 @@ body.map-active .scroll-toggle-button {
     display: none !important;
 }
 
-/* 2. El Modal del Mapa ocupa el 100% de la pantalla física */
+/* 2. Modal del Mapa: Capa base en z-index 10000 */
 #reminders-location-map-modal {
     position: fixed !important;
     top: 0 !important;
@@ -133,7 +133,7 @@ body.map-active .scroll-toggle-button {
     overflow: hidden !important;
 }
 
-/* 3. Cabecera superior izquierda */
+/* 3. Cabecera superior izquierda con zoom simple */
 #reminders-location-map-header {
     flex-shrink: 0 !important;
     width: 100% !important;
@@ -141,6 +141,7 @@ body.map-active .scroll-toggle-button {
     flex-direction: column !important;
     align-items: flex-start !important;
     padding: 4px 0 !important;
+    zoom: 0.6536 !important;
 }
 
 #reminders-location-map-header .button-row {
@@ -149,13 +150,18 @@ body.map-active .scroll-toggle-button {
     width: 100% !important;
 }
 
-/* 4. Lienzo de Mapbox a toda pantalla */
+#toggle-map-header-buttons-panel {
+    zoom: 0.6536 !important;
+}
+
+/* 4. Lienzo de Mapbox a toda pantalla 1:1 */
 #reminders-location-map-div {
     flex: 1 1 auto !important;
     width: 100% !important;
     height: 100% !important;
     position: relative !important;
     overflow: hidden !important;
+    background-color: #111 !important;
 }
 
 #mapbox-map-actual-container {
@@ -168,73 +174,70 @@ body.map-active .scroll-toggle-button {
     height: 100% !important;
 }
 
-/* 5. Modales flotantes por encima */
-.route-modal-overlay,
-#route-modal-load-overlay,
-#route-modal-save-overlay,
-.address-suggestions-modal,
-.poi-category-modal-overlay,
-#ai-route-modal {
-    z-index: 30000 !important;
-}
-
-body.recovering-map-session #weather-widget-container,
-body.recovering-map-session #auto-start-nav-modal {
-    display: none !important;
-}
-
-/* --- ESCALADO COMPACTO DE CONTROLES EN EL MAPA --- */
-
-/* 1. Botonera superior y botón de satélite/toggle */
-#reminders-location-map-header,
-#toggle-map-header-buttons-panel {
+/* 5. CORRECCIÓN ESCALADO SIMPLE: Aplicamos zoom ÚNICAMENTE al contenedor padre 
+      y anulamos cualquier transform: scale heredado para evitar doble reducción */
+.mapboxgl-ctrl-bottom-left {
     zoom: 0.6536 !important;
+    transform: none !important;
 }
 
-/* 2. Brújula, velocímetro y estadísticas (esquina inferior izquierda) */
-.mapboxgl-ctrl-bottom-left,
-.map-control-custom-map-controls {
+.mapboxgl-ctrl-bottom-right {
     zoom: 0.6536 !important;
+    transform: none !important;
 }
 
-/* 3. Botones de zoom, pitch y ajustes (esquina inferior derecha) */
-.mapboxgl-ctrl-bottom-right,
+.map-control-custom-map-controls,
+.map-controls-bottom-right,
 #zoom-controls-horizontal,
 .map-settings-popup,
 .map-offset-popup {
-    zoom: 0.6536 !important;
+    zoom: 1 !important; /* Evita que los hijos vuelvan a multiplicar el zoom */
+    transform: none !important;
 }
 
-/* 4. Tarjeta de progreso de ruta y minimapa */
+/* 6. Barra de progreso, minimapa y widget del tiempo */
 #navigation-bottom-progress-bar,
 #mini-nav-info-card,
 #minimap-container,
-#force-show-minimap-button {
-    zoom: 0.6536 !important;
-}
-
-/* 5. Widget del tiempo flotante */
+#force-show-minimap-button,
 #weather-widget-container {
     zoom: 0.6536 !important;
 }
 
-/* 6. Modales y ventanas flotantes de navegación */
-.route-modal-container,
-.saved-locations-modal,
-#arrival-stats-modal,
-#ai-route-modal .ai-modal-content,
-#quick-reminder-modal .quick-reminder-content,
-.filter-modal-content,
-#reorder-stages-modal,
+/* 7. CORRECCIÓN Z-INDEX: Todos los modales por encima del mapa (z-index 40000) */
 #simulation-modal,
+#simulation-speed-modal,
+#reorder-stages-modal,
 #deviation-modal,
+#arrival-stats-modal,
 #auto-start-nav-modal,
-#range-calc-modal {
+#range-calc-modal,
+#quick-reminder-modal,
+#pdrs-filter-modal-overlay,
+.poi-category-modal-overlay,
+.poi-modal-overlay,
+.choice-modal,
+#alert-modal-overlay,
+#proximity-alert-modal,
+.route-modal-overlay,
+#route-modal-load-overlay,
+#route-modal-save-overlay,
+#saved-routes-modal,
+#save-route-prompt-modal,
+.saved-locations-modal,
+#address-suggestions-modal,
+#ai-route-modal,
+#reminders-map-help-modal-instance {
+    z-index: 40000 !important;
     zoom: 0.6536 !important;
 }
-    
+
+/* Silenciar en recuperación */
+body.recovering-map-session #weather-widget-container,
+body.recovering-map-session #auto-start-nav-modal {
+    display: none !important;
+}
 </style>
-   
     
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
