@@ -133,7 +133,7 @@ body.map-active .scroll-toggle-button {
     overflow: hidden !important;
 }
 
-/* 3. Cabecera superior izquierda con zoom simple */
+/* 3. Cabecera superior izquierda (escala compacta) */
 #reminders-location-map-header {
     flex-shrink: 0 !important;
     width: 100% !important;
@@ -174,13 +174,8 @@ body.map-active .scroll-toggle-button {
     height: 100% !important;
 }
 
-/* 5. CORRECCIÓN ESCALADO SIMPLE: Aplicamos zoom ÚNICAMENTE al contenedor padre 
-      y anulamos cualquier transform: scale heredado para evitar doble reducción */
-.mapboxgl-ctrl-bottom-left {
-    zoom: 0.6536 !important;
-    transform: none !important;
-}
-
+/* 5. Controles del mapa con zoom compacto */
+.mapboxgl-ctrl-bottom-left,
 .mapboxgl-ctrl-bottom-right {
     zoom: 0.6536 !important;
     transform: none !important;
@@ -191,45 +186,66 @@ body.map-active .scroll-toggle-button {
 #zoom-controls-horizontal,
 .map-settings-popup,
 .map-offset-popup {
-    zoom: 1 !important; /* Evita que los hijos vuelvan a multiplicar el zoom */
+    zoom: 1 !important;
     transform: none !important;
 }
 
-/* 6. Barra de progreso, minimapa y widget del tiempo */
+/* 6. Barra de progreso, minimapa y widget del tiempo (escala compacta) */
 #navigation-bottom-progress-bar,
 #mini-nav-info-card,
 #minimap-container,
 #force-show-minimap-button,
-#weather-widget-container {
+#weather-widget-container,
+#auto-start-nav-modal {
     zoom: 0.6536 !important;
 }
 
-/* 7. CORRECCIÓN Z-INDEX: Todos los modales por encima del mapa (z-index 40000) */
-#simulation-modal,
-#simulation-speed-modal,
-#reorder-stages-modal,
-#deviation-modal,
-#arrival-stats-modal,
-#auto-start-nav-modal,
-#range-calc-modal,
-#quick-reminder-modal,
-#pdrs-filter-modal-overlay,
-.poi-category-modal-overlay,
-.poi-modal-overlay,
-.choice-modal,
-#alert-modal-overlay,
-#proximity-alert-modal,
+/* 7. MODALES Y VENTANAS FLOTANTES: Tamaño NORMAL (Escala 1:1) y siempre por encima del mapa (z-index 40000) */
 .route-modal-overlay,
 #route-modal-load-overlay,
 #route-modal-save-overlay,
 #saved-routes-modal,
 #save-route-prompt-modal,
+#route-concat-choice-modal,
+.poi-category-modal-overlay,
+.poi-modal-overlay,
+#poi-category-modal,
+#config-modal,
 .saved-locations-modal,
+#locations-preview-modal,
 #address-suggestions-modal,
 #ai-route-modal,
-#reminders-map-help-modal-instance {
+#simulation-modal,
+#simulation-speed-modal,
+#reorder-stages-modal,
+#deviation-modal,
+#arrival-stats-modal,
+#range-calc-modal,
+#quick-reminder-modal,
+#pdrs-filter-modal-overlay,
+.choice-modal,
+#alert-modal-overlay,
+#proximity-alert-modal,
+#reminders-map-help-modal-instance,
+#versions-modal-overlay,
+#pin-modal-overlay,
+#chat-modal-overlay {
     z-index: 40000 !important;
-    zoom: 0.6536 !important;
+    zoom: 1 !important; /* <--- Tamaño normal, grande y legible */
+}
+
+/* Ajuste de fondo para los fondos oscuros de los modales */
+.route-modal-overlay,
+.poi-category-modal-overlay,
+.filter-modal-overlay,
+#alert-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
 }
 
 /* Silenciar en recuperación */
@@ -237,7 +253,7 @@ body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
-</style>
+</style>    
     
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
