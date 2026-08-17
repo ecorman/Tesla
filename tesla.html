@@ -3,25 +3,33 @@
 <head>
     <meta charset="UTF-8"> 
 
-    <!-- Corrección de resolución para el navegador de Tesla (1254x784) -->
+  <!-- Corrección de resolución para el navegador de Tesla (1254x784) -->
     <script>
         (function() {
-            function adaptTeslaResolution() {
+            window.adaptTeslaResolution = function() {
+                // Si el mapa está abierto, dejamos zoom 1 para que ocupe el 100% real y el coche no se desplace de la carretera
+                if (document.body && document.body.classList.contains('map-active')) {
+                    document.documentElement.style.zoom = "1";
+                    return;
+                }
+                
                 const isTeslaResolution = (window.innerWidth === 1254 && window.innerHeight === 784) || 
-                                          (window.screen.width === 1254 && window.screen.height === 784);
+                                          (window.screen.width === 1254 && window.screen.height === 784) ||
+                                          (window.innerWidth === 1918 || window.innerHeight === 1200);
                 
                 if (isTeslaResolution) {
-                    // Se aplica el zoom inverso (1 / 1.53) para recuperar la proporción anterior
+                    // Zoom reducido solo para la pantalla principal de botones
                     document.documentElement.style.zoom = "0.6536";
+                } else {
+                    document.documentElement.style.zoom = "1";
                 }
-            }
+            };
             // Ejecución inmediata
-            adaptTeslaResolution();
-            // Ejecución tras carga para asegurar la lectura correcta de dimensiones del viewport
-            window.addEventListener('DOMContentLoaded', adaptTeslaResolution);
-            window.addEventListener('resize', adaptTeslaResolution);
+            window.adaptTeslaResolution();
+            window.addEventListener('DOMContentLoaded', window.adaptTeslaResolution);
+            window.addEventListener('resize', window.adaptTeslaResolution);
         })();
-    </script>
+    </script> 
     
     <!-- Metadatos Esenciales para SEO -->
     <meta name="description" content="BoardingGate Lanzador para Tesla: un dashboard y lanzador de aplicaciones web optimizado para la pantalla de tu Tesla. Accede a mapas avanzados, navegación con radares, recordatorios por ubicación, YouTube, y tus webs favoritas.">
@@ -72,15 +80,16 @@
 </head>
     
 <style>
-/* 1. Estado de pantalla completa activado mediante clase en el body */
+/* 1. Cuando el mapa está activo, pantalla 100% limpia */
 body.map-active {
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
     display: block !important;
+    width: 100vw !important;
+    height: 100vh !important;
 }
 
-/* Ocultar el contenido de la pantalla principal cuando el mapa está activo */
 body.map-active main,
 body.map-active footer,
 body.map-active .notices-icon-container,
@@ -91,8 +100,8 @@ body.map-active .scroll-toggle-button {
     display: none !important;
 }
 
-/* 2. Modal del mapa: Ocupa el 100% absoluto de la pantalla física */
-#reminders-location-map-modal:not(.map-modal-hidden) {
+/* 2. El Modal del Mapa ocupa el 100% de la pantalla física */
+#reminders-location-map-modal {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -106,13 +115,12 @@ body.map-active .scroll-toggle-button {
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
-    background-color: #1a1a1a !important;
+    background-color: #111 !important;
     z-index: 10000 !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* 3. Estructura interna estirada */
 #reminders-location-map-content-wrapper {
     width: 100% !important;
     height: 100% !important;
@@ -125,30 +133,29 @@ body.map-active .scroll-toggle-button {
     overflow: hidden !important;
 }
 
-/* 4. Cabecera alineada a la izquierda */
+/* 3. Cabecera superior izquierda */
 #reminders-location-map-header {
     flex-shrink: 0 !important;
     width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-start !important;
-    padding: 5px 0 !important;
+    padding: 4px 0 !important;
 }
 
 #reminders-location-map-header .button-row {
     justify-content: flex-start !important;
-    margin-left: 10px !important;
+    margin-left: 8px !important;
     width: 100% !important;
 }
 
-/* 5. Contenedor y lienzo de Mapbox: Fuerza a llenar todo el hueco restante */
+/* 4. Lienzo de Mapbox a toda pantalla */
 #reminders-location-map-div {
     flex: 1 1 auto !important;
     width: 100% !important;
     height: 100% !important;
     position: relative !important;
     overflow: hidden !important;
-    background-color: #111 !important;
 }
 
 #mapbox-map-actual-container {
@@ -161,32 +168,22 @@ body.map-active .scroll-toggle-button {
     height: 100% !important;
 }
 
-#mapbox-map-actual-container .mapboxgl-canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* 6. Z-Index de modales de carga para que salgan siempre por encima */
+/* 5. Modales flotantes por encima */
 .route-modal-overlay,
 #route-modal-load-overlay,
 #route-modal-save-overlay,
-#saved-routes-modal,
-#save-route-prompt-modal,
 .address-suggestions-modal,
 .poi-category-modal-overlay,
 #ai-route-modal {
     z-index: 30000 !important;
 }
 
-/* Silenciar modales en recuperación */
 body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
 }
 </style>
-    
+   
     
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
@@ -5400,6 +5397,7 @@ async function fetchOverpassData(query) {
 // NOMBRE: closeNavigationMap 
 function closeNavigationMap(force = false) {
     document.body.classList.remove('map-active');
+    if (window.adaptTeslaResolution) window.adaptTeslaResolution(); // <--- Restaura el zoom para los botones principales    
     const aiModal = document.getElementById('ai-route-modal');
     if (aiModal) aiModal.classList.add('hidden');
 
@@ -5548,7 +5546,9 @@ function closeNavigationMap(force = false) {
 // NOMBRE: openNavigationMap 
 // ===================================================================
 async function openNavigationMap(isRecovery = false) {
-    document.body.classList.add('map-active'); 
+    document.body.classList.add('map-active');
+    document.documentElement.style.zoom = "1"; // <--- Forzamos escala 1:1 para el mapa
+    
     if (navigationMapInstance && !isRecovery) {
 
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
@@ -5568,21 +5568,10 @@ async function openNavigationMap(isRecovery = false) {
         
   
         setTimeout(() => { 
-    if (navigationMapInstance) {
-        // 1. Forzamos al navegador a recalcular el tamaño del contenedor
-        window.dispatchEvent(new Event('resize'));
-        
-        // 2. Primer intento de ajuste de Mapbox
-        navigationMapInstance.resize(); 
-
-        // 3. Segundo intento (200ms después) para asegurar que el zoom 
-        // de Tesla ha terminado de asentar los píxeles del lienzo
-        setTimeout(() => { 
-            navigationMapInstance.resize();
-            console.log("Resolución de mapa ajustada al ratio Tesla.");
+            if (navigationMapInstance) {
+                navigationMapInstance.resize(); 
+            }
         }, 200);
-    }
-}, 300);
         
         startGpsWatching();
         startWeatherUpdates(navigationCurrentLocation); // Reanuda las actualizaciones del tiempo
@@ -5736,12 +5725,12 @@ async function openNavigationMap(isRecovery = false) {
                 }
 
                 navigationMapInstance.on('error', (e) => { if (e.error && e.error.message.includes("Token")) { showToast("Error de Token de Mapbox...", "error", 10000); } });
-                
+
                 navigationMapInstance.on('load', async function() {
                     try {
                         navigationMapInstance.resize();
-                        setTimeout(() => { if (navigationMapInstance) navigationMapInstance.resize(); }, 150);
-                        setTimeout(() => { if (navigationMapInstance) navigationMapInstance.resize(); }, 400);
+                        setTimeout(() => { if (navigationMapInstance) navigationMapInstance.resize(); }, 200);
+
                         await wait(300);
 
                         let longPressTimer = null;
