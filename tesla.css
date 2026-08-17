@@ -4536,22 +4536,70 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     width: 40px; height: 37px; object-fit: contain; display: block;
 }    
 
-/* 1. Ajuste del Body: Quitamos el margen de Tailwind (p-6) solo cuando el mapa está activo */
+/* AJUSTE PARA RATIO 1.53 Y RESOLUCIÓN COMPLETA */
+
+/* 1. Quitamos los márgenes de Tailwind del body cuando el mapa está abierto */
 body:has(#reminders-location-map-modal:not(.map-modal-hidden)) {
     padding: 0 !important;
-    align-items: flex-start !important; /* Cambia 'center' por 'inicio' (izquierda) */
+    margin: 0 !important;
+    overflow: hidden !important;
 }
 
+/* 2. Modal del Mapa: Forzamos a que ignore el zoom de Tesla y ocupe todo el espacio real */
 #reminders-location-map-modal {
-    width: 100vw !important;
-    height: 100vh !important;
-    padding: 0 !important;
-    background-color: #D8D8D0 !important;
-    z-index: 9999 !important;
+    position: fixed !important;
     top: 0 !important;
     left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 10000 !important; /* Capa base del mapa */
+    padding: 0 !important;
+    margin: 0 !important;
     border: none !important;
+    border-radius: 0 !important;
 }
+
+/* 3. Contenedores internos: Resolución total */
+#reminders-location-map-content-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+}
+
+#reminders-location-map-div {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#mapbox-map-actual-container {
+    flex-grow: 1 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 4. MODALES DE CARGA Y SELECCIÓN (z-index corregido)
+      Estos modales se crean en el body, deben estar por encima del mapa (10000) */
+.route-modal-overlay, 
+#route-modal-load-overlay, 
+#route-modal-save-overlay,
+.address-suggestions-modal,
+.poi-category-modal-overlay {
+    z-index: 20000 !important; /* Doble que el mapa para que sean visibles */
+    position: fixed !important;
+}
+
+/* 5. Asegurar que los botones no se centren por culpa de Tailwind */
+#reminders-location-map-header {
+    align-items: flex-start !important;
+    padding: 5px 0 !important;
+}
+#reminders-location-map-header .button-row {
+    justify-content: flex-start !important;
+    margin-left: 10px !important;
+}
+
 
 /* 3. Cabecera de Botones: Forzamos alineación a la izquierda */
 #reminders-location-map-header {
@@ -4570,26 +4618,7 @@ body:has(#reminders-location-map-modal:not(.map-modal-hidden)) {
     display: flex !important;
 }
 
-/* 5. Wrapper Interno y Mapa: Pantalla completa */
-#reminders-location-map-content-wrapper {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
 
-#reminders-location-map-div {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-grow: 1 !important;
-    height: 100% !important;
-}
-
-#mapbox-map-actual-container {
-    width: 100% !important;
-    height: 100% !important;
-    flex-grow: 1 !important;
-}
 body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
