@@ -81,6 +81,8 @@
 
 
 
+
+  
 <style>
 /* 1. REGLA SUPREMA: Todo elemento con .hidden debe estar COMPLETAMENTE OCULTO */
 .hidden, [hidden], .map-modal-hidden,
@@ -185,13 +187,13 @@ body.map-active .scroll-toggle-button {
     height: 100% !important;
 }
 
-/* --- DETALLE 4: ICONO DEL COCHE CON TAMAÑO CORREGIDO --- */
+/* Icono del coche escalado a 34px */
 .vehicle-icon-mapbox-container {
     width: 34px !important;
     height: 34px !important;
 }
 
-/* --- DETALLE 1: TEXTO DE DESTINO SUPERIOR DERECHO COMPACTO --- */
+/* Texto de destino superior derecho */
 #map-info-overlay {
     zoom: 0.6536 !important;
 }
@@ -212,7 +214,7 @@ body.map-active .scroll-toggle-button {
     transform: none !important;
 }
 
-/* --- DETALLE 2: CAJETÍN DE MANIOBRAS CON REDUCCIÓN DINÁMICA EN INTERSECCIONES --- */
+/* 7. Cajetín de maniobras con reducción en giros */
 #navigation-bottom-progress-bar {
     zoom: 0.6536 !important;
     transform: none;
@@ -233,7 +235,24 @@ body.map-active .scroll-toggle-button {
     zoom: 0.6536 !important;
 }
 
-/* 7. FONDOS OSCUROS DE LOS MODALES: Cubren el 100% de la pantalla real */
+/* --- BOTONERA DE FIN DE VIAJE (VUELTA, BORRAR, CANCELAR) CON ZOOM Y POSICIÓN FIJA --- */
+#post-arrival-action-modal {
+    position: fixed !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    transform: none !important;
+    zoom: 0.6536 !important;
+    z-index: 50000 !important;
+}
+
+#post-arrival-buttons-container {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    align-items: center !important;
+}
+
+/* 8. FONDOS OSCUROS DE LOS MODALES: 100% de pantalla física */
 .route-modal-overlay:not(.hidden),
 #route-modal-load-overlay:not(.hidden),
 #route-modal-save-overlay:not(.hidden),
@@ -265,7 +284,7 @@ body.map-active .scroll-toggle-button {
     zoom: 1 !important;
 }
 
-/* 8. MODALES GRANDES Y PANORÁMICOS */
+/* 9. MODALES GRANDES Y PANORÁMICOS (Escala compacta 0.6536) */
 .poi-category-modal-content,
 .poi-modal-content,
 .route-modal-container,
@@ -279,6 +298,7 @@ body.map-active .scroll-toggle-button {
 .saved-locations-modal,
 #config-modal:not(.hidden),
 #reorder-stages-modal:not(.hidden),
+#arrival-stats-modal,
 #locations-preview-modal:not(.hidden),
 #reminders-map-help-modal-instance,
 .referrals-modal-content {
@@ -289,41 +309,20 @@ body.map-active .scroll-toggle-button {
     z-index: 50000 !important;
 }
 
-/* --- DETALLE 3: MODAL DE FIN DE VIAJE (ESTADÍSTICAS) Y POST-LLEGADA --- */
-#arrival-stats-modal {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: calc(94vw / 0.6536) !important;
-    max-width: 1700px !important;
-    max-height: calc(94vh / 0.6536) !important;
-    zoom: 0.6536 !important;
-    z-index: 50000 !important;
-}
-
-#post-arrival-action-modal {
-    position: fixed !important;
-    bottom: 15px !important;
-    left: 15px !important;
-    transform: none !important;
-    zoom: 0.6536 !important;
-    z-index: 50000 !important;
-}
-
 /* Centrado exacto de modales */
 #config-modal:not(.hidden),
 #locations-preview-modal:not(.hidden),
 .reminder-modal:not(.hidden),
 .reminder-table-modal:not(.hidden),
-#reorder-stages-modal:not(.hidden) {
+#reorder-stages-modal:not(.hidden),
+#arrival-stats-modal {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
 }
 
-/* --- DETALLE 3: MODALES MEDIANOS Y DESVÍO DE RUTA --- */
+/* 10. MODALES MEDIANOS Y DESVÍO DE RUTA */
 #deviation-modal:not(.hidden) {
     position: fixed !important;
     top: 25px !important;
@@ -363,14 +362,13 @@ body.map-active .scroll-toggle-button {
     transform: translate(-50%, -50%) !important;
 }
 
-/* Cuadrícula de POIs amplia */
+/* Cuadrículas internas optimizadas */
 .poi-category-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
     gap: 12px !important;
 }
 
-/* Lista de Rutas a 2 columnas completas */
 #saved-routes-modal .route-list,
 .route-modal-panel .route-list {
     display: grid !important;
@@ -388,7 +386,8 @@ body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
-</style>
+</style> 
+
 
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
