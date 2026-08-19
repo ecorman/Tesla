@@ -78,11 +78,7 @@
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
 </head>
-
-
-
-
-  
+    
 <style>
 /* 1. REGLA SUPREMA: Todo elemento con .hidden debe estar COMPLETAMENTE OCULTO */
 .hidden, [hidden], .map-modal-hidden,
@@ -235,7 +231,7 @@ body.map-active .scroll-toggle-button {
     zoom: 0.6536 !important;
 }
 
-/* --- BOTONERA DE FIN DE VIAJE (VUELTA, BORRAR, CANCELAR) CON ZOOM Y POSICIÓN FIJA --- */
+/* Menú inferior de fin de viaje */
 #post-arrival-action-modal {
     position: fixed !important;
     bottom: 12px !important;
@@ -284,7 +280,7 @@ body.map-active .scroll-toggle-button {
     zoom: 1 !important;
 }
 
-/* 9. MODALES GRANDES Y PANORÁMICOS (Escala compacta 0.6536) */
+/* 9. MODALES GRANDES Y PANORÁMICOS */
 .poi-category-modal-content,
 .poi-modal-content,
 .route-modal-container,
@@ -298,7 +294,6 @@ body.map-active .scroll-toggle-button {
 .saved-locations-modal,
 #config-modal:not(.hidden),
 #reorder-stages-modal:not(.hidden),
-#arrival-stats-modal,
 #locations-preview-modal:not(.hidden),
 #reminders-map-help-modal-instance,
 .referrals-modal-content {
@@ -314,26 +309,113 @@ body.map-active .scroll-toggle-button {
 #locations-preview-modal:not(.hidden),
 .reminder-modal:not(.hidden),
 .reminder-table-modal:not(.hidden),
-#reorder-stages-modal:not(.hidden),
-#arrival-stats-modal {
+#reorder-stages-modal:not(.hidden) {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
 }
 
-/* 10. MODALES MEDIANOS Y DESVÍO DE RUTA */
+/* --- AJUSTE: MODAL DE FIN DE VIAJE (ESTADÍSTICAS) 100% SIN SCROLL --- */
+#arrival-stats-modal {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(94vw / 0.6536) !important;
+    max-width: 1700px !important;
+    max-height: calc(95vh / 0.6536) !important;
+    zoom: 0.6536 !important;
+    z-index: 50000 !important;
+    overflow: hidden !important;
+}
+
+#arrival-stats-modal .arrival-stats-header {
+    height: 60px !important;
+    padding: 8px 15px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+#arrival-stats-modal .arrival-stats-header h2 {
+    font-size: 1.4rem !important;
+    margin: 0 !important;
+}
+
+#arrival-stats-modal .arrival-stats-header .destination-name {
+    font-size: 1rem !important;
+    margin: 0 !important;
+}
+
+#arrival-stats-modal .arrival-stats-body {
+    padding: 10px 15px !important;
+    overflow: hidden !important;
+}
+
+#arrival-stats-modal .stats-section-header {
+    font-size: 0.95rem !important;
+    margin-top: 6px !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
+}
+
+#arrival-stats-modal .stats-grid {
+    gap: 8px !important;
+}
+
+#arrival-stats-modal .stat-card {
+    min-height: 80px !important;
+    padding: 6px 10px !important;
+    gap: 4px !important;
+}
+
+#arrival-stats-modal .stat-label {
+    font-size: 0.78rem !important;
+}
+
+#arrival-stats-modal .stat-value {
+    font-size: 1.3rem !important;
+}
+
+#arrival-stats-modal .stat-icon img,
+#arrival-stats-modal .stat-icon svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+#arrival-stats-modal .initial-eta-details {
+    padding: 6px !important;
+    font-size: 0.8rem !important;
+    margin-top: 4px !important;
+}
+
+#arrival-stats-modal .arrival-stats-footer {
+    padding: 8px 15px !important;
+}
+
+#arrival-stats-modal .arrival-stats-footer button {
+    padding: 8px 25px !important;
+    font-size: 1.1rem !important;
+    min-height: 45px !important;
+}
+
+/* --- AJUSTE: MODAL DE DESVÍO MÁS ESTRECHO Y COMPACTO --- */
 #deviation-modal:not(.hidden) {
     position: fixed !important;
-    top: 25px !important;
-    left: 25px !important;
+    top: 20px !important;
+    left: 20px !important;
     transform: none !important;
-    width: calc(75vw / 0.6536) !important;
-    max-width: 1100px !important;
+    width: calc(48vw / 0.6536) !important;
+    max-width: 380px !important;
+    max-height: calc(88vh / 0.6536) !important;
+    padding: 1.2rem !important;
     zoom: 0.6536 !important;
     z-index: 50000 !important;
 }
 
+/* Modales medianos restantes */
 .filter-modal-content,
 .ocm-modal-content,
 #alert-modal-content,
@@ -362,13 +444,14 @@ body.map-active .scroll-toggle-button {
     transform: translate(-50%, -50%) !important;
 }
 
-/* Cuadrículas internas optimizadas */
+/* Cuadrícula de POIs amplia */
 .poi-category-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
     gap: 12px !important;
 }
 
+/* Lista de Rutas a 2 columnas completas */
 #saved-routes-modal .route-list,
 .route-modal-panel .route-list {
     display: grid !important;
@@ -381,13 +464,26 @@ body.map-active .scroll-toggle-button {
     zoom: 0.6536 !important;
 }
 
+/* Overlay de captura de pantalla 100% nítido */
+#recovery-screenshot-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 100001 !important;
+    zoom: 1 !important;
+    pointer-events: none !important;
+}
+
 /* Silenciar en recuperación */
 body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
-</style> 
-
+</style>
 
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
@@ -405,6 +501,8 @@ body.recovering-map-session #auto-start-nav-modal {
             const screenshotData = sessionStorage.getItem('recoveryScreenshot');
             
             if (isControlled && screenshotData) {
+                document.body.classList.add('map-active');
+                document.documentElement.style.zoom = "1";
                 const overlayContainer = document.getElementById('recovery-screenshot-overlay');
                 if (overlayContainer) {
                     const img = document.createElement('img');
@@ -1129,7 +1227,7 @@ body.recovering-map-session #auto-start-nav-modal {
     const MAP_VIEW_OFFSET_Y_KEY = 'mapView_offsetY';
     const MAP_VIEW_SHOW_MINIMAP_KEY = 'mapView_showMinimap';
     let mapOffsetX = 0;
-    let mapOffsetY = 15;
+    let mapOffsetY = 12;
     let showMinimapPreference = true;
     const MAP_VIEW_PITCH_KEY = 'mapView_pitch';
     let mapPitchValue = 62;
@@ -3506,9 +3604,9 @@ async function restoreTripProgress(recoveryInfo) {
             
             const physicalDistanceToRoute = turf.pointToLineDistance(carPoint, routeLine, { units: 'meters' });
             if (physicalDistanceToRoute > 25) {
-                console.warn(`[Recovery] Desvío de ${physicalDistanceToRoute.toFixed(0)}m detectado. Forzando recálculo.`);
-                showToast("Desvío detectado al reanudar. Recalculando ruta...", "warning");
-                showDeviationModal();
+                console.warn(`[Recovery] Desvío de ${physicalDistanceToRoute.toFixed(0)}m detectado. Recalculando en segundo plano.`);
+                // Recalcular directamente en silencio sin abrir el modal de desvío
+                recalculateAndDrawRoute(true, recoveryInfo).catch(() => {});
                 const overlay = document.getElementById('route-recovery-overlay');
                 if (overlay) overlay.classList.add('hidden');
                 hideRecoveryScreenshotOverlay();
