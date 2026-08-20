@@ -2845,63 +2845,59 @@ function generateAndCacheCleanManeuverList(route, actualWaypoints) {
 
 //===================================================================
 // NOMBRE: drawRouteOnMap 
+//===================================================================
+// NOMBRE: drawRouteOnMap (VERSIÓN 100% SEGURA Y ROBUSTA)
 async function drawRouteOnMap(route) {
     if (!navigationMapInstance) {
-        throw new Error("La instancia del mapa no existe para poder dibujar.");
+        return;
     }
 
+    // 1. Verificación de seguridad: espera a que el estilo (satélite/calles) esté listo si se acaba de cambiar
     await waitForMapStyleLoad(navigationMapInstance);
 
-    return new Promise((resolve, reject) => {
-        const geojsonData = (route && route.geometry && route.geometry.coordinates.length >= 2) 
-            ? { type: 'Feature', properties: {}, geometry: route.geometry }
-            : { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } };
+    // 2. Validación de coordenadas GeoJSON idéntica a la original
+    const geojsonData = (route && route.geometry && Array.isArray(route.geometry.coordinates) && route.geometry.coordinates.length >= 2) 
+        ? { type: 'Feature', properties: {}, geometry: route.geometry }
+        : { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } };
 
-        const cleanupAndReject = (message) => {
-            clearTimeout(timeoutId);
-            navigationMapInstance.off('sourcedata', onSourceData);
-            reject(new Error(message));
-        };
-        
-        const timeoutId = setTimeout(() => {
-            cleanupAndReject("Timeout esperando la confirmación de renderizado del mapa.");
-        }, 7000);
+    try {
+        const source = navigationMapInstance.getSource('route');
+        if (source) {
+            // Actualización instantánea en memoria sin eliminar la capa
+            source.setData(geojsonData);
+        } else {
+            // Primera creación de fuente y capa
+            navigationMapInstance.addSource('route', { 
+                type: 'geojson', 
+                data: geojsonData 
+            });
 
-        const onSourceData = (e) => {
-            if (e.sourceId === 'route' && e.isSourceLoaded) {
-                clearTimeout(timeoutId);
-                navigationMapInstance.off('sourcedata', onSourceData);
-                resolve();
-            }
-        };
-        
-        navigationMapInstance.on('sourcedata', onSourceData);
-
-        try {
-            if (navigationMapInstance.getLayer('route')) {
-                navigationMapInstance.removeLayer('route');
-            }
-            if (navigationMapInstance.getSource('route')) {
-                navigationMapInstance.removeSource('route');
-            }
-
-            navigationMapInstance.addSource('route', { type: 'geojson', data: geojsonData });
             navigationMapInstance.addLayer({
                 id: 'route',
                 type: 'line',
                 source: 'route',
-                layout: { 'line-join': 'round', 'line-cap': 'round' },
-                minzoom: 1.5, maxzoom: 19, 
+                layout: { 
+                    'line-join': 'round', 
+                    'line-cap': 'round' 
+                },
+                minzoom: 1, 
+                maxzoom: 22, 
                 paint: getRouteStyleProperties()
             });
-
-            drawRouteOnMinimap();
-            
-           } catch (error) {
-            cleanupAndReject(`Error al añadir capa/fuente: ${error.message}`);
         }
-    });
-}    
+
+        // 3. Mantenimiento del estilo visual
+        if (navigationMapInstance.getLayer('route')) {
+            updateRouteAndCarIconStyle();
+        }
+
+        // 4. Mantenimiento del minimapa
+        drawRouteOnMinimap();
+
+    } catch (error) {
+        console.error("Error al actualizar la capa de ruta:", error);
+    }
+}
    
 // ===================================================================
 // 
@@ -22083,73 +22079,42 @@ function reactivateRealGpsAfterSimulation() {
     }
 }
 
-// ===================================================================
-// NOMBRE: getRouteStyleProperties 
+
 function updateLineWidthsOnPitchChange() {
     if (!navigationMapInstance || !navigationMapInstance.isStyleLoaded()) return;
 
     const isPitched = navigationMapInstance.getPitch() > 20;
-    
-    const mainWidthExpr = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 4.5, 13.5, 10.5] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 4.5, 13.5, 8];
-        
-    const altWidthExpr = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 3.5, 13.5, 8] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 3.5, 13.5, 5.5];
-        
-    const completedWidthExpr = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 2.5, 13.5, 6.5] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 2.5, 13.5, 4];
+    const targetWidth = isPitched ? 11 : 8.5;
+    const altWidth = isPitched ? 8 : 6;
+    const completedWidth = isPitched ? 6.5 : 4.5;
 
     try {
         if (navigationMapInstance.getLayer('route')) {
-            navigationMapInstance.setPaintProperty('route', 'line-width', mainWidthExpr);
+            navigationMapInstance.setPaintProperty('route', 'line-width', targetWidth);
         }
         if (navigationMapInstance.getLayer('completed-segments-layer')) {
-            navigationMapInstance.setPaintProperty('completed-segments-layer', 'line-width', completedWidthExpr);
+            navigationMapInstance.setPaintProperty('completed-segments-layer', 'line-width', completedWidth);
         }
         alternativeRouteLayers.forEach(alt => {
             if (navigationMapInstance.getLayer(alt.layerId)) {
-                navigationMapInstance.setPaintProperty(alt.layerId, 'line-width', altWidthExpr);
+                navigationMapInstance.setPaintProperty(alt.layerId, 'line-width', altWidth);
             }
         });
     } catch (e) { }
-}
-    
-// ===================================================================
-// NOMBRE: updateLineWidthsOnPitchChange (VERSIÓN MODIFICADA CON ZOOM DINÁMICO)
-function updateLineWidthsOnPitchChange() {
-    if (!navigationMapInstance || !navigationMapInstance.isStyleLoaded()) return;
+}    
 
-    const isPitched = navigationMapInstance.getPitch() > 20;
-    
-    const mainWidthExpr = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 7, 13.5, 16] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 7, 13.5, 12];
-        
-    const altWidthExpr = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 5, 13.5, 12] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 5, 13.5, 8];
-        
-    const completedWidthExpr = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 4, 13.5, 10] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 4, 13.5, 6];
+function getRouteStyleProperties() {
+    const isStreetsView = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO") === 'CALLES';
+    const isPitched = navigationMapInstance && navigationMapInstance.getPitch() > 20;
 
-    try {
-        if (navigationMapInstance.getLayer('route')) {
-            navigationMapInstance.setPaintProperty('route', 'line-width', mainWidthExpr);
-        }
-        if (navigationMapInstance.getLayer('completed-segments-layer')) {
-            navigationMapInstance.setPaintProperty('completed-segments-layer', 'line-width', completedWidthExpr);
-        }
-        alternativeRouteLayers.forEach(alt => {
-            if (navigationMapInstance.getLayer(alt.layerId)) {
-                navigationMapInstance.setPaintProperty(alt.layerId, 'line-width', altWidthExpr);
-            }
-        });
-    } catch (e) { /* Ignorar errores si la capa no existe durante la actualización */ }
-}
+    return {
+        // Amarillo oro brillante y muy visible sobre satélite, azul eléctrico en mapa calles
+        'line-color': isStreetsView ? '#0070f3' : '#FFE600',
+        'line-width': isPitched ? 11 : 8.5,
+        'line-opacity': 0.95
+    };
+}    
+
     
 // ===================================================================
 // NOMBRE: parseReminderText
