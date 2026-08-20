@@ -304,7 +304,7 @@ body.map-active .scroll-toggle-button {
     z-index: 50000 !important;
 }
 
-/* Centrado exacto de modales */
+/* Centrado de modales estándar */
 #config-modal:not(.hidden),
 #locations-preview-modal:not(.hidden),
 .reminder-modal:not(.hidden),
@@ -316,99 +316,131 @@ body.map-active .scroll-toggle-button {
     transform: translate(-50%, -50%) !important;
 }
 
-/* --- AJUSTE: MODAL DE FIN DE VIAJE (ESTADÍSTICAS) 100% SIN SCROLL --- */
+/* --- REESTRUCTURACIÓN COMPLETA DE FIN DE VIAJE (TODO VISIBLE SIN SCROLL) --- */
 #arrival-stats-modal {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: calc(94vw / 0.6536) !important;
-    max-width: 1700px !important;
-    max-height: calc(95vh / 0.6536) !important;
+    width: calc(96vw / 0.6536) !important;
+    max-width: 1800px !important;
+    max-height: calc(96vh / 0.6536) !important;
     zoom: 0.6536 !important;
     z-index: 50000 !important;
+    display: flex !important;
+    flex-direction: column !important;
     overflow: hidden !important;
+    padding: 0 !important;
 }
 
 #arrival-stats-modal .arrival-stats-header {
-    height: 60px !important;
-    padding: 8px 15px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 4px 18px !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
+    flex-shrink: 0 !important;
 }
 
 #arrival-stats-modal .arrival-stats-header h2 {
-    font-size: 1.4rem !important;
+    font-size: 1.3rem !important;
     margin: 0 !important;
 }
 
 #arrival-stats-modal .arrival-stats-header .destination-name {
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
     margin: 0 !important;
+    padding: 2px 8px !important;
 }
 
 #arrival-stats-modal .arrival-stats-body {
-    padding: 10px 15px !important;
-    overflow: hidden !important;
+    padding: 8px 18px !important;
+    flex-grow: 1 !important;
+    overflow-y: auto !important;
+}
+
+#arrival-stats-modal .arrival-stats-layout-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+}
+
+#arrival-stats-modal .main-stats-container,
+#arrival-stats-modal .side-stats-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
 }
 
 #arrival-stats-modal .stats-section-header {
-    font-size: 0.95rem !important;
-    margin-top: 6px !important;
-    margin-bottom: 8px !important;
-    padding-bottom: 4px !important;
+    font-size: 0.88rem !important;
+    margin-top: 2px !important;
+    margin-bottom: 4px !important;
+    padding-bottom: 2px !important;
+    border-bottom: 1px solid #444 !important;
 }
 
 #arrival-stats-modal .stats-grid {
-    gap: 8px !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
 }
 
 #arrival-stats-modal .stat-card {
-    min-height: 80px !important;
-    padding: 6px 10px !important;
-    gap: 4px !important;
+    min-height: 65px !important;
+    max-height: 75px !important;
+    padding: 4px 6px !important;
+    gap: 2px !important;
+    border-radius: 8px !important;
 }
 
 #arrival-stats-modal .stat-label {
-    font-size: 0.78rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
 }
 
 #arrival-stats-modal .stat-value {
-    font-size: 1.3rem !important;
+    font-size: 1.15rem !important;
+    line-height: 1.1 !important;
 }
 
 #arrival-stats-modal .stat-icon img,
 #arrival-stats-modal .stat-icon svg {
-    width: 22px !important;
-    height: 22px !important;
+    width: 18px !important;
+    height: 18px !important;
 }
 
 #arrival-stats-modal .initial-eta-details {
-    padding: 6px !important;
-    font-size: 0.8rem !important;
-    margin-top: 4px !important;
+    padding: 3px 6px !important;
+    font-size: 0.72rem !important;
+    margin-top: 2px !important;
+    line-height: 1.2 !important;
 }
 
 #arrival-stats-modal .arrival-stats-footer {
-    padding: 8px 15px !important;
+    padding: 6px 18px !important;
+    flex-shrink: 0 !important;
 }
 
 #arrival-stats-modal .arrival-stats-footer button {
-    padding: 8px 25px !important;
-    font-size: 1.1rem !important;
-    min-height: 45px !important;
+    padding: 6px 30px !important;
+    font-size: 1.05rem !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    border-radius: 6px !important;
 }
 
-/* --- AJUSTE: MODAL DE DESVÍO MÁS ESTRECHO Y COMPACTO --- */
+/* Modal de Desvío compacto a la izquierda */
 #deviation-modal:not(.hidden) {
     position: fixed !important;
     top: 20px !important;
     left: 20px !important;
     transform: none !important;
     width: calc(48vw / 0.6536) !important;
-    max-width: 380px !important;
+    max-width: 680px !important;
     max-height: calc(88vh / 0.6536) !important;
     padding: 1.2rem !important;
     zoom: 0.6536 !important;
@@ -484,6 +516,7 @@ body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
 </style>
+
 
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
@@ -22052,23 +22085,36 @@ function reactivateRealGpsAfterSimulation() {
 
 // ===================================================================
 // NOMBRE: getRouteStyleProperties 
-function getRouteStyleProperties() {
-    if (!navigationMapInstance) { // Fallback por si el mapa no está listo
-        return { 'line-color': 'yellow', 'line-width': 12, 'line-opacity': 0.8 };
-    }
-    
-    const isPitched = navigationMapInstance.getPitch() > 20;
-    const isStreetsView = (localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO") === 'CALLES';
+function updateLineWidthsOnPitchChange() {
+    if (!navigationMapInstance || !navigationMapInstance.isStyleLoaded()) return;
 
-    const mainWidthExpression = isPitched 
-        ? ['interpolate', ['linear'], ['zoom'], 13.49, 7, 13.5, 16] 
-        : ['interpolate', ['linear'], ['zoom'], 13.49, 7, 13.5, 12];
+    const isPitched = navigationMapInstance.getPitch() > 20;
     
-    return {
-        'line-color': isStreetsView ? 'blue' : 'yellow',        
-        'line-width': mainWidthExpression, 
-        'line-opacity': isStreetsView ? 0.6 : 0.8
-    };
+    const mainWidthExpr = isPitched 
+        ? ['interpolate', ['linear'], ['zoom'], 13.49, 4.5, 13.5, 10.5] 
+        : ['interpolate', ['linear'], ['zoom'], 13.49, 4.5, 13.5, 8];
+        
+    const altWidthExpr = isPitched 
+        ? ['interpolate', ['linear'], ['zoom'], 13.49, 3.5, 13.5, 8] 
+        : ['interpolate', ['linear'], ['zoom'], 13.49, 3.5, 13.5, 5.5];
+        
+    const completedWidthExpr = isPitched 
+        ? ['interpolate', ['linear'], ['zoom'], 13.49, 2.5, 13.5, 6.5] 
+        : ['interpolate', ['linear'], ['zoom'], 13.49, 2.5, 13.5, 4];
+
+    try {
+        if (navigationMapInstance.getLayer('route')) {
+            navigationMapInstance.setPaintProperty('route', 'line-width', mainWidthExpr);
+        }
+        if (navigationMapInstance.getLayer('completed-segments-layer')) {
+            navigationMapInstance.setPaintProperty('completed-segments-layer', 'line-width', completedWidthExpr);
+        }
+        alternativeRouteLayers.forEach(alt => {
+            if (navigationMapInstance.getLayer(alt.layerId)) {
+                navigationMapInstance.setPaintProperty(alt.layerId, 'line-width', altWidthExpr);
+            }
+        });
+    } catch (e) { }
 }
     
 // ===================================================================
