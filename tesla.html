@@ -79,6 +79,7 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
 </head>
     
+
 <style>
 /* 1. REGLA SUPREMA: Todo elemento con .hidden debe estar COMPLETAMENTE OCULTO */
 .hidden, [hidden], .map-modal-hidden,
@@ -279,23 +280,23 @@ body.map-active .scroll-toggle-button {
     zoom: 1 !important;
 }
 
-/* 9. MODALES GRANDES Y PANORÁMICOS */
-.poi-category-modal-content,
-.poi-modal-content,
-.route-modal-container,
-#saved-routes-modal,
-#save-route-prompt-modal,
-#share-stage-modal,
-.ai-modal-content,
-.quick-reminder-content,
-.reminder-modal,
-.reminder-table-modal,
-.saved-locations-modal,
-#config-modal:not(.hidden),
-#reorder-stages-modal:not(.hidden),
-#locations-preview-modal:not(.hidden),
-#reminders-map-help-modal-instance,
-.referrals-modal-content {
+/* 9. MODALES GRANDES Y PANORÁMICOS EN MODO MAPA */
+body.map-active .poi-category-modal-content,
+body.map-active .poi-modal-content,
+body.map-active .route-modal-container,
+body.map-active #saved-routes-modal,
+body.map-active #save-route-prompt-modal,
+body.map-active #share-stage-modal,
+body.map-active .ai-modal-content,
+body.map-active .quick-reminder-content,
+body.map-active .reminder-modal,
+body.map-active .reminder-table-modal,
+body.map-active .saved-locations-modal,
+body.map-active #config-modal:not(.hidden),
+body.map-active #reorder-stages-modal:not(.hidden),
+body.map-active #locations-preview-modal:not(.hidden),
+body.map-active #reminders-map-help-modal-instance,
+body.map-active .referrals-modal-content {
     width: calc(94vw / 0.6536) !important;
     max-width: 1700px !important;
     max-height: calc(93vh / 0.6536) !important;
@@ -303,34 +304,81 @@ body.map-active .scroll-toggle-button {
     z-index: 50000 !important;
 }
 
-/* Centrado de modales en pantalla */
-#config-modal:not(.hidden),
-#locations-preview-modal:not(.hidden),
-.reminder-modal:not(.hidden),
-.reminder-table-modal:not(.hidden),
+/* =========================================================================
+   10. MODALES EN PANTALLA PRINCIPAL: POSICIONAMIENTO SUPERIOR (ANTI-TECLADO)
+   ========================================================================= */
+body:not(.map-active) #config-modal:not(.hidden),
+body:not(.map-active) #locations-preview-modal:not(.hidden),
+body:not(.map-active) .reminder-modal:not(.hidden),
+body:not(.map-active) .reminder-table-modal:not(.hidden),
+body:not(.map-active) .saved-locations-modal:not(.hidden),
+body:not(.map-active) .choice-modal:not(.hidden),
+body:not(.map-active) .edit-modal:not(.hidden),
+body:not(.map-active) .edit-info-modal:not(.hidden),
+body:not(.map-active) .help-modal:not(.hidden),
+body:not(.map-active) .referrals-modal-content:not(.hidden) {
+    position: fixed !important;
+    top: 15px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-height: calc(100vh - 30px) !important;
+    overflow-y: auto !important;
+    zoom: 1 !important;
+    z-index: 50000 !important;
+}
+
+/* En la pantalla principal los modales de diálogo no llevan doble zoom */
+body:not(.map-active) .versions-modal-content,
+body:not(.map-active) #pin-modal-content {
+    zoom: 1 !important;
+    margin-top: 25px !important;
+}
+
+/* Modal de Reordenar Etapas (cuando se abre en pantalla principal o mapa) */
 #reorder-stages-modal:not(.hidden) {
     position: fixed !important;
-    top: 50% !important;
+    top: 15px !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    transform: translateX(-50%) !important;
 }
 
-/* En la pantalla principal los modales no llevan doble zoom */
-body:not(.map-active) #config-modal,
-body:not(.map-active) .reminder-modal,
-body:not(.map-active) .reminder-table-modal,
-body:not(.map-active) .saved-locations-modal,
-body:not(.map-active) .choice-modal,
-body:not(.map-active) .edit-modal,
-body:not(.map-active) .edit-info-modal,
-body:not(.map-active) .help-modal,
-body:not(.map-active) .versions-modal-content,
-body:not(.map-active) #pin-modal-content,
-body:not(.map-active) .referrals-modal-content {
-    zoom: 1 !important;
+/* =========================================================================
+   11. MODAL DE AYUDA DENTRO DE RECORDATORIOS (BOTÓN AYUDA)
+   ========================================================================= */
+.reminder-modal .help-modal {
+    position: absolute !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 14px !important;
+    z-index: 60000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background-color: #2c2c2e !important;
 }
 
-/* --- MODAL DE FIN DE VIAJE (ESTADÍSTICAS) SIN SCROLL --- */
+.reminder-modal .help-modal .reminder-modal-body {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    padding: 1rem 1.5rem !important;
+}
+
+.reminder-modal .help-modal .reminder-modal-footer {
+    flex-shrink: 0 !important;
+    padding: 0.8rem 1.5rem !important;
+    background-color: #1c1c1e !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+/* =========================================================================
+   12. MODAL DE FIN DE VIAJE (ESTADÍSTICAS) CON TARJETAS AMPLIAS
+   ========================================================================= */
 #arrival-stats-modal {
     position: fixed !important;
     top: 50% !important;
@@ -370,9 +418,9 @@ body:not(.map-active) .referrals-modal-content {
 }
 
 #arrival-stats-modal .arrival-stats-body {
-    padding: 10px 20px !important;
+    padding: 12px 20px !important;
     flex-grow: 1 !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
 }
 
 #arrival-stats-modal .arrival-stats-layout-grid {
@@ -385,70 +433,76 @@ body:not(.map-active) .referrals-modal-content {
 #arrival-stats-modal .side-stats-container {
     display: flex !important;
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 10px !important;
 }
 
 #arrival-stats-modal .stats-section-header {
-    font-size: 0.95rem !important;
+    font-size: 1rem !important;
     margin-top: 2px !important;
-    margin-bottom: 6px !important;
-    padding-bottom: 3px !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
     border-bottom: 1px solid #444 !important;
 }
 
 #arrival-stats-modal .stats-grid {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
+    gap: 10px !important;
 }
 
+/* Doble de altura para las tarjetas de estadísticas */
 #arrival-stats-modal .stat-card {
-    min-height: 90px !important;
-    max-height: 100px !important;
-    padding: 8px 10px !important;
-    gap: 5px !important;
-    border-radius: 10px !important;
+    min-height: 165px !important;
+    max-height: 180px !important;
+    padding: 14px 10px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 #arrival-stats-modal .stat-label {
-    font-size: 0.82rem !important;
-    line-height: 1.1 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.2 !important;
     font-weight: 600 !important;
     margin: 0 !important;
 }
 
 #arrival-stats-modal .stat-value {
-    font-size: 1.45rem !important;
-    line-height: 1.15 !important;
+    font-size: 1.85rem !important;
+    line-height: 1.2 !important;
+    font-weight: bold !important;
 }
 
 #arrival-stats-modal .stat-icon img,
 #arrival-stats-modal .stat-icon svg {
-    width: 26px !important;
-    height: 26px !important;
+    width: 38px !important;
+    height: 38px !important;
 }
 
 #arrival-stats-modal .initial-eta-details {
-    padding: 6px 10px !important;
-    font-size: 0.82rem !important;
-    margin-top: 4px !important;
+    padding: 8px 12px !important;
+    font-size: 0.88rem !important;
+    margin-top: 6px !important;
     line-height: 1.3 !important;
 }
 
 #arrival-stats-modal .arrival-stats-footer {
-    padding: 8px 20px !important;
+    padding: 10px 20px !important;
     flex-shrink: 0 !important;
 }
 
 #arrival-stats-modal .arrival-stats-footer button {
-    padding: 8px 35px !important;
-    font-size: 1.15rem !important;
-    min-height: 44px !important;
-    height: 44px !important;
+    padding: 10px 45px !important;
+    font-size: 1.25rem !important;
+    min-height: 48px !important;
+    height: 48px !important;
     border-radius: 8px !important;
 }
 
-/* Modal de Desvío compacto (max-width: 480px) */
+/* 13. Modal de Desvío compacto */
 #deviation-modal:not(.hidden) {
     position: fixed !important;
     top: 20px !important;
@@ -462,7 +516,7 @@ body:not(.map-active) .referrals-modal-content {
     z-index: 50000 !important;
 }
 
-/* Modales medianos restantes */
+/* 14. Modales medianos restantes */
 body.map-active .filter-modal-content,
 body.map-active .ocm-modal-content,
 body.map-active #alert-modal-content,
@@ -490,15 +544,15 @@ body.map-active #pin-modal-content {
     transform: translate(-50%, -50%) !important;
 }
 
-/* --- REGLAS DEFINITIVAS DEL CHAT DE USUARIOS (PANTALLA COMPLETA Y SCROLL INDEPENDIENTE) --- */
+/* =========================================================================
+   15. CHAT DE USUARIOS: PANTALLA COMPLETA 100% REAL
+   ========================================================================= */
 #chat-modal-overlay:not(.hidden) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    width: calc(100vw / 0.6536) !important;
+    height: calc(100vh / 0.6536) !important;
     max-width: none !important;
     max-height: none !important;
     z-index: 60000 !important;
@@ -506,27 +560,27 @@ body.map-active #pin-modal-content {
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
+    background-color: #2c2c2e !important;
 }
 
 #chat-modal-content {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     display: flex !important;
     flex-direction: row !important;
     overflow: hidden !important;
     border-radius: 0 !important;
     border: none !important;
     background-color: #2c2c2e !important;
-    zoom: 1 !important;
 }
 
 #chat-left-column {
     flex: 1 1 auto !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100vh !important;
+    height: 100% !important;
     min-height: 0 !important;
     overflow: hidden !important;
 }
@@ -550,10 +604,10 @@ body.map-active #pin-modal-content {
 
 #chat-right-column {
     flex-shrink: 0 !important;
-    width: 280px !important;
+    width: 320px !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100vh !important;
+    height: 100% !important;
     min-height: 0 !important;
     overflow: hidden !important;
     border-left: 1px solid #444 !important;
@@ -574,14 +628,13 @@ body.map-active #pin-modal-content {
     padding: 0.5rem !important;
 }
 
-/* Cuadrícula de POIs amplia */
+/* 16. Cuadrícula de POIs y Lista de Rutas */
 .poi-category-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
     gap: 12px !important;
 }
 
-/* Lista de Rutas a 2 columnas completas */
 #saved-routes-modal .route-list,
 .route-modal-panel .route-list {
     display: grid !important;
@@ -594,7 +647,7 @@ body.map-active #pin-modal-content {
     zoom: 0.6536 !important;
 }
 
-/* Overlay de captura de pantalla 100% nítido */
+/* 17. Overlay de captura de pantalla */
 #recovery-screenshot-overlay {
     position: fixed !important;
     top: 0 !important;
@@ -24636,39 +24689,40 @@ function createWaypointMarkerIcon(label, type, visited, id, currentZoomLevel = n
 
     let color;
     if (visited) {
-        color = 'rgba(85, 85, 85, 0.8)'; 
+        color = 'rgba(85, 85, 85, 0.85)'; 
     } else if (type === 'S' || type === 'S_Recalc') {
-        color = 'rgba(0, 128, 0, 0.80)'; 
+        color = 'rgba(0, 160, 0, 0.90)'; 
     } else if (type === 'F') {
-        color = 'rgba(0, 0, 255, 0.80)'; 
+        color = 'rgba(0, 100, 255, 0.90)'; 
     } else {
-        color = 'rgba(230, 140, 0, 0.80)'; 
+        color = 'rgba(240, 130, 0, 0.90)'; 
     }
-    const ZOOM_PEQUENO = 12;
-    const ZOOM_GRANDE = 17;
-    const FONT_MINIMO = 15; 
-    const FONT_MAXIMO = 23; 
+
+    // Dimensiones optimizadas para la escala nativa del mapa (1:1)
+    const markerSize = 42;
+    const fontSize = 18;
     
-    let finalFontSize = FONT_MAXIMO;
-    if (currentZoomLevel !== null) {
-        if (currentZoomLevel <= ZOOM_PEQUENO) {
-            finalFontSize = FONT_MINIMO;
-        } else if (currentZoomLevel >= ZOOM_GRANDE) {
-            finalFontSize = FONT_MAXIMO;
-        } else {
-            const progress = (currentZoomLevel - ZOOM_PEQUENO) / (ZOOM_GRANDE - ZOOM_PEQUENO);
-            finalFontSize = FONT_MINIMO + (FONT_MAXIMO - FONT_MINIMO) * progress;
-        }
-    }
-    
-    el.style.backgroundColor = color;
-    el.style.width = '55px';
-    el.style.height = '55px';
-    el.style.border = `2px solid ${visited ? '#555' : 'white'}`;
-    el.style.opacity = visited ? '0.7' : '1';
+    el.style.cssText = `
+        background-color: ${color};
+        width: ${markerSize}px;
+        height: ${markerSize}px;
+        border: 2.5px solid ${visited ? '#777' : 'white'};
+        border-radius: 50%;
+        color: white;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+        font-size: ${fontSize}px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+        cursor: pointer;
+        user-select: none;
+        opacity: ${visited ? '0.65' : '1'};
+    `;
     el.textContent = label;
-    el.style.fontSize = `${Math.round(finalFontSize)}px`;
-    el.style.cursor = 'pointer';
 
     let isDragging = false;
     let hasMovedEnough = false;
@@ -24676,6 +24730,7 @@ function createWaypointMarkerIcon(label, type, visited, id, currentZoomLevel = n
     const waypointId = id; 
 
     const onPointerDown = (e) => {
+        if (isNavigating) return;
         e.stopPropagation();
         isDragging = false;
         hasMovedEnough = false;
@@ -24699,13 +24754,13 @@ function createWaypointMarkerIcon(label, type, visited, id, currentZoomLevel = n
         }
         if (hasMovedEnough) {
             isDragging = true;
+            const mapContainer = document.getElementById('mapbox-map-actual-container');
+            const mapRect = mapContainer.getBoundingClientRect();
+            const relativeX = point.clientX - mapRect.left;
+            const relativeY = point.clientY - mapRect.top;
+            const coords = navigationMapInstance.unproject([relativeX, relativeY]);
             const waypoint = navigationWaypoints.find(w => w.id === waypointId);
-            if(waypoint && waypoint.marker) {
-                const mapContainer = document.getElementById('mapbox-map-actual-container');
-                const mapRect = mapContainer.getBoundingClientRect();
-                const relativeX = point.clientX - mapRect.left;
-                const relativeY = point.clientY - mapRect.top;
-                const coords = navigationMapInstance.unproject([relativeX, relativeY]);
+            if (waypoint && waypoint.marker) {
                 waypoint.marker.setLngLat(coords);
             }
         }
@@ -24746,7 +24801,10 @@ function createWaypointMarkerIcon(label, type, visited, id, currentZoomLevel = n
    
     return el;
 }
+
+
     
+
 // ===================================================================
 // NOMBRE: handleStageTouchMove
 function handleStageTouchMove(e) {
