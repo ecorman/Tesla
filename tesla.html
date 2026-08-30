@@ -2,6 +2,7 @@
 <html lang="es"> 
 <head>
     <meta charset="UTF-8"> 
+    <meta name="referrer" content="no-referrer">
 
   <!-- Corrección de resolución para el navegador de Tesla (1254x784) -->
     <script>
@@ -57,10 +58,12 @@
     <meta name="apple-mobile-web-app-title" content="BoardingGate">
     <link rel="apple-touch-icon" href="https://boardinggate.github.io/Tesla/th.jpeg"> 
     
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <!-- CSP compatible con Mapbox/Google Maps: workers blob y conexiones HTTPS permitidas. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data: https:; frame-src 'none'; object-src 'none'; base-uri 'self';">
+    <!-- El mapa usa Mapbox y Google Maps; los recursos externos se mantienen permitidos. -->
     <title>BoardingGate: Navegador avanzado y Favoritos web para Tesla</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/th.jpeg" type="image/jpeg">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CDN eliminado: la app usa tesla.css y no depende de este script en producción. -->
     <script type="module"> import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"; import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, serverTimestamp, where, query, orderBy, limit, addDoc, writeBatch, startAfter, updateDoc, FieldValue, runTransaction } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";  const firebaseConfig = window.APP_CONFIG.firebase; try { const app = initializeApp(firebaseConfig);window.db = getFirestore(app);window.doc = doc;window.setDoc = setDoc;window.getDoc = getDoc;window.collection = collection;window.getDocs = getDocs;window.deleteDoc = deleteDoc;window.serverTimestamp = serverTimestamp; window.where = where; window.query = query; window.orderBy = orderBy; window.limit = limit; window.addDoc = addDoc;window.writeBatch = writeBatch; window.startAfter = startAfter; window.updateDoc = updateDoc; window.FieldValue = FieldValue; window.runTransaction = runTransaction; } catch (e) {  }; </script>
 
     
@@ -68,14 +71,14 @@
     
 <!-- REVISAR CADA 30 DIAS API DE MAPBOX -->
     
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.css' rel='stylesheet' referrerpolicy='no-referrer' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.js' integrity='sha384-hMy3KhZclHqFozWqPn5pyuF4hxh1hmv0GqTUs/t+NHf1Q/gU0Kq3bgDaC4+q7FXV' crossorigin='anonymous'></script>
     
-    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>   function initMap() {} </script>
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js" integrity="sha384-82q0nm29xZzIo5BMtDYnh2/NxeO6FoaK1S/0nF84w3cEsqbBfun3JdMyDVYWfVY5" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" integrity="sha384-9MhbyIRcBVQiiC7FSd7T38oJNj2Zh+EfxS7/vjhBi4OOT78NlHSnzM31EZRWR1LZ" crossorigin="anonymous"></script>    <script>   function initMap() {} </script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js" integrity="sha384-yPK823YWGKpXfBT8wLqUXmrB5ejcI7sgGBIary/01UavNc1bD92AOUBCBzjXQS/s" crossorigin="anonymous"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
 </head>
     
@@ -666,10 +669,64 @@ body.recovering-map-session #weather-widget-container,
 body.recovering-map-session #auto-start-nav-modal {
     display: none !important;
 }
+
+/* Boot directo al mapa: oculta el lanzador desde el primer frame hasta que se quita la clase boot-map. */
+body.boot-map {
+    background-color: #02060e !important;
+    margin: 0 !important; padding: 0 !important; overflow: hidden !important;
+    width: 100vw !important; height: 100vh !important;
+}
+body.boot-map main,
+body.boot-map footer,
+body.boot-map .notices-icon-container,
+body.boot-map #grid-filter-container,
+body.boot-map .toggle-sign,
+body.boot-map .toggle-image,
+body.boot-map .scroll-toggle-button,
+body.boot-map #bookmark-grid,
+body.boot-map #config-button,
+body.boot-map #personal-button,
+body.boot-map #radar-button,
+body.boot-map #home-button,
+body.boot-map #reload-button,
+body.boot-map #keyword-assignment-button,
+body.boot-map #password-toggle-button,
+body.boot-map #versions-button,
+body.boot-map #info-button,
+body.boot-map #store-button,
+body.boot-map #utils-button {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Menú rápido de enlaces dentro del mapa */
+.ql-tab {
+    background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.35); border-radius: 12px;
+    padding: 12px 20px; font-size: 1.25rem; font-weight: bold; cursor: pointer;
+}
+.ql-tab-active { color: #111 !important; border-color: #fff; }
+.ql-link {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 14px; text-decoration: none;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.35); min-height: 84px;
+    transition: transform 0.15s ease;
+}
+.ql-link:active { transform: scale(0.97); }
+.ql-link img { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
+.ql-link span { font-size: 1.4rem; font-weight: bold; color: #111; line-height: 1.15; word-break: break-word; }
+
+/* Lanzador por secciones (mismo estilo que el panel rapido del mapa) */
+#launcher-sectioned-container { display: none; width: 100%; max-width: 984px; margin: 0 auto; padding: 12px 6px; box-sizing: border-box; }
+#launcher-section-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
+#launcher-section-links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-content: start; }
+body.sectioned-launcher #bookmark-grid { display: none !important; }
+body.sectioned-launcher #launcher-sectioned-container { display: block; }
 </style>
 
 </head>
-<body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6">
+<body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6 boot-map">
 
     <div id="recovery-screenshot-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100001; pointer-events: none;"></div>
     <script>
@@ -752,6 +809,10 @@ body.recovering-map-session #auto-start-nav-modal {
     
     <div id="bookmark-grid">
     </div>
+    <div id="launcher-sectioned-container">
+        <div id="launcher-section-tabs"></div>
+        <div id="launcher-section-links"></div>
+    </div>
 </main>
     
 <div class="notices-icon-container">
@@ -779,26 +840,7 @@ body.recovering-map-session #auto-start-nav-modal {
           <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
         </div>
 
-        <div class="statcounter-container">
-          <div style="display: inline-flex; align-items: center; gap: 10px;">
-            <script type="text/javascript">
-              var sc_project=13126275;
-              var sc_invisible=0;
-              var sc_security="0fc568cc";
-              var scJsHost = "https://";
-              document.write("<sc"+"ript type='text/javascript' src='" +
-              scJsHost+
-              "statcounter.com/counter/counter.js'>"+"<"+"/script>");
-            </script>
-            <noscript><div class="statcounter"><a title="Web Analytics"
-            href="https://statcounter.com/" target="_blank"><img
-            class="statcounter"
-            src="https://c.statcounter.com/13126275/0/0fc568cc/0/"
-            alt="Web Analytics"
-            referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
-            <a href="https://statcounter.com/p13126275/?guest=1" class="footer-subtext">Legionarios de Elon</a>
-          </div>
-        </div>
+        <div class="footer-subtext">(analytics disabled for privacy)</div>
 
         <p class="footer-subtext">La inteligencia tiene ciertos limites. La locura, casi ninguno 🫶 🤟</p>
     </div>
@@ -818,6 +860,7 @@ body.recovering-map-session #auto-start-nav-modal {
         <div id="reminders-location-map-header">
              <div class="button-row">
                 <button id="close-reminders-location-map" class="reminders-map-button-action" title="Cerrar mapa y navegación"><img src="PNG/SALIR.PNG" alt="Salir"></button>
+                <button id="quick-launcher-button" class="reminders-map-button-action" title="Enlaces rápidos"><img src="https://boardinggate.github.io/Tesla/PNG/IMG_4197.jpg" alt="Enlaces" style="filter: invert(1);"></button>
                 <button id="locate-me-on-reminders-map" class="reminders-map-button-action" title="Mostrar mi posición actual y activar seguimiento"><img src="PNG/ESTASAQUI.PNG" alt="Estás Aquí"></button>
                 <button id="start-navigation-button" class="reminders-map-button-action" title="Iniciar/Terminar Navegación"><img src="PNG/INICIARNAVEGACION.PNG" alt="Iniciar Navegación"></button>
                 <button id="save-route-button" class="reminders-map-button-action hidden" title="Guardar Ruta Actual"><img src="PNG/GUARDARRUTA.PNG" alt="Guardar Ruta"></button>
@@ -1353,7 +1396,10 @@ body.recovering-map-session #auto-start-nav-modal {
         "Satélite Puro": "SATÉLITE",
         "Mapa Normal": "CALLES_LIGHT"
     };
-    
+
+
+    // Estilo raster Google Satélite: evita estilos mapbox:// que devuelven 403.
+    const GOOGLE_RASTER_STYLE = { version: 8, sources: { 'google-satellite': { type: 'raster', tiles: ['https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'], tileSize: 256, attribution: '© Google' } }, layers: [{ id: 'google-satellite-layer', type: 'raster', source: 'google-satellite' }] };    
     const MAP_VIEW_MODES = {
         'NORTE': { pitch: 0, bearing: 0, mode: 'static', terrain: false },
         'AVANCE': { pitch: 0, bearing: null, mode: 'heading', terrain: false },
@@ -1835,7 +1881,7 @@ const originalBookmarks = [
         },
         ROUTE_PROGRESS: {
             id: 'ROUTE_PROGRESS',
-            handler: (coords, map) => { if (isNavigating) processRouteProgress(coords, map); },
+            handler: (coords, map) => { if (isNavigating || (isSimulatingGpsLocation && automatedSimulationIntervalId)) processRouteProgress(coords, map); },
             getFrequency: () => {
                 const baseIntervalMs = (performanceRatios.routeProgress / GPS_BASE_FREQUENCY_HZ) * 1000;
                 
@@ -1941,8 +1987,16 @@ const originalBookmarks = [
     let isPitchManuallyOverridden = false;
     const PDRS_RUTA_CHECKED_KEY = 'boardinggate_pdrsRutaCheckboxChecked';
     const VOICE_GUIDANCE_KEY = 'boardinggate_voice_guidance';
+    const VOICE_MODE_KEY = 'boardinggate_voice_mode';       // 'silence' | 'sounds' | 'voice'
+    const VOICE_ENGINE_KEY = 'boardinggate_voice_engine';   // 'native' | 'google'
     let voiceGuidanceEnabled = false;
+    let voiceGuidanceMode = JSON.parse(localStorage.getItem(VOICE_MODE_KEY) || '"silence"');
+    let voiceGuidanceEngine = JSON.parse(localStorage.getItem(VOICE_ENGINE_KEY) || '"native"');
     const voiceSynthesis = window.speechSynthesis;
+    // Compat: deriva lo stato legacy dal modal
+    voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
+    // Audio context per i suoni di avviso (creato lazy: i browser esigono un gesto utente)
+    let alertAudioCtx = null;
     
     const easeInOutQuad = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
    
@@ -2934,22 +2988,12 @@ async function configureMapAtmosphere() {
 
     const currentMode = mapViewMode || localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
 
+    // El DEM de Mapbox devuelve 403: sin terreno. Pero conservamos el efecto
+    // espacio/atmosfera para la vista de globo (espacio oscuro + estrellas + halo).
     if (currentMode === 'relief' || currentMode === 'perspective') {
-        if (!navigationMapInstance.getSource('mapbox-dem')) {
-            navigationMapInstance.addSource('mapbox-dem', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.terrain-rgb',
-                'tileSize': 512,
-                'maxzoom': 16 
-            });
-        }
-        
-        const exaggeration = (currentMode === 'relief') ? mapTerrainExaggeration : 0.0;
-        navigationMapInstance.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': exaggeration });
-        
         navigationMapInstance.setFog({
             'range': [0.9, 10], 'color': '#d8e2e8', 'horizon-blend': 0.1,
-            'high-color': '#58636B', 'space-color': '#B3E3FF', 'star-intensity': 0.15
+            'high-color': '#58636B', 'space-color': '#02060e', 'star-intensity': 0.5
         });
         setMapLighting(navigationMapInstance);
     }
@@ -3268,7 +3312,7 @@ class MapSettingsPanel {
         const layerSelectorContainer = document.createElement('div');
         layerSelectorContainer.className = 'map-layer-selector';
 
-        const baseMapOptions = ["HÍBRIDO", "SATÉLITE", "CALLES"];
+        const baseMapOptions = ["HÍBRIDO", "SATÉLITE", "CALLES", "GOOGLE"];
         let savedLayerName = localStorage.getItem(ACTIVE_MAP_LAYER_KEY) || "HÍBRIDO";
         
         if (MAP_LEGACY_NAME_MAP[savedLayerName]) {
@@ -3307,6 +3351,8 @@ class MapSettingsPanel {
                 const isDark = streetThemeCheckbox.checked;
                 finalStyleUrl = isDark ? MAP_STYLES.CALLES_DARK : MAP_STYLES.CALLES_LIGHT;
                 localStorage.setItem(this.streetMapThemeKey, isDark ? 'dark' : 'light');
+            } else if (baseStyle === "GOOGLE") {
+                 finalStyleUrl = GOOGLE_RASTER_STYLE;
             } else {
                  finalStyleUrl = MAP_STYLES[baseStyle];
             }
@@ -3314,7 +3360,10 @@ class MapSettingsPanel {
             localStorage.setItem(ACTIVE_MAP_LAYER_KEY, finalLayerNameForStorage);
             markCacheAsDirty();
 
-            this._map.setStyle(finalStyleUrl, { diff: false });
+            // Les styles mapbox:// renvoient 403 avec ce token: seul le raster Google fonctionne.
+            // On retombe toujours sur le raster au lieu d'un style 403 qui rend la carte noire.
+            const styleToApply = (typeof GOOGLE_RASTER_STYLE === 'object') ? GOOGLE_RASTER_STYLE : finalStyleUrl;
+            this._map.setStyle(styleToApply, { diff: false });
             
             this._map.once('style.load', async () => {
                 
@@ -4409,7 +4458,8 @@ class CustomMapControlsGroup {
     }
 
     adjustMapOffset(axis, amount) {
-        triggerManualMapInteraction(); 
+        // FIX: no llamar a triggerManualMapInteraction(): apagaba el seguimiento y
+        // el bucle de camara dejaba de aplicar el offset (por eso X/Y no se movian).
         if (axis === 'y') {
             mapOffsetY = Math.max(-75, Math.min(75, mapOffsetY + amount));
         } else if (axis === 'x') {
@@ -4417,7 +4467,15 @@ class CustomMapControlsGroup {
         }
         this.updateOffsetDisplay();
         saveSettings();
-        if (isNavigating && navigationCurrentLocation && navigationMapInstance) {
+        // Aplicar el offset directamente: triggerManualMapInteraction pone shouldCenterOnUser=false,
+        // lo que hacia que updateMapCamera retornara temprano y el offset nunca llegara a la camara.
+        if (navigationMapInstance && !isFlying) {
+            markerAnimationState.targetMapOffsetX = mapOffsetX;
+            markerAnimationState.targetMapOffsetY = mapOffsetY;
+            markerAnimationState.currentMapOffsetX = mapOffsetX;
+            markerAnimationState.currentMapOffsetY = mapOffsetY;
+        }
+        if (navigationCurrentLocation && navigationMapInstance) {
             updateInitialUserPosition(navigationCurrentLocation, navigationMapInstance);
         }
     }
@@ -4663,8 +4721,16 @@ class ZoomControl {
             updateAutoButtonVisuals();
             markCacheAsDirty(); 
                
+            // FIX: al elegir un modo de zoom automatico hay que resetear el flag de
+            // interaccion manual Y cancelar el temporizador de reactivacion del seguimiento,
+            // porque triggerManualMapInteraction() habia arrancado un timer que volvia a
+            // activar el seguimiento y machacaba el easeTo con los targets antiguos.
             isManualZoomActive = false;
             if (manualZoomTimeout) clearTimeout(manualZoomTimeout);
+            clearLocateMeReactivationTimer();
+            navigationFollowUser = true;
+            shouldCenterOnUser = true;
+            updateLocateMeButtonsUI();
 
             switch (currentAutoZoomMode) { 
                 case 'auto':
@@ -5878,6 +5944,9 @@ async function fetchOverpassData(query) {
 // NOMBRE: closeNavigationMap 
 function closeNavigationMap(force = false) {
     document.body.classList.remove('map-active');
+    document.body.classList.remove('boot-map'); // Reaparece el lanzador al salir del mapa.
+    const qlPanel = document.getElementById('quick-launcher-panel'); if (qlPanel) qlPanel.remove();
+    document.body.classList.add('sectioned-launcher'); // Salir muestra el lanzador por secciones (mismo estilo que el panel del mapa).
     if (window.adaptTeslaResolution) window.adaptTeslaResolution(); // <--- Restaura el zoom para los botones principales    
     const aiModal = document.getElementById('ai-route-modal');
     if (aiModal) aiModal.classList.add('hidden');
@@ -6028,6 +6097,8 @@ function closeNavigationMap(force = false) {
 // ===================================================================
 async function openNavigationMap(isRecovery = false) {
     document.body.classList.add('map-active');
+    document.body.classList.remove('boot-map'); // Le mappe est ouvert: le launcher peut rester cache via map-active.
+    document.body.classList.remove('sectioned-launcher');
     document.documentElement.style.zoom = "1"; // <--- Forzamos escala 1:1 para el mapa
     
     if (navigationMapInstance && !isRecovery) {
@@ -6068,6 +6139,7 @@ async function openNavigationMap(isRecovery = false) {
     return new Promise(async (resolve, reject) => {
         const { primaryId: userId } = parseUserId(localStorage.getItem('userData_userId'));
         
+        // La cuenta solo controla limites opcionales; nunca bloquea la ubicacion ni el mapa.
         if (userId && userId.toLowerCase() !== 'boardinggate') {
             try {
                 const adminDocRef = window.doc(window.db, "user_data", "boardinggate");
@@ -6116,6 +6188,7 @@ async function openNavigationMap(isRecovery = false) {
         if (!mapModal) { console.error("Error crítico: El modal del mapa no se encuentra en el HTML."); isNavigationMapActive = false; reject(new Error("Modal no encontrado")); return; }
         
         mapModal.classList.remove('map-modal-hidden');
+        mapModal.classList.remove('hidden');
         const mapActualContainer = document.getElementById('mapbox-map-actual-container');
         
         const minimapTriggerButton = document.getElementById('force-show-minimap-button');
@@ -6162,13 +6235,14 @@ async function openNavigationMap(isRecovery = false) {
                     initialStyle = MAP_STYLES[finalLayerName] || MAP_STYLES["HÍBRIDO"];
                 }
                                
+                // Mapbox style se mantiene para calles; el proveedor de satélite se valida por su token.
                 if (!isRecovery) { showToast("INICIALIZANDO MAPA...", "info", 0, false, "map-init-toast"); }
       
                 navigationMapInstance = new mapboxgl.Map({
                     container: mapActualContainer,
-                    style: initialStyle, 
+                    style: GOOGLE_RASTER_STYLE, 
                     center: [ -97.1903, 30.3715],
-                    zoom: 1.5, pitch: 0, bearing: 0, // <--- Globo completo desde el espacio
+                    zoom: 1.5, pitch: 0, bearing: 0, // Vista mundial inicial para la transición visual
                     attributionControl: false, 
                     pixelRatio: window.devicePixelRatio || 1,
                     maxTileCacheSize: 50,
@@ -6178,6 +6252,9 @@ async function openNavigationMap(isRecovery = false) {
                     minzoom: 1.2, // <--- Permite alejamiento total
                     maxzoom: 19
                 });
+
+                // Vista de globo: se aplica por API, no en el estilo (evita fallo del validador).
+                try { if (typeof navigationMapInstance.setProjection === 'function') navigationMapInstance.setProjection('globe'); } catch (e) { }
 
                 if (!isRecovery) { setMapImmersiveMode(true); }
                 
@@ -6295,7 +6372,20 @@ async function openNavigationMap(isRecovery = false) {
                         enablePoiInteractivity(navigationMapInstance); 
                         setNavigationMapClickHandler();
                         
-                        let currentPos = await getInitialGpsPositionForMap();
+                        // Solicitar GPS explícitamente al abrir el mapa, tras el clic del usuario.
+                        showToast('Solicitando ubicación GPS…', 'info', 5000, false, 'gps-request-toast');
+                        showGpsRequestOverlay();
+                        let currentPos;
+                        try {
+                            currentPos = await requestFreshGpsPosition();
+                        } catch (gpsError) {
+                            // Sin GPS el mapa igualmente carga: usa última posición conocida o Madrid.
+                            const fallback = JSON.parse(localStorage.getItem('boardinggate_nav_recovery_flag') || 'null');
+                            currentPos = (fallback && fallback.lastKnownLocation) ? fallback.lastKnownLocation : { latitude: 40.4168, longitude: -3.7038, accuracy: null, heading: 0, speed: 0, altitude: null };
+                            showToast('Sin GPS: usando última posición conocida. El mapa funciona igualmente.', 'warning', 8000);
+                        } finally {
+                            hideGpsRequestOverlay();
+                        }
                         
                         if (!isRecovery) { 
                                 startWeatherUpdates(currentPos); 
@@ -6309,9 +6399,62 @@ async function openNavigationMap(isRecovery = false) {
                         navigationCurrentLocation = currentPos;
                         const initialViewOptions = { center: [currentPos.longitude, currentPos.latitude], zoom: 15.5, essential: true };
                         const mode = mapViewMode; if (mode === 'heading' || mode === 'perspective' || mode === 'relief') { initialViewOptions.bearing = currentPos.heading || 0; } if (mode === 'perspective' || mode === 'relief') { initialViewOptions.pitch = mapPitchValue; } else { initialViewOptions.pitch = 0; }
-                        initialViewOptions.pitch = 0;
-                        if (!isRecovery) { const globeSpinPromise = new Promise(resolve => { const startCoords = { lat: 30.3715, lng: -97.1903 }; const endCoords = { lat: 40.3748, lng: -3.7354 }; const duration = 1800; const totalLngChange = -(360 - (endCoords.lng - startCoords.lng)); const totalLatChange = endCoords.lat - startCoords.lat; const startTimestamp = performance.now(); function animateSpin(timestamp) { const progress = Math.min((timestamp - startTimestamp) / duration, 1); const easedProgress = 1 - Math.pow(1 - progress, 3); navigationMapInstance.setCenter([startCoords.lng + (totalLngChange * easedProgress), startCoords.lat + (totalLatChange * easedProgress)]); if (progress < 1) { requestAnimationFrame(animateSpin); } else { navigationMapInstance.setCenter([endCoords.lng, endCoords.lat]); resolve(); } } requestAnimationFrame(animateSpin); }); await globeSpinPromise; navigationMapInstance.jumpTo(initialViewOptions); } else { navigationMapInstance.jumpTo(initialViewOptions); }
-                        markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); markerAnimationState.currentMapPitch = navigationMapInstance.getPitch(); markerAnimationState.currentMapBearing = navigationMapInstance.getBearing(); markerAnimationState.targetMapCenter = navigationMapInstance.getCenter(); markerAnimationState.targetMapZoom = navigationMapInstance.getZoom(); markerAnimationState.targetMapPitch = navigationMapInstance.getPitch(); markerAnimationState.targetMapBearing = navigationMapInstance.getBearing();
+                        // Ya no forzamos pitch=0: respetamos el modo 3D activo para que la transicion tenga perspectiva.
+                        // Transición estética restaurada: mundo -> posición GPS.
+                        const globeStart = { lng: -97.1903, lat: 30.3715 };
+                        navigationMapInstance.jumpTo({ center: [globeStart.lng, globeStart.lat], zoom: 1.5, pitch: 0, bearing: 0 });
+                        // Apuntar la animación de seguimiento a la posición GPS ANTES de volar,
+                        // para que no arrastre el mapa de vuelta a la vista mundial.
+                        markerAnimationState.targetMapCenter = { lng: currentPos.longitude, lat: currentPos.latitude };
+                        markerAnimationState.targetMapZoom = initialViewOptions.zoom;
+                        markerAnimationState.targetMapPitch = initialViewOptions.pitch || 0;
+                        // isFlying evita que el bucle de cámara pise la animación de flyTo.
+                        // Enfoque determinista: no dependemos de moveend (que el jumpTo contamina).
+                        // Liberamos isFlying con un setTimeout = duración del flyTo.
+                        isFlying = true;
+                        // Calcular el ancla de cámara con la MISMA matemática que usa el bucle
+                        // (offsets del coche en pantalla) para que el flyTo aterrizae EXACTAMENTE
+                        // donde el bucle mantendrá la cámara: elimina el mini-salto final.
+                        // FIX (Y offset): píxeles de pantalla escalados por zoom,
+                        // igual que el bucle de cámara — el offset Y es visible
+                        // también con el mapa plano (tan(pitch) tendía a 0).
+                        const canvasBoot = navigationMapInstance.getCanvas();
+                        const metersPerPixelBoot = 156543.03 * Math.cos(currentPos.latitude * Math.PI / 180) / Math.pow(2, initialViewOptions.zoom);
+                        const pixelOffsetXBoot = canvasBoot.clientWidth * (mapOffsetX / 100);
+                        const horizontalDistanceOffset = metersPerPixelBoot * pixelOffsetXBoot * -1;
+                        const pixelOffsetYBoot = canvasBoot.clientHeight * (mapOffsetY / 100);
+                        const verticalDistanceOffset = metersPerPixelBoot * pixelOffsetYBoot * -1;
+                        const totalDistanceBoot = Math.sqrt(Math.pow(verticalDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
+                        const angleAdjustmentBoot = Math.atan2(horizontalDistanceOffset, verticalDistanceOffset) * (180 / Math.PI);
+                        _turfCarPointForAnimation.geometry.coordinates[0] = currentPos.longitude;
+                        _turfCarPointForAnimation.geometry.coordinates[1] = currentPos.latitude;
+                        const finalBearingForOffsetBoot = (initialViewOptions.bearing || 0) - 180 + angleAdjustmentBoot;
+                        const bootCameraAnchor = turf.destination(_turfCarPointForAnimation, totalDistanceBoot / 1000, finalBearingForOffsetBoot, { units: 'kilometers' });
+                        console.log('[BOOT-FLY] iniciando flyTo hacia', currentPos.longitude, currentPos.latitude, 'zoom', initialViewOptions.zoom, 'pitch', initialViewOptions.pitch, 'ancla:', bootCameraAnchor.geometry.coordinates);
+                        navigationMapInstance.flyTo({
+                            center: bootCameraAnchor.geometry.coordinates,
+                            zoom: initialViewOptions.zoom,
+                            pitch: initialViewOptions.pitch,
+                            bearing: initialViewOptions.bearing || 0,
+                            duration: 1800,
+                            essential: true
+                        });
+                        // Tras 1800ms (duración del flyTo) + pequeño margen, fijamos la cámara.
+                        setTimeout(() => {
+                            if (!navigationMapInstance) return;
+                            isFlying = false;
+                            // Sincronizar el estado 'current' con donde aterrizó el flyTo (getZoom ~15.5).
+                            // Sin jumpTo: el bucle retoma suavemente sin saltito.
+                            markerAnimationState.currentMapCenter = navigationMapInstance.getCenter();
+                            markerAnimationState.currentMapZoom = navigationMapInstance.getZoom();
+                            markerAnimationState.currentMapPitch = navigationMapInstance.getPitch();
+                            markerAnimationState.currentMapBearing = navigationMapInstance.getBearing();
+                            console.log('[BOOT-FLY] bucle reactivado: zoom', markerAnimationState.currentMapZoom.toFixed(2), 'target', markerAnimationState.targetMapZoom);
+                        }, 1900);
+                        markerAnimationState.currentMapCenter = navigationMapInstance.getCenter(); markerAnimationState.currentMapZoom = navigationMapInstance.getZoom(); markerAnimationState.currentMapPitch = navigationMapInstance.getPitch(); markerAnimationState.currentMapBearing = navigationMapInstance.getBearing();
+                        // Los objetivos YA apuntan a la posición GPS: no sobrescribir con getZoom()
+                        // (eso restauraba la vista mundial y anulaba el zoom final).
+                        markerAnimationState.targetMapBearing = initialViewOptions.bearing || 0;
                         
                         updateInitialUserPosition(currentPos, navigationMapInstance); 
                         startGpsWatching();               
@@ -6344,24 +6487,20 @@ async function initializeApp() {
     loadSavedSettings();
     applyMapVisualSettings();
     applyMainUISettings();
-    isMobileSession = parseUserId(localStorage.getItem('userData_userId')).isMobile; 
-    if (isMobileSession) {
-        document.body.classList.add('mobile-view');
-        await restoreCacheForMobile();
-    } else {
-        await uploadDirtyCacheOnLoad_Car();
-    }
+    // Sin cuenta no hay modo móvil ni sincronización: carga local directa.
+    isMobileSession = false; { await uploadDirtyCacheOnLoad_Car(); }
     lastMobileSyncTimestamp = parseInt(localStorage.getItem('lastCacheUpdateTimestamp') || '0');
     checkForExcessiveRadars();
     const termsAccepted = localStorage.getItem('termsAccepted_v1') === 'true';
     const shouldDirectToNav = JSON.parse(localStorage.getItem(DIRECT_TO_NAVIGATION_KEY) || 'false');
     const tempPreventDirectNav = sessionStorage.getItem(TEMP_PREVENT_DIRECT_NAV_KEY);
 
-    const userId = localStorage.getItem('userData_userId');
-    const allowDMs = JSON.parse(localStorage.getItem('userData_allowDMs') || 'false');
-    const canAccessMaps = (userId && userId.trim() !== '' && allowDMs);
+// Login eliminado: los mapas ya no exigen cuenta de usuario.
+    // El backup en la nube sigue disponible como opcion voluntaria en Ajustes.
+    const canAccessMaps = true;
   
-    if (((shouldDirectToNav && !tempPreventDirectNav) || recoveryExecuted) && termsAccepted && canAccessMaps) {
+    // Apertura directa al mapa siempre; el lanzador solo aparece al pulsar Salir.
+    if (true) {
         if(!recoveryExecuted) sessionStorage.setItem('isInDirectToMapMode', 'true');
         directToNavOnLoad = true;
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
@@ -6372,15 +6511,10 @@ async function initializeApp() {
         document.getElementById('grid-filter-container').style.display = 'none';
         
         if (!recoveryExecuted) {
+            document.body.classList.add('map-active');
             openNavigationMap();
         }
     } else {
-        if (shouldDirectToNav && !tempPreventDirectNav && termsAccepted && !canAccessMaps) {
-            const message = "PARA ACCEDER A MAPAS, ES IMPRESCINDIBLE QUE CREE EN CONFIGURACIÓN UN NOMBRE DE USUARIO ÚNICO (y debe estar activado Permitir MDs también y BACKUP AUTOMÁTICO)...";
-            const duration = 10000; 
-            showToast(message, 'error', duration);
-            setTimeout(() => { showConfigModal(); }, duration);
-        }
 
         sessionStorage.removeItem('isInDirectToMapMode');
         directToNavOnLoad = false;
@@ -7381,7 +7515,7 @@ function showQuickReminderModal() {
 
     modal.innerHTML = `
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
+            /* Google Fonts import removed for privacy */
 
             .quick-action-btn .icon {
                 font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
@@ -7712,24 +7846,121 @@ function saveSettings() {
 // NOMBRE: speakNavigationInstruction
 // RESUMEN: Genera audio TTS para las indicaciones si está activado.
 function speakNavigationInstruction(text) {
-    if (!voiceGuidanceEnabled || !voiceSynthesis) return;
+    if (voiceGuidanceMode === 'silence') return;
 
-    if (voiceSynthesis.speaking) {
-        voiceSynthesis.cancel();
+    if (voiceGuidanceMode === 'sounds') {
+        playAlertSound('info');
+        return;
     }
+
+    // mode === 'voice'
+    if (voiceGuidanceEngine === 'native') {
+        speakNative(text);
+    } else {
+        speakWithGoogleVoice(text);
+    }
+}
+
+// Motore "navigatore": SpeechSynthesis locale, offline, funziona su Chrome/WebView Tesla.
+function speakNative(text) {
+    if (!voiceSynthesis) return;
+    if (voiceSynthesis.speaking) voiceSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'es-ES'; // Forzar español
-    utterance.rate = 1.05;    // Ligeramente más rápido para naturalidad
+    utterance.lang = 'es-ES';
+    utterance.rate = 1.05;
     utterance.volume = 1;
 
+    // Preferisci una voce italiana/es spagnola di sistema (non Google, che su Tesla non esiste)
     const voices = voiceSynthesis.getVoices();
-    const googleVoice = voices.find(v => v.lang === 'es-ES' && v.name.includes('Google'));
-    if (googleVoice) {
-        utterance.voice = googleVoice;
-    }
+    const preferred =
+        voices.find(v => v.lang === 'es-ES' && !v.name.includes('Google')) ||
+        voices.find(v => v.lang.startsWith('es')) ||
+        voices.find(v => v.lang.startsWith('it')) ||
+        voices.find(v => v.default);
+    if (preferred) utterance.voice = preferred;
 
     voiceSynthesis.speak(utterance);
+}
+
+// Motore "google": usa una voce Google del sistema SE presente (Chrome desktop/Android).
+// Su Tesla WebView di solito non esiste: in quel caso fallback automatico al motore nativo.
+function speakWithGoogleVoice(text) {
+    if (!voiceSynthesis) { speakNative(text); return; }
+    const voices = voiceSynthesis.getVoices();
+    const googleVoice = voices.find(v => v.lang === 'es-ES' && v.name.includes('Google'));
+    if (!googleVoice) {
+        console.warn('[Voice] Motore Google non disponibile su questo sistema, uso il motore navigatore.');
+        speakNative(text);
+        return;
+    }
+    if (voiceSynthesis.speaking) voiceSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'es-ES';
+    utterance.rate = 1.05;
+    utterance.volume = 1;
+    utterance.voice = googleVoice;
+    voiceSynthesis.speak(utterance);
+}
+
+// --- AVVISI SONORI (WebAudio, nessun file esterno) ---
+// Suoni distintivi per tipo di avviso: il conducente riconosce l'evento senza guardare lo schermo.
+function ensureAudioCtx() {
+    if (!alertAudioCtx) {
+        try { alertAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+    }
+    if (alertAudioCtx.state === 'suspended') alertAudioCtx.resume();
+    return alertAudioCtx;
+}
+
+// beep(freqStart, freqEnd, durataMs, volume, tipo onda)
+function beep(freqStart, freqEnd, durationMs, volume = 0.25, type = 'sine', when = 0) {
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + when;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freqStart, t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t0 + durationMs / 1000);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + durationMs / 1000);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + durationMs / 1000 + 0.05);
+}
+
+// Suoni distintivi per categoria di evento.
+function playAlertSound(kind) {
+    switch (kind) {
+        case 'far':      // 2 km: doppio tono discendente, morbido
+            beep(880, 660, 180, 0.18, 'sine');
+            beep(660, 550, 180, 0.18, 'sine', 0.22);
+            break;
+        case 'medium':   // 500 m: triplo beep medio
+            beep(740, 740, 120, 0.22, 'square');
+            beep(740, 740, 120, 0.22, 'square', 0.18);
+            beep(740, 740, 120, 0.22, 'square', 0.36);
+            break;
+        case 'near':     // 200 m: beep acuto insistente
+            beep(1100, 1100, 90, 0.3, 'square');
+            beep(1100, 1100, 90, 0.3, 'square', 0.14);
+            break;
+        case 'arrive':   // arrivo: arpeggio ascendente
+            beep(523, 523, 140, 0.25, 'sine');
+            beep(659, 659, 140, 0.25, 'sine', 0.16);
+            beep(784, 784, 220, 0.25, 'sine', 0.32);
+            break;
+        case 'radar':    // radar sulla rotta: beep rapido acuto doppio
+            beep(1400, 1400, 70, 0.3, 'sawtooth');
+            beep(1400, 1400, 70, 0.3, 'sawtooth', 0.12);
+            break;
+        case 'info':     // avviso generico
+        default:
+            beep(660, 660, 140, 0.2, 'sine');
+            break;
+    }
 }
     
  
@@ -7754,7 +7985,12 @@ function loadSavedSettings() {
     announceManeuverWithFlash = savedAnnounceFlash === null ? true : JSON.parse(savedAnnounceFlash);
     
     const savedVoiceGuidance = localStorage.getItem(VOICE_GUIDANCE_KEY);
-    voiceGuidanceEnabled = savedVoiceGuidance === 'true'; 
+    const legacyVoiceEnabled = savedVoiceGuidance === 'true';
+    const savedVoiceMode = localStorage.getItem(VOICE_MODE_KEY);
+    voiceGuidanceMode = savedVoiceMode ? JSON.parse(savedVoiceMode) : (legacyVoiceEnabled ? 'voice' : 'silence');
+    voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
+    const savedVoiceEngine = localStorage.getItem(VOICE_ENGINE_KEY);
+    if (savedVoiceEngine) voiceGuidanceEngine = JSON.parse(savedVoiceEngine); 
  
     baseCriticalRatio = parseInt(localStorage.getItem(PERFORMANCE_RATIO_CRITICAL_KEY)) || 3;
     performanceRatios.criticalUpdate = baseCriticalRatio;
@@ -10400,7 +10636,9 @@ function manageAdaptiveLayerVisibility(profile) {
 function handleAutoZoom() {
     const currentAutoZoomMode = localStorage.getItem(AUTO_ZOOM_MODE_KEY) || 'off';
 
-    if (!isNavigating && !isFreeDriveActive) {
+    // La simulacion automatica de ruta debe activar el zoom automatico igual que la navegacion real.
+    const isRouteSimulationActive = isSimulatingGpsLocation && !!automatedSimulationIntervalId;
+    if (!isNavigating && !isFreeDriveActive && !isRouteSimulationActive) {
         manageAdaptiveLayerVisibility('full');
         return null;
     }
@@ -10582,7 +10820,9 @@ function updateVehicleMarker(coords, mapInstanceToUse) {
 
         initialUserLocationMarker = new mapboxgl.Marker({ 
             element: vehicleIconElement, 
-            rotationAlignment: 'map',  anchor: 'bottom'    })
+            rotationAlignment: 'map',
+            // anchor 'center': el CENTRO del coche coincide con el punto GPS
+            anchor: 'center'    })
         .setLngLat(lngLat)
         .addTo(mapInstanceToUse);
 
@@ -10628,10 +10868,18 @@ function updateMapCamera(coords, mapInstanceToUse) {
     );
 
     let targetZoom = cameraAdjustments?.zoom ?? handleAutoZoom();
-    if (targetZoom !== null) {
+    console.log('[CAM-LOG] updateMapCamera: isFlying='+isFlying+' targetZoom='+targetZoom+' currentTarget='+markerAnimationState.targetMapZoom+' getZoom='+mapInstanceToUse.getZoom().toFixed(2)+' autoZoomMode='+currentAutoZoomMode+' manualZoomMem='+manualZoomLevelMemory+' isNavigating='+isNavigating+' isFreeDrive='+isFreeDriveActive);
+    // Durante la transicion inicial (isFlying), NUNCA sobrescribir targetMapZoom:
+    // getZoom() capturaria la vista mundial (1.5) y el bucle arrastraria al globo.
+    if (isFlying) {
+        // No tocar el objetivo; el flyTo inicial lo controla.
+    } else if (targetZoom !== null) {
         markerAnimationState.targetMapZoom = targetZoom;
     } else {
-        markerAnimationState.targetMapZoom = mapInstanceToUse.getZoom();
+        const currentTargetZoom = markerAnimationState.targetMapZoom;
+        if (currentTargetZoom == null || currentTargetZoom <= 0) {
+            markerAnimationState.targetMapZoom = mapInstanceToUse.getZoom();
+        }
     }
     
     let targetPitch = cameraAdjustments?.pitch ?? ((mapViewMode === 'perspective' || mapViewMode === 'relief') ? mapPitchValue : 0);
@@ -10779,7 +11027,8 @@ function plotIntervalData() {
 // ===================================================================
 // NOMBRE: processRouteProgress 
 function processRouteProgress(coords, mapInstanceToUse) {
-    if (!isNavigating || !navigationCurrentRouteData?.routes?.[0]?._turfLineString || !coords) {
+    // La simulacion automatica de ruta tambien actualiza el progreso (turn-by-turn, distancias, zoom por maniobra).
+    if ((!isNavigating && !(isSimulatingGpsLocation && automatedSimulationIntervalId)) || !navigationCurrentRouteData?.routes?.[0]?._turfLineString || !coords) {
         return;
     }
     const route = navigationCurrentRouteData.routes[0];
@@ -10855,6 +11104,41 @@ function processRouteProgress(coords, mapInstanceToUse) {
     
 // ===================================================================
 // NOMBRE: startGpsWatching 
+function showGpsRequestOverlay() {
+    let overlay = document.getElementById('gps-request-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'gps-request-overlay';
+        overlay.style.cssText = 'position:fixed;z-index:99999;inset:0;background:rgba(0,0,0,.82);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font:18px sans-serif;';
+        overlay.innerHTML = '<div><strong>Solicitando ubicación GPS…</strong><br><small>Permite la ubicación en el navegador del Tesla.<br>Si ya la denegaste, activa el permiso y vuelve a intentarlo.</small></div>';
+        document.body.appendChild(overlay);
+    }
+}
+
+function hideGpsRequestOverlay() {
+    const overlay = document.getElementById('gps-request-overlay');
+    if (overlay) overlay.remove();
+}
+
+function requestFreshGpsPosition() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            showToast('Este navegador no ofrece geolocalización.', 'error', 8000);
+            reject(new Error('Geolocation API unavailable'));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy, heading: position.coords.heading, speed: position.coords.speed, altitude: position.coords.altitude }),
+            (error) => {
+                const messages = { 1: 'Permiso de ubicación denegado. Activa la ubicación para este sitio en el navegador del Tesla.', 2: 'Ubicación GPS no disponible. Comprueba la señal GPS del vehículo.', 3: 'La solicitud GPS ha tardado demasiado. Vuelve a pulsar el botón de ubicación.' };
+                showToast(messages[error.code] || 'No se pudo obtener la ubicación GPS.', 'error', 10000);
+                reject(error);
+            },
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+        );
+    });
+}
+
 function startGpsWatching() {
     if (gpsRetryTimeoutId) {
         clearTimeout(gpsRetryTimeoutId);
@@ -10932,6 +11216,8 @@ function startGpsWatching() {
                 navigator.geolocation.clearWatch(locationWatchId);
                 locationWatchId = null;
             }
+            const messages = { 1: 'Permiso GPS denegado. Activa la ubicación para este sitio.', 2: 'Señal GPS no disponible; reintentando…', 3: 'Tiempo de espera GPS agotado; reintentando…' };
+            showToast(messages[error.code] || 'Error GPS; reintentando…', error.code === 1 ? 'error' : 'warning', 6000, false, 'gps-watch-error');
             gpsRetryTimeoutId = setTimeout(startGpsWatching, GPS_RETRY_DELAY_MS);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 2000, distanceFilter: 3 }
@@ -11357,7 +11643,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
         }
 
         // --- LÓGICA DE VOZ INSERTADA AQUÍ ---
-        if (isNavigating && voiceGuidanceEnabled) {
+        if (isNavigating && voiceGuidanceMode !== 'silence') {
             if (!nextStepToDisplay._voiceFlags) {
                 nextStepToDisplay._voiceFlags = { far: false, medium: false, near: false };
             }
@@ -11375,17 +11661,20 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             }
 
             if (distanceToNextManeuver <= 2100 && distanceToNextManeuver > 1900 && !nextStepToDisplay._voiceFlags.far) {
-                speakNavigationInstruction(`En dos kilómetros, ${textToSpeak}`);
+                playAlertSound('far');
+                if (voiceGuidanceMode === 'voice') speakNavigationInstruction(`En dos kilómetros, ${textToSpeak}`);
                 nextStepToDisplay._voiceFlags.far = true;
             }
             
             if (distanceToNextManeuver <= 550 && distanceToNextManeuver > 450 && !nextStepToDisplay._voiceFlags.medium) {
-                speakNavigationInstruction(`En quinientos metros, ${textToSpeak}`);
+                playAlertSound('medium');
+                if (voiceGuidanceMode === 'voice') speakNavigationInstruction(`En quinientos metros, ${textToSpeak}`);
                 nextStepToDisplay._voiceFlags.medium = true;
             }
 
             if (distanceToNextManeuver <= 230 && distanceToNextManeuver > 150 && !nextStepToDisplay._voiceFlags.near) {
-                speakNavigationInstruction(`${textToSpeak} ahora`);
+                playAlertSound('near');
+                if (voiceGuidanceMode === 'voice') speakNavigationInstruction(`${textToSpeak} ahora`);
                 nextStepToDisplay._voiceFlags.near = true;
             }
         }
@@ -12760,7 +13049,7 @@ function updateProgressBarLockIcon() {
 let preloadedGpsPosition = null;
 
 function preloadGpsLocation() {
-    if ('geolocation' in navigator) {
+    if ('geolocation' in navigator && window.isSecureContext !== false) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 preloadedGpsPosition = {
@@ -12882,11 +13171,22 @@ function showNavigationMapHelpModal() {
                                  <span>Anunciar maniobra con destello</span>
                              </label>
                              
-                             <!-- NUEVO CHECKBOX DE VOZ -->
-                             <label for="voice-guidance-checkbox" class="settings-checkbox-label" style="margin-top: 10px;">
-                                 <input type="checkbox" id="voice-guidance-checkbox">
-                                 <span>Guiado por voz</span>
-                             </label>
+                             <!-- MENÚ DE VOCES: silencio / avisos sonoros / voz -->
+                             <div class="slider-control" style="margin-top: 10px; border-top: 1px solid #444; padding-top: 12px;">
+                                 <label for="voice-mode-select" style="display:block; margin-bottom: 6px;">Guiado durante navegación:</label>
+                                 <select id="voice-mode-select" style="width: 100%; padding: 6px; background: #1a1a1a; color: #eee; border: 1px solid #444; border-radius: 6px;">
+                                     <option value="silence">Silencio (sin voz ni sonidos)</option>
+                                     <option value="sounds">Avisos sonoros (mirar pantalla)</option>
+                                     <option value="voice">Voz (narra las indicaciones)</option>
+                                 </select>
+                             </div>
+                             <div id="voice-engine-row" style="display: none; margin-top: 8px;">
+                                 <label for="voice-engine-select" style="display:block; margin-bottom: 6px;">Motor de voz:</label>
+                                 <select id="voice-engine-select" style="width: 100%; padding: 6px; background: #1a1a1a; color: #eee; border: 1px solid #444; border-radius: 6px;">
+                                     <option value="native">Navegador (offline, recomendado en Tesla)</option>
+                                     <option value="google">Google (red, solo si el sistema lo trae)</option>
+                                 </select>
+                             </div>
                              
                              <div class="slider-control" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
                                 <label for="dynamic-radar-radius-slider">Radio Radares Dinámicos:</label>
@@ -13019,18 +13319,30 @@ function showNavigationMapHelpModal() {
         });
     }
 
-    const voiceGuidanceCheckbox = helpModal.querySelector('#voice-guidance-checkbox');
-    if (voiceGuidanceCheckbox) {
-        voiceGuidanceCheckbox.checked = voiceGuidanceEnabled;
-        voiceGuidanceCheckbox.addEventListener('change', () => {
-            voiceGuidanceEnabled = voiceGuidanceCheckbox.checked;
+    const voiceModeSelect = helpModal.querySelector('#voice-mode-select');
+    const voiceEngineRow = helpModal.querySelector('#voice-engine-row');
+    const voiceEngineSelect = helpModal.querySelector('#voice-engine-select');
+    if (voiceModeSelect) {
+        voiceModeSelect.value = voiceGuidanceMode;
+        voiceModeSelect.addEventListener('change', () => {
+            voiceGuidanceMode = voiceModeSelect.value;
+            localStorage.setItem(VOICE_MODE_KEY, JSON.stringify(voiceGuidanceMode));
+            // compat: checkbox logica legacy
+            voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
             localStorage.setItem(VOICE_GUIDANCE_KEY, JSON.stringify(voiceGuidanceEnabled));
+            if (voiceEngineRow) voiceEngineRow.style.display = voiceGuidanceMode === 'voice' ? 'block' : 'none';
             markCacheAsDirty();
-            showToast(`Guiado por voz ${voiceGuidanceEnabled ? 'ACTIVADO' : 'DESACTIVADO'}.`, 'info');
-            
-            if (voiceGuidanceEnabled) {
-                speakNavigationInstruction("Guiado por voz activado.");
-            }
+            const label = voiceGuidanceMode === 'silence' ? 'SILENZIO' : voiceGuidanceMode === 'sounds' ? 'AVISI SONORI' : 'VOCE';
+            showToast(`Guida vocale: ${label}.`, 'info');
+        });
+    }
+    if (voiceEngineSelect) {
+        voiceEngineSelect.value = voiceGuidanceEngine;
+        voiceEngineSelect.addEventListener('change', () => {
+            voiceGuidanceEngine = voiceEngineSelect.value;
+            localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
+            markCacheAsDirty();
+            showToast(`Motore voce: ${voiceGuidanceEngine === 'native' ? 'NAVIGATORE' : 'GOOGLE'}.`, 'info');
         });
     }
     // -----------------------------------------------------
@@ -13755,26 +14067,21 @@ function animateMarkerAndMap(timestamp) {
         let offsetXToUse = markerAnimationState.currentMapOffsetX;
         let offsetYToUse = markerAnimationState.currentMapOffsetY;
 
-        const viewModes = { '3D RELIEVE': { mode: 'relief' } };
-        const savedViewMode = localStorage.getItem(MAP_VIEW_MODE_KEY) || 'relief';
-        if (savedViewMode === viewModes['3D RELIEVE'].mode) {
-            offsetXToUse = Math.max(-10, Math.min(offsetXToUse, 10));
-            offsetYToUse = Math.max(-20, Math.min(offsetYToUse, 20));
-        }
-
         const canvas = navigationMapInstance.getCanvas();
-        const pitchInRadians = (markerAnimationState.currentMapPitch * Math.PI) / 180;
-        const cameraHeightAboveCar = 150; 
-        
-        const verticalOffsetFactor = offsetYToUse / 100;
-        const groundDistanceOffset = (cameraHeightAboveCar * Math.tan(pitchInRadians)) * verticalOffsetFactor * -1; // Hacia atrás
 
+        // FIX (Y offset): el desplazamiento vertical se calculaba con
+        // cameraHeight*tan(pitch), que tiende a 0 con el mapa plano (pitch≈0),
+        // por lo que la Y apenas se movía. Ahora ambos ejes usan píxeles de
+        // pantalla escalados por el zoom (misma unidad que la X): el offset es
+        // visible en 2D y en 3D por igual.
         const metersPerPixel = 156543.03 * Math.cos(markerAnimationState.currentMapCenter.lat * Math.PI / 180) / Math.pow(2, markerAnimationState.currentMapZoom);
         const pixelOffsetX = canvas.clientWidth * (offsetXToUse / 100);
         const horizontalDistanceOffset = metersPerPixel * pixelOffsetX * -1; // -1 para que el anclaje se mueva en dirección opuesta al coche
+        const pixelOffsetY = canvas.clientHeight * (offsetYToUse / 100);
+        const verticalDistanceOffset = metersPerPixel * pixelOffsetY * -1; // Hacia atrás
 
-        const totalDistance = Math.sqrt(Math.pow(groundDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
-        const angleAdjustment = Math.atan2(horizontalDistanceOffset, groundDistanceOffset) * (180 / Math.PI); // Ángulo relativo al vector "hacia atrás"
+        const totalDistance = Math.sqrt(Math.pow(verticalDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
+        const angleAdjustment = Math.atan2(horizontalDistanceOffset, verticalDistanceOffset) * (180 / Math.PI); // Ángulo relativo al vector "hacia atrás"
 
         _turfCarPointForAnimation.geometry.coordinates[0] = markerAnimationState.currentMapCenter.lng;
         _turfCarPointForAnimation.geometry.coordinates[1] = markerAnimationState.currentMapCenter.lat;
@@ -13793,6 +14100,9 @@ function animateMarkerAndMap(timestamp) {
             cameraOptions.altitude = markerAnimationState.currentMapAltitude;
         }
 
+        if (markerAnimationState.currentMapZoom < 5 || Math.abs(markerAnimationState.currentMapZoom - markerAnimationState.targetMapZoom) > 2) {
+            console.log('[ANIM-LOG] jumpTo zoom='+markerAnimationState.currentMapZoom.toFixed(2)+' target='+markerAnimationState.targetMapZoom+' pitch='+markerAnimationState.currentMapPitch.toFixed(1)+' isFlying='+isFlying);
+        }
         navigationMapInstance.jumpTo(cameraOptions);
     }
     
@@ -15655,7 +15965,8 @@ function assignMapButtonListeners() {
             }
             
             switch (button.id) {
-                 case 'close-reminders-location-map': closeNavigationMap(false); break;
+                 case 'close-reminders-location-map': closeNavigationMap(false); setTimeout(() => openNavigationMap(), 50); break;
+                 case 'quick-launcher-button': openQuickLauncher(); break;
                  case 'locate-me-on-reminders-map': handleLocateMeClick(true); break;
                  case 'nav-map-zoomtoggle-button': handleZoomToggleButtonClick(button); break;
                  case 'start-navigation-button': toggleNavigationState(false, false); break;
@@ -17574,12 +17885,8 @@ function closeAlertModal() {
 // ===================================================================
 // NOMBRE: sendTrafficAlert 
 function sendTrafficAlert(alertCode, alertName) {
-    const userId = localStorage.getItem('userData_userId');
-    if (!userId) {
-        showToast("Debes configurar un ID de Usuario para enviar alertas.", "warning");
-        closeAlertModal();
-        return;
-    }
+    // Login eliminado: las alertas usan un identificador generico si no hay cuenta.
+    const userId = localStorage.getItem('userData_userId') || 'Guest';
     closeAlertModal();
     const sendData = async (coords) => {
         if (!window.db || !window.doc || !window.setDoc || !window.collection) {
@@ -17880,21 +18187,47 @@ function handleLocateMeClick(isExplicitAction = false) {
             isFlying = true; 
 
             const targetZoom = manualZoomLevelMemory !== null ? manualZoomLevelMemory : 17;
-      
+
+            // FIX: al reactivar el seguimiento, la camara debe aplicar el offset X/Y
+            // configurado (misma matematica que animateMarkerAndMap). Si volamos al punto
+            // GPS "pelado", el coche queda descentrado y el siguiente frame salta. Ademas
+            // NO forzamos pitch=0 en modos no-3D: respetamos el pitch ajustado (mapPitchValue).
+            const mode = mapViewMode || 'static';
+            const targetPitch = (typeof mapPitchValue === 'number' && !isNaN(mapPitchValue)) ? mapPitchValue : 0;
+
+            // FIX (Y offset): píxeles de pantalla escalados por zoom, igual que el
+            // bucle de cámara — el offset Y ya no depende de tan(pitch) y funciona
+            // también con el mapa plano.
+            const canvasEl = navigationMapInstance.getCanvas();
+            const metersPerPixel = 156543.03 * Math.cos(navigationCurrentLocation.latitude * Math.PI / 180) / Math.pow(2, targetZoom);
+            const pixelOffsetX = canvasEl.clientWidth * ((mapOffsetX || 0) / 100);
+            const horizontalDistanceOffset = metersPerPixel * pixelOffsetX * -1;
+            const pixelOffsetY = canvasEl.clientHeight * ((mapOffsetY || 0) / 100);
+            const verticalDistanceOffset = metersPerPixel * pixelOffsetY * -1;
+            const totalDistance = Math.sqrt(Math.pow(verticalDistanceOffset, 2) + Math.pow(horizontalDistanceOffset, 2));
+            const angleAdjustment = Math.atan2(horizontalDistanceOffset, verticalDistanceOffset) * (180 / Math.PI);
+
+            let baseBearing = 0;
+            if (mode === 'heading' || mode === 'perspective' || mode === 'relief') {
+                baseBearing = navigationCurrentLocation.heading || 0;
+            }
+            const finalBearingForOffset = baseBearing - 180 + angleAdjustment;
+
+            let flyCenter = [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude];
+            if (typeof turf !== 'undefined' && turf.destination && totalDistance > 0) {
+                const carPoint = turf.point([navigationCurrentLocation.longitude, navigationCurrentLocation.latitude]);
+                const cameraAnchorPoint = turf.destination(carPoint, totalDistance / 1000, finalBearingForOffset, { units: 'kilometers' });
+                flyCenter = cameraAnchorPoint.geometry.coordinates;
+            }
+
             const flyToOptions = {
-                center: [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude],
+                center: flyCenter,
                 zoom: targetZoom, 
                 duration: 1200,
                 essential: true
             };
 
-            const mode = mapViewMode || 'static';
-            
-            if (mode === 'perspective' || mode === 'relief') {
-                flyToOptions.pitch = mapPitchValue;
-            } else {
-                flyToOptions.pitch = 0;
-            }
+            flyToOptions.pitch = targetPitch;
             
             if (mode === 'heading' || mode === 'perspective' || mode === 'relief') {
                 flyToOptions.bearing = navigationCurrentLocation.heading || 0;
@@ -19962,13 +20295,61 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
     async function updateVersion() { try { const lmd = await getLastModifiedDate(); const v = formatVersionDate(lmd); const el = document.getElementById('version'); if (el) el.textContent = `versión: ${v}`; } catch (e) { const el = document.getElementById('version'); if (el) el.textContent = 'versión: error'; } }
     
     // ===================================================================
-    const getFaviconUrl = (bookmarkData) => { try { const urlToParse = bookmarkData?.url || ''; const customFavicon = bookmarkData?.favicon; if (customFavicon && (customFavicon.startsWith('data:image') || customFavicon.startsWith('http') || customFavicon.startsWith('./'))) return customFavicon; if (urlToParse) { const domain = new URL(urlToParse).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } } catch (e) { } return 'https://via.placeholder.com/64'; };
-    
+    const getFaviconUrl = (bookmarkData) => { try { const customFavicon = bookmarkData?.favicon; if (customFavicon && (customFavicon.startsWith('data:image') || customFavicon.startsWith('./'))) return customFavicon; } catch (e) { } return './PNG/IMG_4172.png'; };
     // ===================================================================
     // NOMBRE: renderGrid
-    function renderGrid() { grid.innerHTML = ''; cellElements = []; Array.from({ length: TOTAL_CELLS }).forEach((_, index) => { const cellContainer = document.createElement('div'); cellContainer.classList.add('grid-cell'); cellContainer.dataset.index = index; const bookmarkData = currentBookmarks[index]; const section = getSectionForIndex(index); const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; if (bookmarkData) { const link = document.createElement('a'); link.className = 'bookmark-item'; link.title = bookmarkData.name; link.style.backgroundColor = bgColor; link.href = bookmarkData.url || "#"; link.dataset.index = index;
+    // Construye la vista por secciones (tabs + links grandes 2 columnas) a partir de
+    // currentBookmarks + currentToggleRanges: la misma fuente de datos que openQuickLauncher.
+    function renderSectionedLauncher() {
+        const tabsEl = document.getElementById('launcher-section-tabs');
+        const linksEl = document.getElementById('launcher-section-links');
+        if (!tabsEl || !linksEl) return;
+        const sections = [];
+        currentToggleRanges.forEach(range => {
+            const links = range.assignedIndexes.map(i => currentBookmarks[i]).filter(b => b && b.url && b.url !== '#');
+            if (links.length > 0) sections.push({ label: range.label || range.name || 'Sección', color: sectionColors[range.start] || sectionColors.unassigned, links });
+        });
+        const assigned = new Set(currentToggleRanges.flatMap(r => r.assignedIndexes));
+        const others = currentBookmarks.filter((b, i) => b && b.url && b.url !== '#' && !assigned.has(i));
+        if (others.length > 0) sections.unshift({ label: 'General', color: sectionColors.unassigned, links: others });
+        tabsEl.innerHTML = ''; linksEl.innerHTML = '';
+        const showAll = sections.length > 0;
+        if (!showAll) return;
+        const renderLinks = (sec) => {
+            linksEl.innerHTML = '';
+            sec.links.forEach(b => {
+                const a = document.createElement('a');
+                a.className = 'ql-link';
+                a.href = b.url || '#';
+                if (b.url && !b.url.startsWith('map-action:')) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+                a.style.backgroundColor = sec.color;
+                const img = document.createElement('img');
+                img.src = getFaviconUrl(b); img.alt = ''; img.loading = 'lazy';
+                img.onerror = function() { this.style.display = 'none'; };
+                const span = document.createElement('span');
+                span.textContent = b.name;
+                a.appendChild(img); a.appendChild(span);
+                linksEl.appendChild(a);
+            });
+        };
+        sections.forEach((sec, i) => {
+            const tab = document.createElement('button');
+            tab.className = 'ql-tab' + (i === 0 ? ' ql-tab-active' : '');
+            if (i === 0) tab.style.backgroundColor = sec.color;
+            tab.textContent = sec.label;
+            tab.addEventListener('click', () => {
+                tabsEl.querySelectorAll('.ql-tab').forEach(t => { t.classList.remove('ql-tab-active'); t.style.backgroundColor = ''; });
+                tab.classList.add('ql-tab-active'); tab.style.backgroundColor = sec.color;
+                renderLinks(sec);
+            });
+            tabsEl.appendChild(tab);
+        });
+        renderLinks(sections[0]);
+    }
+
+    function renderGrid() { if (document.body.classList.contains('boot-map')) { renderSectionedLauncher(); return; } grid.innerHTML = ''; cellElements = []; Array.from({ length: TOTAL_CELLS }).forEach((_, index) => { const cellContainer = document.createElement('div'); cellContainer.classList.add('grid-cell'); cellContainer.dataset.index = index; const bookmarkData = currentBookmarks[index]; const section = getSectionForIndex(index); const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; if (bookmarkData) { const link = document.createElement('a'); link.className = 'bookmark-item'; link.title = bookmarkData.name; link.style.backgroundColor = bgColor; link.href = bookmarkData.url || "#"; link.dataset.index = index;
         if (isKeywordAssignmentMode || (bookmarkData.name && bookmarkData.name === "Inicio Tesla") || !bookmarkData.url || bookmarkData.url === '#') { } else { link.target = "_blank"; link.rel = "noopener noreferrer"; }
-        const img = document.createElement('img'); img.src = getFaviconUrl(bookmarkData); img.alt = `Favicon ${bookmarkData.name}`; img.loading = "lazy"; img.onerror = function() { this.src = 'https://via.placeholder.com/64'; this.onerror = null; }; if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); const nameSpan = document.createElement('span'); nameSpan.className = 'bookmark-name'; nameSpan.textContent = bookmarkData.name; link.appendChild(img); link.appendChild(nameSpan); cellContainer.appendChild(link); } else { cellContainer.classList.add('empty-slot'); const addIcon = document.createElement('span'); addIcon.textContent = '+'; cellContainer.appendChild(addIcon); cellContainer.style.backgroundColor = bgColor; }
+        const img = document.createElement('img'); img.src = getFaviconUrl(bookmarkData); img.alt = `Favicon ${bookmarkData.name}`; img.loading = "lazy"; img.onerror = function() { this.removeAttribute('src'); this.onerror = null; }; if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); const nameSpan = document.createElement('span'); nameSpan.className = 'bookmark-name'; nameSpan.textContent = bookmarkData.name; link.appendChild(img); link.appendChild(nameSpan); cellContainer.appendChild(link); } else { cellContainer.classList.add('empty-slot'); const addIcon = document.createElement('span'); addIcon.textContent = '+'; cellContainer.appendChild(addIcon); cellContainer.style.backgroundColor = bgColor; }
         cellContainer.addEventListener('click', handleGridCellClick);
         if (isEditMode) {
              cellContainer.draggable = true;
@@ -19994,7 +20375,8 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
              cellContainer.removeEventListener('touchcancel', handleTouchCancel);
              cellContainer.classList.remove('editable');
         }
-        grid.appendChild(cellContainer); cellElements.push(cellContainer); }); }
+        grid.appendChild(cellContainer); cellElements.push(cellContainer); });
+        renderSectionedLauncher(); }
     
     
     // ===================================================================
@@ -20080,33 +20462,16 @@ function createOtherButtons() {
         radarButton.addEventListener('click', () => {
             if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return;
 
-            const userId = localStorage.getItem('userData_userId');
-            const allowDMs = JSON.parse(localStorage.getItem('userData_allowDMs') || 'false');
+            // Login eliminado: el mapa se abre sin cuenta de usuario.
+            openNavigationMap();
 
-            if (userId && userId.trim() !== '' && allowDMs) {
-                openNavigationMap();
-                
-                const AUTO_BACKUP_KEY = 'boardinggate_autoBackupOnLoad';
-                const isAutoBackupEnabled = localStorage.getItem(AUTO_BACKUP_KEY) === 'true';
-            
-                if (!isAutoBackupEnabled) {localStorage.setItem(AUTO_BACKUP_KEY, 'true');
-                    
-                    const autoBackupCheckbox = document.getElementById('config-auto-backup-on-load');
-                    if (autoBackupCheckbox) {
-                        autoBackupCheckbox.checked = true;
-                    }
-                    markCacheAsDirty();
-                }
-
-            } else {
-                const message = "PARA ACCEDER A MAPAS, ES IMPRESCINDIBLE QUE CREE EN CONFIGURACIÓN UN NOMBRE DE USUARIO ÚNICO (y debe estar activado Permitir MDs también y BACKUP AUTOMÁTICO)...";
-                const duration = 10000; 
-
-                showToast(message, 'error', duration);
-
-                setTimeout(() => {
-                    showConfigModal();
-                }, duration);
+            // Auto-backup en la nube: se activa una sola vez, es opcional y no bloquea nada.
+            const AUTO_BACKUP_KEY = 'boardinggate_autoBackupOnLoad';
+            if (localStorage.getItem(AUTO_BACKUP_KEY) !== 'true') {
+                localStorage.setItem(AUTO_BACKUP_KEY, 'true');
+                const autoBackupCheckbox = document.getElementById('config-auto-backup-on-load');
+                if (autoBackupCheckbox) autoBackupCheckbox.checked = true;
+                markCacheAsDirty();
             }
              });
     }
@@ -21878,6 +22243,75 @@ function handlePickerMapClick(e, slotIndex) {
     
 // ===================================================================
 // NOMBRE: showToast 
+// ===================================================================
+// NOMBRE: openQuickLauncher
+// RESUMEN: Menú simplificado de enlaces dentro del mapa, con navegación por
+// secciones arriba y links grandes en 2 columnas. Reutiliza currentBookmarks.
+function openQuickLauncher() {
+    loadCustomData(); // Refrescar marcadores/secciones desde localStorage antes de mostrar.
+    // Cerrar si ya está abierto (toggle).
+    const existing = document.getElementById('quick-launcher-panel');
+    if (existing) { existing.remove(); return; }
+
+    const panel = document.createElement('div');
+    panel.id = 'quick-launcher-panel';
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:11000;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;padding:24px;box-sizing:border-box;';
+
+    // Construir secciones desde currentToggleRanges + marcadores sin sección.
+    const sections = [];
+    currentToggleRanges.forEach(range => {
+        const links = range.assignedIndexes
+            .map(i => currentBookmarks[i])
+            .filter(b => b && b.url && b.url !== '#');
+        if (links.length > 0) sections.push({ label: range.label || range.name || 'Sección', color: sectionColors[range.start] || sectionColors.unassigned, links });
+    });
+    // Marcadores fuera de las secciones (índices 0-17 y cualquier no asignado).
+    const assigned = new Set(currentToggleRanges.flatMap(r => r.assignedIndexes));
+    const others = currentBookmarks
+        .map((b, i) => ({ b, i }))
+        .filter(({ b, i }) => b && b.url && b.url !== '#' && !assigned.has(i))
+        .map(({ b }) => b);
+    if (others.length > 0) sections.unshift({ label: 'General', color: sectionColors.unassigned, links: others });
+
+    if (sections.length === 0) { showToast('No hay enlaces configurados.', 'warning'); return; }
+
+    let activeSection = 0;
+
+    const render = () => {
+        const sec = sections[activeSection];
+        const tabsHtml = sections.map((sec2, i) =>
+            `<button class="ql-tab ${i === activeSection ? 'ql-tab-active' : ''}" data-sec="${i}" style="${i === activeSection ? `background-color:${sec2.color};` : ''}">${sec2.label}</button>`
+        ).join('');
+        const linksHtml = sec.links.map(b =>
+            `<a class="ql-link" href="${b.url}" target="_blank" rel="noopener noreferrer" style="background-color:${sec.color};">
+                <img src="${b.favicon || './PNG/IMG_4172.png'}" alt="" loading="lazy" onerror="this.style.display='none'">
+                <span>${b.name}</span>
+            </a>`
+        ).join('');
+
+        panel.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-shrink:0;">
+                <h2 style="color:#fff;font-size:1.6rem;margin:0;flex:1;">Enlaces rápidos</h2>
+                <button id="ql-close" title="Cerrar" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:10px;padding:8px 18px;font-size:1.2rem;font-weight:bold;cursor:pointer;">✕ Cerrar</button>
+            </div>
+            <div id="ql-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;flex-shrink:0;">${tabsHtml}</div>
+            <div id="ql-links" style="flex:1 1 auto;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;">${linksHtml}</div>
+        `;
+
+        panel.querySelector('#ql-close').addEventListener('click', () => panel.remove());
+        panel.querySelectorAll('.ql-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                activeSection = parseInt(tab.dataset.sec);
+                render();
+            });
+        });
+    };
+
+    render();
+    document.body.appendChild(panel);
+    addModalAutoCloseTimer(panel, panel.querySelector('#ql-close'), 'quick-launcher-panel', 120000);
+}
+
 function showToast(message, type = 'info', duration = 3000, isErrorNotFound = false, toastId = null) {
     const uniqueToastId = toastId || 'toast-notification-element' + (type === 'debug' ? '-debug' : '') + `-${Date.now()}`;
     
@@ -26033,6 +26467,10 @@ async function checkForLiveUpdate() {
 // NOMBRE: DOMContentLoaded (MODIFICADO)
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // Ocultar el lanzador de inmediato: el mapa se abre directamente al cargar.
+    try { document.querySelector('main').style.display = 'none'; document.querySelector('footer').style.display = 'none'; } catch (e) { }
+    try { document.body.classList.add('map-active'); } catch (e) { }
+
     localStorage.setItem('boardingGateLastLoadTimestamp', Date.now().toString());
     
     document.addEventListener('visibilitychange', checkForLiveUpdate);
@@ -26047,8 +26485,11 @@ document.addEventListener('DOMContentLoaded', async () => {
      storedPin = localStorage.getItem('password_pin');
      const savedPasswordActive = localStorage.getItem('password_active');
      isPasswordActive = savedPasswordActive ? JSON.parse(savedPasswordActive) : false;
-     const initialDirectToNavPref = JSON.parse(localStorage.getItem(DIRECT_TO_NAVIGATION_KEY)) || false;
+     const initialDirectToNavPref = true;
      const tempPreventDirectNav = sessionStorage.getItem(TEMP_PREVENT_DIRECT_NAV_KEY);
+
+     // Primera apertura directa al mapa, salvo que el usuario ya haya elegido otra cosa.
+     if (localStorage.getItem(DIRECT_TO_NAVIGATION_KEY) === null) localStorage.setItem(DIRECT_TO_NAVIGATION_KEY, 'true');
 
      if (isPasswordActive && storedPin && !(initialDirectToNavPref && !tempPreventDirectNav)) {
          promptForPin();
