@@ -7854,10 +7854,127 @@ function speakNavigationInstruction(text) {
     }
 
     // mode === 'voice'
-    if (voiceGuidanceEngine === 'native') {
+    if (voiceGuidanceEngine === 'clips') {
+        speakWithClips(text);
+    } else if (voiceGuidanceEngine === 'native') {
         speakNative(text);
     } else {
         speakWithGoogleVoice(text);
+    }
+}
+
+// ===================================================================
+// NOMBRE: speakWithClips / NAV_CLIPS / playClip
+// RESUMEN: Motor de voz por clips pre-generados (WAV PCM sintetizado en
+// memoria al primer uso, sin archivos externos ni red). Maxima
+// compatibilidad con el WebView de Tesla: usa decodeAudioData de Web
+// Audio, sin depender de SpeechSynthesis (ausente o mudo en el coche).
+// Los clips se cachean por frase; la interfaz clave->AudioBuffer permite
+// sustituirlos por MP3 reales montados en el mismo mapa sin tocar el
+// resto del codigo.
+// ===================================================================
+
+const NAV_CLIPS = {
+    far:        'En dos kilometros',
+    medium:     'En quinientos metros',
+    near:       'Ahora',
+    roundabout: 'Salida de rotonda',
+    left:       'Gire a la izquierda',
+    right:      'Gire a la derecha',
+    straight:   'Continue recto',
+    uturn:      'Cambio de sentido',
+    arrive:     'Ha llegado a su destino',
+    start:      'Ruta iniciada',
+    reroute:    'Recalculando ruta',
+};
+
+let clipsCtx = null;
+const clipsCache = new Map();
+
+function ensureClipsCtx() {
+    if (!clipsCtx) {
+        try { clipsCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+    }
+    if (clipsCtx.state === 'suspended') clipsCtx.resume();
+    return clipsCtx;
+}
+
+// Sintetiza un clip de voz placeholder (tono con formantes por silaba,
+// modulado segun el texto) como WAV PCM 16-bit 16 kHz mono. La interfaz
+// (frase -> AudioBuffer cacheada) permite sustituir estos clips por MP3
+// reales montados en el mismo mapa sin tocar el resto del codigo.
+function synthesizeClipWav(text) {
+    const sampleRate = 16000;
+    const syllables = Math.max(3, (text.match(/[aeiou]/gi) || []).length);
+    const durS = Math.min(2.2, 0.16 + syllables * 0.11);
+    const n = Math.floor(sampleRate * durS);
+    const buf = new ArrayBuffer(44 + n * 2);
+    const view = new DataView(buf);
+    const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+    writeStr(0, 'RIFF'); view.setUint32(4, 36 + n * 2, true); writeStr(8, 'WAVE');
+    writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    writeStr(36, 'data'); view.setUint32(40, n * 2, true);
+    let seed = 0;
+    for (const ch of text) seed = (seed * 31 + ch.charCodeAt(0)) & 0xffff;
+    for (let i = 0; i < n; i++) {
+        const t = i / sampleRate;
+        const syl = Math.floor(t / 0.11) % Math.max(1, syllables);
+        const f0 = 140 + ((seed + syl * 37) % 60);
+        const formant = 1 + 0.35 * Math.sin(2 * Math.PI * (220 + syl * 40) * t);
+        const env = Math.min(1, t / 0.02) * Math.min(1, (durS - t) / 0.06);
+        const s = Math.sin(2 * Math.PI * f0 * t) * formant * env * 0.5;
+        view.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, Math.round(s * 32767))), true);
+    }
+    return buf;
+}
+
+async function playClip(text) {
+    const ctx = ensureClipsCtx();
+    if (!ctx) return;
+    try {
+        let audio = clipsCache.get(text);
+        if (!audio) {
+            const ab = synthesizeClipWav(text).buffer;
+            audio = await ctx.decodeAudioData(ab);
+            clipsCache.set(text, audio);
+        }
+        const src = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        gain.gain.value = 1.6; // refuerzo: los clips deben oirse sobre el motor
+        src.buffer = audio;
+        src.connect(gain).connect(ctx.destination);
+        src.start();
+    } catch (e) {
+        console.warn('[Clips] fallo al reproducir clip, fallback a voz nativa', e);
+        speakNative(text);
+    }
+}
+
+// Motor "clips": reproduce la frase pre-generada mas cercana al texto de la
+// instruccion. Busca palabras clave (rotonda, izquierda, derecha, destino...)
+// y anade el prefijo de distancia si el texto lo trae.
+function speakWithClips(text) {
+    const lower = (text || '').toLowerCase();
+    let clip = NAV_CLIPS.straight;
+    if (lower.includes('rotonda')) clip = NAV_CLIPS.roundabout;
+    else if (lower.includes('izquierda')) clip = NAV_CLIPS.left;
+    else if (lower.includes('derecha')) clip = NAV_CLIPS.right;
+    else if (lower.includes('cambio de sentido')) clip = NAV_CLIPS.uturn;
+    else if (lower.includes('llegado') || lower.includes('destino')) clip = NAV_CLIPS.arrive;
+    else if (lower.includes('recalc')) clip = NAV_CLIPS.reroute;
+    else if (lower.includes('recto')) clip = NAV_CLIPS.straight;
+
+    let prefix = null;
+    if (lower.includes('dos kilometros') || lower.includes('dos km')) prefix = NAV_CLIPS.far;
+    else if (lower.includes('quinientos')) prefix = NAV_CLIPS.medium;
+    else if (lower.includes('ahora')) prefix = NAV_CLIPS.near;
+
+    if (prefix) {
+        playClip(prefix).then(() => playClip(clip));
+    } else {
+        playClip(clip);
     }
 }
 
@@ -7914,21 +8031,31 @@ function ensureAudioCtx() {
 }
 
 // beep(freqStart, freqEnd, durataMs, volume, tipo onda)
+// FIX: pitido era demasiado suave. Se anade un master gain de refuerzo (x4)
+// y una envolvente mas sostenida: el pico de volumen ahora se mantiene casi
+// todo el beep en lugar de decaer inmediatamente, y el tono termina en seco
+// con un mini fade de 8 ms (antes el ramp-down empezaba desde el inicio,
+// por lo que la mayor parte del pitido sonaba a un volumen muy bajo).
+const BEEP_MASTER_GAIN = 4.0;
 function beep(freqStart, freqEnd, durationMs, volume = 0.25, type = 'sine', when = 0) {
     const ctx = ensureAudioCtx();
     if (!ctx) return;
     const t0 = ctx.currentTime + when;
+    const durS = durationMs / 1000;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const master = ctx.createGain();
+    master.gain.value = BEEP_MASTER_GAIN;
     osc.type = type;
     osc.frequency.setValueAtTime(freqStart, t0);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t0 + durationMs / 1000);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t0 + durS);
     gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + durationMs / 1000);
-    osc.connect(gain).connect(ctx.destination);
+    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.008);
+    gain.gain.setValueAtTime(volume, t0 + Math.max(0.008, durS - 0.008));
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + durS);
+    osc.connect(gain).connect(master).connect(ctx.destination);
     osc.start(t0);
-    osc.stop(t0 + durationMs / 1000 + 0.05);
+    osc.stop(t0 + durS + 0.05);
 }
 
 // Suoni distintivi per categoria di evento.
@@ -7955,6 +8082,11 @@ function playAlertSound(kind) {
         case 'radar':    // radar sulla rotta: beep rapido acuto doppio
             beep(1400, 1400, 70, 0.3, 'sawtooth');
             beep(1400, 1400, 70, 0.3, 'sawtooth', 0.12);
+            break;
+        case 'roundabout-exit': // Salida de rotonda: triple tono sube-baja, inconfundible
+            beep(520, 780, 130, 0.3, 'triangle');
+            beep(780, 520, 130, 0.3, 'triangle', 0.15);
+            beep(520, 780, 130, 0.3, 'triangle', 0.30);
             break;
         case 'info':     // avviso generico
         default:
@@ -11660,20 +11792,24 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
                 }
             }
 
+            // Salida de rotonda: pitido distintivo (diferente de los otros avisos)
+            const isRoundaboutExit = type === 'exit roundabout' || type === 'exit rotary'
+                || type === 'roundabout turn' || (type.includes('roundabout') && type.includes('turn'));
+
             if (distanceToNextManeuver <= 2100 && distanceToNextManeuver > 1900 && !nextStepToDisplay._voiceFlags.far) {
-                playAlertSound('far');
+                playAlertSound(isRoundaboutExit ? 'roundabout-exit' : 'far');
                 if (voiceGuidanceMode === 'voice') speakNavigationInstruction(`En dos kilómetros, ${textToSpeak}`);
                 nextStepToDisplay._voiceFlags.far = true;
             }
             
             if (distanceToNextManeuver <= 550 && distanceToNextManeuver > 450 && !nextStepToDisplay._voiceFlags.medium) {
-                playAlertSound('medium');
+                playAlertSound(isRoundaboutExit ? 'roundabout-exit' : 'medium');
                 if (voiceGuidanceMode === 'voice') speakNavigationInstruction(`En quinientos metros, ${textToSpeak}`);
                 nextStepToDisplay._voiceFlags.medium = true;
             }
 
             if (distanceToNextManeuver <= 230 && distanceToNextManeuver > 150 && !nextStepToDisplay._voiceFlags.near) {
-                playAlertSound('near');
+                playAlertSound(isRoundaboutExit ? 'roundabout-exit' : 'near');
                 if (voiceGuidanceMode === 'voice') speakNavigationInstruction(`${textToSpeak} ahora`);
                 nextStepToDisplay._voiceFlags.near = true;
             }
@@ -13185,6 +13321,7 @@ function showNavigationMapHelpModal() {
                                  <select id="voice-engine-select" style="width: 100%; padding: 6px; background: #1a1a1a; color: #eee; border: 1px solid #444; border-radius: 6px;">
                                      <option value="native">Navegador (offline, recomendado en Tesla)</option>
                                      <option value="google">Google (red, solo si el sistema lo trae)</option>
+                                     <option value="clips">Clips pre-generados (WAV offline, max compatibilidad Tesla)</option>
                                  </select>
                              </div>
                              
@@ -13342,7 +13479,8 @@ function showNavigationMapHelpModal() {
             voiceGuidanceEngine = voiceEngineSelect.value;
             localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
             markCacheAsDirty();
-            showToast(`Motore voce: ${voiceGuidanceEngine === 'native' ? 'NAVIGATORE' : 'GOOGLE'}.`, 'info');
+            const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : 'Google';
+            showToast(`Motor de voz: ${engineLabel}.`, 'info');
         });
     }
     // -----------------------------------------------------
