@@ -364,3 +364,48 @@ estilo que el panel rápido del mapa (pestañas de sección arriba + tarjetas gr
   por MP3 reales sin tocar el resto del código. Los clips se eligen por palabras clave
   del texto (rotonda, izquierda, derecha, destino...) con prefijo de distancia
   (2 km / 500 m / ahora).
+
+## 15. Nuevo punto de entrada `nav.html` — navegación limpia y configurable
+
+Se crea un archivo nuevo, independiente de `tesla.html`, con solo lo esencial:
+
+- **Proveedor del mapa**: Mapbox (vector, soporta edificios 3D) u OpenStreetMap /
+  Esri World Imagery (raster, sin token).
+- **Estilo**: Calles / Oscuro / Satélite / Satélite+Calles.
+- **Edificios 3D** on/off (solo con proveedor Mapbox).
+- **Proveedor de rutas**: OSRM (`router.project-osrm.org`, gratis, sin key) o
+  Mapbox Directions. Respaldo automático si falla el primario.
+- **Geocodificado**: Nominatim (gratis) con autocompletado al escribir el destino.
+- **Navegación turn-by-turn**: banner de maniobra (distancia / instrucción / ETA),
+  recálculo automático al desviarse > 70 m, línea de ruta en el mapa.
+- **Voz y sonidos**: los mismos motores que `tesla.html` — pitidos far/medium/near/
+  roundabout-exit/arrive/reroute + motor de voz TTS nativo o clips WAV pre-generados.
+- **Posición del coche en pantalla**: dos deslizadores simples con porcentajes
+  (X: 0=izquierda → 100=derecha; Y: 0=abajo → 100=arriba), guardados en
+  localStorage junto al resto de ajustes.
+- Todos los ajustes se guardan en localStorage con prefijo `nav_`.
+
+## 16. `nav.html` — animación de arranque estilo Tesla (globo → posición)
+
+La transición inicial en `nav.html` era un `easeTo` **lineal** (duración 1500 ms,
+`easing: t => t`) del globo terráqueo a la posición GPS: se percibía brusco y sin
+perspectiva durante el vuelo. Se copia la animación de arranque de `tesla.html`
+(IACambios.md §2):
+
+- **`flyTo` con perspectiva 3D** (duración 1800 ms, `essential: true`) en lugar de
+  `easeTo` lineal. El `flyTo` de Mapbox usa su easing por arco (zoom out → zoom in),
+  mucho más fino — es la misma sensación que el arranque de `tesla.html`.
+- **Cámara inicial = cámara Tesla**: zoom por defecto 15.5 (antes 16) y pitch 62°
+  (antes 55°) — vista cercana al coche con perspectiva 3D real.
+- **Guardia `isFlying`**: mientras dura el `flyTo`, `updateCamera()` (el bucle de
+  seguimiento GPS) y `syncCam()`/`btn-center` NO tocan la cámara. Igual que en
+  `tesla.html` (claves de éxito §2.1/§2.2): un `easeTo` disparado durante el vuelo
+  con el zoom intermedio capturado arrastraría de vuelta al globo.
+- **Liberación por `setTimeout`** (duración + 100 ms de margen), NO por `moveend`:
+  el arranque dispara `moveend` espurios que consumirían un listener `once`.
+- El objetivo (center/zoom/pitch/bearing) se fija ANTES de volar y no se vuelve a
+  leer de `getZoom()` durante la animación.
+
+El resultado: globo terráqueo → arco de descenso con perspectiva creciente →
+aterrizaje suave en la posición GPS con el pitch/zoom configurados, y el bucle de
+seguimiento retoma el control sin saltos.

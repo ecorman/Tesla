@@ -299,6 +299,7 @@ body.map-active #config-modal:not(.hidden),
 body.map-active #reorder-stages-modal:not(.hidden),
 body.map-active #locations-preview-modal:not(.hidden),
 body.map-active #reminders-map-help-modal-instance,
+body.map-active #voice-options-modal-instance,
 body.map-active .referrals-modal-content {
     width: calc(94vw / 0.6536) !important;
     max-width: 1700px !important;
@@ -916,6 +917,7 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
                 </button>
                 <input type="text" id="map-location-search-input" placeholder="Dirección,sitio,zona /Negocio /Ciudad /CP+Provincia (28001 Madrid /Lidl Lugo)">
                 <input type="text" id="filter-input" placeholder="Filtro"> 
+                <button id="voice-options-button" class="reminders-map-button-action" title="Opciones de Voz y Sonido" style="font-size: 15px; line-height: 1; padding: 0 8px; color: #eee; font-family: inherit;">🔊 Voz</button>
                 <button id="navigation-map-help-button" class="reminders-map-button-action" title="Ayuda del mapa de navegación/radares"><img src="PNG/IMG_4326.PNG" alt="Ayuda"></button>
              </div>
         </div>
@@ -13209,6 +13211,90 @@ function preloadGpsLocation() {
 }    
 
 // ===================================================================
+// NOMBRE: showVoiceOptionsModal
+// RESUMEN: Pantalla de opciones de voz y sonido: modo de guiado
+// (silencio / avisos sonoros / voz) y motor de voz (navegador,
+// google o clips pre-generados WAV). Accesible desde el boton
+// "Voz" de la cabecera del mapa.
+function showVoiceOptionsModal() {
+    const existingModal = document.getElementById('voice-options-modal-instance');
+    if (existingModal) {
+        clearModalAutoCloseTimer(existingModal, existingModal.querySelector('#close-voice-options'), 'voice-options-modal-instance');
+        existingModal.remove();
+    }
+    const modal = document.createElement('div');
+    modal.id = 'voice-options-modal-instance';
+    modal.className = 'help-modal';
+    modal.setAttribute('aria-label', 'Opciones de Voz y Sonido');
+    modal.innerHTML = `
+        <style>
+            #voice-options-modal-instance { max-width: 580px; width: 92vw; }
+            #voice-options-modal-instance h2 { color: #87CEEB; margin-bottom: 0.9rem; border-bottom: 1px solid #444; padding-bottom: 8px; }
+            #voice-options-modal-instance .voice-opt-group { margin-bottom: 1rem; }
+            #voice-options-modal-instance label { display: block; margin-bottom: 6px; color: #eee; font-weight: 600; }
+            #voice-options-modal-instance select { width: 100%; padding: 8px; background: #1a1a1a; color: #eee; border: 1px solid #555; border-radius: 6px; font-size: 0.95rem; }
+            #voice-options-modal-instance .voice-opt-help { font-size: 0.85rem; color: #aaa; margin-top: 4px; line-height: 1.35; }
+            #voice-options-modal-instance .voice-opt-btn { margin-top: 12px; margin-right: 8px; padding: 11px 16px; background: #1c4b6e; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; }
+            #voice-options-modal-instance .voice-opt-btn:hover { background: #256a9c; }
+            #voice-options-modal-instance .voice-opt-btn-ok { background: #2a6e3f; }
+            #voice-options-modal-instance .voice-opt-btn-ok:hover { background: #378a51; }
+            #voice-options-modal-instance .voice-opt-close { float: right; background: none; border: none; color: #ccc; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+        </style>
+        <button id="close-voice-options" class="voice-opt-close" title="Cerrar">&times;</button>
+        <h2>🔊 Opciones de Voz y Sonido</h2>
+        <div class="voice-opt-group">
+            <label for="voice-options-mode-select">Guiado durante navegaci&oacute;n:</label>
+            <select id="voice-options-mode-select">
+                <option value="silence">Silencio (sin voz ni sonidos)</option>
+                <option value="sounds">Avisos sonoros (pitidos, mirar pantalla)</option>
+                <option value="voice">Voz (narra las indicaciones)</option>
+            </select>
+            <div class="voice-opt-help">En "Voz" se narran las maniobras con el motor elegido abajo. En "Avisos sonoros" solo se emiten pitidos (recomendado en Tesla).</div>
+        </div>
+        <div class="voice-opt-group">
+            <label for="voice-options-engine-select">Motor de voz:</label>
+            <select id="voice-options-engine-select">
+                <option value="native">Navegador (offline, recomendado en Tesla)</option>
+                <option value="google">Google (red, solo si el sistema lo trae)</option>
+                <option value="clips">Clips pre-generados (WAV offline, m&aacute;x. compatibilidad Tesla)</option>
+            </select>
+            <div class="voice-opt-help">"Clips pre-generados" no depende del sintetizador del sistema: m&aacute;xima compatibilidad con el navegador del Tesla y siempre audible.</div>
+        </div>
+        <button id="voice-options-test-btn" class="voice-opt-btn">🔊 Probar sonido</button>
+        <button id="voice-options-ok-btn" class="voice-opt-btn voice-opt-btn-ok">Listo</button>
+    `;
+    document.body.appendChild(modal);
+
+    const modeSelect = modal.querySelector('#voice-options-mode-select');
+    const engineSelect = modal.querySelector('#voice-options-engine-select');
+    modeSelect.value = voiceGuidanceMode;
+    engineSelect.value = voiceGuidanceEngine;
+
+    modeSelect.addEventListener('change', () => {
+        voiceGuidanceMode = modeSelect.value;
+        localStorage.setItem(VOICE_MODE_KEY, JSON.stringify(voiceGuidanceMode));
+        voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
+        localStorage.setItem(VOICE_GUIDANCE_KEY, JSON.stringify(voiceGuidanceEnabled));
+        markCacheAsDirty();
+        const label = voiceGuidanceMode === 'silence' ? 'Silencio' : voiceGuidanceMode === 'sounds' ? 'Avisos sonoros' : 'Voz';
+        showToast(`Guiado: ${label}.`, 'info');
+    });
+    engineSelect.addEventListener('change', () => {
+        voiceGuidanceEngine = engineSelect.value;
+        localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
+        markCacheAsDirty();
+        const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : 'Google';
+        showToast(`Motor de voz: ${engineLabel}.`, 'info');
+    });
+    modal.querySelector('#voice-options-test-btn').addEventListener('click', () => {
+        speakNavigationInstruction('Prueba de sonido');
+    });
+    modal.querySelector('#voice-options-ok-btn').addEventListener('click', () => { modal.remove(); });
+    modal.querySelector('#close-voice-options').addEventListener('click', () => { modal.remove(); });
+    addModalAutoCloseTimer(modal, modal.querySelector('#close-voice-options'), 'voice-options-modal-instance', 120000);
+}
+
+// ===================================================================
 // NOMBRE: showNavigationMapHelpModal
 function showNavigationMapHelpModal() {
     const existingHelpModal = document.getElementById('reminders-map-help-modal-instance');
@@ -13461,6 +13547,7 @@ function showNavigationMapHelpModal() {
     const voiceEngineSelect = helpModal.querySelector('#voice-engine-select');
     if (voiceModeSelect) {
         voiceModeSelect.value = voiceGuidanceMode;
+        if (voiceEngineRow) voiceEngineRow.style.display = voiceGuidanceMode === 'voice' ? 'block' : 'none';
         voiceModeSelect.addEventListener('change', () => {
             voiceGuidanceMode = voiceModeSelect.value;
             localStorage.setItem(VOICE_MODE_KEY, JSON.stringify(voiceGuidanceMode));
@@ -16118,6 +16205,7 @@ function assignMapButtonListeners() {
                  case 'toggle-simulate-gps-button': handleGpsSimulationToggle(); break;
                  case 'simulate-route-button': showSimulationModal(); break;
                  case 'reorder-route-stages-button': showReorderStagesModal(); break;
+                 case 'voice-options-button': showVoiceOptionsModal(); break;
                  case 'navigation-map-help-button':
                     const existingChoiceModal = document.querySelector('.choice-modal.help-choice');
                     if(existingChoiceModal) existingChoiceModal.remove();
