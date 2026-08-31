@@ -409,3 +409,39 @@ perspectiva durante el vuelo. Se copia la animación de arranque de `tesla.html`
 El resultado: globo terráqueo → arco de descenso con perspectiva creciente →
 aterrizaje suave en la posición GPS con el pitch/zoom configurados, y el bucle de
 seguimiento retoma el control sin saltos.
+
+## 17. `nav.html` — arreglo: no salían las indicaciones de la ruta (y ajustes de cámara)
+
+### 17.1 Las indicaciones turn-by-turn no aparecían
+
+`calcRoute()` llamaba a `updateBanner()` justo antes de `startNavLoop()`, pero esa
+función **no existía** en `nav.html`. El `ReferenceError` resultante cortaba
+`calcRoute()` en seco: el banner se mostraba (display:flex ya aplicado), pero el
+bucle `navTick()` nunca arrancaba — ni distancia, ni instrucción, ni ETA, ni voz.
+
+- **Solución**: eliminar la llamada a `updateBanner()`. El primer `navTick()`
+  (1 s) rellena el banner y avanza la maniobra, igual que el bucle de `tesla.html`.
+  El script completo se validó con un parseo sintáctico (sin errores).
+
+### 17.2 El recálculo por desvío no funcionaba (umbral mal calculado)
+
+En `navTick()`, la distancia al punto más cercano de la ruta se calculaba como
+**cuadrado de grados** (`dx²+dy²`) pero se comparaba contra `0.0007` — el comentario
+decía "~70 m" cuando en realidad 0.0007 grados² ≈ **2,9 km** al ecuador. El coche
+podía desviarse cientos de metros sin recálculo.
+
+- **Solución**: `minD` ahora se calcula con `haversine()` (metros reales) y el
+  umbral es `>70` m. Se corrige también la errata "recalculateando…" →
+  "recalculando…".
+
+### 17.3 Arranque: sin doble offset en el flyTo
+
+Se descarta el ancla de cámara manual del arranque: `nav.html` ancla el coche con
+`setPadding` (`applyCarPadding`, carX/carY), así que el `flyTo` apunta a
+`center: userPos` — Mapbox lo pinta exactamente en la posición de pantalla
+configurada (misma convención que `updateCamera()`). Sumarle un offset manual
+habría descentrado el coche hasta el primer fix de GPS.
+
+- **Mejora**: al liberar `isFlying` (setTimeout), se llama una vez a
+  `updateCamera()` para asentar la cámara sobre el coche y corregir cualquier
+  desviación residual del aterrizaje.

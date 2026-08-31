@@ -449,12 +449,20 @@ function onUserLocated(aprox){
    - el bucle de cámara (updateCamera) no pisa el flyTo mientras dura,
    - se libera con setTimeout (duración + margen), NO con moveend
      (el jumpTo implícito del boot dispara un moveend espurio).
+   El ancla de cámara usa la MISMA matemática que el bucle de seguimiento
+   (offsets del coche en pantalla escalados por zoom) para que el flyTo
+   aterrice EXACTAMENTE donde el bucle mantendrá la cámara: sin el ancla,
+   el coche quedaría descentrado hasta el primer fix de GPS.
 ------------------------------------------------------------------ */
 let isFlying=false;
 function bootFlyTo(){
   if(!map||!userPos)return;
   const pitch=S.pitch, zoom=S.zoom, bearing=0;
   isFlying=true;
+  // El centro del flyTo es userPos: con el setPadding de applyCarPadding
+  // (ya aplicado al cargar el mapa), Mapbox pinta userPos exactamente en
+  // la posición de pantalla del coche (carX/carY) — misma convención que
+  // usa el bucle de seguimiento (updateCamera), sin dobles offsets.
   map.flyTo({
     center:userPos,
     zoom,
@@ -463,7 +471,9 @@ function bootFlyTo(){
     duration:1800,
     essential:true,
   });
-  setTimeout(()=>{isFlying=false;},1900);
+  // Al liberar isFlying, un updateCamera fuerza el asentado de la cámara
+  // sobre el coche (corrige cualquier desviación residual del aterrizaje).
+  setTimeout(()=>{isFlying=false;updateCamera();},1900);
 }
 
 function addRouteLayers(){
@@ -627,7 +637,8 @@ async function calcRoute(dest){
   document.getElementById('btn-stop').style.display='';
   document.getElementById('banner').style.display='flex';
   speak(NAV_CLIPS.start);
-  updateBanner();
+  // El banner se rellena en el primer navTick (navTick también avanza la
+  // maniobra actual, actualiza distancia/ETA y dispara la voz).
   startNavLoop();
 }
 
@@ -688,11 +699,10 @@ function stopNavLoop(){
 }
 function navTick(){
   if(!routeData||!userPos)return;
-  // find nearest point on route
+  // find nearest point on route (distancia real en metros)
   let minD=Infinity,minI=0;
   for(let i=0;i<routeData.coords.length;i++){
-    const dx=routeData.coords[i][0]-userPos[0],dy=routeData.coords[i][1]-userPos[1];
-    const d=dx*dx+dy*dy;
+    const d=haversine(userPos,routeData.coords[i]);
     if(d<minD){minD=d;minI=i;}
   }
   // remaining distance (rough: sum from minI to end)
@@ -723,9 +733,9 @@ function navTick(){
   document.getElementById('b-eta').textContent=fmtTime(totalEta);
   const arr=new Date(Date.now()+totalEta*1000);
   document.getElementById('b-arr').textContent='llegada '+arr.getHours()+':'+String(arr.getMinutes()).padStart(2,'0');
-  // check deviation (off route > 60m)
-  if(minD>0.0007){ // ~70m at equator
-    toast('Desviado — recalculateando…');
+  // check deviation (off route > 70m)
+  if(minD>70){
+    toast('Desviado — recalculando…');
     speak(NAV_CLIPS.reroute);alertSound('reroute');
     calcRoute(destPoint);
     return;
