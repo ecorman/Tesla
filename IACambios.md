@@ -1075,3 +1075,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Media y Máxima** pasan al emblema, apiladas en vertical bajo la velocidad (ej. «Med 84 · Máx 118»), **redondeadas a km enteros** (sin decimales).
 - La fila de estadísticas del HUD queda con **Altitud y Mín** (Med/Máx ya viven en el emblema).
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), **7/7 tests** (sin velocidad duplicada, se-stats en el emblema, emblema centrado en columna, Med/Máx redondeados).
+
+## 47. nav.html (2026-09-01): barra superior visible al navegar y ventanas (brújula, navegación, maniobra) redimensionables con esquina guardada
+- **Barra superior ya no queda tapada al navegar**: con ruta activa los botones (🔍 ⭐ 🤖 ⚠️ 📋 ▶ Simular GPS ⌖ Centrar ■ Fin) se mueven a la **derecha** (junto a ⚙), libres de las ventanas de navegación de la izquierda. Antes se situaban bajo la ventana de ruta y quedaban ocultos.
+- **Esquina remarcada para redimensionar** en las 3 ventanas: **brújula (HUD), navegación (banner de instrucciones) y maniobra (minimapa)**. Arrastra la esquina (cursor diagonal) para agrandar/reducir; el tamaño **queda guardado** y se reaplica al reabrir la ventana.
+- Los canvas de la gráfica del HUD y del minimapa se re-adaptan al nuevo tamaño al redimensionar.
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **12/12 tests** (topbar a la derecha al navegar, 3 asas con guardado/re-aplicado tras arrastre simulado, límites mínimos, canvas fluido).

@@ -123,7 +123,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- minimapa de maniobra ---- */
 #mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
-#mnv-minimap{width:200px;height:128px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
+/* asa de redimensionado (esquina remarcada): HUD, navegación y maniobra */
+.rsz-handle{position:absolute;right:1px;bottom:1px;width:16px;height:16px;cursor:nwse-resize;z-index:6;opacity:.9;border-radius:0 0 12px 0}
+.rsz-handle::before{content:"";position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);border-radius:1px}
+.rsz-handle:hover{opacity:1}
+#mnv-minimap{width:100%;height:128px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
 /* ---- overlay recarga controlada ---- */
 #mem-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
 #mem-overlay .mem-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 28px;font-size:16px;color:var(--txt)}
@@ -173,7 +177,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- velocidad: emblema Tesla (semi-transparente) + toggle barra superior ---- */
 #topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
-#topbar.banner-on #topbar-btns{top:120px}
+#topbar.banner-on #topbar-btns{top:10px;left:auto;right:64px}
 #speed-emblem{position:relative;display:flex;align-items:center;gap:10px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
 .hud-emblem-v{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:auto;text-align:center}
@@ -1742,6 +1746,7 @@ function updateFreeHud(coords){
 }
 function drawHudGraph(){
   const cv=document.getElementById('hud-graph');if(!cv)return;
+  if(cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
   const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
   ctx.clearRect(0,0,w,h);
   const sm=freeStats?freeStats.samples:[];
@@ -1767,6 +1772,7 @@ function drawHudGraph(){
 /* ---------- minimapa de previsualización de maniobra (canvas ligero, sin 2ª instancia GL) ---------- */
 function drawMinimap(){
   const cv=document.getElementById('mnv-minimap');if(!cv)return;
+  if(cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
   const on=!!S.minimap&&!!routeData;
   const box=document.getElementById('mnv-box');
   if(box)box.style.display=on?'flex':'none';
@@ -2223,6 +2229,44 @@ if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
 /* botón de actualizar POIs en Ajustes */
 const btnRefreshPois=document.getElementById('btn-refresh-pois');
 if(btnRefreshPois)btnRefreshPois.onclick=()=>{toast('Actualizando POIs…');refreshPois(true);};
+
+/* redimensionar ventanas (HUD/brújula, navegación y maniobra) arrastrando la esquina; el tamaño queda guardado */
+function makeResizable(id,key,minW,minH){
+  const el=document.getElementById(id);if(!el)return;
+  const w=parseFloat(localStorage.getItem(LS+key+'W'));
+  const h=parseFloat(localStorage.getItem(LS+key+'H'));
+  if(w&&isFinite(w)&&w>=minW)el.style.width=Math.round(w)+'px';
+  if(h&&isFinite(h)&&h>=minH)el.style.height=Math.round(h)+'px';
+  const hd=document.createElement('div');
+  hd.className='rsz-handle';hd.title='Arrastra la esquina para cambiar el tamaño';
+  hd.addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();
+    const sx=e.clientX,sy=e.clientY;
+    const ow=el.offsetWidth,oh=el.offsetHeight;
+    const move=ev=>{
+      const nw=Math.max(minW,Math.min(window.innerWidth*0.92,ow+(ev.clientX-sx)));
+      const nh=Math.max(minH,Math.min(window.innerHeight*0.92,oh+(ev.clientY-sy)));
+      el.style.width=Math.round(nw)+'px';
+      el.style.height=Math.round(nh)+'px';
+      if(id==='free-hud'){const cv=document.getElementById('hud-graph');if(cv&&cv.width!==cv.offsetWidth){cv.width=cv.offsetWidth;drawHudGraph();}}
+      if(id==='mnv-box'){const cv=document.getElementById('mnv-minimap');if(cv&&cv.width!==cv.offsetWidth){cv.width=cv.offsetWidth;drawMinimap();}}
+    };
+    const up=ev=>{
+      move(ev);
+      localStorage.setItem(LS+key+'W',el.offsetWidth);
+      localStorage.setItem(LS+key+'H',el.offsetHeight);
+      window.removeEventListener('pointermove',move);
+      window.removeEventListener('pointerup',up);
+    };
+    window.addEventListener('pointermove',move);
+    window.addEventListener('pointerup',up);
+  });
+  hd.addEventListener('click',e=>e.stopPropagation());
+  el.appendChild(hd);
+}
+makeResizable('free-hud','hud',200,150);
+makeResizable('banner','banner',220,52);
+makeResizable('mnv-box','mnv',170,110);
 
 /* tocar el HUD lo agranda/reduce */
 (function(){
