@@ -1056,3 +1056,10 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Clic en un POI → ventana de confirmación**: al pulsar un POI ya no es solo un aviso: vuela al punto, deja el pin arrastrable y abre «🛣 Nueva Ruta / ➕ Añadir Punto» (igual que al buscar un lugar).
 - **Zoom de Ajustes arreglado**: el slider 🔍 guardaba el zoom pero la cámara lo ignoraba (usaba el modo AUTO/RUTA/ECO y el guard «sin GPS → no hacer nada»). Ahora el slider **aplica el zoom directamente** en el mapa y pasa a **LIBRE** automáticamente — funciona aunque no haya GPS y en cualquier modo.
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), **9/9 tests** (defaults, consultas paralelas con dedupe, clic → startPointPick, slider → LIBRE + easeTo).
+
+## 44. nav.html (2026-09-01): HUD sin velocidad duplicada (solo en el emblema Tesla), Mín, gráfica desnivel↔velocidad, escala en Ajustes y POIs con reintento/aviso
+- **Velocidad solo en el emblema Tesla**: eliminada la velocidad duplicada de la fila de la brújula; la fila de estadísticas ahora muestra **Altitud, Med, Máx y Mín** (mínima sin contar paradas <1 km/h).
+- **Gráfica desnivel ↔ velocidad** (como tesla.html): pulsando la gráfica o el botón bajo ella cambias entre «⛰ Desnivel» (azul, metros) y «🚗 Velocidad» (naranja, km/h). El modo se guarda en ajustes. El muestreo guarda ambos valores para no perder historial al cambiar.
+- **Escala de la ventana de brújula también en Ajustes**: nueva fila «🧭 Tamaño HUD» en la pestaña Cámara (60 %–160 %), sincronizada con los botones − / ＋ del propio HUD.
+- **POIs**: botón «↻ Actualizar POIs» en Ajustes → Capas, y si ninguna instancia Overpass responde aparece un **aviso visible** con instrucciones (antes fallaba en silencio). Además un **reset de versión de ajustes** borra una sola vez los valores antiguos guardados (`pois=false`, categorías solo gasolina) que impedían ver los POIs por defecto.
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **17/17 tests** (HUD sin hud-speed, Mín, toggle de gráfica con unidades y colores por modo, escala en ajustes, reset de versión, fetchOverpass con detección de fallo).

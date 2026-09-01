@@ -118,6 +118,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #free-hud .hud-spd span{font-size:27px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
 #hud-graph{width:100%;height:52px;border-radius:8px;background:rgba(255,255,255,.05)}
+.hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
+.hud-graph-toggle:hover{color:var(--txt)}
 /* ---- minimapa de maniobra ---- */
 #mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
@@ -295,14 +297,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <div class="hud-row">
     <img id="hud-compass" src="PNG/ROSA.PNG" alt="">
     <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
-    <div class="hud-spd"><span id="hud-speed">0</span> km/h</div>
   </div>
   <div class="hud-stats">
     <span id="hud-alt">— m</span>
     <span id="hud-med">Med: —</span>
     <span id="hud-max">Máx: —</span>
+    <span id="hud-min">Mín: —</span>
   </div>
-  <canvas id="hud-graph" width="200" height="52"></canvas>
+  <canvas id="hud-graph" width="200" height="52" title="Pulsa para cambiar la gráfica"></canvas>
+  <button id="hud-graph-toggle" class="hud-graph-toggle" title="Cambiar gráfica: desnivel / velocidad">⛰ Desnivel — pulsa para cambiar</button>
   <div class="hud-scale">
     <button id="hud-scale-minus" title="Reducir tamaño">−</button>
     <span id="hud-scale-val">100%</span>
@@ -355,6 +358,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <label style="margin-top:8px">Categorías de POIs (elige una o varias)</label>
     <div id="poi-cats"></div>
     <div class="posrow" style="margin-top:10px"><label>🔍</label><input type="range" id="s-poi-size" min="24" max="64" step="2" value="40"><span class="val" id="v-poi-size">40px</span></div>
+    <button class="btn" id="btn-refresh-pois" style="margin-top:8px">↻ Actualizar POIs</button>
   </div>
 
   <div class="setgroup" data-tab="mapa">
@@ -429,6 +433,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <option value="route">RUTA — vista general</option>
       <option value="eco">ECO — autopista/ciudad</option>
     </select>
+    <div class="posrow"><label>🧭</label><input type="range" id="s-hud-scale" min="60" max="160" step="5" value="100"><span class="val" id="v-hud-scale">100%</span></div>
     <div class="posrow"><label>⏱</label><input type="range" id="s-follow-timeout" min="0" max="60" step="5" value="15"><span class="val" id="v-follow-timeout">15s</span></div>
     <small style="color:var(--dim);font-size:11px;display:block;margin-bottom:4px">Al mover el mapa, vuelve al coche tras este tiempo sin tocar nada (0 = no volver solo).</small>
     <div class="togglerow"><span>Orientar mapa según marcha</span><div class="switch on" id="s-heading"></div></div>
@@ -537,6 +542,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* ---------- settings (localStorage) ---------- */
 const LS='nav_';
+const SETTINGS_VERSION='4'; // sube este número para restablecer valores por defecto importantes
+if(localStorage.getItem(LS+'sv')!==SETTINGS_VERSION){
+  localStorage.removeItem(LS+'pois');
+  localStorage.removeItem(LS+'poiCats');
+  localStorage.removeItem(LS+'poiCat');
+  localStorage.removeItem(LS+'hudGraph');
+  localStorage.setItem(LS+'sv',SETTINGS_VERSION);
+}
 // Valores numéricos guardados: si parseFloat da NaN (sin guardado previo)
 // se usa el default. OJO: el patrón anterior `parseFloat(x)!=null` era un bug
 // (NaN!=null es true) y pasaba NaN a flyTo/easeTo -> el mapa se quedaba en
@@ -567,6 +580,7 @@ const S={
   viewMode:    localStorage.getItem(LS+'viewMode')||'3d', // norte/avance/3d/relieve (tesla.html)
   freeHud:     localStorage.getItem(LS+'freeHud')!=='false',
   hudScale:    parseFloat(localStorage.getItem(LS+'hudScale'))||1,
+  hudGraph:    localStorage.getItem(LS+'hudGraph')||'alt', // alt | speed (gráfica del HUD)
   minimap:     localStorage.getItem(LS+'minimap')!=='false',
   memWatch:    localStorage.getItem(LS+'memWatch')!=='false',
   teslaScale:  localStorage.getItem(LS+'teslaScale')==='true',
@@ -964,6 +978,7 @@ let layerRefreshTimer=null;
 let lastLayerFetch={radars:0,pois:0,alerts:0,buildings:0};
 const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
 
+let lastOverpassFailed=false; // true si ninguna instancia Overpass respondió en el último intento
 const OVERPASS_ENDPOINTS=[
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
@@ -991,8 +1006,8 @@ async function fetchOverpass(query){
       .finally(()=>clearTimeout(tm));
   });
   const results=await Promise.all(attempts);
-  for(const res of results){if(res&&res.length)return res;}
-  for(const res of results){if(res)return res;}
+  for(const res of results){if(res&&res.length){lastOverpassFailed=false;return res;}}
+  lastOverpassFailed=results.every(r=>r==null); // ningún endpoint respondió
   return [];
 }
 function mapCenterForFetch(){
@@ -1070,6 +1085,7 @@ async function refreshPois(force){
     seen.add(key);
     items.push({el:el,lat:lat,lon:lon,icon:cc.icon});
   }));
+  if(!items.length&&lastOverpassFailed&&S.pois)toast('No se pudieron cargar los POIs (servidor Overpass sin respuesta). Usa «↻ Actualizar POIs» en Ajustes para reintentar.',4000);
   items.slice(0,150).forEach(it=>{
     const name=(it.el.tags&&(it.el.tags.name||it.el.tags.brand||''))||'Punto de interés';
     const el2=document.createElement('div');
@@ -1688,7 +1704,7 @@ function showFreeHud(){
   const h=document.getElementById('free-hud');if(!h)return;
   const on=!!S.freeHud&&!!userPos;
   h.style.display=on?'flex':'none';
-  if(on&&!freeStats)freeStats={t0:Date.now(),km:0,max:0,altMin:Infinity,altMax:-Infinity,prev:null,samples:[]};
+  if(on&&!freeStats)freeStats={t0:Date.now(),km:0,max:0,min:Infinity,altMin:Infinity,altMax:-Infinity,prev:null,samples:[]};
   if(!on)return;
   const cv=document.getElementById('hud-graph');if(cv)drawHudGraph();
 }
@@ -1702,6 +1718,7 @@ function updateFreeHud(coords){
   const h=document.getElementById('free-hud');if(!h||h.style.display==='none')return;
   const spd=navSpeedKmh||0;
   if(spd>freeStats.max)freeStats.max=spd;
+  if(spd>1&&spd<freeStats.min)freeStats.min=spd;
   if(freeStats.prev)freeStats.km+=haversine(freeStats.prev,userPos)/1000;
   freeStats.prev=userPos.slice();
   let alt=null;
@@ -1710,7 +1727,6 @@ function updateFreeHud(coords){
     try{const e=map.queryTerrainElevation(userPos);if(e!=null)alt=e;}catch(e){}
   }
   const hd=carHeading!=null&&!isNaN(carHeading)?carHeading:0;
-  document.getElementById('hud-speed').textContent=spd;
   document.getElementById('hud-orient').textContent=hd?Math.round(hd)+'°':'—';
   document.getElementById('hud-cardinal').textContent=hd?cardinalDeg(hd):'';
   document.getElementById('hud-compass').style.transform='rotate('+hd+'deg)';
@@ -1722,28 +1738,34 @@ function updateFreeHud(coords){
     altEl.textContent=Math.round(alt)+' m';
     if(alt<freeStats.altMin)freeStats.altMin=alt;
     if(alt>freeStats.altMax)freeStats.altMax=alt;
-    freeStats.samples.push({v:alt});
-    if(freeStats.samples.length>600)freeStats.samples.shift();
-    drawHudGraph();
   }else altEl.textContent='— m';
+  freeStats.samples.push({a:alt,s:spd});
+  if(freeStats.samples.length>600)freeStats.samples.shift();
+  document.getElementById('hud-min').textContent=(isFinite(freeStats.min)?'Mín: '+freeStats.min:'Mín: —');
+  drawHudGraph();
 }
 function drawHudGraph(){
   const cv=document.getElementById('hud-graph');if(!cv)return;
   const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
   ctx.clearRect(0,0,w,h);
-  const sm=freeStats?freeStats.samples:[];if(sm.length<2)return;
-  let mn=Infinity,mx=-Infinity;for(const p of sm){if(p.v<mn)mn=p.v;if(p.v>mx)mx=p.v;}
+  const sm=freeStats?freeStats.samples:[];
+  const mode=(S.hudGraph==='speed')?'speed':'alt';
+  const tb=document.getElementById('hud-graph-toggle');
+  if(tb)tb.textContent=(mode==='speed')?'🚗 Velocidad — pulsa para cambiar':'⛰ Desnivel — pulsa para cambiar';
+  const pts=[];for(const p of sm){const v=(mode==='speed')?p.s:(p.a!=null?p.a:null);if(v!=null&&isFinite(v))pts.push(v);}
+  if(pts.length<2)return;
+  let mn=Infinity,mx=-Infinity;for(const v of pts){if(v<mn)mn=v;if(v>mx)mx=v;}
   const span=Math.max(1,mx-mn);
-  ctx.strokeStyle='#4f8cff';ctx.lineWidth=1.6;ctx.beginPath();
-  for(let i=0;i<sm.length;i++){
-    const x=(i/(sm.length-1))*w;
-    const y=h-3-((sm[i].v-mn)/span)*(h-6);
+  ctx.strokeStyle=(mode==='speed')?'#ff9f43':'#4f8cff';ctx.lineWidth=1.6;ctx.beginPath();
+  for(let i=0;i<pts.length;i++){
+    const x=(i/(pts.length-1))*w;
+    const y=h-3-((pts[i]-mn)/span)*(h-6);
     i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
   }
   ctx.stroke();
-  ctx.fillStyle='rgba(136,136,160,.8)';ctx.font='8px sans-serif';
-  ctx.fillText(Math.round(mx)+' m',2,8);
-  ctx.fillText(Math.round(mn)+' m',2,h-2);
+  ctx.fillStyle='rgba(136,136,160,.85)';ctx.font='8px sans-serif';
+  ctx.fillText(Math.round(mx)+(mode==='speed'?' km/h':' m'),2,8);
+  ctx.fillText(Math.round(mn)+(mode==='speed'?' km/h':' m'),2,h-2);
 }
 
 /* ---------- minimapa de previsualización de maniobra (canvas ligero, sin 2ª instancia GL) ---------- */
@@ -2173,6 +2195,8 @@ function applyHudScale(){
   if(h)h.style.setProperty('--hud-scale',S.hudScale);
   const v=document.getElementById('hud-scale-val');
   if(v)v.textContent=Math.round(S.hudScale*100)+'%';
+  const se=document.getElementById('s-hud-scale'),sv=document.getElementById('v-hud-scale');
+  if(se){se.value=Math.round(S.hudScale*100);if(sv)sv.textContent=se.value+'%';}
 }
 document.getElementById('hud-scale-minus').onclick=e=>{
   e.stopPropagation();
@@ -2185,6 +2209,24 @@ document.getElementById('hud-scale-plus').onclick=e=>{
   saveS('hudScale',S.hudScale);applyHudScale();
 };
 applyHudScale();
+const hudScaleEl=document.getElementById('s-hud-scale');
+if(hudScaleEl)hudScaleEl.addEventListener('input',()=>{
+  S.hudScale=Math.max(0.6,Math.min(1.6,+hudScaleEl.value/100));
+  saveS('hudScale',S.hudScale);applyHudScale();
+});
+/* gráfica del HUD: desnivel <-> velocidad (como tesla.html) */
+function toggleHudGraph(){
+  S.hudGraph=(S.hudGraph==='speed')?'alt':'speed';
+  saveS('hudGraph',S.hudGraph);
+  drawHudGraph();
+}
+const hudGraphBtn=document.getElementById('hud-graph-toggle');
+if(hudGraphBtn)hudGraphBtn.onclick=e=>{e.stopPropagation();toggleHudGraph();};
+const hudGraphCv=document.getElementById('hud-graph');
+if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
+/* botón de actualizar POIs en Ajustes */
+const btnRefreshPois=document.getElementById('btn-refresh-pois');
+if(btnRefreshPois)btnRefreshPois.onclick=()=>{toast('Actualizando POIs…');refreshPois(true);};
 
 /* tocar el HUD lo agranda/reduce */
 (function(){
