@@ -176,9 +176,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #topbar.banner-on #topbar-btns{top:120px}
 #speed-emblem{position:relative;display:flex;align-items:center;gap:10px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
-.hud-emblem-v{position:relative;display:flex;align-items:baseline;gap:5px;margin-left:auto}
+.hud-emblem-v{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:auto;text-align:center}
 .hud-emblem-v .se-v{font-size:30px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
 .hud-emblem-v .se-u{font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
+.hud-emblem-v .se-stats{font-size:10px;font-weight:600;color:rgba(255,255,255,.92);text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.3px;white-space:nowrap}
 #speed-emblem:hover{border-color:var(--acc)}
 /* ---- chips de categorías de POIs (multi-selección) ---- */
 #poi-cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -289,7 +290,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <div id="free-hud">
   <button id="speed-emblem" title="Velocidad — pulsa para mostrar/ocultar la barra superior">
     <img src="PNG/LOGOTESLA.jpg" alt="">
-    <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span></div>
+    <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span><span class="se-stats" id="se-stats">Med — · Máx —</span></div>
   </button>
   <div class="hud-row">
     <img id="hud-compass" src="PNG/ROSA.PNG" alt="">
@@ -297,8 +298,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
   <div class="hud-stats">
     <span id="hud-alt">— m</span>
-    <span id="hud-med">Med: —</span>
-    <span id="hud-max">Máx: —</span>
     <span id="hud-min">Mín: —</span>
   </div>
   <canvas id="hud-graph" width="200" height="52" title="Pulsa para cambiar la gráfica"></canvas>
@@ -1728,8 +1727,8 @@ function updateFreeHud(coords){
   document.getElementById('hud-cardinal').textContent=hd?cardinalDeg(hd):'';
   document.getElementById('hud-compass').style.transform='rotate('+hd+'deg)';
   const hEls=Math.max(1,(Date.now()-freeStats.t0)/3600000);
-  document.getElementById('hud-med').textContent='Med: '+freeStats.km/hEls.toFixed(1);
-  document.getElementById('hud-max').textContent='Máx: '+freeStats.max;
+  const seStats=document.getElementById('se-stats');
+  if(seStats)seStats.textContent='Med '+Math.round(freeStats.km/hEls)+' · Máx '+Math.round(freeStats.max);
   const altEl=document.getElementById('hud-alt');
   if(alt!=null){
     altEl.textContent=Math.round(alt)+' m';
@@ -1869,7 +1868,7 @@ function handleGpsFix(coords){
   // speed
   const spd=coords.speed!=null?Math.round(coords.speed*3.6):0;
   navSpeedKmh=spd;
-  document.getElementById('se-spd').textContent=spd;
+  document.getElementById('se-spd').textContent=Math.round(spd);
   updateFreeHud(coords);
   // estadísticas de viaje (para el resumen de llegada)
   if(tripStats){

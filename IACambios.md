@@ -1069,3 +1069,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Eliminada la barra inferior** (gradiente de abajo) que **tapaba el HUD/brújula** en la esquina inferior izquierda — el HUD queda totalmente visible.
 - El botón **«■ Fin»** (finalizar navegación) también pasa a la barra superior; sigue oculto hasta que haya una ruta activa.
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), **7/7 tests** (botones en topbar, sin bottombar, wiring intacto).
+
+## 46. nav.html (2026-09-01): velocidad centrada en el emblema Tesla con Med/Máx debajo (redondeadas)
+- La velocidad queda **solo en el emblema Tesla**, ahora **centrado** sobre el logo (antes alineada a la derecha).
+- **Media y Máxima** pasan al emblema, apiladas en vertical bajo la velocidad (ej. «Med 84 · Máx 118»), **redondeadas a km enteros** (sin decimales).
+- La fila de estadísticas del HUD queda con **Altitud y Mín** (Med/Máx ya viven en el emblema).
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **7/7 tests** (sin velocidad duplicada, se-stats en el emblema, emblema centrado en columna, Med/Máx redondeados).
