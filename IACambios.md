@@ -1244,3 +1244,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Instrucciones detalladas al hacer clic en la navegación**: tocar el **banner** de navegación oculta/muestra la lista de instrucciones detalladas (`#route-detail`), y reposiciona la barra de botones (`placeTopbarBtns()`).
 - **Ventana de maniobra con mapa de fondo**: el minimapa pasa de un canvas a un **mini mapa real** (segunda instancia mapboxgl ligera, `interactive:false`, con el estilo/proveedor activo) que dibuja la **ruta completa**, la próxima maniobra (rojo), el destino y el coche. Se encuadra (`fitBounds`) a la ruta y se reencuadra al cambiar ruta o al redimensionar.
 - **La ventana se puede mover**: ahora se arrastra desde cualquier punto de la ventana (`makeMovableWin`, la esquina sigue redimensionando) y la **posición queda guardada** en localStorage (`nav_mnvX`/`nav_mnvY`). Tamaño por defecto 280×200 px.
+
+## 65. nav.html: brújula plegada más grande y arriba + respaldo Overpass openstreetmap.fr (2026-09-01)
+
+- **Brújula plegada (modo `hud-mini`) más grande**: brújula de 26→**36 px**, velocidad de 15→**19 px**, emblema y píldora con más padding y separación, para que el modo compacto se lea bien.
+- **Un poco más arriba**: la píldora pasa de `bottom:14px` a **`bottom:96px`** (no queda pegada abajo donde pueden estar otros controles).
+- **POIs — respaldo `overpass.openstreetmap.fr`**: probado en vivo responde con **datos reales y `Access-Control-Allow-Origin: *`** en ~1,3 s cuando el navegador envía Referer (igual que overpass-api.de). Se añade como **segundo endpoint** después de overpass-api.de: si la principal está lenta/caída, los POIs cargan mucho antes — reduce el aviso «Overpass caído — se conservan los marcadores actuales».

@@ -122,16 +122,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .hud-graph-toggle:hover{color:var(--txt)}
 /* brújula mini: tocar la brújula cierra la curva (gráfica) y su contenedor y
    deja visible solo la brújula + la velocidad en un emblema Tesla compacto */
-#free-hud.hud-mini{flex-direction:row-reverse;align-items:center;gap:8px;min-width:0;width:auto;height:auto;padding:6px 9px;box-shadow:none}
+#free-hud.hud-mini{flex-direction:row-reverse;align-items:center;gap:10px;min-width:0;width:auto;height:auto;bottom:96px;padding:8px 12px;box-shadow:none}
 #free-hud.hud-mini .hud-stats,
 #free-hud.hud-mini #hud-graph,
 #free-hud.hud-mini .hud-graph-toggle,
 #free-hud.hud-mini .hud-head,
 #free-hud.hud-mini .rsz-handle{display:none}
-#free-hud.hud-mini #hud-compass{width:26px;height:26px}
-#free-hud.hud-mini #speed-emblem{padding:2px 7px;gap:4px;min-width:0}
-#free-hud.hud-mini .hud-emblem-v .se-v{font-size:15px}
-#free-hud.hud-mini .hud-emblem-v .se-u{font-size:7px}
+#free-hud.hud-mini #hud-compass{width:36px;height:36px}
+#free-hud.hud-mini #speed-emblem{padding:3px 9px;gap:5px;min-width:0}
+#free-hud.hud-mini .hud-emblem-v .se-v{font-size:19px}
+#free-hud.hud-mini .hud-emblem-v .se-u{font-size:8px}
 /* ---- minimapa de maniobra ---- */
 #mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;width:280px;height:200px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:grab}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
@@ -1016,12 +1016,13 @@ const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
 let lastOverpassFailed=false; // true si ninguna instancia Overpass respondió en el último intento
 const OVERPASS_ENDPOINTS=[
   'https://overpass-api.de/api/interpreter',      // principal: datos globales, CORS OK (requiere Referer; el navegador lo envia siempre)
-  'https://overpass.kumi.systems/api/interpreter', // fallback (a veces caido)
+  'https://overpass.openstreetmap.fr/api/interpreter', // respaldo RAPIDO, CORS OK, datos globales (tambien con Referer)
+  'https://overpass.kumi.systems/api/interpreter', // fallback (a veces caido/500)
   'https://overpass.osm.ch/api/interpreter',       // ultimo recurso (rapido, CORS OK; puede devolver 0 en algunas zonas)
 ];
 // NOTA: descartados por DNS muerto / sin CORS: overpass.private.coffee,
 // overpass.nchc.org.tw (ERR_NAME_NOT_RESOLVED), overpass-api.ams3.klomp.space,
-// overpass.openstreetmap.fr (403 CORS), overpass.osm.jp.
+// overpass.osm.jp.
 // Circuit breaker por instancia: tras 2 fallos seguidos se desactiva 5 minutos,
 // y si TODAS fallan no se vuelve a intentar durante 30 s. Así no se inunda la
 // consola con errores en cada movimiento del mapa.
