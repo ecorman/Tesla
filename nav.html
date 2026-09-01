@@ -374,6 +374,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <select id="s-route-provider">
       <option value="osrm">OSRM (gratis, sin key)</option>
       <option value="mapbox">Mapbox Directions (con tráfico)</option>
+      <option value="valhalla">Valhalla (gratis, sin key, alternativa)</option>
     </select>
     <label style="margin-top:10px">Ventana de ruta</label>
     <select id="s-route-view">
@@ -1408,7 +1409,11 @@ async function calcRoute(dest,name,waypoints){
   let ok=false;
   if(S.routeProvider==='osrm')ok=await routeOSRM();
   if(!ok&&S.routeProvider==='mapbox')ok=await routeOSRM(); // fallback
+  if(!ok&&S.routeProvider==='valhalla')ok=await routeOSRM(); // fallback
   if(!ok&&S.routeProvider==='osrm')ok=await routeMapbox();
+  if(!ok&&S.routeProvider==='osrm')ok=await routeValhalla();
+  if(!ok&&S.routeProvider==='mapbox')ok=await routeValhalla();
+  if(!ok&&S.routeProvider==='valhalla')ok=await routeMapbox();
   if(!ok){toast('No se pudo calcular la ruta',3000);return;}
   // success
   map.getSource('route').setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:routeData.coords}});
@@ -1458,7 +1463,7 @@ async function routeMapbox(){
       geometries:'geojson',overview:'full',steps:'true',
       language:'es',access_token:token,
     });
-    const url=`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?${params}`;
+    const url=`https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coords}?${params}`;
     const r=await fetch(url);
     const d=await r.json();
     if(d.code!=='Ok'||!d.routes||!d.routes.length)return false;
@@ -1469,6 +1474,75 @@ async function routeMapbox(){
       duration:route.duration,
       steps:mergeLegSteps(route),
     };
+    return true;
+  }catch(e){return false;}
+}
+
+/* ---------- proveedor Valhalla (instancia pública gratuita) ---------- */
+const VALHALLA_URL='https://valhalla1.openstreetmap.de/route';
+// tipos numéricos de Valhalla -> tipo/modificador estilo OSRM (los que ya entiende stepName e iconos)
+const VALHALLA_MAP={
+  1:['depart','straight'],2:['depart','right'],3:['depart','left'],
+  4:['arrive','straight'],5:['arrive','right'],6:['arrive','left'],
+  7:['new name','straight'],8:['continue','straight'],
+  9:['turn','slight right'],10:['turn','right'],11:['turn','sharp right'],
+  12:['uturn','uturn'],13:['uturn','uturn'],
+  14:['turn','sharp left'],15:['turn','left'],16:['turn','slight left'],
+  17:['continue','straight'],18:['on ramp','right'],19:['on ramp','left'],
+  20:['off ramp','right'],21:['off ramp','left'],
+  22:['continue','straight'],23:['continue','right'],24:['continue','left'],
+  25:['merge','straight'],
+  26:['roundabout','straight'],27:['exit-roundabout','straight'],
+};
+function valhallaManeuverToStep(man,shape){
+  const map=VALHALLA_MAP[man.type]||['continue','straight'];
+  const bi=Math.max(0,man.begin_shape_index||0);
+  const ei=Math.min(shape.length-1,man.end_shape_index!=null?man.end_shape_index:bi);
+  const t=map[0];
+  return {
+    distance:Math.round((man.length||0)*1000),
+    duration:Math.round(man.time||0),
+    name:(man.street_names&&man.street_names.length)?man.street_names.join(', '):'',
+    maneuver:{
+      type:t,modifier:map[1],
+      location:shape[bi]||shape[0],
+      exit:(t==='roundabout'||t==='exit-roundabout')&&man.roundabout_exit_count>0?man.roundabout_exit_count:undefined,
+      instruction:man.instruction||'',
+    },
+  };
+}
+async function routeValhalla(){
+  try{
+    const pts=[userPos].concat(routeWaypoints.map(w=>[w.lon,w.lat])).concat([destPoint]);
+    const body={
+      locations:pts.map(p=>({lon:p[0],lat:p[1]})),
+      costing:'auto',units:'kilometers',
+      directions_options:{units:'kilometers',language:'es'},
+      shape_format:'geojson',
+    };
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),8000);
+    const r=await fetch(VALHALLA_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return false;
+    const d=await r.json();
+    if(!d.trip||!d.trip.legs||!d.trip.legs.length)return false;
+    const coords=[];let steps=[];
+    d.trip.legs.forEach((leg,i)=>{
+      const shape=((leg.shape&&leg.shape.coordinates)||[]).slice();
+      if(!shape.length)return;
+      if(i>0&&coords.length&&shape[0]&&shape[0][0]===coords[coords.length-1][0]&&shape[0][1]===coords[coords.length-1][1])shape.shift();
+      coords.push(...shape);
+      const sts=(leg.maneuvers||[]).map(m=>valhallaManeuverToStep(m,shape));
+      if(i<d.trip.legs.length-1&&sts.length&&sts[sts.length-1].maneuver.type==='arrive'){
+        const a=sts[sts.length-1];
+        a.maneuver={type:'continue',modifier:'straight'};
+        a.name=(routeWaypoints[i]&&routeWaypoints[i].name)||a.name;
+      }
+      steps=steps.concat(sts);
+    });
+    if(!coords.length)return false;
+    routeData={coords,distance:Math.round(d.trip.summary.length*1000),duration:Math.round(d.trip.summary.time),steps};
     return true;
   }catch(e){return false;}
 }

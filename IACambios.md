@@ -1081,3 +1081,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Esquina remarcada para redimensionar** en las 3 ventanas: **brújula (HUD), navegación (banner de instrucciones) y maniobra (minimapa)**. Arrastra la esquina (cursor diagonal) para agrandar/reducir; el tamaño **queda guardado** y se reaplica al reabrir la ventana.
 - Los canvas de la gráfica del HUD y del minimapa se re-adaptan al nuevo tamaño al redimensionar.
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), **12/12 tests** (topbar a la derecha al navegar, 3 asas con guardado/re-aplicado tras arrastre simulado, límites mínimos, canvas fluido).
+
+## 48. nav.html (2026-09-01): proveedor Valhalla, Mapbox con tráfico real y claves fuera de GitHub
+- **Nuevo proveedor Valhalla** (Ajustes → Ruta): usa la instancia pública gratuita `valhalla1.openstreetmap.de` (sin clave, CORS), con instrucciones paso a paso en español (rotondas con número de salida, giros, incorporaciones), waypoints múltiples y fallback automático a OSRM/Mapbox si no responde.
+- **Mapbox ahora con tráfico real**: el perfil pasa de `driving` a **`driving-traffic`** (rutas y ETA según el tráfico en vivo), dentro de la cuota gratuita de Directions (~100.000 rutas/mes).
+- **SEGURIDAD — claves fuera de GitHub**: `PNG/zbuildgs.js` (donde Freebuff inyecta el token de Mapbox y Firebase) estaba **versionado en el repo**. Ahora está en `.gitignore` y retirado del tracking (`git rm --cached`); el fichero sigue en el workspace para la preview. **Importante: rota el token de Mapbox** (el viejo quedó en el historial de git) y pon el nuevo en el panel de Keys/API keys.
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **19/19 tests** (mapeo de tipos Valhalla → OSRM, rotonda con salida, ruta de 2 piernas con waypoint y unión de trazado, llegada intermedia → continue, POST JSON correcto, driving-traffic, zbuildgs.js ignorado).
