@@ -949,3 +949,13 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - Overpass ahora se consulta por POST (el mismo método que usa tesla.html y
   el probado en el navegador del Tesla): con GET algunas instancias fallaban
   o truncaban la query — era una causa probable de que los POIs no salieran.
+
+## 37. nav.html: modo «Solo voz (sin pitidos)»
+
+- Nueva opción en Ajustes → Voz → «Guiado por voz»: **Solo voz (sin pitidos)**,
+  entre «Solo pitidos» y «Voz + pitidos».
+- En ese modo la voz habla en los 4 avisos (2 km, 500 m, 230 m y momento
+  exacto de la maniobra) pero NO suena ningún pitido, ni en la llegada ni en
+  el recálculo por desvío.
+- De propina: el modo «Silencio» ahora es silencio de verdad (antes el pitido
+  de maniobra cercana seguía sonando).

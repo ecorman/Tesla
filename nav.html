@@ -270,6 +270,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <select id="s-voice-mode">
       <option value="silence">Silencio</option>
       <option value="sounds">Solo pitidos</option>
+      <option value="voice-only">Solo voz (sin pitidos)</option>
       <option value="voice">Voz + pitidos</option>
     </select>
     <label style="margin-top:10px">Motor de voz</label>
@@ -489,6 +490,11 @@ function alertSound(kind){
     default:beep(660,660,140,.2);
   }
 }
+function navBeep(kind){
+  // «Solo voz» o «Silencio»: sin pitidos en ningun aviso de navegacion
+  if(S&&(S.voiceMode==='voice-only'||S.voiceMode==='silence'))return;
+  alertSound(kind);
+}
 
 /* ---------- audio: unlock (primera interacción del usuario) ---------- */
 // Los navegadores (incluido el del Tesla) bloquean el audio hasta que el
@@ -602,7 +608,7 @@ const TTS_ENDPOINTS=[
 function speakOnline(text){
   if(!text)return;
   const tryEndpoint=i=>{
-    if(i>=TTS_ENDPOINTS.length){alertSound('info');return;}
+    if(i>=TTS_ENDPOINTS.length){navBeep('info');return;}
     try{
       if(onlineAudioEl){onlineAudioEl.pause();onlineAudioEl.src='';}
       const a=new Audio(TTS_ENDPOINTS[i].url(text));
@@ -1363,7 +1369,7 @@ function navTick(){
   if(offRouteDistance(routeData.coords,userPos)>70&&Date.now()-lastRecalcTime>15000){
     lastRecalcTime=Date.now();
     toast('Desviado — recalculando…');
-    speak(NAV_CLIPS.reroute);alertSound('reroute');
+    speak(NAV_CLIPS.reroute);navBeep('reroute');
     calcRoute(destPoint);
     return;
   }
@@ -1375,24 +1381,24 @@ function checkVoice(step,dist){
   // Aviso lejano (2 km): solo voz, sin pitido (el pitido se reserva para
   // cuando queda poco tiempo para ejecutar la instruccion).
   if(dist<=2100&&dist>1900&&!voiceFlags.far){
-    if(S.voiceMode==='voice')speak('En dos kilometros, '+stepName(step));
+    if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En dos kilometros, '+stepName(step));
     voiceFlags.far=true;
   }
   // Aviso medio (500 m): solo voz.
   if(dist<=550&&dist>450&&!voiceFlags.medium){
-    if(S.voiceMode==='voice')speak('En quinientos metros, '+stepName(step));
+    if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, '+stepName(step));
     voiceFlags.medium=true;
   }
   if(dist<=230&&dist>150&&!voiceFlags.near){
-    alertSound(kind||'near');
-    if(S.voiceMode==='voice')speak(stepName(step)+' ahora');
+    navBeep(kind||'near');
+    if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step)+' ahora');
     voiceFlags.near=true;
   }
   // En el momento exacto de la maniobra (rotondas, giros): pitido + "ahora"
   if(dist<=40&&!voiceFlags.immediate&&type!=='arrive'&&type!=='depart'){
     voiceFlags.immediate=true;
-    alertSound(kind||'near');
-    if(S.voiceMode==='voice')speak(stepName(step)+' ahora');
+    navBeep(kind||'near');
+    if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step)+' ahora');
   }
 }
 function stepName(step){
@@ -1417,7 +1423,7 @@ function stepName(step){
 }
 function arrive(){
   stopNavLoop();
-  alertSound('arrive');
+  navBeep('arrive');
   speak(NAV_CLIPS.arrive);
   toast('¡Ha llegado a su destino!',4000);
   document.getElementById('topbar').classList.remove('banner-on');
