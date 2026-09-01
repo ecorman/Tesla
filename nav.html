@@ -47,17 +47,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- maneuver banner ---- */
-#banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:15;display:none;align-items:center;gap:12px;padding:10px 14px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(440px,calc(100vw - 120px))}
-#nav-turn-box{width:60px;height:60px;flex-shrink:0;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+#banner{position:absolute;top:2px;left:50%;transform:translateX(-50%);z-index:22;display:none;align-items:center;gap:10px;padding:8px 12px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(380px,calc(100vw - 80px))}
+#nav-turn-box{width:52px;height:52px;flex-shrink:0;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 #nav-turn-box img{width:92%;height:92%;object-fit:contain}
 #banner .nav-mid{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center}
 #banner .nav-maneuver-line{width:100%;text-align:center}
-#banner .nav-maneuver-text{font-size:17px;font-weight:700;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.3}
+#banner .nav-maneuver-text{font-size:15px;font-weight:700;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.25}
 #nav-street-line{display:none;width:100%;text-align:center}
 .nav-road-sign{display:inline-block;background:rgba(26,83,40,.78);padding:5px 12px;border-radius:7px;color:#FFD700;border:1px solid #C8A97E;box-shadow:0 1px 3px rgba(0,0,0,.5);font-weight:700;font-size:15px;line-height:1.5;max-width:100%;word-wrap:break-word}
-#banner .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:104px}
-#banner .nav-dist{font-size:22px;font-weight:700;color:var(--acc);line-height:1}
-.nav-progress-wrap{width:132px;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+#banner .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:96px}
+#banner .nav-dist{font-size:20px;font-weight:700;color:var(--acc);line-height:1}
+.nav-progress-wrap{width:104px;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
 #nav-progress{height:100%;width:0%;background:linear-gradient(to right,#680000,#FF0000 50%,#FA8072 97%);border-radius:99px;transition:width .3s linear}
 #banner .nav-eta{text-align:right;font-size:12px;color:var(--dim);line-height:1.35;display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
 #banner .nav-eta b{font-size:16px;color:var(--txt)}
@@ -276,7 +276,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <select id="s-voice-engine">
       <option value="native">Navegador (TTS offline)</option>
       <option value="clips">Clips pre-generados (WAV)</option>
-      <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
+      <option value="online">Voz online (MP3, recomendado en Tesla)</option>
     </select>
     <div class="voicetest">
       <button class="btn" id="btn-test-voice">🔊 Probar voz</button>
@@ -591,17 +591,31 @@ function speakNative(text){
 // con el endpoint TTS de Google (gratis, sin API key) y lo reproduce con un
 // elemento Audio; si no hay red, cae al pitido.
 let onlineAudioEl=null;
+// Varios proveedores TTS gratuitos probados en navegadores de coche
+// (StreamElements usa voces Google via su proxy con CORS; translate_tts es
+// el clasico sin API key). Si uno falla (red, bloqueo, autoplay) se prueba
+// el siguiente y, si fallan todos, un pitido corto.
+const TTS_ENDPOINTS=[
+  {name:'streamelements',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Standard-A&text='+encodeURIComponent(t.slice(0,200))},
+  {name:'google',url:t=>'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q='+encodeURIComponent(t.slice(0,180))},
+];
 function speakOnline(text){
   if(!text)return;
-  try{
-    const url='https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q='+encodeURIComponent(text.slice(0,180));
-    if(onlineAudioEl){onlineAudioEl.pause();onlineAudioEl.src='';}
-    const a=new Audio(url);
-    onlineAudioEl=a;
-    a.volume=1;
-    const p=a.play();
-    if(p&&p.catch)p.catch(()=>{alertSound('info');});
-  }catch(e){alertSound('info');}
+  const tryEndpoint=i=>{
+    if(i>=TTS_ENDPOINTS.length){alertSound('info');return;}
+    try{
+      if(onlineAudioEl){onlineAudioEl.pause();onlineAudioEl.src='';}
+      const a=new Audio(TTS_ENDPOINTS[i].url(text));
+      onlineAudioEl=a;
+      a.volume=1;
+      let done=false;
+      const onErr=()=>{if(!done){done=true;tryEndpoint(i+1);}};
+      a.addEventListener('error',onErr);
+      const p=a.play();
+      if(p&&p.catch)p.catch(onErr);
+    }catch(e){tryEndpoint(i+1);}
+  };
+  tryEndpoint(0);
 }
 function speak(text){
   if(S.voiceMode==='silence')return;
@@ -1031,7 +1045,7 @@ function updateUserMarker(){
   if(!carMarker){
     carMarkerEl=document.createElement('div');
     carMarkerEl.style.cssText='width:42px;height:42px;pointer-events:none;transform:translate(-50%,-50%)';
-    carMarkerEl.innerHTML='<svg width="42" height="42" viewBox="0 0 64 64"><path d="M32 6 C34 6 36 8 37 11 L46 34 C47 37 45 40 42 40 L22 40 C19 40 17 37 18 34 L27 11 C28 8 30 6 32 6 Z" fill="#4f8cff" stroke="#fff" stroke-width="2.5"/><circle cx="32" cy="26" r="5" fill="#fff" opacity=".85"/></svg>';
+    carMarkerEl.innerHTML='<img src="PNG/AVANCE.PNG" alt="" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))">';
     carMarker=new mapboxgl.Marker({el:carMarkerEl}).setLngLat(userPos).addTo(map);
   }else carMarker.setLngLat(userPos);
 }
@@ -1111,10 +1125,10 @@ function updateCamera(){
 /* rotación del icono del coche: si el mapa gira con la marcha el icono
    apunta arriba; si el mapa va al norte, el icono rota según rumbo */
 function updateCarRotation(){
-  const svg=carMarkerEl?carMarkerEl.querySelector('svg'):null;
-  if(!svg)return;
+  const img=carMarkerEl?carMarkerEl.querySelector('img'):null;
+  if(!img)return;
   const rot=(S.heading||carHeading==null||isNaN(carHeading))?0:carHeading;
-  svg.style.transform=`rotate(${rot}deg)`;
+  img.style.transform=`rotate(${rot}deg)`;
 }
 function computeHeading(p){
   if(p.coords.heading!=null&&!isNaN(p.coords.heading)&&p.coords.speed>0.5)
@@ -1266,6 +1280,7 @@ function getManeuverIconFilename(maneuver){
 /* ---------- navigation loop ---------- */
 let navInterval=null;
 let lastGpsTime=0;
+let lastRecalcTime=0; // cooldown de recalculo por desviacion (ms)
 
 function startNavLoop(){
   stopNavLoop();
@@ -1331,8 +1346,11 @@ function navTick(){
   document.getElementById('nav-eta').textContent=fmtTime(totalEta);
   const arr=new Date(Date.now()+totalEta*1000);
   document.getElementById('nav-arr').textContent='llegada '+arr.getHours()+':'+String(arr.getMinutes()).padStart(2,'0');
-  // check deviation (off route > 70m)
-  if(minD>70){
+  // check deviation: distancia PERPENDICULAR a la polilinea (no al vertice
+  // mas cercano) y con cooldown de 15 s para no entrar en bucle de
+  // recalculos cada pocos metros.
+  if(offRouteDistance(routeData.coords,userPos)>70&&Date.now()-lastRecalcTime>15000){
+    lastRecalcTime=Date.now();
     toast('Desviado — recalculando…');
     speak(NAV_CLIPS.reroute);alertSound('reroute');
     calcRoute(destPoint);
@@ -1418,6 +1436,23 @@ function distanceAlongRoute(coords,pos){
     total+=seg;
   }
   return bestDist;
+}
+function offRouteDistance(coords,pos){
+  // Distancia lateral (m) de pos a la polilinea (proyeccion por tramos).
+  // A diferencia de medir al vertice mas cercano, no da falsos positivos
+  // con geometria simplificada (el coche puede estar a >70 m del vertice
+  // aunque vaya exactamente por la carretera).
+  let best=Infinity;
+  for(let i=0;i<coords.length-1;i++){
+    const a=coords[i],b=coords[i+1];
+    const dx=b[0]-a[0],dy=b[1]-a[1];
+    const len2=dx*dx+dy*dy;
+    const t=len2>0?Math.max(0,Math.min(1,((pos[0]-a[0])*dx+(pos[1]-a[1])*dy)/len2)):0;
+    const px=a[0]+dx*t,py=a[1]+dy*t;
+    const d=haversine(pos,[px,py]);
+    if(d<best)best=d;
+  }
+  return best;
 }
 function fmtDist(m){
   if(m<1000)return Math.round(m)+' m';

@@ -899,3 +899,22 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   navegación (top:120px) para no taparla; al terminar la ruta vuelve arriba.
 - El emblema de velocidad baja y se reduce (66px, esquina inferior-izquierda)
   para dejar la parte superior totalmente despejada.
+
+## 34. nav.html: flecha del coche, banner compacto arriba, recalculos arreglados y voz más robusta
+
+- El coche usa ahora la flecha de navegación típica (PNG/AVANCE.PNG, el mismo
+  icono de tesla.html) en lugar de la gota azul, con rotación por rumbo
+  (sombra ligera para verse bien sobre cualquier fondo).
+- La ventana de maniobras se ha estrechado (máx. 380px), pegado al borde
+  superior (top:2px, por encima de la barra) y con todos los tamaños
+  reducidos (caja de maniobra 52px, textos más compactos).
+- Recalculo de ruta arreglado: se medía la desviación al VÉRTICE más cercano
+  de la polilínea (con geometría simplificada el coche podía estar a >70 m
+  del vértice yendo por la carretera → recalculos en bucle cada pocos
+  metros). Ahora se mide la distancia PERPENDICULAR a la polilínea y hay
+  cooldown de 15 s entre recalculos.
+- Voz: el motor online ahora prueba varios proveedores TTS en orden
+  (StreamElements con voces Google y CORS → translate_tts clásico → pitido),
+  para que funcione aunque uno de los endpoints esté bloqueado en el
+  navegador del Tesla. Con la voz funcionando y los recalculos fuera del
+  bucle, desaparecen también los pitidos repetidos.
