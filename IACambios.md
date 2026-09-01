@@ -1156,8 +1156,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 
 - **Ventana de maniobra**: el canvas del minimapa ahora **rellena la ventana** (flex:1, crece en alto y ancho al arrastrar la esquina) y se redibuja en ambas dimensiones — antes solo crecía la ventana, no el dibujo.
 - **Minimapa = ruta completa**: ya no muestra solo 1,2 km por delante. Dibuja el **trayecto entero** (decimado a ~400 puntos para rutas largas) con el coche, la próxima maniobra (marcada en rojo) y el destino — así se entiende para qué sirve.
-- **Barra superior con navegación**: con ruta activa los botones salen **a la izquierda, justo debajo** de la ventana de navegación (banner o detallada), no a la derecha. `placeTopbarBtns()` recalcula la posición al abrir/cerrar ventanas.
+- **Barra superior con navegación**: los botones quedan **fijos arriba a la izquierda** y la **ventana de navegación va debajo de ellos** (se corrigió en la entrada 63). `placeTopbarBtns()` recalcula la posición al abrir/cerrar ventanas.
 - **Navegación libre como tesla**: sin ruta activa y circulando a **más de 20 km/h**, la app detecta modo libre — activa el **Free Drive HUD automáticamente** (si estaba apagado) y avisa una vez con un toast. Se resetea al calcular una ruta o finalizarla.
+
 ## 60. nav.html: POIs por fin visibles — 1 query unión por vista + depuración en pantalla (2026-09-01)
 
 ### 60.1 Por qué no se veían los POIs (diagnóstico con peticiones reales)
@@ -1222,5 +1223,24 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 
 - **Brújula un poco más grande**: `#hud-compass` pasa de 34 px a **44 px** (56 px en modo agrandado).
 - **Emblema Tesla sin vel. media/máx**: se elimina la fila `Med — · Máx —` del icono de Tesla (el emblema queda solo con la velocidad actual). Las medias/máximos siguen visibles en la **gráfica** (modo velocidad).
-- **Brújula = toggle de la curva**: tocar la brújula ahora **oculta/muestra la gráfica del HUD** (nueva clase `hud-nograph` que esconde el canvas y el botón «pulsa para cambiar») en vez de agrandar toda la tarjeta, y ya no propaga el clic al contenedor.
+- **Brújula = toggle de la curva**: tocar la brújula **oculta/muestra la gráfica del HUD** (clase `hud-mini`) en vez de agrandar toda la tarjeta, y ya no propaga el clic al contenedor.
 - **Más compacta**: padding/gap del panel reducido, emblema con menos padding y velocidad un punto menor, `min-width` 196→170 px.
+
+## 62. nav.html: brújula = modo compacto que cierra la curva y deja solo brújula + velocidad (2026-09-01)
+
+- **Evolución del toggle de la brújula**: en lugar de solo esconder la gráfica (`hud-nograph`), tocar la brújula activa **`hud-mini`**: cierra la ventana de la gráfica **y su contenedor** (estadísticas alt/mín, orientación y asa de redimensionado) y deja visible **solo la brújula + la velocidad en un emblema Tesla más pequeño** (píldora: brújula 26 px, velocidad 15 px, emblema compacto).
+- Al compactar se guarda el tamaño redimensionado del contenedor y se restaura al expandir de nuevo; se preserva la velocidad actual en el emblema.
+
+## 63. nav.html: los botones de la barra superior no bajan — la ventana de navegación va debajo de ellos (2026-09-01)
+
+- **Corrección de la posición de los botones**: la entrada 59 colocaba los botones (🔍 ⭐ 🤖 ⚠️ 📋) **justo debajo** de la ventana de navegación (banner/detallada), lo que el usuario rechazó. Ahora la fila de botones queda **fija arriba a la izquierda** (`top:10`) y es la **ventana de navegación la que se coloca debajo de esa fila** (`btnBottom=54 px`: fila de 42 px + margen).
+- `placeTopbarBtns()` ahora posiciona el **banner** a 54 px y la **lista detallada** justo debajo del banner (o a 54 px si no hay banner), y restablece las posiciones al salir de navegación o al mostrar la ruta en previsualización.
+- Se elimina la regla CSS `#topbar.banner-on #topbar-btns{top:78px}` (ya no se baja la fila de botones).
+
+## 64. nav.html: sonido de salida de rotonda, coche flecha, instrucciones al clic y ventana de maniobra con mapa de fondo (2026-09-01)
+
+- **Sonido especial al salir de la rotonda**: el tono `roundabout-exit` pasa a un patrón de 4 notas sube-baja (600→900→600→900→1200 Hz, triángulo, más potente) que suena en el momento exacto de salir (≤40 m) y en el aviso cercano. También cubre ahora los tipos `rotary` / `exit-rotary` (antes solo `roundabout`/`exit-roundabout`).
+- **Coche otra vez una flecha**: se usaba `PNG/Coche_Sat.PNG` (la «etiqueta»). Se restaura la **flecha** `CAR_ICON` (SVG azul con punta hacia arriba, ya definido pero sin usar) que rota con el rumbo.
+- **Instrucciones detalladas al hacer clic en la navegación**: tocar el **banner** de navegación oculta/muestra la lista de instrucciones detalladas (`#route-detail`), y reposiciona la barra de botones (`placeTopbarBtns()`).
+- **Ventana de maniobra con mapa de fondo**: el minimapa pasa de un canvas a un **mini mapa real** (segunda instancia mapboxgl ligera, `interactive:false`, con el estilo/proveedor activo) que dibuja la **ruta completa**, la próxima maniobra (rojo), el destino y el coche. Se encuadra (`fitBounds`) a la ruta y se reencuadra al cambiar ruta o al redimensionar.
+- **La ventana se puede mover**: ahora se arrastra desde cualquier punto de la ventana (`makeMovableWin`, la esquina sigue redimensionando) y la **posición queda guardada** en localStorage (`nav_mnvX`/`nav_mnvY`). Tamaño por defecto 280×200 px.

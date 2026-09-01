@@ -120,17 +120,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #hud-graph{width:100%;flex:1 1 auto;height:auto;min-height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
 .hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
 .hud-graph-toggle:hover{color:var(--txt)}
-/* brújula compacta: tocar la brújula oculta/muestra la curva (gráfica del HUD) */
-#free-hud.hud-nograph #hud-graph,
-#free-hud.hud-nograph .hud-graph-toggle{display:none}
+/* brújula mini: tocar la brújula cierra la curva (gráfica) y su contenedor y
+   deja visible solo la brújula + la velocidad en un emblema Tesla compacto */
+#free-hud.hud-mini{flex-direction:row-reverse;align-items:center;gap:8px;min-width:0;width:auto;height:auto;padding:6px 9px;box-shadow:none}
+#free-hud.hud-mini .hud-stats,
+#free-hud.hud-mini #hud-graph,
+#free-hud.hud-mini .hud-graph-toggle,
+#free-hud.hud-mini .hud-head,
+#free-hud.hud-mini .rsz-handle{display:none}
+#free-hud.hud-mini #hud-compass{width:26px;height:26px}
+#free-hud.hud-mini #speed-emblem{padding:2px 7px;gap:4px;min-width:0}
+#free-hud.hud-mini .hud-emblem-v .se-v{font-size:15px}
+#free-hud.hud-mini .hud-emblem-v .se-u{font-size:7px}
 /* ---- minimapa de maniobra ---- */
-#mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;width:280px;height:200px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:grab}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
 /* asa de redimensionado (esquina remarcada): HUD, navegación y maniobra */
 .rsz-handle{position:absolute;right:1px;bottom:1px;width:16px;height:16px;cursor:nwse-resize;z-index:6;opacity:.9;border-radius:0 0 12px 0}
 .rsz-handle::before{content:"";position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);border-radius:1px}
 .rsz-handle:hover{opacity:1}
-#mnv-minimap{width:100%;flex:1;min-height:70px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
+#mnv-minimap{width:100%;flex:1 1 auto;min-height:70px;border-radius:8px;border:1px solid var(--line);overflow:hidden;background:#0e1016;touch-action:none}
 /* ---- overlay recarga controlada ---- */
 #mem-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
 #mem-overlay .mem-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 28px;font-size:16px;color:var(--txt)}
@@ -197,7 +206,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- velocidad: emblema Tesla (semi-transparente) + toggle barra superior ---- */
 #topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
-#topbar.banner-on #topbar-btns{left:12px;right:auto;top:78px}
 #speed-emblem{position:relative;display:flex;align-items:center;gap:9px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
 .hud-emblem-v{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:auto;text-align:center}
@@ -318,7 +326,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span></div>
   </button>
   <div class="hud-row">
-    <img id="hud-compass" src="PNG/ROSA.PNG" alt="" title="Mostrar/ocultar la gráfica del HUD">
+    <img id="hud-compass" src="PNG/ROSA.PNG" alt="" title="Compactar/expandir el HUD (solo brújula + velocidad)">
     <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
   </div>
   <div class="hud-stats">
@@ -331,7 +339,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <!-- minimapa de previsualización de maniobra (canvas ligero) -->
 <div id="mnv-box">
   <span id="mnv-label">🗺️ Ruta completa</span>
-  <canvas id="mnv-minimap" width="200" height="128"></canvas>
+  <div id="mnv-minimap"></div>
 </div>
 <!-- overlay de recarga controlada (watchdog de memoria) -->
 <div id="mem-overlay"><div class="mem-box">🔄 Recuperando navegación…</div></div>
@@ -648,7 +656,7 @@ function alertSound(kind){
     case 'far':beep(880,660,180,.18);beep(660,550,180,.18,'sine',.22);break;
     case 'medium':beep(740,740,120,.22,'square');beep(740,740,120,.22,'square',.18);beep(740,740,120,.22,'square',.36);break;
     case 'near':beep(1100,1100,90,.3,'square');beep(1100,1100,90,.3,'square',.14);break;
-    case 'roundabout-exit':beep(520,780,130,.3,'triangle');beep(780,520,130,.3,'triangle',.15);beep(520,780,130,.3,'triangle',.30);break;
+    case 'roundabout-exit':beep(600,900,120,.32,'triangle');beep(900,600,120,.32,'triangle',.16);beep(600,900,120,.32,'triangle',.32);beep(900,1200,220,.34,'triangle',.50);break;
     case 'arrive':beep(523,523,140,.25);beep(659,659,140,.25,'sine',.16);beep(784,784,220,.25,'sine',.32);break;
     case 'reroute':beep(440,440,100,.2,'sawtooth');beep(440,440,100,.2,'sawtooth',.14);break;
     default:beep(660,660,140,.2);
@@ -1397,7 +1405,7 @@ function updateUserMarker(){
   if(!carMarker){
     carMarkerEl=document.createElement('div');
     carMarkerEl.style.cssText='width:42px;height:42px;pointer-events:none;transform:translate(-50%,-50%)';
-    carMarkerEl.innerHTML='<img src="PNG/Coche_Sat.PNG" alt="" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">';
+    carMarkerEl.innerHTML='<img src="'+CAR_ICON+'" alt="" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">';
     carMarker=new mapboxgl.Marker({el:carMarkerEl}).setLngLat(userPos).addTo(map);
   }else carMarker.setLngLat(userPos);
 }
@@ -1855,7 +1863,7 @@ function navTick(){
 }
 function checkVoice(step,dist){
   const type=step.maneuver.type||'';
-  const isRA=type==='exit-roundabout'||type==='roundabout';
+  const isRA=type==='roundabout'||type==='rotary'||type==='exit-roundabout'||type==='exit-rotary';
   const kind=isRA?'roundabout-exit':null;
   // Aviso lejano (2 km): solo voz, sin pitido (el pitido se reserva para
   // cuando queda poco tiempo para ejecutar la instruccion).
@@ -2066,48 +2074,74 @@ function drawHudGraph(){
 }
 
 /* ---------- minimapa de previsualización de maniobra (canvas ligero, sin 2ª instancia GL) ---------- */
-function drawMinimap(){
-  const cv=document.getElementById('mnv-minimap');if(!cv)return;
-  if(cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
-  if(cv.height!==cv.offsetHeight)cv.height=cv.offsetHeight;
-  const on=!!S.minimap&&!!routeData;
-  const box=document.getElementById('mnv-box');
-  if(box)box.style.display=on?'flex':'none';
-  cv.style.display=on?'block':'none';
-  if(!on||!routeData.coords||routeData.coords.length<2)return;
-  const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
-  ctx.clearRect(0,0,w,h);
+/* ---------- minimapa de maniobra: MÁPA REAL de fondo con la ruta completa ----------
+   Sustituye el canvas por un mini mapa real (estilo del proveedor activo) con
+   la ruta completa. La ventana se puede MOVER arrastrando (además de
+   redimensionar por la esquina). */
+let miniMap=null,miniMapReady=false,miniFitKey='';
+function buildMiniGeometry(){
+  const geojson={type:'FeatureCollection',features:[]};
+  if(!routeData||!routeData.coords||routeData.coords.length<2)return geojson;
   const car=userPos||routeData.coords[0];
   const step=routeData.steps[maneuverIdx]||routeData.steps[routeData.steps.length-1];
-  // ruta COMPLETA (decimada a ~400 puntos para rutas largas): se ve el
-  // trayecto entero con el coche, la próxima maniobra y el destino.
-  const raw=routeData.coords;
-  const pts=[car];
-  const rn=raw.length;
+  const raw=routeData.coords;const rn=raw.length;
   const stride=rn>400?Math.ceil(rn/400):1;
-  for(let i=0;i<rn;i+=stride)pts.push(raw[i]);
-  if(rn>1&&(rn-1)%stride!==0)pts.push(raw[rn-1]);
+  const line=[];
+  for(let i=0;i<rn;i+=stride)line.push([raw[i][0],raw[i][1]]);
+  if(rn>1&&(rn-1)%stride!==0)line.push([raw[rn-1][0],raw[rn-1][1]]);
+  geojson.features.push({type:'Feature',properties:{kind:'line'},geometry:{type:'LineString',coordinates:line}});
   const mnv=step&&step.maneuver&&step.maneuver.location?[step.maneuver.location[0],step.maneuver.location[1]]:null;
-  const dest=routeData.coords[routeData.coords.length-1];
-  let minL=Infinity,maxL=-Infinity,minA=Infinity,maxA=-Infinity;
-  const all=pts.concat(mnv?[mnv]:[],dest?[dest]:[]);
-  for(const p of all){minL=Math.min(minL,p[0]);maxL=Math.max(maxL,p[0]);minA=Math.min(minA,p[1]);maxA=Math.max(maxA,p[1]);}
-  if(maxL-minL<0.0003){const c=(minL+maxL)/2;minL=c-0.00015;maxL=c+0.00015;}
-  if(maxA-minA<0.0003){const c=(minA+maxA)/2;minA=c-0.00015;maxA=c+0.00015;}
-  const pad=14;
-  const X=p=>pad+((p[0]-minL)/(maxL-minL))*(w-2*pad);
-  const Y=p=>h-pad-((p[1]-minA)/(maxA-minA))*(h-2*pad);
-  ctx.strokeStyle='#FFD700';ctx.lineWidth=2.5;ctx.beginPath();
-  pts.forEach((p,i)=>i===0?ctx.moveTo(X(p),Y(p)):ctx.lineTo(X(p),Y(p)));
-  ctx.stroke();
-  if(dest){ctx.fillStyle='#e03030';ctx.beginPath();ctx.arc(X(dest),Y(dest),5,0,7);ctx.fill();}
-  if(mnv){
-    const mx=X(mnv),my=Y(mnv);
-    ctx.fillStyle='rgba(255,80,80,.25)';ctx.beginPath();ctx.arc(mx,my,10,0,7);ctx.fill();
-    ctx.fillStyle='#ff5050';ctx.beginPath();ctx.arc(mx,my,4.5,0,7);ctx.fill();
+  const dest=raw[rn-1];
+  if(mnv)geojson.features.push({type:'Feature',properties:{kind:'mnv'},geometry:{type:'Point',coordinates:mnv}});
+  if(dest)geojson.features.push({type:'Feature',properties:{kind:'dest'},geometry:{type:'Point',coordinates:dest}});
+  if(car)geojson.features.push({type:'Feature',properties:{kind:'car'},geometry:{type:'Point',coordinates:car}});
+  return geojson;
+}
+function initMiniMap(){
+  if(miniMap)return;
+  const el=document.getElementById('mnv-minimap');if(!el)return;
+  const style=S.mapProvider==='mapbox'?buildVectorStyle(S.mapStyle):buildRasterStyle(S.mapStyle);
+  miniMap=new mapboxgl.Map({container:'mnv-minimap',style,center:[-3.7038,40.4168],zoom:2,pitch:0,bearing:0,attributionControl:false,renderWorldCopies:false,interactive:false});
+  try{if(typeof miniMap.setProjection==='function')miniMap.setProjection('mercator');}catch(err){}
+  miniMap.on('load',()=>{miniMapReady=true;miniFitKey='';fitMiniToRoute();});
+}
+function ensureMiniLayers(){
+  if(!miniMap||!miniMapReady)return;
+  const g=buildMiniGeometry();
+  if(!miniMap.getSource('mini-route')){
+    miniMap.addSource('mini-route',{type:'geojson',data:g});
+    miniMap.addLayer({id:'mini-line',type:'line',source:'mini-route',filter:['==',['get','kind'],'line'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#4f8cff','line-width':3}});
+    miniMap.addLayer({id:'mini-mnv',type:'circle',source:'mini-route',filter:['==',['get','kind'],'mnv'],paint:{'circle-color':'#ff4040','circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+    miniMap.addLayer({id:'mini-dest',type:'circle',source:'mini-route',filter:['==',['get','kind'],'dest'],paint:{'circle-color':'#e03030','circle-radius':5,'circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+    miniMap.addLayer({id:'mini-car',type:'circle',source:'mini-route',filter:['==',['get','kind'],'car'],paint:{'circle-color':'#4f8cff','circle-radius':5,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+  }else{
+    miniMap.getSource('mini-route').setData(g);
   }
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(X(car),Y(car),4.5,0,7);ctx.fill();
-  ctx.strokeStyle='#4f8cff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(car),Y(car),4.5,0,7);ctx.stroke();
+}
+function fitMiniToRoute(){
+  if(!miniMap||!miniMapReady||!routeData||!routeData.coords||routeData.coords.length<2)return;
+  const el=document.getElementById('mnv-minimap');const w=el?el.offsetWidth:0,h=el?el.offsetHeight:0;
+  if(!w||!h)return;
+  const c=routeData.coords;
+  const key=(routeData.distance||0)+'_'+c[0][0].toFixed(5)+'_'+c[c.length-1][0].toFixed(5)+'_'+w+'_'+h;
+  if(key===miniFitKey)return;
+  miniFitKey=key;
+  const step=routeData.steps[maneuverIdx]||routeData.steps[routeData.steps.length-1];
+  const mnv=step&&step.maneuver&&step.maneuver.location?[step.maneuver.location[0],step.maneuver.location[1]]:null;
+  const bounds=new mapboxgl.LngLatBounds();
+  c.forEach(p=>bounds.extend(p));
+  if(mnv)bounds.extend(mnv);
+  const pad=Math.max(14,Math.min(w,h)*0.16);
+  try{miniMap.fitBounds(bounds,{padding:pad,duration:0});}catch(err){}
+}
+function drawMinimap(){
+  const on=!!S.minimap&&!!routeData;
+  const box=document.getElementById('mnv-box');if(box)box.style.display=on?'flex':'none';
+  const el=document.getElementById('mnv-minimap');if(el)el.style.display=on?'block':'none';
+  if(!on||!routeData||!routeData.coords||routeData.coords.length<2)return;
+  initMiniMap();
+  ensureMiniLayers();
+  fitMiniToRoute();
 }
 
 /* ---------- MCU: watchdog de memoria, escala 0.6536 y planificador de tareas ---------- */
@@ -2404,6 +2438,18 @@ poiSizeEl.addEventListener('input',()=>{
 });
 syncPoiSize();
 syncPoiChips();
+/* clic en el banner de navegación: ocultar/mostrar las instrucciones detalladas */
+(function(){
+  const b=document.getElementById('banner');
+  if(!b)return;
+  b.addEventListener('click',e=>{
+    if(e.target&&e.target.closest('.rsz-handle'))return;
+    const d=document.getElementById('route-detail');
+    if(!d)return;
+    d.style.display=(d.style.display==='block')?'none':'block';
+    placeTopbarBtns();
+  });
+})();
 /* emblema de velocidad: mostrar/ocultar la barra superior (como tesla.html) */
 document.getElementById('speed-emblem').onclick=e=>{
   if(e)e.stopPropagation();
@@ -2529,9 +2575,23 @@ const hudGraphBtn=document.getElementById('hud-graph-toggle');
 if(hudGraphBtn)hudGraphBtn.onclick=e=>{e.stopPropagation();toggleHudGraph();};
 const hudGraphCv=document.getElementById('hud-graph');
 if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
-/* tocar la brújula oculta/muestra la gráfica de la curva del HUD */
+/* tocar la brújula cierra la curva y su contenedor: deja solo brújula + velocidad
+   en un emblema Tesla compacto (se guarda/restaura el tamaño redimensionado) */
+const _hudMiniPrev={w:'',h:''};
 const hudCompassEl=document.getElementById('hud-compass');
-if(hudCompassEl)hudCompassEl.onclick=e=>{e.stopPropagation();document.getElementById('free-hud').classList.toggle('hud-nograph');};
+if(hudCompassEl)hudCompassEl.onclick=e=>{
+  e.stopPropagation();
+  const hud=document.getElementById('free-hud');
+  const goingMini=!hud.classList.contains('hud-mini');
+  hud.classList.toggle('hud-mini');
+  if(goingMini){
+    _hudMiniPrev.w=hud.style.width; _hudMiniPrev.h=hud.style.height;
+    hud.style.width=''; hud.style.height='';
+  }else{
+    if(_hudMiniPrev.w)hud.style.width=_hudMiniPrev.w; else hud.style.removeProperty('width');
+    if(_hudMiniPrev.h)hud.style.height=_hudMiniPrev.h; else hud.style.removeProperty('height');
+  }
+};
 /* botón de actualizar POIs en Ajustes */
 const btnRefreshPois=document.getElementById('btn-refresh-pois');
 if(btnRefreshPois)btnRefreshPois.onclick=()=>{toast('Actualizando POIs…');refreshPois(true);};
@@ -2589,6 +2649,24 @@ makeResizable('mnv-box','mnv',170,110);
     }
   });
 })();
+/* mover la ventana de maniobra arrastrando (además del redimensionado por la esquina) */
+function makeMovableWin(id){
+  const el=document.getElementById(id);if(!el)return;
+  const x=parseFloat(localStorage.getItem(LS+id+'X'));
+  const y=parseFloat(localStorage.getItem(LS+id+'Y'));
+  if(isFinite(x))el.style.left=x+'px';
+  if(isFinite(y))el.style.top=y+'px';
+  el.addEventListener('pointerdown',e=>{
+    if(e.target&&e.target.closest('.rsz-handle'))return; // el asa sigue redimensionando
+    e.preventDefault();
+    const sx=e.clientX,sy=e.clientY,ol=el.offsetLeft,ot=el.offsetTop;
+    const m=ev=>{el.style.left=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,ol+ev.clientX-sx))+'px';el.style.top=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,ot+ev.clientY-sy))+'px';};
+    const u=ev=>{m(ev);localStorage.setItem(LS+id+'X',el.offsetLeft);localStorage.setItem(LS+id+'Y',el.offsetTop);window.removeEventListener('pointermove',m);window.removeEventListener('pointerup',u);};
+    window.addEventListener('pointermove',m);
+    window.addEventListener('pointerup',u);
+  });
+}
+makeMovableWin('mnv-box');
 makeSwitch('s-minimap','minimap',()=>drawMinimap());
 makeSwitch('s-memwatch','memWatch',()=>startMemoryWatchdog());
 makeSwitch('s-tescascale','teslaScale',()=>applyTeslaScale());
@@ -3240,18 +3318,28 @@ function hookLongPress(){
   c.addEventListener('mouseup',end);
 }
 
-/* con navegación activa los botones van a la izquierda, justo debajo de la
-   ventana de navegación (banner o detallada), en lugar de saltar a la derecha */
+/* navegación activa: los botones quedan FIJOS arriba a la izquierda y la
+   ventana de navegación (banner o detallada) se coloca JUSTO DEBAJO de ellos.
+   La fila de botones (topbar-btns) ocupa top:10 + ~42 px. */
 function placeTopbarBtns(){
   const tb=document.getElementById('topbar');
   const btns=document.getElementById('topbar-btns');
   if(!tb||!btns)return;
-  if(!tb.classList.contains('banner-on')){btns.style.top='';return;}
-  const det=document.getElementById('route-detail');
-  const detOn=det&&det.style.display==='block';
-  const ref=detOn?det:document.getElementById('banner');
-  const top=ref?Math.round(ref.getBoundingClientRect().bottom)+8:78;
-  btns.style.top=Math.max(72,top)+'px';
+  btns.style.top=''; // la fila de botones no se mueve
+  if(!tb.classList.contains('banner-on')){
+    const b0=document.getElementById('banner');if(b0)b0.style.top='';
+    const d0=document.getElementById('route-detail');if(d0)d0.style.top='';
+    return;
+  }
+  const btnBottom=54; // fila superior fija (top:10 + altura 42 + margen)
+  const b=document.getElementById('banner');
+  const bOn=b&&b.style.display!=='none';
+  if(bOn&&b)b.style.top=btnBottom+'px';
+  const d=document.getElementById('route-detail');
+  if(d&&d.style.display==='block'){
+    const top=bOn&&b?Math.round(b.getBoundingClientRect().bottom)+8:btnBottom;
+    d.style.top=top+'px';
+  }
 }
 
 /* ================================================================
