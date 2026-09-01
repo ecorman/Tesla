@@ -1,0 +1,51 @@
+name: Deploy a GitHub Pages (claves inyectadas en build)
+
+# Genera PNG/zbuildgs.js en el momento del despliegue a partir del secret
+# encriptado APP_CONFIG_JSON. El token NUNCA se sube al repositorio:
+# vive solo en Settings -> Secrets and variables -> Actions.
+#
+# Requisitos (una vez, en GitHub):
+#   1. Settings -> Secrets and variables -> Actions -> New repository secret
+#      name: APP_CONFIG_JSON
+#      value: el JSON completo que debe contener window.APP_CONFIG
+#             (ver PNG/zbuildgs.example.js para la estructura exacta)
+#   2. Settings -> Pages -> Source: "GitHub Actions"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generar PNG/zbuildgs.js desde el secret APP_CONFIG_JSON
+        env:
+          APP_CONFIG_JSON: ${{ secrets.APP_CONFIG_JSON }}
+        run: |
+          node -e "const fs=require('fs');const v=process.env.APP_CONFIG_JSON;if(!v){console.error('ERROR: falta el secret APP_CONFIG_JSON (Settings -> Secrets and variables -> Actions)');process.exit(1)}fs.writeFileSync('PNG/zbuildgs.js','window.APP_CONFIG = '+v+';\n')"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

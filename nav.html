@@ -774,7 +774,7 @@ function speak(text){
 }
 
 /* ---------- map ---------- */
-mapboxgl.accessToken=window.APP_CONFIG.keys.mapbox;
+if(window.APP_CONFIG&&window.APP_CONFIG.keys&&window.APP_CONFIG.keys.mapbox){mapboxgl.accessToken=window.APP_CONFIG.keys.mapbox;}
 let map=null;
 const CAR_ICON='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 64 64">'+
