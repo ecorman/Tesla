@@ -47,7 +47,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- maneuver banner ---- */
-#banner{position:absolute;top:64px;left:50%;transform:translateX(-50%);z-index:15;display:none;align-items:center;gap:12px;padding:10px 14px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(520px,calc(100vw - 140px))}
+#banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:15;display:none;align-items:center;gap:12px;padding:10px 14px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(440px,calc(100vw - 120px))}
 #nav-turn-box{width:60px;height:60px;flex-shrink:0;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 #nav-turn-box img{width:92%;height:92%;object-fit:contain}
 #banner .nav-mid{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center}
@@ -112,11 +112,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* gear button */
 
 /* ---- velocidad: emblema Tesla (semi-transparente) + toggle barra superior ---- */
-#topbar-btns{display:flex;gap:8px;align-items:center}
+#topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
-#speed-emblem{position:absolute;left:12px;bottom:76px;z-index:21;width:76px;height:76px;border-radius:50%;border:1px solid var(--line);background:rgba(16,16,20,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+#topbar.banner-on #topbar-btns{top:120px}
+#speed-emblem{position:absolute;left:12px;bottom:70px;z-index:21;width:66px;height:66px;border-radius:50%;border:1px solid var(--line);background:rgba(16,16,20,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;filter:grayscale(.15)}
-#speed-emblem .se-v{position:relative;font-size:23px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
+#speed-emblem .se-v{position:relative;font-size:20px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
 #speed-emblem .se-u{position:relative;font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
 #speed-emblem:hover{border-color:var(--acc)}
 /* ---- chips de categorías de POIs (multi-selección) ---- */
@@ -1190,6 +1191,7 @@ async function calcRoute(dest,name){
   tripStats={startTime:new Date(),travelledKm:0,maxSpeed:0,initialDistance:routeData.distance,initialDuration:routeData.duration,destName:name||lastDestName||'Destino'};
   lastTripPos=userPos.slice();
   document.getElementById('btn-stop').style.display='';
+  document.getElementById('topbar').classList.add('banner-on');
   document.getElementById('banner').style.display='flex';
   speak(NAV_CLIPS.start);
   // El banner se rellena en el primer navTick (navTick también avanza la
@@ -1388,6 +1390,7 @@ function arrive(){
   alertSound('arrive');
   speak(NAV_CLIPS.arrive);
   toast('¡Ha llegado a su destino!',4000);
+  document.getElementById('topbar').classList.remove('banner-on');
   document.getElementById('banner').style.display='none';
   document.getElementById('btn-stop').style.display='none';
   showArrivalStats();
@@ -1557,6 +1560,7 @@ document.getElementById('btn-stop').onclick=()=>{
   routeData=null;destPoint=null;maneuverIdx=0;voiceFlags={};
   tripStats=null;lastTripPos=null;
   if(map.getSource('route'))map.getSource('route').setData(emptyGeo());
+  document.getElementById('topbar').classList.remove('banner-on');
   document.getElementById('banner').style.display='none';
   document.getElementById('btn-stop').style.display='none';
   toast('Navegación finalizada');

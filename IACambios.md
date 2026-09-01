@@ -888,3 +888,14 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - Campos de tiempo arreglados: "tiempo restante" y "llegada HH:MM" se
   mostraban pegados en la misma línea ("32 minllegada 14:55"). Ahora van en
   columna con tipografía propia, sin cortarse.
+
+## 33. nav.html: banner arriba del todo y compacto, menú debajo del banner, velocidad más baja
+
+- La ventana de navegación ya no ocupa todo el ancho ni queda en mitad de la
+  pantalla: ahora va pegada al borde superior (top:8px), centrada y compacta
+  (máx. 440px, se estrecha sola en pantallas pequeñas).
+- Al activar la navegación, la fila superior de botones (si se muestra
+  pulsando la velocidad) baja automáticamente por debajo de la ventana de
+  navegación (top:120px) para no taparla; al terminar la ruta vuelve arriba.
+- El emblema de velocidad baja y se reduce (66px, esquina inferior-izquierda)
+  para dejar la parte superior totalmente despejada.
