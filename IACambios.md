@@ -1134,3 +1134,8 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Aviso visible**: si la app carga sin token de Mapbox (p. ej. en GitHub Pages antes de configurar el secret), aparece un banner «⚠️ Claves no configuradas» con enlace a instrucciones.html, en vez de un mapa negro sin explicación. Dismissible con ✕.
 - **Diagnóstico GitHub Pages**: el sitio publicado sigue en modo **legacy (deploy from branch)** → sirve el repo sin `PNG/zbuildgs.js` → sin token → mapbox-gl v3 deja el mapa negro (es el bug de la entrada 53). El workflow `deploy-pages.yml` **falla** porque falta el secret `APP_CONFIG_JSON`. **Solución (2 pasos en GitHub)**: (1) Settings → Pages → Source = **GitHub Actions**; (2) Settings → Secrets and variables → Actions → secret `APP_CONFIG_JSON` con el JSON de `window.APP_CONFIG`.
 - Verificado: 0 errores de sintaxis (incl. ESM), `overpass.private` fuera de la lista, banner presente.
+
+## 56. Modo simple: claves en el repositorio para que GitHub Pages funcione sin configuración (2026-09-01)
+- El usuario no técnico no podía completar el setup de secret + Actions. Solución pragmática: **PNG/zbuildgs.js vuelve a estar versionado** (con el token actual ya verificado, que de todos modos ya estaba expuesto en el historial de git — no añade exposición nueva). Con el modo legacy de Pages (deploy from branch), el sitio publica el fichero y el mapa carga sin ningún paso.
+- El workflow `deploy-pages.yml` **ya no falla si falta el secret**: si `APP_CONFIG_JSON` existe lo usa (modo seguro), si no, usa el fichero del repo (modo simple) con un aviso.
+- La rotación del token y el modo secret quedan documentados en instrucciones.html para cuando el usuario quiera (no es necesario para que funcione).

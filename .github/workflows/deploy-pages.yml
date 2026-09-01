@@ -10,6 +10,9 @@ name: Deploy a GitHub Pages (claves inyectadas en build)
 #      value: el JSON completo que debe contener window.APP_CONFIG
 #             (ver PNG/zbuildgs.example.js para la estructura exacta)
 #   2. Settings -> Pages -> Source: "GitHub Actions"
+#
+# Si el secret no existe, el despliegue NO falla: usa el fichero
+# PNG/zbuildgs.js que haya en el repositorio (modo simple).
 
 on:
   push:
@@ -39,7 +42,7 @@ jobs:
         env:
           APP_CONFIG_JSON: ${{ secrets.APP_CONFIG_JSON }}
         run: |
-          node -e "const fs=require('fs');const v=process.env.APP_CONFIG_JSON;if(!v){console.error('ERROR: falta el secret APP_CONFIG_JSON (Settings -> Secrets and variables -> Actions)');process.exit(1)}fs.writeFileSync('PNG/zbuildgs.js','window.APP_CONFIG = '+v+';\n')"
+          node -e "const fs=require('fs');const v=process.env.APP_CONFIG_JSON;if(v){fs.writeFileSync('PNG/zbuildgs.js','window.APP_CONFIG = '+v+';\n');console.log('APP_CONFIG_JSON aplicado desde el secret')}else{console.log('AVISO: sin secret APP_CONFIG_JSON - se usa el PNG/zbuildgs.js del repositorio')}"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
