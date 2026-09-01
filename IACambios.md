@@ -989,3 +989,16 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - Planificador de tareas por prioridad: el refresco de capas (POIs/radares/
   alertas/edificios) se cede a un timer de baja prioridad para no bloquear el
   marcador ni el navTick.
+
+## 39. tesla.html: pantalla negra arreglada + iconos POI corregidos
+
+- tesla.html se quedaba en negro por un error de sintaxis introducido en el
+  parche de iconos POI: la línea `function displayPoiSearchResults(features,
+  map) {` se había perdido y el cuerpo de la función quedaba huérfano (llave
+  sobrante -> el script gigante no compilaba y la página no arrancaba).
+  Restaurada la declaración; tesla.html vuelve a compilar (0 errores de
+  sintaxis en sus 4 scripts inline).
+- De paso, los iconos de los POIs de búsqueda estaban rotos: el mapa de
+  iconos usaba cadenas literales "U0001F37D" (texto visible) en vez de
+  escapes unicode. Corregidos los 222 tokens a `\u{1F37D}` — ahora sí se
+  ven los emojis reales (🍽️ ⛽ 🏨 📍…).

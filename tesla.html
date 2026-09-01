@@ -5462,37 +5462,37 @@ function clearPoiSearchResults() {
 // numero; la lista lateral sigue numerada para poder cruzar con el mapa.
 // ===================================================================
 const POI_CATEGORY_ICONS = {
-  amenity: { restaurant:"U0001F37D️", cafe:"☕", bar:"U0001F37A", pub:"U0001F37A", fast_food:"U0001F354", food_court:"U0001F37D️", pharmacy:"U0001F48A", hospital:"U0001F3E5", clinic:"U0001FA79", doctors:"U0001FA79", dentist:"U0001F9B7", police:"U0001F693", fire_station:"U0001F692", fuel:"⛽", charging_station:"U0001F50B", parking:"U0001F17F️", parking_entrance:"U0001F17F️", atm:"U0001F3E7", bank:"U0001F3E6", cinema:"U0001F3AC", theatre:"U0001F3AD", school:"U0001F3EB", kindergarten:"U0001F9D2", college:"U0001F3EB", university:"U0001F393", library:"U0001F4DA", post_office:"U0001F4EE", car_wash:"U0001F9FC", car_rental:"U0001F699", car_repair:"U0001F527", taxi:"U0001F695", bus_station:"U0001F68C", train_station:"U0001F686", subway_entrance:"U0001F687", ferry_terminal:"⛴️", airport:"✈️", bicycle_parking:"U0001F6B2", gym:"U0001F3CB️", swimming_pool:"U0001F3CA", place_of_worship:"⛪", toilets:"U0001F7BB", veterinary:"U0001F43E", market:"U0001F3EA", nightclub:"U0001FAA9", casino:"U0001F3B0", ice_cream:"U0001F366", bbq:"U0001F356" },
-  shop: { supermarket:"U0001F6D2", mall:"U0001F6CD️", department_store:"U0001F3EC", convenience:"U0001F3EA", bakery:"U0001F950", butcher:"U0001F969", greengrocer:"U0001F966", seafood:"U0001F990", alcohol:"U0001F377", beverages:"U0001F964", books:"U0001F4DA", clothes:"U0001F455", shoes:"U0001F45F", electronics:"U0001F4F1", computer:"U0001F4BB", mobile_phone:"U0001F4F1", furniture:"U0001F6CB️", home_goods:"U0001F3E0", hardware:"U0001F527", doityourself:"U0001F527", garden_centre:"U0001F331", florist:"U0001F490", jewelry:"U0001F48D", optician:"U0001F453", car:"U0001F697", car_repair:"U0001F527", car_parts:"U0001F529", bicycle:"U0001F6B2", motorcycle:"U0001F3CD️", gift:"U0001F381", toys:"U0001F9F8", sports:"⚽", music:"U0001F3B5", musical_instrument:"U0001F3B8", pet:"U0001F43E", hairdresser:"U0001F487", beauty:"U0001F485", laundry:"U0001F9FA", travel_agency:"✈️", estate_agent:"U0001F3E0" },
-  tourism: { hotel:"U0001F3E8", hostel:"U0001F3E8", motel:"U0001F3E8", guest_house:"U0001F3E1", apartment:"U0001F3E2", chalet:"U0001F3D4️", camping:"⛺", caravan_site:"U0001F690", museum:"U0001F3DB️", gallery:"U0001F5BC️", attraction:"U0001F52D", viewpoint:"U0001F440", theme_park:"U0001F3A2", zoo:"U0001F981", aquarium:"U0001F420", picnic_site:"U0001F9FA", information:"ℹ️", alpine_hut:"U0001F3D4️" },
-  leisure: { park:"U0001F333", garden:"U0001F337", playground:"U0001F6DD", sports_centre:"U0001F3DF️", stadium:"U0001F3DF️", swimming_pool:"U0001F3CA", fitness_centre:"U0001F3CB️", golf_course:"⛳", marina:"⛵", beach_resort:"U0001F3D6️", nature_reserve:"U0001F332" },
-  natural: { beach:"U0001F3D6️", park:"U0001F333", wood:"U0001F332", forest:"U0001F332", peak:"⛰️", volcano:"U0001F30B", waterfall:"U0001F4A7", bay:"U0001F30A", cape:"U0001F30A", cave_entrance:"U0001F573️" },
-  historic: { monument:"U0001F3F0", castle:"U0001F3F0", ruins:"U0001F3DB️", memorial:"U0001F5FF", museum:"U0001F3DB️", archaeological_site:"U0001F3FA", fort:"U0001F3F0" },
-  highway: { fuel:"⛽", rest_area:"U0001F17F️", services:"U0001F6E3️", charging_station:"U0001F50B" },
-  office: { company:"U0001F3E2", bank:"U0001F3E6", insurance:"U0001F6E1️", lawyer:"⚖️" },
-  healthcare: { hospital:"U0001F3E5", pharmacy:"U0001F48A", clinic:"U0001FA79" },
-  building: { supermarket:"U0001F6D2", hospital:"U0001F3E5", hotel:"U0001F3E8" },
-  place: { city:"U0001F3D9️", town:"U0001F3D8️", village:"U0001F3E1", neighbourhood:"U0001F3D8️", suburb:"U0001F3D8️", square:"⛲", island:"U0001F3DD️" }
+  amenity: { restaurant:"\u{1f37d}️", cafe:"☕", bar:"\u{1f37a}", pub:"\u{1f37a}", fast_food:"\u{1f354}", food_court:"\u{1f37d}️", pharmacy:"\u{1f48a}", hospital:"\u{1f3e5}", clinic:"\u{1fa79}", doctors:"\u{1fa79}", dentist:"\u{1f9b7}", police:"\u{1f693}", fire_station:"\u{1f692}", fuel:"⛽", charging_station:"\u{1f50b}", parking:"\u{1f17f}️", parking_entrance:"\u{1f17f}️", atm:"\u{1f3e7}", bank:"\u{1f3e6}", cinema:"\u{1f3ac}", theatre:"\u{1f3ad}", school:"\u{1f3eb}", kindergarten:"\u{1f9d2}", college:"\u{1f3eb}", university:"\u{1f393}", library:"\u{1f4da}", post_office:"\u{1f4ee}", car_wash:"\u{1f9fc}", car_rental:"\u{1f699}", car_repair:"\u{1f527}", taxi:"\u{1f695}", bus_station:"\u{1f68c}", train_station:"\u{1f686}", subway_entrance:"\u{1f687}", ferry_terminal:"⛴️", airport:"✈️", bicycle_parking:"\u{1f6b2}", gym:"\u{1f3cb}️", swimming_pool:"\u{1f3ca}", place_of_worship:"⛪", toilets:"\u{1f7bb}", veterinary:"\u{1f43e}", market:"\u{1f3ea}", nightclub:"\u{1faa9}", casino:"\u{1f3b0}", ice_cream:"\u{1f366}", bbq:"\u{1f356}" },
+  shop: { supermarket:"\u{1f6d2}", mall:"\u{1f6cd}️", department_store:"\u{1f3ec}", convenience:"\u{1f3ea}", bakery:"\u{1f950}", butcher:"\u{1f969}", greengrocer:"\u{1f966}", seafood:"\u{1f990}", alcohol:"\u{1f377}", beverages:"\u{1f964}", books:"\u{1f4da}", clothes:"\u{1f455}", shoes:"\u{1f45f}", electronics:"\u{1f4f1}", computer:"\u{1f4bb}", mobile_phone:"\u{1f4f1}", furniture:"\u{1f6cb}️", home_goods:"\u{1f3e0}", hardware:"\u{1f527}", doityourself:"\u{1f527}", garden_centre:"\u{1f331}", florist:"\u{1f490}", jewelry:"\u{1f48d}", optician:"\u{1f453}", car:"\u{1f697}", car_repair:"\u{1f527}", car_parts:"\u{1f529}", bicycle:"\u{1f6b2}", motorcycle:"\u{1f3cd}️", gift:"\u{1f381}", toys:"\u{1f9f8}", sports:"⚽", music:"\u{1f3b5}", musical_instrument:"\u{1f3b8}", pet:"\u{1f43e}", hairdresser:"\u{1f487}", beauty:"\u{1f485}", laundry:"\u{1f9fa}", travel_agency:"✈️", estate_agent:"\u{1f3e0}" },
+  tourism: { hotel:"\u{1f3e8}", hostel:"\u{1f3e8}", motel:"\u{1f3e8}", guest_house:"\u{1f3e1}", apartment:"\u{1f3e2}", chalet:"\u{1f3d4}️", camping:"⛺", caravan_site:"\u{1f690}", museum:"\u{1f3db}️", gallery:"\u{1f5bc}️", attraction:"\u{1f52d}", viewpoint:"\u{1f440}", theme_park:"\u{1f3a2}", zoo:"\u{1f981}", aquarium:"\u{1f420}", picnic_site:"\u{1f9fa}", information:"ℹ️", alpine_hut:"\u{1f3d4}️" },
+  leisure: { park:"\u{1f333}", garden:"\u{1f337}", playground:"\u{1f6dd}", sports_centre:"\u{1f3df}️", stadium:"\u{1f3df}️", swimming_pool:"\u{1f3ca}", fitness_centre:"\u{1f3cb}️", golf_course:"⛳", marina:"⛵", beach_resort:"\u{1f3d6}️", nature_reserve:"\u{1f332}" },
+  natural: { beach:"\u{1f3d6}️", park:"\u{1f333}", wood:"\u{1f332}", forest:"\u{1f332}", peak:"⛰️", volcano:"\u{1f30b}", waterfall:"\u{1f4a7}", bay:"\u{1f30a}", cape:"\u{1f30a}", cave_entrance:"\u{1f573}️" },
+  historic: { monument:"\u{1f3f0}", castle:"\u{1f3f0}", ruins:"\u{1f3db}️", memorial:"\u{1f5ff}", museum:"\u{1f3db}️", archaeological_site:"\u{1f3fa}", fort:"\u{1f3f0}" },
+  highway: { fuel:"⛽", rest_area:"\u{1f17f}️", services:"\u{1f6e3}️", charging_station:"\u{1f50b}" },
+  office: { company:"\u{1f3e2}", bank:"\u{1f3e6}", insurance:"\u{1f6e1}️", lawyer:"⚖️" },
+  healthcare: { hospital:"\u{1f3e5}", pharmacy:"\u{1f48a}", clinic:"\u{1fa79}" },
+  building: { supermarket:"\u{1f6d2}", hospital:"\u{1f3e5}", hotel:"\u{1f3e8}" },
+  place: { city:"\u{1f3d9}️", town:"\u{1f3d8}️", village:"\u{1f3e1}", neighbourhood:"\u{1f3d8}️", suburb:"\u{1f3d8}️", square:"⛲", island:"\u{1f3dd}️" }
 };
 const POI_VALUE_ICONS = {
-  restaurant:"U0001F37D️", cafe:"☕", bar:"U0001F37A", pub:"U0001F37A", fast_food:"U0001F354", food_court:"U0001F37D️",
-  pharmacy:"U0001F48A", hospital:"U0001F3E5", clinic:"U0001FA79", doctors:"U0001FA79", dentist:"U0001F9B7",
-  police:"U0001F693", fire_station:"U0001F692", fuel:"⛽", petrol:"⛽", gas_station:"⛽",
-  charging_station:"U0001F50B", parking:"U0001F17F️", atm:"U0001F3E7", bank:"U0001F3E6", cinema:"U0001F3AC", theatre:"U0001F3AD",
-  school:"U0001F3EB", university:"U0001F393", library:"U0001F4DA", post_office:"U0001F4EE", car_wash:"U0001F9FC",
-  car_rental:"U0001F699", car_repair:"U0001F527", bus_station:"U0001F68C", train_station:"U0001F686",
-  subway_entrance:"U0001F687", ferry_terminal:"⛴️", airport:"✈️", gym:"U0001F3CB️", swimming_pool:"U0001F3CA",
-  supermarket:"U0001F6D2", mall:"U0001F6CD️", shopping_mall:"U0001F6CD️", department_store:"U0001F3EC", convenience:"U0001F3EA",
-  bakery:"U0001F950", butcher:"U0001F969", hardware:"U0001F527", hardware_store:"U0001F527",
-  car:"U0001F697", bicycle:"U0001F6B2", motorcycle:"U0001F3CD️", gift:"U0001F381", toys:"U0001F9F8", sports:"⚽",
-  music:"U0001F3B5", pet:"U0001F43E", hairdresser:"U0001F487", laundry:"U0001F9FA", travel_agency:"✈️",
-  hotel:"U0001F3E8", hostel:"U0001F3E8", motel:"U0001F3E8", lodging:"U0001F3E8", guest_house:"U0001F3E1", camping:"⛺", museum:"U0001F3DB️",
-  gallery:"U0001F5BC️", attraction:"U0001F52D", tourist_attraction:"U0001F52D", viewpoint:"U0001F440", theme_park:"U0001F3A2", zoo:"U0001F981",
-  park:"U0001F333", garden:"U0001F337", playground:"U0001F6DD", stadium:"U0001F3DF️", golf_course:"⛳",
-  marina:"⛵", beach:"U0001F3D6️", wood:"U0001F332", forest:"U0001F332", peak:"⛰️", volcano:"U0001F30B",
-  waterfall:"U0001F4A7", monument:"U0001F3F0", castle:"U0001F3F0", ruins:"U0001F3DB️", memorial:"U0001F5FF",
-  city:"U0001F3D9️", town:"U0001F3D8️", village:"U0001F3E1", island:"U0001F3DD️", accommodation:"U0001F3E8",
-  night_club:"U0001FAA9", clothing_store:"U0001F455", home_goods_store:"U0001F6CB️", car_wash_shop:"U0001F9FC"
+  restaurant:"\u{1f37d}️", cafe:"☕", bar:"\u{1f37a}", pub:"\u{1f37a}", fast_food:"\u{1f354}", food_court:"\u{1f37d}️",
+  pharmacy:"\u{1f48a}", hospital:"\u{1f3e5}", clinic:"\u{1fa79}", doctors:"\u{1fa79}", dentist:"\u{1f9b7}",
+  police:"\u{1f693}", fire_station:"\u{1f692}", fuel:"⛽", petrol:"⛽", gas_station:"⛽",
+  charging_station:"\u{1f50b}", parking:"\u{1f17f}️", atm:"\u{1f3e7}", bank:"\u{1f3e6}", cinema:"\u{1f3ac}", theatre:"\u{1f3ad}",
+  school:"\u{1f3eb}", university:"\u{1f393}", library:"\u{1f4da}", post_office:"\u{1f4ee}", car_wash:"\u{1f9fc}",
+  car_rental:"\u{1f699}", car_repair:"\u{1f527}", bus_station:"\u{1f68c}", train_station:"\u{1f686}",
+  subway_entrance:"\u{1f687}", ferry_terminal:"⛴️", airport:"✈️", gym:"\u{1f3cb}️", swimming_pool:"\u{1f3ca}",
+  supermarket:"\u{1f6d2}", mall:"\u{1f6cd}️", shopping_mall:"\u{1f6cd}️", department_store:"\u{1f3ec}", convenience:"\u{1f3ea}",
+  bakery:"\u{1f950}", butcher:"\u{1f969}", hardware:"\u{1f527}", hardware_store:"\u{1f527}",
+  car:"\u{1f697}", bicycle:"\u{1f6b2}", motorcycle:"\u{1f3cd}️", gift:"\u{1f381}", toys:"\u{1f9f8}", sports:"⚽",
+  music:"\u{1f3b5}", pet:"\u{1f43e}", hairdresser:"\u{1f487}", laundry:"\u{1f9fa}", travel_agency:"✈️",
+  hotel:"\u{1f3e8}", hostel:"\u{1f3e8}", motel:"\u{1f3e8}", lodging:"\u{1f3e8}", guest_house:"\u{1f3e1}", camping:"⛺", museum:"\u{1f3db}️",
+  gallery:"\u{1f5bc}️", attraction:"\u{1f52d}", tourist_attraction:"\u{1f52d}", viewpoint:"\u{1f440}", theme_park:"\u{1f3a2}", zoo:"\u{1f981}",
+  park:"\u{1f333}", garden:"\u{1f337}", playground:"\u{1f6dd}", stadium:"\u{1f3df}️", golf_course:"⛳",
+  marina:"⛵", beach:"\u{1f3d6}️", wood:"\u{1f332}", forest:"\u{1f332}", peak:"⛰️", volcano:"\u{1f30b}",
+  waterfall:"\u{1f4a7}", monument:"\u{1f3f0}", castle:"\u{1f3f0}", ruins:"\u{1f3db}️", memorial:"\u{1f5ff}",
+  city:"\u{1f3d9}️", town:"\u{1f3d8}️", village:"\u{1f3e1}", island:"\u{1f3dd}️", accommodation:"\u{1f3e8}",
+  night_club:"\u{1faa9}", clothing_store:"\u{1f455}", home_goods_store:"\u{1f6cb}️", car_wash_shop:"\u{1f9fc}"
 };
 function getPoiIcon(feature) {
   const props = (feature && feature.properties) || {};
@@ -5511,10 +5511,13 @@ function getPoiIcon(feature) {
     const cat = String(props.category).toLowerCase();
     for (const k in POI_VALUE_ICONS) { if (cat.indexOf(k) !== -1) return POI_VALUE_ICONS[k]; }
   }
-  return "U0001F4CD";
+  return "\u{1f4cd}";
 }
 
 
+// NOMBRE: displayPoiSearchResults
+// RESUMEN: Muestra resultados de POIs (lista numerada + marcadores)
+function displayPoiSearchResults(features, map) {
     clearPoiSearchResults();
 
     if (!features || features.length === 0) {
