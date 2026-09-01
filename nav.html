@@ -102,15 +102,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
 /* ---- Free Drive HUD ---- */
-#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease}
+#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:4px;padding:9px 11px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease}
 #free-hud.hud-big{min-width:264px}
-#free-hud.hud-big #hud-compass{width:46px;height:46px}
+#free-hud.hud-big #hud-compass{width:56px;height:56px}
 #free-hud.hud-big .hud-spd span{font-size:38px}
 #free-hud.hud-big .hud-stats{font-size:12px}
 #free-hud.hud-big #hud-orient{font-size:19px}
 #settings input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 #free-hud .hud-row{display:flex;align-items:center;gap:8px}
-#hud-compass{width:34px;height:34px;object-fit:contain;transition:transform .25s linear}
+#hud-compass{width:44px;height:44px;object-fit:contain;transition:transform .25s linear;cursor:pointer}
 #free-hud .hud-head{display:flex;flex-direction:column;line-height:1.15;min-width:52px}
 #hud-orient{font-size:15px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
 #hud-cardinal{font-size:10px;color:var(--dim)}
@@ -120,6 +120,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #hud-graph{width:100%;flex:1 1 auto;height:auto;min-height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
 .hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
 .hud-graph-toggle:hover{color:var(--txt)}
+/* brújula compacta: tocar la brújula oculta/muestra la curva (gráfica del HUD) */
+#free-hud.hud-nograph #hud-graph,
+#free-hud.hud-nograph .hud-graph-toggle{display:none}
 /* ---- minimapa de maniobra ---- */
 #mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
@@ -157,6 +160,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .voicetest .btn{flex:1;text-align:center;font-size:13px}
 /* ---- toast ---- */
 #toast{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:50;padding:10px 20px;background:rgba(16,16,20,.95);border:1px solid var(--line);border-radius:10px;font-size:14px;display:none;max-width:80vw}
+/* ---- chip de estado POIs + panel de depuración ---- */
+#poi-status{position:absolute;left:12px;bottom:12px;z-index:46;/*X*/display:flex;align-items:center;gap:7px;padding:5px 11px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--txt);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);white-space:nowrap;max-width:52vw;overflow:hidden;transition:border-color .2s}
+#poi-status:hover{border-color:var(--acc)}
+#poi-status .dot{width:8px;height:8px;border-radius:50%;background:#3dd68c;flex:none}
+#poi-status.warn .dot{background:#f5b942}
+#poi-status.err .dot{background:#e03030}
+#dbg-panel{position:absolute;left:12px;bottom:46px;z-index:47;display:none;flex-direction:column;width:min(440px,calc(100vw - 24px));max-height:250px;background:rgba(10,10,14,.96);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.55);overflow:hidden}
+#dbg-panel.open{display:flex}
+#dbg-head{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);background:rgba(255,255,255,.04)}
+#dbg-head b{color:var(--txt)}
+#dbg-head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dbg-head button{margin-left:auto;background:none;border:1px solid var(--line);color:var(--dim);font-size:11px;padding:2px 8px;border-radius:6px;cursor:pointer}
+#dbg-head button:hover{color:var(--txt);border-color:var(--acc)}
+#dbg-lines{overflow-y:auto;font:11px/1.55 ui-monospace,Menlo,Consolas,monospace;padding:6px 10px;color:#9fe8c0;white-space:pre-wrap;word-break:break-word}
+#dbg-lines .w{color:#f5b942}
+#dbg-lines .e{color:#ff7b7b}
+
 /* ---- cuenta atrás de retorno al coche ---- */
 #follow-countdown{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:35;display:none;align-items:center;gap:10px;padding:8px 14px;background:rgba(16,16,20,.92);border:1px solid var(--acc);border-radius:99px;font-size:13px;color:var(--txt);box-shadow:0 4px 14px rgba(0,0,0,.5);white-space:nowrap}
 #follow-countdown b{color:var(--acc);font-size:15px}
@@ -178,12 +198,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
 #topbar.banner-on #topbar-btns{left:12px;right:auto;top:78px}
-#speed-emblem{position:relative;display:flex;align-items:center;gap:10px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+#speed-emblem{position:relative;display:flex;align-items:center;gap:9px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
 .hud-emblem-v{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:auto;text-align:center}
-.hud-emblem-v .se-v{font-size:30px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
-.hud-emblem-v .se-u{font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
-.hud-emblem-v .se-stats{font-size:10px;font-weight:600;color:rgba(255,255,255,.92);text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.3px;white-space:nowrap}
+.hud-emblem-v .se-v{font-size:27px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
+.hud-emblem-v .se-u{font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
 #speed-emblem:hover{border-color:var(--acc)}
 /* ---- chips de categorías de POIs (multi-selección) ---- */
 #poi-cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -296,10 +315,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <div id="free-hud">
   <button id="speed-emblem" title="Velocidad — pulsa para mostrar/ocultar la barra superior">
     <img src="PNG/LOGOTESLA.jpg" alt="">
-    <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span><span class="se-stats" id="se-stats">Med — · Máx —</span></div>
+    <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span></div>
   </button>
   <div class="hud-row">
-    <img id="hud-compass" src="PNG/ROSA.PNG" alt="">
+    <img id="hud-compass" src="PNG/ROSA.PNG" alt="" title="Mostrar/ocultar la gráfica del HUD">
     <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
   </div>
   <div class="hud-stats">
@@ -528,6 +547,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 </div>
 
 <div id="toast"></div>
+
+<div id="poi-status" title="Estado de los POIs — clic para ver el panel de depuración"><!--X--><span class="dot"></span><span id="poi-status-txt">POIs…</span></div>
+<div id="dbg-panel">
+  <div id="dbg-head"><b>🔍 Depuración</b><span id="dbg-state"></span><button id="dbg-retry">↻ Reintentar</button><button id="dbg-close">✕</button></div>
+  <div id="dbg-lines"></div>
+</div>
 
 <script>
 "use strict";
@@ -854,6 +879,7 @@ function initMap(){
   window.addEventListener('resize',()=>applyCarPadding());
   map.on('error',e=>{
     const msg=String((e&&e.error&&(e.error.message||e.error.status))||'');
+    dbg('mapa','error: '+msg);
     if(msg.includes('Token'))
       toast('Error de token Mapbox — cambia proveedor a OSM',4000);
     // 403 en tiles de Mapbox: el token no tiene acceso a los estilos.
@@ -981,15 +1007,15 @@ const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
 
 let lastOverpassFailed=false; // true si ninguna instancia Overpass respondió en el último intento
 const OVERPASS_ENDPOINTS=[
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass-api.ams3.klomp.space/api/interpreter',
-  'https://overpass.osm.ch/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass-api.de/api/interpreter',      // principal: datos globales, CORS OK (requiere Referer; el navegador lo envia siempre)
+  'https://overpass.kumi.systems/api/interpreter', // fallback (a veces caido)
+  'https://overpass.osm.ch/api/interpreter',       // ultimo recurso (rapido, CORS OK; puede devolver 0 en algunas zonas)
 ];
-// NOTA: endpoints eliminados por DNS muerto / sin CORS: overpass.private.coffee,
-// overpass.nchc.org.tw (ERR_NAME_NOT_RESOLVED).
+// NOTA: descartados por DNS muerto / sin CORS: overpass.private.coffee,
+// overpass.nchc.org.tw (ERR_NAME_NOT_RESOLVED), overpass-api.ams3.klomp.space,
+// overpass.openstreetmap.fr (403 CORS), overpass.osm.jp.
 // Circuit breaker por instancia: tras 2 fallos seguidos se desactiva 5 minutos,
-// y si TODAS fallan no se vuelve a intentar durante 60 s. Así no se inunda la
+// y si TODAS fallan no se vuelve a intentar durante 30 s. Así no se inunda la
 // consola con errores en cada movimiento del mapa.
 let overpassState={}; // url -> {fails,offUntil}
 function overpassEnabled(url){
@@ -1004,32 +1030,120 @@ function overpassMark(url,ok){
   overpassState[url]=st;
 }
 let lastAllOverpassFail=0; // cooldown global tras un fallo total
+let lastWorkingOverpass=''; // instancia Overpass que respondió por última vez (se intenta primero)
+
+/* ---------- depuración: logs en consola + panel en pantalla + chip de estado ---------- */
+const dbgLogs=[];
+function dbg(tag,msg){
+  const line='['+new Date().toLocaleTimeString('es-ES',{hour12:false})+'] '+tag+' '+msg;
+  dbgLogs.push(line);
+  if(dbgLogs.length>80)dbgLogs.shift();
+  try{console.log('[nav] '+line);}catch(e){}
+  const el=document.getElementById('dbg-lines');
+  if(el&&el.offsetParent!==null)renderDbgLines();
+}
+function renderDbgLines(){
+  const el=document.getElementById('dbg-lines');if(!el)return;
+  el.innerHTML=dbgLogs.map(l=>{
+    const cls=(l.includes('✗')||l.includes('ERROR'))?' class="e"':(l.includes('⚠')?' class="w"':'');
+    return '<div'+cls+'>'+l.replace(/</g,'&lt;')+'</div>';
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function dbgState(){
+  const s=document.getElementById('dbg-state');if(!s)return;
+  const n=(layerMarkers.pois||[]).length;
+  const cooldown=lastAllOverpassFail?Math.max(0,Math.ceil((30000-(Date.now()-lastAllOverpassFail))/1000)):0;
+  const off=OVERPASS_ENDPOINTS.filter(u=>!overpassEnabled(u)).length;
+  s.textContent='POIs: '+n+(S.pois?'':' · desactivados')+(cooldown?' · reintento en '+cooldown+'s':'')+(off?' · '+off+' instancia(s) en espera':'')+(lastWorkingOverpass?' · última OK: '+lastWorkingOverpass.replace('https://','').replace('/api/interpreter',''):'');
+}
+function updatePoiStatus(){
+  const chip=document.getElementById('poi-status');if(!chip)return;
+  const txt=document.getElementById('poi-status-txt');
+  const n=(layerMarkers.pois||[]).length;
+  const cooldown=lastAllOverpassFail?Math.max(0,Math.ceil((30000-(Date.now()-lastAllOverpassFail))/1000)):0;
+  if(!S.pois){chip.className='err';txt.textContent='📍 POIs desactivados — Ajustes → 📍';}
+  else if(n>0){chip.className='';txt.textContent='📍 '+n+' POIs';}
+  else if(cooldown>0){chip.className='err';txt.textContent='📍 0 POIs — Overpass sin respuesta, reintento en '+cooldown+'s';}
+  else{chip.className='warn';txt.textContent='📍 0 POIs — buscando…';}
+}
+setInterval(()=>{updatePoiStatus();dbgState();},1000);
+// auto-reintento cuando todas las instancias Overpass fallaron (tras el cooldown de 30 s)
+setInterval(()=>{
+  if(lastOverpassFailed&&Date.now()-lastAllOverpassFail>=31000){
+    lastOverpassFailed=false;
+    dbg('overpass','auto-reintento tras cooldown');
+    refreshActiveLayers(true);
+  }
+},5000);
+document.getElementById('poi-status').onclick=()=>{const p=document.getElementById('dbg-panel');p.classList.toggle('open');if(p.classList.contains('open'))renderDbgLines();};
+document.getElementById('dbg-close').onclick=()=>document.getElementById('dbg-panel').classList.remove('open');
+document.getElementById('dbg-retry').onclick=()=>{lastAllOverpassFail=0;Object.keys(overpassState).forEach(u=>delete overpassState[u]);toast('Reintentando capas…');refreshActiveLayers(true);};
+
+/* Cola global de Overpass: mínimo ~700 ms entre peticiones para respetar el
+   límite de las instancias (2 req/s por IP en overpass-api.de). Sin esto,
+   el refresco de POIs disparaba 9 categorías × 4 instancias = 36 peticiones
+   en paralelo y las instancias respondían HTTP 406 -> 0 POIs. */
+let overpassTail=Promise.resolve();
+function overpassSlot(){
+  const run=overpassTail.then(()=>new Promise(r=>setTimeout(r,700)));
+  overpassTail=run.catch(()=>{});
+  return run;
+}
 async function fetchOverpass(query){
-  if(Date.now()-lastAllOverpassFail<60000)return [];
-  const endpoints=OVERPASS_ENDPOINTS.filter(overpassEnabled);
-  if(!endpoints.length){lastOverpassFailed=true;return [];}
-  // POST con cuerpo form-urlencoded: el mismo método que usa tesla.html y
-  // el que está probado que funciona en el navegador del Tesla (con GET
-  // algunas instancias fallan o truncan queries largas). Se lanzan todas
-  // las instancias en paralelo y gana la primera respuesta con datos.
-  const attempts=endpoints.map(base=>{
-    const ctrl=new AbortController();
-    const tm=setTimeout(()=>ctrl.abort(),9000);
-    return fetch(base,{
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
-      body:'data='+encodeURIComponent(query),
-      signal:ctrl.signal,
-    })
-      .then(r=>{if(!r.ok){overpassMark(base,false);return null;}return r.json();})
-      .then(d=>{overpassMark(base,true);return (d&&Array.isArray(d.elements))?d.elements:null;})
-      .catch(()=>{overpassMark(base,false);return null;})
-      .finally(()=>clearTimeout(tm));
-  });
-  const results=await Promise.all(attempts);
-  for(const res of results){if(res&&res.length){lastOverpassFailed=false;return res;}}
-  lastOverpassFailed=results.every(r=>r==null); // ningún endpoint respondió
-  if(lastOverpassFailed)lastAllOverpassFail=Date.now();
+  const now=Date.now();
+  if(now-lastAllOverpassFail<30000){
+    dbg('overpass','cooldown global — '+Math.ceil((30000-(now-lastAllOverpassFail))/1000)+'s restantes, sin petición');
+    return [];
+  }
+  let endpoints=OVERPASS_ENDPOINTS.filter(overpassEnabled);
+  if(!endpoints.length){lastOverpassFailed=true;dbg('overpass','⚠ sin instancias activas (todas en espera por fallos)');return [];}
+  // preferir la instancia que respondió por última vez (evita martillear las caídas)
+  if(lastWorkingOverpass){
+    endpoints=endpoints.filter(u=>u===lastWorkingOverpass).concat(endpoints.filter(u=>u!==lastWorkingOverpass));
+  }
+  // fallback SECUENCIAL: una petición cada vez, la siguiente instancia solo si falla
+  for(let i=0;i<endpoints.length;i++){
+    const base=endpoints[i];
+    const t0=Date.now();
+    try{
+      await overpassSlot();
+      const ctrl=new AbortController();
+      const tm=setTimeout(()=>ctrl.abort(),10000);
+      let d=null,status=0;
+      try{
+        const r=await fetch(base,{
+          method:'POST',
+          headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
+          body:'data='+encodeURIComponent(query),
+          signal:ctrl.signal,
+        });
+        status=r.status;
+        if(r.ok){try{d=await r.json();}catch(e){}}
+      }catch(e){
+        if(e&&e.name==='AbortError'){dbg('overpass','✗ '+base+' timeout 10 s ('+(Date.now()-t0)+'ms)');}
+        else{overpassMark(base,false);dbg('overpass','✗ '+base+' '+(e&&e.message||e)+' ('+(Date.now()-t0)+'ms)');}
+      }finally{clearTimeout(tm);}
+      if(status&&status>=400){overpassMark(base,false);dbg('overpass','✗ '+base+' HTTP '+status+' ('+(Date.now()-t0)+'ms)');}
+      if(!status&&!d){continue;} // red/timeout: siguiente instancia
+      const els=(d&&Array.isArray(d.elements))?d.elements:null;
+      overpassMark(base,true);
+      dbg('overpass','✓ '+base+' → '+((els&&els.length)||0)+' elementos ('+(Date.now()-t0)+'ms)');
+      // Respuesta JSON válida: parar. La instancia principal tiene datos
+      // globales, así que su 200 con 0 elementos es un resultado real (zona
+      // sin POIs). Los fallbacks pueden devolver 0 sin estar caídos (datos
+      // parciales), así que un 0 de fallback NO se acepta: se sigue probando.
+      if(Array.isArray(els)){
+        lastWorkingOverpass=base;lastOverpassFailed=false;
+        if(els.length>0||i===0)return els;
+        dbg('overpass','0 elementos de fallback ('+base+') — se sigue probando');
+        continue;
+      }
+    }catch(e){dbg('overpass','✗ '+base+' excepción '+e);}
+  }
+  lastOverpassFailed=true;
+  lastAllOverpassFail=Date.now();
+  dbg('overpass','⚠ todas las instancias fallaron — cooldown de 30 s');
   return [];
 }
 function mapCenterForFetch(){
@@ -1062,6 +1176,7 @@ async function refreshRadars(force){
     el2.onclick=()=>toast(name);
     layerMarkers.radars.push(new mapboxgl.Marker({el:el2}).setLngLat([el.lon,el.lat]).addTo(map));
   });
+  dbg('radares','marcadores: '+layerMarkers.radars.length);
 }
 
 /* --- POIs por categoría --- */
@@ -1083,32 +1198,74 @@ function updatePoiMarkerSizes(){
   if(!layerMarkers.pois||!layerMarkers.pois.length)return;
   layerMarkers.pois.forEach(w=>{try{applyPoiMarkerStyle(w.el);}catch(e){}});
 }
+/* Icono de categoría a partir de las etiquetas del elemento (la query unión
+   mezcla categorías: el icono se deduce de los tags de cada POI). */
+function poiIconFor(el){
+  const t=el.tags||{};
+  if(t.amenity==='fuel')return POI_CATS.fuel.icon;
+  if(t.amenity==='restaurant'||t.amenity==='fast_food')return POI_CATS.food.icon;
+  if(t.amenity==='cafe'||t.amenity==='bar')return POI_CATS.coffee.icon;
+  if(t.shop==='supermarket'||t.shop==='convenience')return POI_CATS.shop.icon;
+  if(t.amenity==='hospital'||t.amenity==='clinic'||t.amenity==='pharmacy')return POI_CATS.health.icon;
+  if(t.amenity==='parking')return POI_CATS.parking.icon;
+  if(t.amenity==='charging_station')return POI_CATS.charge.icon;
+  if(t.tourism==='hotel')return POI_CATS.hotel.icon;
+  if(t.leisure==='park'||t.leisure==='playground')return POI_CATS.leisure.icon;
+  return '📍';
+}
+/* Área visible del mapa (bbox ampliada un 25 %) para acotar la query de
+   Overpass a lo que realmente se ve: respuesta rápida y sin saturar. */
+function viewportArea(c){
+  if(!map||!map.getBounds||c.zoom<11)return null;
+  try{
+    const b=map.getBounds();
+    const w=b.getWest(),e=b.getEast(),s=b.getSouth(),n=b.getNorth();
+    const dLon=(e-w)*0.25,dLat=(n-s)*0.25;
+    return (s-dLat)+','+(w-dLon)+','+(n+dLat)+','+(e+dLon);
+  }catch(err){return null;}
+}
 async function refreshPois(force){
   const c=mapCenterForFetch();if(!c)return;
   if(!force&&Date.now()-lastLayerFetch.pois<LAYER_MIN_INTERVAL)return;
+  // Con zoom de globo/vista lejana los marcadores no se ven: se salta (sin
+  // marcar lastLayerFetch) para que al aterrizar se refresque con bbox rápido.
+  if(c.zoom<11){dbg('pois','zoom '+c.zoom.toFixed(1)+' < 11 — sin refresco de POIs');return;}
   lastLayerFetch.pois=Date.now();
-  clearLayerMarkers('pois');
   const cats=(S.poiCats&&S.poiCats.length)?S.poiCats:Object.keys(POI_CATS);
+  const area=viewportArea(c)||('around:8000,'+c.lat+','+c.lon);
+  // UNA query unión con todas las categorías seleccionadas: 1 petición en vez
+  // de 9, mucho más rápida y sin tocar los límites de las instancias.
+  const parts=cats.map(cat=>{
+    const cc=POI_CATS[cat]||POI_CATS.fuel;
+    return cc.q.replace(/;\s*$/,'')+'('+area+');';
+  });
+  const q='[out:json][timeout:12];('+parts.join('')+');out center tags;';
+  dbg('pois','1 query unión ('+cats.length+' categorías) en '+area+' — zoom '+c.zoom.toFixed(1));
+  const els=await fetchOverpass(q);
+  dbg('pois','Overpass devolvió '+els.length+' elementos');
+  if(lastOverpassFailed){
+    dbg('pois','Overpass caído — se conservan los marcadores actuales');
+    return;
+  }
   const seen=new Set();
   const items=[];
-  // una query por categoría seleccionada (con su propio icono), en paralelo; dedupe por coordenadas
-  const results=await Promise.all(cats.map(async cat=>{
-    const cc=POI_CATS[cat]||POI_CATS.fuel;
-    const q='[out:json][timeout:10];('+cc.q.replace(/;\s*$/,'')+'(around:8000,'+c.lat+','+c.lon+'););out center tags;';
-    const els=await fetchOverpass(q);
-    return {cc,els};
-  }));
-  results.forEach(({cc,els})=>els.forEach(el=>{
+  els.forEach(el=>{
     const lat=el.lat!=null?el.lat:(el.center?el.center.lat:null);
     const lon=el.lon!=null?el.lon:(el.center?el.center.lon:null);
     if(lat==null||lon==null)return;
     const key=lat.toFixed(4)+','+lon.toFixed(4);
     if(seen.has(key))return;
     seen.add(key);
-    items.push({el:el,lat:lat,lon:lon,icon:cc.icon});
-  }));
-  if(!items.length&&lastOverpassFailed&&S.pois)toast('No se pudieron cargar los POIs (servidor Overpass sin respuesta). Usa «↻ Actualizar POIs» en Ajustes para reintentar.',4000);
-  items.slice(0,150).forEach(it=>{
+    items.push({el,lat,lon,icon:poiIconFor(el)});
+  });
+  // ordenar por distancia al centro: si hay más de 150, quedarse con los más cercanos
+  items.sort((a,b)=>haversine([a.lon,a.lat],[c.lon,c.lat])-haversine([b.lon,b.lat],[c.lon,c.lat]));
+  const shown=items.slice(0,150);
+  dbg('pois','únicos: '+items.length+' → mostrando '+shown.length);
+  // Primero se crean los nuevos marcadores y después se limpian los viejos:
+  // si algo falla a medias, el mapa no se queda sin POIs.
+  const added=[];
+  shown.forEach(it=>{
     const name=(it.el.tags&&(it.el.tags.name||it.el.tags.brand||''))||'Punto de interés';
     const el2=document.createElement('div');
     el2.style.cssText='border-radius:50%;background:rgba(255,255,255,.95);border:2px solid #111;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.5)';
@@ -1116,8 +1273,12 @@ async function refreshPois(force){
     el2.title=name;
     el2.onclick=(ev)=>{ev.stopPropagation();startPointPick([it.lon,it.lat],name);};
     applyPoiMarkerStyle(el2);
-    layerMarkers.pois.push({marker:new mapboxgl.Marker({el:el2}).setLngLat([it.lon,it.lat]).addTo(map),el:el2});
+    added.push({marker:new mapboxgl.Marker({el:el2}).setLngLat([it.lon,it.lat]).addTo(map),el:el2});
   });
+  clearLayerMarkers('pois');
+  layerMarkers.pois=added;
+  dbg('pois','marcadores en el mapa: '+layerMarkers.pois.length);
+  updatePoiStatus();
 }
 
 /* --- alertas de tráfico comunitarias (Firestore, solo lectura) --- */
@@ -1146,7 +1307,8 @@ async function refreshAlerts(force){
       el2.onclick=()=>toast(ALERT_NAMES[f.code]||'Alerta de tráfico');
       layerMarkers.alerts.push(new mapboxgl.Marker({el:el2}).setLngLat([f.lon,f.lat]).addTo(map));
     });
-  }catch(e){console.error('Alertas:',e);toast('Error leyendo alertas');}
+    dbg('alertas','marcadores: '+layerMarkers.alerts.length);
+  }catch(e){console.error('Alertas:',e);dbg('alertas','ERROR '+e);toast('Error leyendo alertas');}
 }
 
 /* --- edificios 3D (Overpass geojson: funciona con OSM raster y Mapbox) --- */
@@ -1177,6 +1339,7 @@ async function refreshBuildings(force){
       features.push(f);
     });
     if(!features.length)return;
+    dbg('edificios','polígonos 3D: '+features.length);
     const beforeLayer=(map.getStyle().layers||[]).find(l=>l.type==='symbol');
     if(!map.getSource('nav-buildings'))map.addSource('nav-buildings',{type:'geojson',data:{type:'FeatureCollection',features}});
     else map.getSource('nav-buildings').setData({type:'FeatureCollection',features});
@@ -1195,7 +1358,9 @@ async function refreshBuildings(force){
   finally{buildingsBusy=false;}
 }
 async function fetchBuildings(c,radius){
-  return fetchOverpass('[out:json][timeout:9];(way["building"](around:'+radius+','+c.lat+','+c.lon+'););out geom tags;');
+  const els=await fetchOverpass('[out:json][timeout:9];(way["building"](around:'+radius+','+c.lat+','+c.lon+'););out geom tags;');
+  dbg('edificios','elementos: '+els.length);
+  return els;
 }
 function ringToFeature(el){
   if(!el||!el.geometry||!el.geometry.length)return null;
@@ -1862,9 +2027,7 @@ function updateFreeHud(coords){
   document.getElementById('hud-orient').textContent=hd?Math.round(hd)+'°':'—';
   document.getElementById('hud-cardinal').textContent=hd?cardinalDeg(hd):'';
   document.getElementById('hud-compass').style.transform='rotate('+hd+'deg)';
-  const hEls=Math.max(1,(Date.now()-freeStats.t0)/3600000);
-  const seStats=document.getElementById('se-stats');
-  if(seStats)seStats.textContent='Med '+Math.round(freeStats.km/hEls)+' · Máx '+Math.round(freeStats.max);
+  // (med/máx se muestran solo en la gráfica; el emblema lleva únicamente la velocidad)
   const altEl=document.getElementById('hud-alt');
   if(alt!=null){
     altEl.textContent=Math.round(alt)+' m';
@@ -2366,6 +2529,9 @@ const hudGraphBtn=document.getElementById('hud-graph-toggle');
 if(hudGraphBtn)hudGraphBtn.onclick=e=>{e.stopPropagation();toggleHudGraph();};
 const hudGraphCv=document.getElementById('hud-graph');
 if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
+/* tocar la brújula oculta/muestra la gráfica de la curva del HUD */
+const hudCompassEl=document.getElementById('hud-compass');
+if(hudCompassEl)hudCompassEl.onclick=e=>{e.stopPropagation();document.getElementById('free-hud').classList.toggle('hud-nograph');};
 /* botón de actualizar POIs en Ajustes */
 const btnRefreshPois=document.getElementById('btn-refresh-pois');
 if(btnRefreshPois)btnRefreshPois.onclick=()=>{toast('Actualizando POIs…');refreshPois(true);};

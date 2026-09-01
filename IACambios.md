@@ -1158,3 +1158,69 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Minimapa = ruta completa**: ya no muestra solo 1,2 km por delante. Dibuja el **trayecto entero** (decimado a ~400 puntos para rutas largas) con el coche, la próxima maniobra (marcada en rojo) y el destino — así se entiende para qué sirve.
 - **Barra superior con navegación**: con ruta activa los botones salen **a la izquierda, justo debajo** de la ventana de navegación (banner o detallada), no a la derecha. `placeTopbarBtns()` recalcula la posición al abrir/cerrar ventanas.
 - **Navegación libre como tesla**: sin ruta activa y circulando a **más de 20 km/h**, la app detecta modo libre — activa el **Free Drive HUD automáticamente** (si estaba apagado) y avisa una vez con un toast. Se resetea al calcular una ruta o finalizarla.
+## 60. nav.html: POIs por fin visibles — 1 query unión por vista + depuración en pantalla (2026-09-01)
+
+### 60.1 Por qué no se veían los POIs (diagnóstico con peticiones reales)
+
+- **9 queries por refresco**: `refreshPois` lanzaba una petición Overpass por cada
+  categoría (hasta 9) y **solo creaba los marcadores cuando TODAS terminaban**.
+  Con overpass-api.de bajo carga (5–16 s por query), el usuario esperaba 1–2
+  minutos sin ver nada.
+- **429/504/406 encadenados**: las instancias devuelven 406 a UAs raros sin
+  Referer, 429 por exceso de peticiones y 504 bajo carga. Cualquier fallo total
+  disparaba el **cooldown global de 60 s** y el refresco abortaba las categorías
+  restantes → 0 marcadores y 60 s más de espera.
+- **Endpoints muertos en la cadena**: klomp.ams3 (DNS no resuelve), kumi.systems
+  (502/timeout), osm.ch (200 pero **siempre 0 elementos** para Madrid) → la
+  cadena de fallback perdía 10–20 s antes de declarar el fallo.
+
+### 60.2 La solución
+
+- **UNA query unión por refresco** (todas las categorías seleccionadas en una
+  sola petición Overpass, `[out:json][timeout:12]`): 1 petición en vez de 9.
+- **Área = viewport visible** (bbox del mapa ampliado un 25 % cuando zoom ≥ 11;
+  con zoom de globo se salta el refresco): en zoom de conducción la query tarda
+  **1–3 s** y devuelve solo lo que se ve (probado: 4.666 elementos en 3 s en
+  Madrid). Con zoom < 11 no se marca `lastLayerFetch`, así el aterrizaje del
+  flyTo refresca al instante con bbox.
+- **Icono por elemento** (`poiIconFor`): al venir todo mezclado en la unión, el
+  icono se deduce de los tags de cada POI (amenity/shop/tourism/leisure), con
+  📍 de fallback.
+- **Orden por distancia y límite 150**: se ordenan por distancia al centro de
+  pantalla y se muestran los 150 más cercanos.
+- **No se borran los marcadores si falla la red**: los nuevos se crean primero y
+  solo después se limpian los viejos; si Overpass falla, se conservan los POIs
+  actuales en vez de quedarse el mapa vacío.
+- **Fallback endurecido**: un 200 con 0 elementos solo se acepta de la instancia
+  principal (overpass-api.de tiene datos globales; osm.ch devuelve 0 siempre).
+  Los fallbacks solo se usan ante fallos de red/HTTP. Timeout 10 s, cooldown
+  global reducido a **30 s** con auto-reintento a los 31 s.
+- **Lista de endpoints depurada**: se eliminan klomp.ams3 (DNS muerto) y se
+  documentan los descartados (private.coffee, nchc.org.tw, openstreetmap.fr
+  [403 CORS], osm.jp). Quedan overpass-api.de (principal), kumi.systems y
+  osm.ch (último recurso).
+
+### 60.3 Depuración visible (chip + panel)
+
+- **Chip 📍 abajo a la izquierda** (`#poi-status`): muestra el estado en vivo —
+  «📍 N POIs», «0 POIs — buscando…», «Overpass sin respuesta, reintento en Xs»
+  o «POIs desactivados». Clic → abre el **panel de depuración** (`#dbg-panel`)
+  con el log de Overpass/POIs (tiempos, instancia usada, fallos) y botón
+  «↻ Reintentar» que limpia el cooldown y refresca al momento.
+- **Logs en consola** con prefijo `[nav]` para diagnóstico remoto.
+
+### 60.4 Verificación
+
+- Harness `test-poi-live.cjs` con fetch real (headers de navegador): 12/12 PASS
+  — `fetchOverpass` devuelve datos reales (89 gasolineras en Madrid), la query
+  unión bbox devuelve 4.666 elementos en ~3 s, `refreshPois` crea **150
+  marcadores** con iconos y dedupe por coordenadas. Con el servidor caído/limitado
+  se conservan los marcadores actuales y se reintenta a los 30 s.
+- 0 errores de sintaxis en el script principal.
+
+## 61. nav.html: brújula más grande, emblema Tesla sin med/máx y brújula = toggle de la curva (2026-09-01)
+
+- **Brújula un poco más grande**: `#hud-compass` pasa de 34 px a **44 px** (56 px en modo agrandado).
+- **Emblema Tesla sin vel. media/máx**: se elimina la fila `Med — · Máx —` del icono de Tesla (el emblema queda solo con la velocidad actual). Las medias/máximos siguen visibles en la **gráfica** (modo velocidad).
+- **Brújula = toggle de la curva**: tocar la brújula ahora **oculta/muestra la gráfica del HUD** (nueva clase `hud-nograph` que esconde el canvas y el botón «pulsa para cambiar») en vez de agrandar toda la tarjeta, y ya no propaga el clic al contenedor.
+- **Más compacta**: padding/gap del panel reducido, emblema con menos padding y velocidad un punto menor, `min-width` 196→170 px.
