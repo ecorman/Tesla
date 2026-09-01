@@ -98,12 +98,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
 /* ---- Free Drive HUD ---- */
-#free-hud{position:absolute;right:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease}
+#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease;transform:scale(var(--hud-scale,1));transform-origin:bottom left}
 #free-hud.hud-big{min-width:264px}
 #free-hud.hud-big #hud-compass{width:46px;height:46px}
 #free-hud.hud-big .hud-spd span{font-size:38px}
 #free-hud.hud-big .hud-stats{font-size:12px}
 #free-hud.hud-big #hud-orient{font-size:19px}
+.hud-scale{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:2px}
+.hud-scale button{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid var(--line);color:var(--txt);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.hud-scale button:hover{background:rgba(255,255,255,.22)}
+.hud-scale span{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:44px;text-align:center}
 #settings input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 #free-hud .hud-row{display:flex;align-items:center;gap:8px}
 #hud-compass{width:34px;height:34px;object-fit:contain;transition:transform .25s linear}
@@ -115,7 +119,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
 #hud-graph{width:100%;height:52px;border-radius:8px;background:rgba(255,255,255,.05)}
 /* ---- minimapa de maniobra ---- */
-#mnv-box{position:absolute;right:12px;top:254px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
 #mnv-minimap{width:200px;height:128px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
 /* ---- overlay recarga controlada ---- */
@@ -168,10 +172,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
 #topbar.banner-on #topbar-btns{top:120px}
-#speed-emblem{position:absolute;left:12px;bottom:70px;z-index:21;width:66px;height:66px;border-radius:50%;border:1px solid var(--line);background:rgba(16,16,20,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.45)}
-#speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;filter:grayscale(.15)}
-#speed-emblem .se-v{position:relative;font-size:20px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
-#speed-emblem .se-u{position:relative;font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
+#speed-emblem{position:relative;display:flex;align-items:center;gap:10px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+#speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
+.hud-emblem-v{position:relative;display:flex;align-items:baseline;gap:5px;margin-left:auto}
+.hud-emblem-v .se-v{font-size:30px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
+.hud-emblem-v .se-u{font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
 #speed-emblem:hover{border-color:var(--acc)}
 /* ---- chips de categorías de POIs (multi-selección) ---- */
 #poi-cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -230,11 +235,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <button class="icon-btn" id="btn-versions" title="Histórico de versiones">📋</button>
   </div>
 </div>
-<button id="speed-emblem" title="Velocidad — pulsa para mostrar/ocultar la barra superior">
-  <img src="PNG/LOGOTESLA.jpg" alt="">
-  <span class="se-v" id="se-spd">0</span>
-  <span class="se-u">km/h</span>
-</button>
 <button id="gear" title="Ajustes">⚙</button>
 
 <div id="zoom-controls">
@@ -288,6 +288,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) -->
 <div id="free-hud">
+  <button id="speed-emblem" title="Velocidad — pulsa para mostrar/ocultar la barra superior">
+    <img src="PNG/LOGOTESLA.jpg" alt="">
+    <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span></div>
+  </button>
   <div class="hud-row">
     <img id="hud-compass" src="PNG/ROSA.PNG" alt="">
     <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
@@ -299,6 +303,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <span id="hud-max">Máx: —</span>
   </div>
   <canvas id="hud-graph" width="200" height="52"></canvas>
+  <div class="hud-scale">
+    <button id="hud-scale-minus" title="Reducir tamaño">−</button>
+    <span id="hud-scale-val">100%</span>
+    <button id="hud-scale-plus" title="Agrandar tamaño">＋</button>
+  </div>
 </div>
 <!-- minimapa de previsualización de maniobra (canvas ligero) -->
 <div id="mnv-box">
@@ -557,6 +566,7 @@ const S={
   heading:     localStorage.getItem(LS+'heading')!=='false',  // orientar mapa según marcha
   viewMode:    localStorage.getItem(LS+'viewMode')||'3d', // norte/avance/3d/relieve (tesla.html)
   freeHud:     localStorage.getItem(LS+'freeHud')!=='false',
+  hudScale:    parseFloat(localStorage.getItem(LS+'hudScale'))||1,
   minimap:     localStorage.getItem(LS+'minimap')!=='false',
   memWatch:    localStorage.getItem(LS+'memWatch')!=='false',
   teslaScale:  localStorage.getItem(LS+'teslaScale')==='true',
@@ -1589,8 +1599,12 @@ function stepName(step){
   switch(m.type){
     case 'depart':return 'Salida'+(road?' por '+road:'');
     case 'arrive':return 'Ha llegado a su destino';
-    case 'roundabout':case 'rotary':return 'Entre a la rotonda';
-    case 'exit-roundabout':case 'exit-rotary':return 'Salga de la rotonda';
+    case 'roundabout':case 'rotary':
+      if(typeof m.exit==='number'&&m.exit>0)return 'Tome la '+(m.exit===1?'primera':m.exit+'ª')+' salida de la rotonda'+(road?' hacia '+road:'');
+      return 'Entre a la rotonda';
+    case 'exit-roundabout':case 'exit-rotary':
+      if(typeof m.exit==='number'&&m.exit>0)return 'Salga en la '+(m.exit===1?'primera':m.exit+'ª')+' salida'+(road?' hacia '+road:'');
+      return 'Salga de la rotonda';
     case 'new name':return 'Continue'+(road?' por '+road:'');
     case 'merge':return 'Incorpórese'+(road?' a '+road:'');
     case 'fork':return dir+(road?' en '+road:'');
@@ -2052,7 +2066,8 @@ poiSizeEl.addEventListener('input',()=>{
 syncPoiSize();
 syncPoiChips();
 /* emblema de velocidad: mostrar/ocultar la barra superior (como tesla.html) */
-document.getElementById('speed-emblem').onclick=()=>{
+document.getElementById('speed-emblem').onclick=e=>{
+  if(e)e.stopPropagation();
   document.getElementById('topbar').classList.toggle('hidden-btns');
 };
 
@@ -2144,6 +2159,25 @@ function makeSwitch(id,key,cb){
 }
 bindSelect('s-view-mode','viewMode',()=>applyViewMode());
 makeSwitch('s-freehud','freeHud',()=>{if(!S.freeHud)freeStats=null;showFreeHud();});
+/* escala del HUD (ajustable a la pantalla) */
+function applyHudScale(){
+  const h=document.getElementById('free-hud');
+  if(h)h.style.setProperty('--hud-scale',S.hudScale);
+  const v=document.getElementById('hud-scale-val');
+  if(v)v.textContent=Math.round(S.hudScale*100)+'%';
+}
+document.getElementById('hud-scale-minus').onclick=e=>{
+  e.stopPropagation();
+  S.hudScale=Math.max(0.6,+(S.hudScale-0.1).toFixed(1));
+  saveS('hudScale',S.hudScale);applyHudScale();
+};
+document.getElementById('hud-scale-plus').onclick=e=>{
+  e.stopPropagation();
+  S.hudScale=Math.min(1.6,+(S.hudScale+0.1).toFixed(1));
+  saveS('hudScale',S.hudScale);applyHudScale();
+};
+applyHudScale();
+
 /* tocar el HUD lo agranda/reduce */
 (function(){
   const hudEl=document.getElementById('free-hud');

@@ -1041,3 +1041,11 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - La «ventanita» que tapaba el botón LIBRE del zoom era el **minimapa de maniobra**: se ha **bajado** (top 212→254) para no solapar los controles de la derecha y ahora lleva una **etiqueta «🗺️ Maniobra»** para que se sepa qué es.
 
 **Verificado:** 0 errores de sintaxis; **27/27 tests con stubs** (defaults 3D/satélite, pitch desactivado en planos, restauración del ángulo 3D, HUD visible navegando y oculto sin GPS, agrandar/reducir con el canvas, minimapa con etiqueta y sin solapar). Changelog: entrada 41.
+
+## 42. nav.html (2026-09-01): HUD a la izquierda con emblema Tesla, escala configurable, rotondas con número de salida y minimapa junto a instrucciones
+- HUD (brújula, altímetro, velocímetro, medias, gráfica) movido a la **izquierda abajo** (antes derecha).
+- **Emblema Tesla con velocidad arriba** del HUD (logo LOGOTESLA + km/h grande); su pulsación sigue mostrando/ocultando la barra superior, sin propagar el click al agrandar del HUD.
+- Botones **− / ＋ de escala del HUD** (60 %–160 %, guardado en ajustes) para ajustarlo a la pantalla.
+- **Instrucciones de rotonda con número de salida**: «Tome la 2.ª salida de la rotonda hacia X» / «Salga en la 2.ª salida» (usa m.exit de OSRM/Mapbox en vez del genérico «Entre a la rotonda»).
+- **Minimapa de maniobra** movido **junto a la ventana de instrucciones** (izquierda, top 96px, al lado de la ventana de ruta detallada).
+- Verificado: 23/23 tests con stubs, 0 errores de sintaxis (incl. módulo ESM).
