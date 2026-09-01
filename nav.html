@@ -113,7 +113,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #free-hud .hud-spd{margin-left:auto;font-size:11px;color:var(--dim);text-align:right;line-height:1}
 #free-hud .hud-spd span{font-size:27px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
-#hud-graph{width:max(100%,calc(200px * var(--hud-scale,1)));height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
+#hud-graph{width:100%;flex:1 1 auto;height:auto;min-height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
 .hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
 .hud-graph-toggle:hover{color:var(--txt)}
 /* ---- minimapa de maniobra ---- */
@@ -2308,7 +2308,7 @@ function makeResizable(id,key,minW,minH){
       const nh=Math.max(minH,Math.min(window.innerHeight*0.92,oh+(ev.clientY-sy)));
       el.style.width=Math.round(nw)+'px';
       el.style.height=Math.round(nh)+'px';
-      if(id==='free-hud'){const cv=document.getElementById('hud-graph');if(cv&&cv.width!==cv.offsetWidth){cv.width=cv.offsetWidth;drawHudGraph();}}
+      if(id==='free-hud'){const cv=document.getElementById('hud-graph');if(cv&&(cv.width!==cv.offsetWidth||cv.height!==cv.offsetHeight)){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;drawHudGraph();}}
       if(id==='mnv-box'){const cv=document.getElementById('mnv-minimap');if(cv&&cv.width!==cv.offsetWidth){cv.width=cv.offsetWidth;drawMinimap();}}
     };
     const up=ev=>{
