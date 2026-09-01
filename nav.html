@@ -53,12 +53,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-turn-box img{width:92%;height:92%;object-fit:contain}
 #banner .nav-mid{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center}
 #banner .nav-maneuver-line{width:100%;text-align:center}
-#banner .nav-maneuver-text{font-size:15px;font-weight:700;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.25}
+#banner .nav-maneuver-text{font-size:13px;font-weight:600;color:var(--dim);text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.2}
 #nav-street-line{display:none;width:100%;text-align:center}
-.nav-road-sign{display:inline-block;background:rgba(26,83,40,.78);padding:5px 12px;border-radius:7px;color:#FFD700;border:1px solid #C8A97E;box-shadow:0 1px 3px rgba(0,0,0,.5);font-weight:700;font-size:15px;line-height:1.5;max-width:100%;word-wrap:break-word}
+.nav-road-sign{display:inline-block;background:rgba(26,83,40,.78);padding:6px 14px;border-radius:7px;color:#FFD700;border:1px solid #C8A97E;box-shadow:0 1px 3px rgba(0,0,0,.5);font-weight:700;font-size:19px;line-height:1.5;max-width:100%;word-wrap:break-word}
 #banner .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:96px}
 #banner .nav-dist{font-size:20px;font-weight:700;color:var(--acc);line-height:1}
 .nav-progress-wrap{width:104px;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+#banner .nav-mtime{font-size:14px;font-weight:700;color:var(--warn);line-height:1;white-space:nowrap}
 #nav-progress{height:100%;width:0%;background:linear-gradient(to right,#680000,#FF0000 50%,#FA8072 97%);border-radius:99px;transition:width .3s linear}
 #banner .nav-eta{text-align:right;font-size:12px;color:var(--dim);line-height:1.35;display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
 #banner .nav-eta b{font-size:16px;color:var(--txt)}
@@ -87,11 +88,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .wp-sub{font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
 .wp-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px}
 #rd-steps{display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto}
-.rd-step{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:12px;color:var(--dim)}
+.rd-step{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:12px;color:var(--dim);cursor:pointer}
+.rd-step:hover{background:rgba(255,255,255,.07)}
+.rd-step.cur{background:rgba(79,140,255,.16);outline:1px solid var(--acc)}
 .rd-step img{width:22px;height:22px;background:#fff;border-radius:6px;flex-shrink:0;object-fit:contain}
 .rd-step .rd-name{flex:1;color:var(--txt);min-width:0}
 .rd-step .rd-dist{font-size:11px;font-variant-numeric:tabular-nums;color:var(--dim)}
-.rd-step.cur{background:rgba(255,255,255,.1);outline:1px solid var(--line)}
+.rd-step.cur{background:rgba(79,140,255,.16);outline:1px solid var(--acc)}
 /* ---- bottom info ---- */
 /* botones de simulación y centrado ahora en la barra superior (la barra inferior tapaba el HUD/brújula) */
 #topbar-btns .btn{padding:6px 10px;font-size:12px;border-radius:9px}
@@ -256,11 +259,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <div id="banner">
   <div id="nav-turn-box"><img id="nav-turn-icon" src="PNG/continue.png" alt=""></div>
   <div class="nav-mid">
-    <div class="nav-maneuver-line"><span class="nav-maneuver-text" id="nav-maneuver-text">—</span></div>
     <div id="nav-street-line"><span class="nav-road-sign" id="nav-street-name"></span></div>
+    <div class="nav-maneuver-line" id="nav-maneuver-line"><span class="nav-maneuver-text" id="nav-maneuver-text">—</span></div>
   </div>
   <div class="nav-right">
     <div class="nav-dist" id="nav-dist">—</div>
+    <div class="nav-mtime" id="nav-man-time">en —</div>
     <div class="nav-progress-wrap"><div id="nav-progress"></div></div>
     <div class="nav-eta"><b id="nav-eta">—</b><span id="nav-arr">—</span></div>
   </div>
@@ -1416,7 +1420,7 @@ async function doSearch(q){
 let routeData=null;      // {coords, steps, distance, duration}
 let destPoint=null;
 let routeWaypoints=[];      // puntos intermedios {lon,lat,name} (reordenables)
-let maneuverIdx=0;
+let maneuverIdx=0,lastRenderedManeuver=-1;
 let voiceFlags={};
 
 async function calcRoute(dest,name,waypoints){
@@ -1437,7 +1441,7 @@ async function calcRoute(dest,name,waypoints){
   // success
   map.getSource('route').setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:routeData.coords}});
   // la cámara sigue al coche (sin fitBounds brusco de toda la ruta)
-  maneuverIdx=0;voiceFlags={};
+  maneuverIdx=0;lastRenderedManeuver=-1;voiceFlags={};
   tripStats={startTime:new Date(),travelledKm:0,maxSpeed:0,initialDistance:routeData.distance,initialDuration:routeData.duration,destName:name||lastDestName||'Destino'};
   lastTripPos=userPos.slice();
   freeStats=null;
@@ -1638,26 +1642,38 @@ function navTick(){
   const mNav=step.maneuver||{};
   const isArrive=mNav.type==='arrive';
   document.getElementById('nav-turn-icon').src=getManeuverIconFilename(mNav);
-  document.getElementById('nav-maneuver-text').textContent=stepName(step);
+  // banner sin texto de mas: icono = maniobra, cartel = calle de destino.
+  // El texto breve solo aparece cuando no hay calle (llegada, salida, rotonda
+  // sin nombre).
   const roadTxt=(step.name||step.ref||'').trim();
   const streetLine=document.getElementById('nav-street-line');
+  const manLine=document.getElementById('nav-maneuver-line');
   if(!isArrive&&roadTxt){
     document.getElementById('nav-street-name').textContent=roadTxt;
     streetLine.style.display='block';
+    manLine.style.display='none';
   }else{
     streetLine.style.display='none';
+    document.getElementById('nav-maneuver-text').textContent=shortManeuverName(step);
+    manLine.style.display='block';
   }
   document.getElementById('nav-dist').textContent=fmtDist(stepDist);
+  const totalEta=routeData.duration*(remain/Math.max(routeData.distance,1));
+  // tiempo hasta la maniobra (proporcional al ETA restante por distancia)
+  const manTime=totalEta*(stepDist/Math.max(remain,1));
+  document.getElementById('nav-man-time').textContent=fmtManTime(manTime);
   const stepTotal=step.distance||1;
   const pct=stepTotal>0?Math.min(100,Math.max(0,((stepTotal-stepDist)/stepTotal)*100)):0;
   document.getElementById('nav-progress').style.width=pct.toFixed(1)+'%';
-  const totalEta=routeData.duration*(remain/Math.max(routeData.distance,1));
   document.getElementById('nav-eta').textContent=fmtTime(totalEta);
   const arr=new Date(Date.now()+totalEta*1000);
   document.getElementById('nav-arr').textContent='llegada '+arr.getHours()+':'+String(arr.getMinutes()).padStart(2,'0');
   drawMinimap();
-  if(S.routeView==='detallada'&&document.getElementById('rd-steps')&&document.getElementById('rd-steps').children.length){
-    [...document.getElementById('rd-steps').children].forEach((el,i)=>el.classList.toggle('cur',i===maneuverIdx));
+  // instrucciones detalladas: al cambiar de etapa se re-renderiza y la actual
+  // queda marcada en la primera fila (renderRouteDetail reordena la lista).
+  if(S.routeView==='detallada'&&maneuverIdx!==lastRenderedManeuver){
+    lastRenderedManeuver=maneuverIdx;
+    renderRouteDetail();
   }
   // check deviation: distancia PERPENDICULAR a la polilinea (no al vertice
   // mas cercano) y con cooldown de 15 s para no entrar en bucle de
@@ -1784,6 +1800,26 @@ function fmtTime(s){
   const m=Math.floor(s/60);
   if(m<60)return m+' min';
   return Math.floor(m/60)+' h '+(m%60)+' min';
+}
+function shortManeuverName(step){
+  const m=(step&&step.maneuver)||{};const t=m.type||'';const mod=m.modifier||'';
+  if(t==='arrive')return 'Destino';
+  if(t==='depart')return 'Salida';
+  if((t.includes('roundabout')||t.includes('rotary'))&&typeof m.exit==='number'&&m.exit>0)return 'Salida '+(m.exit===1?'1ª':m.exit+'ª');
+  if(t.includes('roundabout')||t.includes('rotary'))return 'Rotonda';
+  if(mod.includes('uturn'))return 'Cambio de sentido';
+  if(mod.includes('left'))return 'Izquierda';
+  if(mod.includes('right'))return 'Derecha';
+  if(t==='merge')return 'Incorpórese';
+  if(t==='fork')return 'Bifurcación';
+  return 'Recto';
+}
+function fmtManTime(s){
+  if(!isFinite(s)||s<=0)return 'en —';
+  if(s<60)return 'en '+Math.max(1,Math.round(s))+' s';
+  const m=Math.round(s/60);
+  if(m<60)return 'en '+m+' min';
+  return 'en '+Math.floor(m/60)+' h '+(m%60)+' min';
 }
 
 /* ---------- GPS tracking ---------- */
@@ -2082,7 +2118,7 @@ document.getElementById('btn-search-close').onclick=()=>{
 
 document.getElementById('btn-stop').onclick=()=>{
   stopNavLoop();
-  routeData=null;destPoint=null;maneuverIdx=0;voiceFlags={};
+  routeData=null;destPoint=null;maneuverIdx=0;lastRenderedManeuver=-1;voiceFlags={};
   routeWaypoints=[];
   tripStats=null;lastTripPos=null;
   cancelPick();
@@ -3065,9 +3101,15 @@ function renderRouteDetail(){
   mkRow('Destino',destPoint?destPoint[1].toFixed(4)+', '+destPoint[0].toFixed(4):'','🏁',-2);
   wireWaypointDrag();
   stBox.innerHTML='';
-  (routeData.steps||[]).forEach((st,i)=>{
+  const steps=routeData.steps||[];
+  // la etapa actual se queda en la primera fila; el resto en orden tras ella
+  const curIdx=Math.max(0,Math.min(maneuverIdx,steps.length-1));
+  const order=stepsOrdered(curIdx,steps.length);
+  for(const i of order){
+    const st=steps[i];
     const row=document.createElement('div');
-    row.className='rd-step'+(i===maneuverIdx?' cur':'');
+    row.className='rd-step'+(i===curIdx?' cur':'');
+    row.title=simActive?'Saltar a 50 m antes de este punto':'Ver en el mapa';
     const img=document.createElement('img');
     img.src=getManeuverIconFilename(st.maneuver||{});
     const nm=document.createElement('span');
@@ -3075,8 +3117,9 @@ function renderRouteDetail(){
     const ds=document.createElement('b');
     ds.className='rd-dist';ds.textContent=fmtDist(st.distance||0);
     row.appendChild(img);row.appendChild(nm);row.appendChild(ds);
+    row.onclick=()=>onStepClick(i);
     stBox.appendChild(row);
-  });
+  }
 }
 
 /* reordenar waypoints arrastrando (☰) con puntero (táctil + ratón) */
@@ -3134,6 +3177,60 @@ document.getElementById('wp-list').addEventListener('pointerdown',e=>{
   const c=idx===-1?userPos:(idx===-2?destPoint:(wp&&[wp.lon,wp.lat]));
   if(c)map.flyTo({center:c,zoom:Math.max(map.getZoom(),13)});
 });
+
+/* orden circular: la etapa actual primero, el resto en orden a partir de ella */
+function stepsOrdered(cur,len){
+  const out=[];
+  for(let k=0;k<len;k++)out.push((Math.max(0,cur)+k)%Math.max(1,len));
+  return out;
+}
+/* punto 50 m antes del final del step i (por la polilinea de la ruta) */
+function simJumpTarget(i){
+  if(!routeData||!routeData.coords)return null;
+  const st=(routeData.steps||[])[i];
+  if(!st)return null;
+  const loc=st.maneuver&&st.maneuver.location?[st.maneuver.location[0],st.maneuver.location[1]]:null;
+  if(!loc)return null;
+  // 50 m antes del punto de la maniobra MEDIDO SOBRE LA GEOMETRIA de la
+  // ruta (no sobre la distancia de los pasos, que va redondeada).
+  const stepEnd=distanceAlongRoute(routeData.coords,loc);
+  return pointAlongRouteAt(Math.max(0,stepEnd-50));
+}
+function pointAlongRouteAt(dist){
+  const coords=routeData&&routeData.coords;
+  if(!coords||coords.length<2)return null;
+  let acc=0;
+  for(let i=0;i<coords.length-1;i++){
+    const a=coords[i],b=coords[i+1];
+    const seg=haversine(a,b);
+    if(acc+seg>=dist){
+      const t=seg>0?Math.max(0,(dist-acc)/seg):0;
+      const heading=(Math.atan2(b[0]-a[0],b[1]-a[1])*180/Math.PI+360)%360;
+      return {pos:[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],idx:Math.min(i+1,coords.length-1),heading:heading};
+    }
+    acc+=seg;
+  }
+  const last=coords[coords.length-1];
+  return {pos:[last[0],last[1]],idx:coords.length-1,heading:0};
+}
+/* click en una instruccion detallada: en simulacion salta a 50 m antes de esa
+   maniobra y pasa a ser la etapa actual (queda en la primera fila). */
+function onStepClick(i){
+  const st=(routeData.steps||[])[i];
+  if(!st)return;
+  const loc=st.maneuver&&st.maneuver.location?[st.maneuver.location[0],st.maneuver.location[1]]:null;
+  if(loc)map.flyTo({center:loc,zoom:Math.max(map.getZoom(),14.5)});
+  if(simActive){
+    const pt=simJumpTarget(i);
+    if(pt){
+      simPos=pt.pos;simIdx=pt.idx;
+      maneuverIdx=i;voiceFlags={};
+      handleGpsFix({longitude:pt.pos[0],latitude:pt.pos[1],speed:simSpeedMps(),heading:pt.heading});
+      toast('Saltando a 50 m antes de la maniobra');
+    }
+  }
+  renderRouteDetail();
+}
 
 /* merge de steps multi-leg (OSRM/Mapbox con waypoints) */
 function mergeLegSteps(route){
