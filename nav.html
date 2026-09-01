@@ -549,8 +549,8 @@ const S={
   buildings3d: localStorage.getItem(LS+'buildings3d')==='true',
   radars:      localStorage.getItem(LS+'radars')==='true',
   alerts:      localStorage.getItem(LS+'alerts')==='true',
-  pois:        localStorage.getItem(LS+'pois')==='true',
-  poiCats:     (()=>{try{const p=JSON.parse(localStorage.getItem(LS+'poiCats'));if(Array.isArray(p)&&p.length)return p;}catch(e){}const old=localStorage.getItem(LS+'poiCat');return old?[old]:['fuel'];})(),
+  pois:        localStorage.getItem(LS+'pois')!=='false',
+  poiCats:     (()=>{try{const p=JSON.parse(localStorage.getItem(LS+'poiCats'));if(Array.isArray(p)&&p.length)return p;}catch(e){}const old=localStorage.getItem(LS+'poiCat');if(old)return[old];return['fuel','food','coffee','shop','health','parking','charge','hotel','leisure'];})(),
   poiSize:     parseInt(localStorage.getItem(LS+'poiSize'))||40,
   zoomMode:    localStorage.getItem(LS+'zoomMode')||'auto', // LIBRE/AUTO/RUTA/ECO (igual que tesla.html)
   routeProvider:localStorage.getItem(LS+'routeProvider')||'osrm',
@@ -1051,31 +1051,32 @@ async function refreshPois(force){
   if(!force&&Date.now()-lastLayerFetch.pois<LAYER_MIN_INTERVAL)return;
   lastLayerFetch.pois=Date.now();
   clearLayerMarkers('pois');
-  const cats=(S.poiCats&&S.poiCats.length)?S.poiCats:['fuel'];
+  const cats=(S.poiCats&&S.poiCats.length)?S.poiCats:Object.keys(POI_CATS);
   const seen=new Set();
   const items=[];
-  // una query por categoría seleccionada (con su propio icono), dedupe por coordenadas
-  for(const cat of cats){
+  // una query por categoría seleccionada (con su propio icono), en paralelo; dedupe por coordenadas
+  const results=await Promise.all(cats.map(async cat=>{
     const cc=POI_CATS[cat]||POI_CATS.fuel;
     const q='[out:json][timeout:10];('+cc.q.replace(/;\s*$/,'')+'(around:8000,'+c.lat+','+c.lon+'););out center tags;';
     const els=await fetchOverpass(q);
-    els.forEach(el=>{
-      const lat=el.lat!=null?el.lat:(el.center?el.center.lat:null);
-      const lon=el.lon!=null?el.lon:(el.center?el.center.lon:null);
-      if(lat==null||lon==null)return;
-      const key=lat.toFixed(4)+','+lon.toFixed(4);
-      if(seen.has(key))return;
-      seen.add(key);
-      items.push({el:el,lat:lat,lon:lon,icon:cc.icon});
-    });
-  }
+    return {cc,els};
+  }));
+  results.forEach(({cc,els})=>els.forEach(el=>{
+    const lat=el.lat!=null?el.lat:(el.center?el.center.lat:null);
+    const lon=el.lon!=null?el.lon:(el.center?el.center.lon:null);
+    if(lat==null||lon==null)return;
+    const key=lat.toFixed(4)+','+lon.toFixed(4);
+    if(seen.has(key))return;
+    seen.add(key);
+    items.push({el:el,lat:lat,lon:lon,icon:cc.icon});
+  }));
   items.slice(0,150).forEach(it=>{
     const name=(it.el.tags&&(it.el.tags.name||it.el.tags.brand||''))||'Punto de interés';
     const el2=document.createElement('div');
     el2.style.cssText='border-radius:50%;background:rgba(255,255,255,.95);border:2px solid #111;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.5)';
     el2.textContent=it.icon;
     el2.title=name;
-    el2.onclick=()=>toast(name);
+    el2.onclick=(ev)=>{ev.stopPropagation();startPointPick([it.lon,it.lat],name);};
     applyPoiMarkerStyle(el2);
     layerMarkers.pois.push({marker:new mapboxgl.Marker({el:el2}).setLngLat([it.lon,it.lat]).addTo(map),el:el2});
   });
@@ -2132,7 +2133,14 @@ function syncCam(){
   updateCarRotation();
 }
 pitchEl.addEventListener('input',()=>{saveS('pitch',+pitchEl.value);syncCam();});
-zoomEl.addEventListener('input',()=>{saveS('zoom',+zoomEl.value);syncCam();});
+zoomEl.addEventListener('input',()=>{
+  S.zoom=+zoomEl.value;
+  manualZoomMemory=S.zoom;
+  saveS('zoom',S.zoom);
+  if(S.zoomMode!=='off')setZoomMode('off'); // el slider de ajustes es zoom manual -> LIBRE
+  zoomVal.textContent=S.zoom;
+  if(map)map.easeTo({zoom:S.zoom,duration:300});
+});
 syncCam();
 
 const swHeading=document.getElementById('s-heading');

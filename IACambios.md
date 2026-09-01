@@ -1049,3 +1049,10 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Instrucciones de rotonda con número de salida**: «Tome la 2.ª salida de la rotonda hacia X» / «Salga en la 2.ª salida» (usa m.exit de OSRM/Mapbox en vez del genérico «Entre a la rotonda»).
 - **Minimapa de maniobra** movido **junto a la ventana de instrucciones** (izquierda, top 96px, al lado de la ventana de ruta detallada).
 - Verificado: 23/23 tests con stubs, 0 errores de sintaxis (incl. módulo ESM).
+
+## 43. nav.html (2026-09-01): POIs activados por defecto (todas las categorías, consultas en paralelo, clic → confirmar destino) y zoom de Ajustes que funciona
+- **POIs por defecto**: la capa 📍 arranca **activada** (antes apagada → no veías nada) y con **las 9 categorías marcadas** (gasolina, comida, café, tiendas, salud, parking, carga, hotel, parques). Antes solo traía gasolineras.
+- **Carga más rápida y robusta**: las queries de categorías se lanzan **en paralelo** (antes en serie: con 9 categorías hasta ~81 s; ahora ~9 s máx.) y se deduplican por coordenadas.
+- **Clic en un POI → ventana de confirmación**: al pulsar un POI ya no es solo un aviso: vuela al punto, deja el pin arrastrable y abre «🛣 Nueva Ruta / ➕ Añadir Punto» (igual que al buscar un lugar).
+- **Zoom de Ajustes arreglado**: el slider 🔍 guardaba el zoom pero la cámara lo ignoraba (usaba el modo AUTO/RUTA/ECO y el guard «sin GPS → no hacer nada»). Ahora el slider **aplica el zoom directamente** en el mapa y pasa a **LIBRE** automáticamente — funciona aunque no haya GPS y en cualquier modo.
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **9/9 tests** (defaults, consultas paralelas con dedupe, clic → startPointPick, slider → LIBRE + easeTo).
