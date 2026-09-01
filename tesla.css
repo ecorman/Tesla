@@ -3253,11 +3253,11 @@ body.dark-mode #clear-map-search-input-button svg {  stroke: #FF4D4D; }
 .poi-category-button:active { transform: scale(0.95);}
 .poi-category-button .icon {font-size: 1.8rem;}
 .numbered-poi-marker {
-    width: 38px;  height: 38px;   border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.85);
-    border: 2px solid black; display: flex;
+    width: 34px;  height: 34px;   border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.92);
+    border: 2px solid #1a1a1a; display: flex;
     justify-content: center; align-items: center;
-    font-size: 16px;font-weight: bold;
+    font-size: 19px; font-weight: bold; line-height: 1;
     color: black; cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.4);  }
 .poi-category-modal-overlay {

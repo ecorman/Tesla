@@ -489,3 +489,388 @@ con un `Audio()` reutilizable:
   de ayuda actualizado.
 - **Default inteligente**: en `tesla.html`, si no hay `speechSynthesis`, el
   motor por defecto pasa a `online` al cargar ajustes.
+
+---
+
+## 19. Alertas de tráfico: iconos más pequeños con el zoom alto
+
+### 19.1 El problema
+
+Las alertas comunitarias (accidente, obras, control, atasco, vehículo
+averiado, peligro...) se dibujan en el mapa de navegación como un círculo de
+color con un icono representativo dentro. Su `icon-size` **crecía con el zoom**
+(0.30 a zoom 12 → 0.50 a zoom 16+), por lo que con zoom alto los iconos
+quedaban demasiado grandes y tapaban la vía.
+
+### 19.2 La solución
+
+Se invierte la interpolación de `icon-size` de la capa `traffic-alerts-layer`
+en `tesla.html`: ahora los iconos son ligeramente más pequeños en general y se
+**reducen al acercar el zoom** (0.28 a zoom 12 → 0.22 a zoom 16+), quedando
+legibles y tocables en la pantalla del Tesla sin tapar la carretera.
+
+---
+
+## 20. Velocidad actual siempre visible en el panel de navegación
+
+### 20.1 El problema
+
+La velocidad ya se mostraba en el panel brújula/altitud (esquina inferior
+izquierda), pero ese panel se oculta automáticamente durante las maniobras, así
+que el conductor podía quedarse sin ver la velocidad en el momento en que más
+la necesita.
+
+### 20.2 La solución
+
+Nuevo **chip de velocidad** (`#nav-speed-chip`) al final del panel inferior de
+navegación (`navigation-bottom-progress-bar`), visible tanto en navegación con
+ruta como en modo Free Drive:
+
+- Muestra la velocidad actual en km/h con acento azul `#007aff` (estilo de la
+  app), redondeada al entero más cercano.
+- Se actualiza con cada tick de GPS desde `updateTripStatistics()` mediante la
+  nueva función `updateNavSpeedChip()`, reutilizando `window.currentSpeedKmh`
+  (sin duplicar el cálculo de velocidad).
+- No interfiere con el resto del panel: se añade como elemento flexible con
+  `flex-shrink:0` al final de la barra.
+
+---
+
+## 21. POIs de búsqueda: icono de categoría en el marcador
+
+### 21.1 El problema
+
+Los resultados de búsqueda de POIs (categoría o búsqueda libre) se dibujaban en
+el mapa como círculos blancos con un **número** dentro; no se veía de un vistazo
+qué tipo de lugar era cada resultado.
+
+### 21.2 La solución
+
+Nueva función `getPoiIcon()` con dos mapas de iconos emoji por categoría OSM
+(`POI_CATEGORY_ICONS` por clave/valor de Photon y `POI_VALUE_ICONS` como
+fallback por valor, cubriendo también los resultados de Overpass del tipo
+`node:restaurant`):
+
+- Los marcadores de POI muestran ahora el **icono representativo de su
+  categoría** (⛽ gasolinera, 🍽️ restaurante, ☕ cafetería, 🛒 supermercado,
+  🏥 hospital, 🅿️ parking, 🔋 recarga…), con el nombre del lugar como tooltip.
+- La **lista lateral sigue numerada** (1, 2, 3…) para poder cruzar lista y mapa;
+  el filtro de la lista sigue ocultando/mostrando sus marcadores.
+- El círculo es ligeramente más pequeño (34 px) y con el icono más legible
+  (19 px), de modo que con zoom alto no tapa la vía.
+- Si no se reconoce la categoría, se muestra un pin genérico 📍.
+
+---
+
+## 22. nav.html: el zoom inicial no llegaba al coche (se quedaba en el globo)
+
+### 22.1 El problema
+
+Al abrir nav.html sin ajustes guardados, el mapa se quedaba en la vista de globo
+(zoom 1.5) y el coche nunca se situaba sobre la posición GPS.
+
+Causa raíz: en el objeto de ajustes `S` de nav.html, los defaults de cámara
+usaban el patrón `parseFloat(localStorage.getItem(k))!=null ? ... : default`.
+Con localStorage vacío, `parseFloat(null)` devuelve `NaN` y **`NaN != null` es
+`true`**, así que el ternario elegía `NaN` en lugar del default. `flyTo()` y
+`easeTo()` recibían `zoom: NaN, pitch: NaN` y la cámara nunca se movía del
+globo.
+
+### 22.2 La solución
+
+Se sustituye por comprobación robusta con `isFinite()`:
+
+```js
+const _savedPitch = parseFloat(localStorage.getItem(LS+'pitch'));
+const _savedZoom  = parseFloat(localStorage.getItem(LS+'zoom'));
+// ...
+pitch: isFinite(_savedPitch) ? _savedPitch : 62,
+zoom:  isFinite(_savedZoom)  ? _savedZoom  : 15.5,
+```
+
+Verificado con un harness de simulación (jsdom + stub de Mapbox): antes, el
+`flyTo` de arranque recibía `zoom/pitch = NaN`; después, recibe `zoom 15.5,
+pitch 62` centrado en la posición GPS. El coche vuelve a aterrizar sobre la
+posición real con la perspectiva 3D.
+
+## 23. nav.html: ventana de instrucciones estilo tesla.html y botón de búsqueda (se elimina la fila superior fija)
+
+### 23.1 El problema
+La fila superior de nav.html tenía el buscador de destino siempre visible, ocupando
+espacio y estorbando la vista del mapa. Además, el banner de instrucciones era
+simple (distancia + texto), sin icono de maniobra ni cartel del nombre de la calle,
+a diferencia de tesla.html que muestra el icono, la calle tipo señal de tráfico y
+una barra de progreso roja hacia la maniobra.
+
+### 23.2 La solución
+- Se sustituye la fila superior fija por un botón compacto de búsqueda (🔍, 42px)
+  que abre el buscador en un panel desplegable con el cuadro de texto, el botón
+  "Ruta" y el botón de cerrar (✕).
+- Se copia el estilo de las ventanas de instrucciones de tesla.html:
+  - Caja blanca con el icono de la maniobra (PNG/S1..S5, turn-left, roundabout…)
+  - Texto de la maniobra en blanco con contorno negro
+  - Nombre de la calle en un cartel verde estilo señal de tráfico (calle o ref)
+  - Distancia a la maniobra en azul, barra de progreso roja que se va llenando
+    con el avance, y ETA/llegada a la derecha.
+- Nueva función `getManeuverIconFilename()` (igual que tesla.html), con soporte
+  para el número de salida de rotondas.
+- Se corrige además un efecto colateral del rediseño: el botón ⚙ había perdido su
+  posicionamiento absoluto (arriba derecha) y se queda anclado.
+
+Verificado: 0 errores de sintaxis en el script del documento; los 7 elementos del
+nuevo banner y los 3 del panel de búsqueda están en el HTML; todas las imágenes de
+maniobra existen en PNG/ y el diff queda limitado a los cambios descritos.
+
+## 24. nav.html: capas de mapa (POIs, radares, alertas) y arreglo de edificios 3D
+
+### 24.1 El problema
+- nav.html no tenía opción para activar puntos de interés, radares ni alertas
+  de tráfico en el mapa.
+- El conmutador "Edificios 3D" no funcionaba: dependía de la fuente
+  mapbox://mapbox.buildings-v1, que solo existe con el proveedor Mapbox, y el
+  valor por defecto es OSM raster -> no se dibujaba nada.
+
+### 24.2 La solución
+Nueva sección "Capas de mapa" en Ajustes (⚙):
+- 📡 Radares: radar fijo (highway=speed_camera / speed_display) de OpenStreetMap
+  via Overpass, insignia roja con icono; toque -> "Radar — máx XX".
+- ⚠️ Alertas de tráfico comunitarias: se leen (solo lectura) del mismo Firestore
+  que usa tesla.html (users/ALERTAS/events), filtradas a 24 h, con la insignia
+  correspondiente (accidente, obras, control, atasco, avería, peligro…).
+- 📍 POIs cercanos: conmutador + selector de categoría (gasolineras,
+  restaurantes, cafeterías, supermercados, hospitales, aparcamientos, carga
+  eléctrica, hoteles, parques), marcador circular blanco con el icono de la
+  categoría y el nombre al tocar.
+- Todas las capas se refrescan al mover/zoom el mapa (con cooldown de 15 s
+  por capa y debounce de 1,2 s al terminar el movimiento).
+
+Edificios 3D rehechos sobre Overpass (way["building"] en el área visible,
+altura real de etiqueta height o building:levels*3, colores por altura como
+tesla.html): ahora funcionan con OSM raster POR DEFECTO y con Mapbox, con
+radio adaptado al zoom y límite de features.
+
+Resiliencia de red: fetchOverpass prueba 3 instancias del API (overpass-api.de,
+kumi.systems, private.coffee) con UA de navegador y timeout de 10 s por
+instancia (el navegador del Tesla no envía UA por defecto y overpass-api.de
+responde 406 a UAs raros).
+
+Verificado: 0 errores de sintaxis en el script principal y en el módulo ESM de
+Firebase (node --check); queries Overpass probadas contra instancia real
+(osm.ch) con respuesta JSON válida; 4 interruptores + selector presentes en el
+HTML; diff limitado a los cambios descritos.
+
+## 25. nav.html: modos de zoom como tesla.html (LIBRE / AUTO / RUTA / ECO)
+
+### 25.1 El problema
+nav.html solo tenia un zoom fijo (slider 🔍 en Ajustes); faltaban los modos
+de zoom de tesla.html (AUTO por velocidad, RUTA vista general, LIBRE manual,
+ECO autopista/ciudad).
+
+### 25.2 La solucion
+- Nuevo cluster de zoom en el mapa (derecha, bajo el engranaje): botones
+  +/- con nivel de zoom y boton de modo que cicla ECO -> AUTO -> RUTA ->
+  LIBRE (mismo ciclo que tesla.html).
+- Selector "Modo de zoom" en Ajustes -> Camara, sincronizado con el boton:
+  - LIBRE: zoom manual (los botones +/− y el gesto de pellizco se mantienen).
+  - AUTO: zoom segun velocidad (mismas tablas de tesla.html: <30 -> 18.7,
+    <50 -> 18.4, <80 -> 18.0, <100 -> 17.5, <110 -> 17.1, <120 -> 16.6,
+    mas de 120 -> 16.3).
+  - RUTA: vista general fija zoom 14.5 con pitch reducido (max(4, pitch-3)).
+  - ECO: si vas a mas de 70 km/h y la maniobra esta a mas de 2 km -> vista
+    general 14.5 (autopista); si no, zoom por velocidad con su tabla.
+- La velocidad real (GPS) alimenta AUTO/ECO via navSpeedKmh, y la distancia a
+  la proxima maniobra via lastManeuverDist (actualizada en navTick).
+- El nivel de zoom se muestra en el cluster y se refresca al acabar cada zoom.
+
+Verificado: 0 errores de sintaxis en el script principal; botones y selector
+presentes; tablas de zoom identicas a tesla.html.
+
+## 26. nav.html: simulador de GPS (avanza por la ruta, resto 100% real)
+
+### 26.1 El problema
+Para depurar la navegación (banner, voz, modos de zoom, ETA) había que salir
+a la carretera con el coche.
+
+### 26.2 La solución
+Simulador de GPS integrado en nav.html:
+- Botón "▶ Simular GPS" en la barra inferior (pasa a "■ Fin simulación" en rojo
+  mientras está activo).
+- Al pulsarlo, si hay una ruta calculada, el coche empieza en el punto de la
+  ruta más cercano al GPS actual y avanza por la geometría (routeData.coords)
+  a la velocidad elegida (10-160 km/h, ajustable en Ajustes → "Simulador de
+  GPS (debug)"; se puede cambiar en marcha).
+- Refactor clave: el handler del GPS real (watchPosition) y el simulador
+  comparten un único punto de entrada handleGpsFix(coords), de modo que la
+  simulación pasa por EXACTAMENTE el mismo código que la realidad: marcador
+  del coche, cámara y seguimiento, rotación del icono, velocidad en pantalla
+  (spd-top), navTick (distancia a maniobra, banner, ETA, barra de progreso),
+  avisos de voz y los modos de zoom AUTO/ECO (que usan la velocidad simulada).
+- Al iniciar la simulación se detiene el watchPosition real; al terminarla
+  (fin de ruta o botón) se restaura el GPS real automáticamente.
+
+Verificado: 0 errores de sintaxis; lógica de avance probada en node con ruta
+sintética de 3,8 km a 72 km/h: 191 ticks, 0 m de error, velocidad media 71,9
+km/h; botón y slider presentes en el HTML.
+
+## 27. nav.html: arreglos de zoom +/-, suavidad del simulador y voz/pitido en la salida de rotondas
+
+### 27.1 Los problemas
+- Los botones +/− del zoom no hacían nada en la práctica: con el modo AUTO
+  (por defecto) la cámara reimpone el zoom según velocidad en cada tick y
+  pisaba el zoom manual.
+- El simulador de GPS avanzaba 1 vez por segundo: el coche "iba a golpes".
+- En rotondas (y en general) no se oía nada en el momento de la salida. Dos
+  causas: (1) los flags de voz (far/medium/near) nunca se resetaban al pasar
+  de maniobra -> solo la PRIMERA maniobra de la ruta hablaba; (2) la distancia
+  a la maniobra se calculaba en linea recta (haversine), asi que en una
+  rotonda el aviso se disparaba ~200 m antes y en el momento de salir no
+  habia nada.
+
+### 27.2 Las soluciones
+- Zoom +/−: nueva funcion zoomBy(delta) que siempre funciona: si el modo no es
+  LIBRE pasa automaticamente a LIBRE (el boton muestra "LIBRE") y aplica el
+  zoom; con "Mapa anclado" desactivado hace easeTo directo.
+- Simulador: tick de 250 ms con paso proporcional (velocidad/4 por tick) ->
+  movimiento suave, tambien dentro de las rotondas.
+- Voz/pitido por maniobra:
+  - Reset de voiceFlags al avanzar de maniobra (ahora CADA maniobra habla y
+    pita en sus ventanas de 2 km / 500 m / 230 m).
+  - Distancia a la maniobra POR LA RUTA (nueva distanceAlongRoute: proyeccion
+    del coche sobre la polilinea + acumulado de step.distance en routeData.
+    cumDist), en vez de en linea recta: los avisos llegan en el momento real.
+  - Nuevo disparo "immediato": a <=40 m de la maniobra suena el pitido y la
+    voz dice "X ahora" (p. ej. "Salga de la rotonda ahora") justo en la
+    salida; no se aplica a 'arrive' ni 'depart'.
+
+Verificado: 0 errores de sintaxis; logica probada en node con ruta sintetica
+de 3 pasos (salida, salida de rotonda, llegada): MED/NEAR/NOW disparados en
+cada maniobra con las distancias correctas (540/210 m en la rotonda, pitido a
+17 m) gracias al reset de flags y a la distancia por ruta.
+
+## 28. nav.html: 7 funciones portadas de tesla.html (completar la navegación)
+
+1. **Informar de incidencias de tráfico (⚠️ en la barra superior).** Modal con
+   los 9 tipos (accidente, avería, control, atasco, peligro, mal estado, obras,
+   vía cerrada, "ya no hay nada") que ESCRIBE en el mismo Firestore que usa
+   tesla.html (`users/ALERTAS/events`, doc `timestamp_Guest`), usando la
+   posición real del GPS o la simulada si el simulador está activo. La alerta
+   se pinta al instante si la capa de alertas está activa.
+
+2. **Radares propios (⚙ → Radares propios).**
+   - "＋ Añadir radar en mi posición": modal con velocidad máxima (o tramo);
+     radio 350 m por defecto, ajustable con el slider de radio dinámico
+     (50–2000 m, el círculo se escala con el zoom en metros reales).
+   - Importar desde URL de KML público (mismo formato que tesla.html:
+     placemarks con nombre y coordenadas, decode ISO-8859-1) con filtro de
+     palabras clave opcional y dedupe por coordenadas.
+   - Backup: descarga JSON de los radares propios; Restaurar: sube el JSON.
+   - Vaciar todo (con confirmación). Los radares propios se dibujan con
+     insignia roja + círculo de radio y avisan al tocarlos.
+
+3. **Resumen de llegada (arrival stats).** Al llegar al destino se muestra un
+   modal con salida/duración/llegada, km reales recorridos (acumulados por
+   GPS en handleGpsFix), estimados de la ruta, velocidad media y máxima.
+   Funciona también con el simulador de GPS.
+
+4. **Rutas guardadas + favoritos (⭐).** Panel desplegable que guarda la ruta
+   actual con nombre (o lo carga de la lista), lista las guardadas
+   (nombre + distancia + tiempo) con Cargar y borrar (🗑). Persistencia en
+   localStorage (`nav_savedRoutes`).
+
+5. **Histórico de versiones (📋).** Modal que carga `updates.txt` del repo
+   (mismo origen que tesla.html) con cache 'no-cache'.
+
+6. **Asistente de rutas IA (🤖).** Chat con Gemini (mismo endpoint
+   `APP_CONFIG.endpoints.gemini()` que tesla.html): el sistema le pide un
+   bloque JSON `{title, waypoints:[{lat,lng,address}]}`, se parsea (bloque de
+   código o llaves con "waypoints") y se calcula la ruta al destino; si la IA
+   no da coordenadas válidas, geocodifica la dirección con Nominatim.
+
+7. **Integración:** el módulo Firebase ahora también expone `doc`/`setDoc`
+   (escritura de alertas); la búsqueda captura el nombre del destino para el
+   resumen y las rutas guardadas; `btn-stop` y `arrive()` resetean las
+   estadísticas de viaje.
+
+Verificado: 0 errores de sintaxis (script principal + módulo ESM con
+node --check), los 92 IDs usados en JS existen en el HTML, y batería de
+pruebas con stubs (14/14 PASS): wiring, modal de alertas y escritura en
+Firestore, creación/borrado de radares propios, resumen de llegada,
+guardado/borrado de rutas, carga de updates.txt, parseo del JSON de la IA y
+velocidad del GPS.
+
+## 29. nav.html: arreglo de POIs (invisibles en Calles + tamaño según zoom)
+
+- **POIs invisibles al cambiar de estilo/proveedor:** al recrear el mapa
+  (p. ej. Calles → Satélite) el cooldown de 15 s hacía que el refresco de
+  capas en `map.on('load')` se saltara, y la capa nueva se quedaba SIN
+  marcadores. Ahora el load fuerza el refresco de todas las capas activas
+  (`refreshActiveLayers(true)`, con parámetro `force` propagado a
+  radares/POIs/alertas/edificios).
+- **Iconos pequeños en Satélite:** los marcadores de POIs eran de 34 px fijos.
+  Ahora su tamaño depende del zoom (48 px con zoom bajo → 32 px con zoom
+  alto) y se reescala en caliente en cada zoomend (`updatePoiMarkerSizes`),
+  con fondo más opaco y sombra para que resalten sobre la imagen de satélite.
+- `clearLayerMarkers` ahora limpia tanto marcadores sueltos como wrappers
+  `{marker, el}` (necesario para el reescalado en caliente).
+
+Verificado: 0 errores de sintaxis; tabla de tamaños probada en node
+(48/44/40/36/32 px según zoom); anclas únicas en el HTML.
+
+## 30. nav.html: tamaño de POIs configurable, categorías multi-selección y velocidad como emblema Tesla
+
+- **Tamaño de los iconos de POI configurable (⚙ → POIs cercanos):** nuevo
+  slider 24–64 px (defecto 40) que ajusta el tamaño de los marcadores; el
+  factor por zoom se mantiene (más grandes con zoom bajo, compactos con zoom
+  alto) y se aplica en caliente al mover el slider o el zoom.
+- **Categorías multi-selección:** el desplegable único se sustituye por
+  "chips" (⛽ Gasolina, 🍽️ Comida, ☕ Café, 🛒 Tiendas, 🏥 Salud, 🅿️ Parking,
+  🔋 Carga, 🏨 Hotel, ⛺ Parques) que puedes activar/desactivar varias a la
+  vez; cada categoría consulta su propia query de Overpass con su icono y se
+  deduplica por coordenadas (máx. 150 marcadores). Si se desactivan todas,
+  vuelve a Gasolina. Migración automática del valor antiguo `poiCat`.
+- **Velocidad como emblema de Tesla (como tesla.html):** se elimina la cifra
+  de velocidad del centro superior (tapaba botones) y pasa a un botón
+  circular semi-transparente con el LOGOTESLA de fondo y la velocidad
+  encima, en la posición del emblema (arriba-izquierda). **Pulsarlo
+  muestra/oculta la fila superior** (🔍 ⭐ 🤖 ⚠️ 📋), que ahora arranca
+  oculta, igual que el toggle de tesla.html.
+
+Verificado: 0 errores de sintaxis; 15/15 tests con stubs (toggle del emblema,
+chips 9 categorías + activar/quitar, slider de tamaño y poiMarkerSize con el
+factor de zoom, refreshPois multi-categoría con 1 query por categoría y dedupe
+por coordenadas, velocidad en el emblema); los 97 IDs usados en JS existen en
+el HTML.
+
+## 31. nav.html: POIs arreglados (sintaxis Overpass), coche geográfico con cuenta atrás para volver, y Ajustes por pestañas
+
+1. **POIs que no cargaban (a ningún zoom):** la consulta a Overpass usaba
+   `node["amenity"="fuel"];(around:...)` (filtro independiente), que es
+   sintaxis INVÁLIDA y Overpass estricto rechaza con 400. Ahora se usa la
+   forma directa `node["amenity"="fuel"](around:...)` (validada: 200 contra
+   una instancia real, también multi-categoría). Además se añade
+   `overpass.osm.ch` como segundo endpoint de respaldo (kumi.systems estaba
+   caído con 502).
+
+2. **Coche en su posición real al mover el mapa:** el coche era un div fijo
+   en pantalla (posición % carX/carY), así que al arrastrar el mapa se
+   quedaba «pegado» a la pantalla en vez de a su coordenada GPS. Ahora es un
+   **marcador geográfico** (mapboxgl.Marker): se mueve con el mapa. carX/carY
+   siguen controlando DÓNDE se ve el coche en pantalla mientras el mapa lo
+   sigue (padding).
+
+3. **Cuenta atrás de 15 s (configurable) para volver al coche:** si «Mapa
+   anclado» está activo, arrastrar o hacer zoom con rueda/dedo pausa el
+   seguimiento (la cámara no pelea con el usuario) y aparece «Vuelta al
+   coche en Ns» con botón ✕ (no volver). Cada interacción reinicia la cuenta
+   (configurable 0–60 s en Ajustes → Cámara; 0 = no volver solo). ⌖ Centrar
+   devuelve la vista al instante.
+
+4. **Ajustes por pestañas:** el panel se organiza en 7 pestañas (Mapa,
+   Capas, Ruta, Voz, Cámara, Radares, Simulador) que filtran los grupos; la
+   pestaña activa se recuerda.
+
+Verificado: 0 errores de sintaxis; query multi-categoría validada contra
+Overpass real (200); 21/21 tests con stubs (marcador del coche geográfico y
+su movimiento, pausa/cuenta atrás/retorno/cancelar/timeout 0, ⌖ re-engancha,
+updateCamera sin pelear, pestañas mostrar/ocultar/guardar, slider de timeout,
+sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.

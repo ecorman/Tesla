@@ -988,6 +988,11 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
                         </div>
                     </div>
                 </div>
+                <div id="nav-speed-chip" style="display:flex;align-items:center;gap:7px;padding:6px 12px;background:rgba(10,10,14,.85);border:1px solid #3a3a44;border-radius:12px;margin-left:10px;flex-shrink:0;user-select:none;" title="Velocidad actual">
+                    <span style="font-size:10px;color:#9aa0a6;letter-spacing:1px;">VEL</span>
+                    <span id="nav-speed-value" style="font-size:24px;font-weight:700;color:#007aff;line-height:1;min-width:36px;text-align:right;">0</span>
+                    <span style="font-size:10px;color:#9aa0a6;">km/h</span>
+                </div>
             </div>
                
         </div>
@@ -5450,8 +5455,66 @@ function clearPoiSearchResults() {
 }    
 
 // ===================================================================
-// NOMBRE: displayPoiSearchResults 
-function displayPoiSearchResults(features, map) {
+// NOMBRE: getPoiIcon + mapa de iconos por categoria
+// RESUMEN: Asigna un emoji representativo a cada resultado de busqueda de
+// POIs segun su categoria OSM (Photon: osm_key/osm_value; Overpass:
+// osm_key tipo node:restaurant). El marcador muestra el icono en lugar del
+// numero; la lista lateral sigue numerada para poder cruzar con el mapa.
+// ===================================================================
+const POI_CATEGORY_ICONS = {
+  amenity: { restaurant:"U0001F37D️", cafe:"☕", bar:"U0001F37A", pub:"U0001F37A", fast_food:"U0001F354", food_court:"U0001F37D️", pharmacy:"U0001F48A", hospital:"U0001F3E5", clinic:"U0001FA79", doctors:"U0001FA79", dentist:"U0001F9B7", police:"U0001F693", fire_station:"U0001F692", fuel:"⛽", charging_station:"U0001F50B", parking:"U0001F17F️", parking_entrance:"U0001F17F️", atm:"U0001F3E7", bank:"U0001F3E6", cinema:"U0001F3AC", theatre:"U0001F3AD", school:"U0001F3EB", kindergarten:"U0001F9D2", college:"U0001F3EB", university:"U0001F393", library:"U0001F4DA", post_office:"U0001F4EE", car_wash:"U0001F9FC", car_rental:"U0001F699", car_repair:"U0001F527", taxi:"U0001F695", bus_station:"U0001F68C", train_station:"U0001F686", subway_entrance:"U0001F687", ferry_terminal:"⛴️", airport:"✈️", bicycle_parking:"U0001F6B2", gym:"U0001F3CB️", swimming_pool:"U0001F3CA", place_of_worship:"⛪", toilets:"U0001F7BB", veterinary:"U0001F43E", market:"U0001F3EA", nightclub:"U0001FAA9", casino:"U0001F3B0", ice_cream:"U0001F366", bbq:"U0001F356" },
+  shop: { supermarket:"U0001F6D2", mall:"U0001F6CD️", department_store:"U0001F3EC", convenience:"U0001F3EA", bakery:"U0001F950", butcher:"U0001F969", greengrocer:"U0001F966", seafood:"U0001F990", alcohol:"U0001F377", beverages:"U0001F964", books:"U0001F4DA", clothes:"U0001F455", shoes:"U0001F45F", electronics:"U0001F4F1", computer:"U0001F4BB", mobile_phone:"U0001F4F1", furniture:"U0001F6CB️", home_goods:"U0001F3E0", hardware:"U0001F527", doityourself:"U0001F527", garden_centre:"U0001F331", florist:"U0001F490", jewelry:"U0001F48D", optician:"U0001F453", car:"U0001F697", car_repair:"U0001F527", car_parts:"U0001F529", bicycle:"U0001F6B2", motorcycle:"U0001F3CD️", gift:"U0001F381", toys:"U0001F9F8", sports:"⚽", music:"U0001F3B5", musical_instrument:"U0001F3B8", pet:"U0001F43E", hairdresser:"U0001F487", beauty:"U0001F485", laundry:"U0001F9FA", travel_agency:"✈️", estate_agent:"U0001F3E0" },
+  tourism: { hotel:"U0001F3E8", hostel:"U0001F3E8", motel:"U0001F3E8", guest_house:"U0001F3E1", apartment:"U0001F3E2", chalet:"U0001F3D4️", camping:"⛺", caravan_site:"U0001F690", museum:"U0001F3DB️", gallery:"U0001F5BC️", attraction:"U0001F52D", viewpoint:"U0001F440", theme_park:"U0001F3A2", zoo:"U0001F981", aquarium:"U0001F420", picnic_site:"U0001F9FA", information:"ℹ️", alpine_hut:"U0001F3D4️" },
+  leisure: { park:"U0001F333", garden:"U0001F337", playground:"U0001F6DD", sports_centre:"U0001F3DF️", stadium:"U0001F3DF️", swimming_pool:"U0001F3CA", fitness_centre:"U0001F3CB️", golf_course:"⛳", marina:"⛵", beach_resort:"U0001F3D6️", nature_reserve:"U0001F332" },
+  natural: { beach:"U0001F3D6️", park:"U0001F333", wood:"U0001F332", forest:"U0001F332", peak:"⛰️", volcano:"U0001F30B", waterfall:"U0001F4A7", bay:"U0001F30A", cape:"U0001F30A", cave_entrance:"U0001F573️" },
+  historic: { monument:"U0001F3F0", castle:"U0001F3F0", ruins:"U0001F3DB️", memorial:"U0001F5FF", museum:"U0001F3DB️", archaeological_site:"U0001F3FA", fort:"U0001F3F0" },
+  highway: { fuel:"⛽", rest_area:"U0001F17F️", services:"U0001F6E3️", charging_station:"U0001F50B" },
+  office: { company:"U0001F3E2", bank:"U0001F3E6", insurance:"U0001F6E1️", lawyer:"⚖️" },
+  healthcare: { hospital:"U0001F3E5", pharmacy:"U0001F48A", clinic:"U0001FA79" },
+  building: { supermarket:"U0001F6D2", hospital:"U0001F3E5", hotel:"U0001F3E8" },
+  place: { city:"U0001F3D9️", town:"U0001F3D8️", village:"U0001F3E1", neighbourhood:"U0001F3D8️", suburb:"U0001F3D8️", square:"⛲", island:"U0001F3DD️" }
+};
+const POI_VALUE_ICONS = {
+  restaurant:"U0001F37D️", cafe:"☕", bar:"U0001F37A", pub:"U0001F37A", fast_food:"U0001F354", food_court:"U0001F37D️",
+  pharmacy:"U0001F48A", hospital:"U0001F3E5", clinic:"U0001FA79", doctors:"U0001FA79", dentist:"U0001F9B7",
+  police:"U0001F693", fire_station:"U0001F692", fuel:"⛽", petrol:"⛽", gas_station:"⛽",
+  charging_station:"U0001F50B", parking:"U0001F17F️", atm:"U0001F3E7", bank:"U0001F3E6", cinema:"U0001F3AC", theatre:"U0001F3AD",
+  school:"U0001F3EB", university:"U0001F393", library:"U0001F4DA", post_office:"U0001F4EE", car_wash:"U0001F9FC",
+  car_rental:"U0001F699", car_repair:"U0001F527", bus_station:"U0001F68C", train_station:"U0001F686",
+  subway_entrance:"U0001F687", ferry_terminal:"⛴️", airport:"✈️", gym:"U0001F3CB️", swimming_pool:"U0001F3CA",
+  supermarket:"U0001F6D2", mall:"U0001F6CD️", shopping_mall:"U0001F6CD️", department_store:"U0001F3EC", convenience:"U0001F3EA",
+  bakery:"U0001F950", butcher:"U0001F969", hardware:"U0001F527", hardware_store:"U0001F527",
+  car:"U0001F697", bicycle:"U0001F6B2", motorcycle:"U0001F3CD️", gift:"U0001F381", toys:"U0001F9F8", sports:"⚽",
+  music:"U0001F3B5", pet:"U0001F43E", hairdresser:"U0001F487", laundry:"U0001F9FA", travel_agency:"✈️",
+  hotel:"U0001F3E8", hostel:"U0001F3E8", motel:"U0001F3E8", lodging:"U0001F3E8", guest_house:"U0001F3E1", camping:"⛺", museum:"U0001F3DB️",
+  gallery:"U0001F5BC️", attraction:"U0001F52D", tourist_attraction:"U0001F52D", viewpoint:"U0001F440", theme_park:"U0001F3A2", zoo:"U0001F981",
+  park:"U0001F333", garden:"U0001F337", playground:"U0001F6DD", stadium:"U0001F3DF️", golf_course:"⛳",
+  marina:"⛵", beach:"U0001F3D6️", wood:"U0001F332", forest:"U0001F332", peak:"⛰️", volcano:"U0001F30B",
+  waterfall:"U0001F4A7", monument:"U0001F3F0", castle:"U0001F3F0", ruins:"U0001F3DB️", memorial:"U0001F5FF",
+  city:"U0001F3D9️", town:"U0001F3D8️", village:"U0001F3E1", island:"U0001F3DD️", accommodation:"U0001F3E8",
+  night_club:"U0001FAA9", clothing_store:"U0001F455", home_goods_store:"U0001F6CB️", car_wash_shop:"U0001F9FC"
+};
+function getPoiIcon(feature) {
+  const props = (feature && feature.properties) || {};
+  const key = props.osm_key;
+  const val = props.osm_value || props.value;
+  if (key && val && POI_CATEGORY_ICONS[key] && POI_CATEGORY_ICONS[key][val]) return POI_CATEGORY_ICONS[key][val];
+  if (key && key.indexOf(":") !== -1) {
+    const v = key.split(":")[1];
+    if (POI_VALUE_ICONS[v]) return POI_VALUE_ICONS[v];
+  }
+  if (val && POI_VALUE_ICONS[val]) return POI_VALUE_ICONS[val];
+  if (props.poi_category && Array.isArray(props.poi_category)) {
+    for (const c of props.poi_category) { const ic = POI_VALUE_ICONS[String(c).toLowerCase()]; if (ic) return ic; }
+  }
+  if (props.category) {
+    const cat = String(props.category).toLowerCase();
+    for (const k in POI_VALUE_ICONS) { if (cat.indexOf(k) !== -1) return POI_VALUE_ICONS[k]; }
+  }
+  return "U0001F4CD";
+}
+
+
     clearPoiSearchResults();
 
     if (!features || features.length === 0) {
@@ -5482,7 +5545,8 @@ function displayPoiSearchResults(features, map) {
 
             const el = document.createElement('div');
             el.className = 'numbered-poi-marker';
-            el.textContent = index + 1;
+            el.textContent = getPoiIcon(feature);
+            el.title = poiName;
             
             const marker = new mapboxgl.Marker(el)
                 .setLngLat(coords)
@@ -11106,6 +11170,19 @@ function updateMapCamera(coords, mapInstanceToUse) {
 }
 
 // ===================================================================
+// NOMBRE: updateNavSpeedChip
+// RESUMEN: Refresca el chip de velocidad actual del panel inferior de
+// navegacion (visible siempre, a diferencia del panel brujula que se
+// oculta durante las maniobras). Se llama desde updateTripStatistics.
+// ===================================================================
+function updateNavSpeedChip() {
+    const el = document.getElementById('nav-speed-value');
+    if (!el) return;
+    const txt = String(Math.round(window.currentSpeedKmh || 0));
+    if (el.textContent !== txt) el.textContent = txt;
+}
+
+// ===================================================================
 // NOMBRE: updateTripStatistics 
 function updateTripStatistics(coords) {
     if (compassAndModeControl) {
@@ -11152,6 +11229,7 @@ function updateTripStatistics(coords) {
             }
         }
         compassAndModeControl.updateCurrentSpeed(window.currentSpeedKmh);
+        updateNavSpeedChip();
         compassAndModeControl.updateAverageSpeed(window.averageSpeedKmh);
         compassAndModeControl.updateMaxSpeed(maxSpeedDuringTrip);
  
@@ -16159,8 +16237,8 @@ function displayAlertsOnMap() {
                     'interpolate',
                     ['linear'],
                     ['zoom'],
-                    12, 0.30,  
-                    16, 0.50   
+                    12, 0.28,
+                    16, 0.22
                 ],
                 'icon-allow-overlap': true,
                 'icon-anchor': 'center'
