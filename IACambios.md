@@ -1063,3 +1063,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Escala de la ventana de brújula también en Ajustes**: nueva fila «🧭 Tamaño HUD» en la pestaña Cámara (60 %–160 %), sincronizada con los botones − / ＋ del propio HUD.
 - **POIs**: botón «↻ Actualizar POIs» en Ajustes → Capas, y si ninguna instancia Overpass responde aparece un **aviso visible** con instrucciones (antes fallaba en silencio). Además un **reset de versión de ajustes** borra una sola vez los valores antiguos guardados (`pois=false`, categorías solo gasolina) que impedían ver los POIs por defecto.
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), **17/17 tests** (HUD sin hud-speed, Mín, toggle de gráfica con unidades y colores por modo, escala en ajustes, reset de versión, fetchOverpass con detección de fallo).
+
+## 45. nav.html (2026-09-01): Simular GPS y Centrar en la barra superior — eliminada la barra inferior que tapaba la brújula
+- **«▶ Simular GPS» y «⌖ Centrar»** movidos a la **barra superior** (junto a 🔍 ⭐ 🤖 ⚠️ 📋), con estilo compacto.
+- **Eliminada la barra inferior** (gradiente de abajo) que **tapaba el HUD/brújula** en la esquina inferior izquierda — el HUD queda totalmente visible.
+- El botón **«■ Fin»** (finalizar navegación) también pasa a la barra superior; sigue oculto hasta que haya una ruta activa.
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **7/7 tests** (botones en topbar, sin bottombar, wiring intacto).

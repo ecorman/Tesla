@@ -92,8 +92,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .rd-step .rd-dist{font-size:11px;font-variant-numeric:tabular-nums;color:var(--dim)}
 .rd-step.cur{background:rgba(255,255,255,.1);outline:1px solid var(--line)}
 /* ---- bottom info ---- */
-#bottombar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:16px;padding:10px 16px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);pointer-events:none}
-#bottombar>*{pointer-events:auto}
+/* botones de simulación y centrado ahora en la barra superior (la barra inferior tapaba el HUD/brújula) */
+#topbar-btns .btn{padding:6px 10px;font-size:12px;border-radius:9px}
 #speedo{padding:8px 14px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:12px;text-align:center}
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
@@ -235,6 +235,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <button class="icon-btn" id="btn-ai" title="Asistente de rutas IA">🤖</button>
   <button class="icon-btn" id="btn-report" title="Informar de una incidencia">⚠️</button>
     <button class="icon-btn" id="btn-versions" title="Histórico de versiones">📋</button>
+    <button class="btn" id="btn-sim" title="Simula el GPS avanzando por la ruta calculada">▶ Simular GPS</button>
+    <button class="btn" id="btn-center" title="Centrar en el coche">⌖ Centrar</button>
+    <button class="btn stop" id="btn-stop" style="display:none" title="Finalizar la navegación">■ Fin</button>
   </div>
 </div>
 <button id="gear" title="Ajustes">⚙</button>
@@ -281,12 +284,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 </div>
 
 <div id="results"></div>
-
-<div id="bottombar">
-  <button class="btn" id="btn-sim" title="Simula el GPS avanzando por la ruta calculada">▶ Simular GPS</button>
-  <button class="btn" id="btn-center">⌖ Centrar</button>
-  <button class="btn stop" id="btn-stop" style="display:none">■ Fin</button>
-</div>
 
 <!-- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) -->
 <div id="free-hud">
