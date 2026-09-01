@@ -127,7 +127,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .rsz-handle{position:absolute;right:1px;bottom:1px;width:16px;height:16px;cursor:nwse-resize;z-index:6;opacity:.9;border-radius:0 0 12px 0}
 .rsz-handle::before{content:"";position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);border-radius:1px}
 .rsz-handle:hover{opacity:1}
-#mnv-minimap{width:100%;height:128px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
+#mnv-minimap{width:100%;flex:1;min-height:70px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
 /* ---- overlay recarga controlada ---- */
 #mem-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
 #mem-overlay .mem-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 28px;font-size:16px;color:var(--txt)}
@@ -177,7 +177,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- velocidad: emblema Tesla (semi-transparente) + toggle barra superior ---- */
 #topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
-#topbar.banner-on #topbar-btns{top:10px;left:auto;right:64px}
+#topbar.banner-on #topbar-btns{left:12px;right:auto;top:78px}
 #speed-emblem{position:relative;display:flex;align-items:center;gap:10px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
 .hud-emblem-v{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:auto;text-align:center}
@@ -311,7 +311,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 </div>
 <!-- minimapa de previsualización de maniobra (canvas ligero) -->
 <div id="mnv-box">
-  <span id="mnv-label">🗺️ Maniobra</span>
+  <span id="mnv-label">🗺️ Ruta completa</span>
   <canvas id="mnv-minimap" width="200" height="128"></canvas>
 </div>
 <!-- overlay de recarga controlada (watchdog de memoria) -->
@@ -1441,13 +1441,14 @@ async function calcRoute(dest,name,waypoints){
   // success
   map.getSource('route').setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:routeData.coords}});
   // la cámara sigue al coche (sin fitBounds brusco de toda la ruta)
-  maneuverIdx=0;lastRenderedManeuver=-1;voiceFlags={};
+  maneuverIdx=0;lastRenderedManeuver=-1;voiceFlags={};freeDriveDetected=false;
   tripStats={startTime:new Date(),travelledKm:0,maxSpeed:0,initialDistance:routeData.distance,initialDuration:routeData.duration,destName:name||lastDestName||'Destino'};
   lastTripPos=userPos.slice();
   freeStats=null;
   document.getElementById('btn-stop').style.display='';
   document.getElementById('topbar').classList.add('banner-on');
   document.getElementById('banner').style.display='flex';
+  placeTopbarBtns();
   updateRouteDetail();
   speak(NAV_CLIPS.start);
   // El banner se rellena en el primer navTick (navTick también avanza la
@@ -1594,6 +1595,7 @@ function getManeuverIconFilename(maneuver){
 let navInterval=null;
 let lastGpsTime=0;
 let lastRecalcTime=0; // cooldown de recalculo por desviacion (ms)
+let freeDriveDetected=false; // aviso de navegación libre (una sola vez por sesión)
 
 function startNavLoop(){
   stopNavLoop();
@@ -1745,6 +1747,7 @@ function arrive(){
   document.getElementById('topbar').classList.remove('banner-on');
   document.getElementById('banner').style.display='none';
   document.getElementById('btn-stop').style.display='none';
+  placeTopbarBtns();
   showArrivalStats();
   tripStats=null;lastTripPos=null;
   routeWaypoints=[];
@@ -1903,6 +1906,7 @@ function drawHudGraph(){
 function drawMinimap(){
   const cv=document.getElementById('mnv-minimap');if(!cv)return;
   if(cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
+  if(cv.height!==cv.offsetHeight)cv.height=cv.offsetHeight;
   const on=!!S.minimap&&!!routeData;
   const box=document.getElementById('mnv-box');
   if(box)box.style.display=on?'flex':'none';
@@ -1912,13 +1916,14 @@ function drawMinimap(){
   ctx.clearRect(0,0,w,h);
   const car=userPos||routeData.coords[0];
   const step=routeData.steps[maneuverIdx]||routeData.steps[routeData.steps.length-1];
-  // puntos de la ruta hasta ~1,2 km por delante del coche
-  const pts=[car];let acc=0;
-  for(let i=0;i<routeData.coords.length-1;i++){
-    const d=haversine(routeData.coords[i],routeData.coords[i+1]);
-    if(acc+d>1200)break;
-    acc+=d;pts.push(routeData.coords[i+1]);
-  }
+  // ruta COMPLETA (decimada a ~400 puntos para rutas largas): se ve el
+  // trayecto entero con el coche, la próxima maniobra y el destino.
+  const raw=routeData.coords;
+  const pts=[car];
+  const rn=raw.length;
+  const stride=rn>400?Math.ceil(rn/400):1;
+  for(let i=0;i<rn;i+=stride)pts.push(raw[i]);
+  if(rn>1&&(rn-1)%stride!==0)pts.push(raw[rn-1]);
   const mnv=step&&step.maneuver&&step.maneuver.location?[step.maneuver.location[0],step.maneuver.location[1]]:null;
   const dest=routeData.coords[routeData.coords.length-1];
   let minL=Infinity,maxL=-Infinity,minA=Infinity,maxA=-Infinity;
@@ -1994,6 +1999,19 @@ function lowPri(fn,ms){
   lowPriTimers.push(id);
 }
 
+/* detección de navegación libre, igual que tesla: sin ruta activa y
+   circulando a más de 20 km/h -> modo libre (fuerza el HUD y avisa una vez) */
+function detectFreeDrive(){
+  if(routeData||freeDriveDetected)return;
+  if((navSpeedKmh||0)<=20)return;
+  freeDriveDetected=true;
+  if(!S.freeHud){
+    S.freeHud=true;saveS('freeHud',true);
+    const sw=document.getElementById('s-freehud');if(sw)sw.classList.add('on');
+  }
+  showFreeHud();
+  toast('Navegación libre — sin destino: HUD activado');
+}
 function handleGpsFix(coords){
   userPos=[coords.longitude,coords.latitude];
   carHeading=computeHeading({coords});
@@ -2006,6 +2024,7 @@ function handleGpsFix(coords){
   navSpeedKmh=spd;
   document.getElementById('se-spd').textContent=Math.round(spd);
   updateFreeHud(coords);
+  detectFreeDrive();
   // estadísticas de viaje (para el resumen de llegada)
   if(tripStats){
     if(spd>tripStats.maxSpeed)tripStats.maxSpeed=spd;
@@ -2126,6 +2145,8 @@ document.getElementById('btn-stop').onclick=()=>{
   document.getElementById('topbar').classList.remove('banner-on');
   document.getElementById('banner').style.display='none';
   document.getElementById('btn-stop').style.display='none';
+  placeTopbarBtns();
+  freeDriveDetected=false;
   updateRouteDetail();
   toast('Navegación finalizada');
 };
@@ -2368,7 +2389,7 @@ function makeResizable(id,key,minW,minH){
       el.style.width=Math.round(nw)+'px';
       el.style.height=Math.round(nh)+'px';
       if(id==='free-hud'){const cv=document.getElementById('hud-graph');if(cv&&(cv.width!==cv.offsetWidth||cv.height!==cv.offsetHeight)){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;drawHudGraph();}}
-      if(id==='mnv-box'){const cv=document.getElementById('mnv-minimap');if(cv&&cv.width!==cv.offsetWidth){cv.width=cv.offsetWidth;drawMinimap();}}
+      if(id==='mnv-box'){const cv=document.getElementById('mnv-minimap');if(cv&&(cv.width!==cv.offsetWidth||cv.height!==cv.offsetHeight)){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;drawMinimap();}}
     };
     const up=ev=>{
       move(ev);
@@ -3053,6 +3074,20 @@ function hookLongPress(){
   c.addEventListener('mouseup',end);
 }
 
+/* con navegación activa los botones van a la izquierda, justo debajo de la
+   ventana de navegación (banner o detallada), en lugar de saltar a la derecha */
+function placeTopbarBtns(){
+  const tb=document.getElementById('topbar');
+  const btns=document.getElementById('topbar-btns');
+  if(!tb||!btns)return;
+  if(!tb.classList.contains('banner-on')){btns.style.top='';return;}
+  const det=document.getElementById('route-detail');
+  const detOn=det&&det.style.display==='block';
+  const ref=detOn?det:document.getElementById('banner');
+  const top=ref?Math.round(ref.getBoundingClientRect().bottom)+8:78;
+  btns.style.top=Math.max(72,top)+'px';
+}
+
 /* ================================================================
    ---------- ventana de ruta detallada (puntos + instrucciones) ---------- */
 function updateRouteDetail(){
@@ -3060,6 +3095,7 @@ function updateRouteDetail(){
   if(!d)return;
   const show=!!(routeData&&destPoint&&S.routeView==='detallada');
   d.style.display=show?'block':'none';
+  placeTopbarBtns();
   if(show)renderRouteDetail();
 }
 function renderRouteDetail(){

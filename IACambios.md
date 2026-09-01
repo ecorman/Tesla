@@ -1151,3 +1151,10 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Tiempo hasta la maniobra añadido** (lo que faltaba respecto a tesla): «en 3 min / en 45 s / en 1 h 10 min» bajo la distancia, calculado proporcional al ETA restante por distancia.
 - **Instrucciones detalladas**: la etapa actual se marca en azul y **se queda pinada en la primera fila** (la lista se reordena de forma circular al cambiar de maniobra). Las filas son clicables.
 - **Clic en una instrucción (en modo simulación)**: salta el GPS simulado a **50 m antes del punto de esa maniobra** (medido sobre la geometría de la ruta) y la etapa clickada pasa a ser la actual en la primera fila. Sin simulación, el clic solo vuela la cámara hasta ese punto.
+
+## 59. nav.html: ventana de maniobra reescalable de verdad + minimapa de ruta completa + barra izquierda con navegación + modo libre como tesla (2026-09-01)
+
+- **Ventana de maniobra**: el canvas del minimapa ahora **rellena la ventana** (flex:1, crece en alto y ancho al arrastrar la esquina) y se redibuja en ambas dimensiones — antes solo crecía la ventana, no el dibujo.
+- **Minimapa = ruta completa**: ya no muestra solo 1,2 km por delante. Dibuja el **trayecto entero** (decimado a ~400 puntos para rutas largas) con el coche, la próxima maniobra (marcada en rojo) y el destino — así se entiende para qué sirve.
+- **Barra superior con navegación**: con ruta activa los botones salen **a la izquierda, justo debajo** de la ventana de navegación (banner o detallada), no a la derecha. `placeTopbarBtns()` recalcula la posición al abrir/cerrar ventanas.
+- **Navegación libre como tesla**: sin ruta activa y circulando a **más de 20 km/h**, la app detecta modo libre — activa el **Free Drive HUD automáticamente** (si estaba apagado) y avisa una vez con un toast. Se resetea al calcular una ruta o finalizarla.
