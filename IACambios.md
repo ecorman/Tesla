@@ -1101,3 +1101,8 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **nav.html** ya tenía el guard (entrada 49); verificado con harness de arranque con ids reales: boot completo sin excepciones sin APP_CONFIG (mapa OSM raster, POIs Overpass y rutas OSRM/Valhalla funcionan sin token).
 - **Pendiente del usuario**: (1) re-guardar las claves en Keys/API keys para que Freebuff regenere `PNG/zbuildgs.js` (devuelve Firebase/IA/tráfico); (2) recargar con caché limpia (Ctrl+Shift+R) — el navegador puede tener la versión vieja que crasheaba.
 - Verificado: 0 errores de sintaxis en tesla.html (4 scripts + módulo ESM) y nav.html; preview sirviendo ambas versiones con guards.
+
+## 51. nav.html: escala del HUD solo afecta a la gráfica; fuera los botones −/＋ (2026-09-01)
+- **La escala (Ajustes → Cámara → Tamaño HUD, 60–160 %) ya NO redimensiona** el emblema Tesla/velocidad, la brújula ni los datos: ahora afecta **solo a la ventana de la gráfica** (canvas de desnivel/velocidad, que además crece en ancho y alto reales y se redibuja).
+- **Eliminados los botones − / ＋ de la ventana de la brújula** (ocupaban sitio): el ajuste de tamaño queda solo en el slider de Ajustes → Cámara.
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **9/9 tests** (sin botones, #free-hud sin transform, gráfica con `calc(200px*var)`, var aplicada, slider sincronizado y persistido, gráfica redibujada).

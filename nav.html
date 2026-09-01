@@ -98,16 +98,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
 /* ---- Free Drive HUD ---- */
-#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease;transform:scale(var(--hud-scale,1));transform-origin:bottom left}
+#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease}
 #free-hud.hud-big{min-width:264px}
 #free-hud.hud-big #hud-compass{width:46px;height:46px}
 #free-hud.hud-big .hud-spd span{font-size:38px}
 #free-hud.hud-big .hud-stats{font-size:12px}
 #free-hud.hud-big #hud-orient{font-size:19px}
-.hud-scale{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:2px}
-.hud-scale button{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid var(--line);color:var(--txt);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
-.hud-scale button:hover{background:rgba(255,255,255,.22)}
-.hud-scale span{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:44px;text-align:center}
 #settings input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 #free-hud .hud-row{display:flex;align-items:center;gap:8px}
 #hud-compass{width:34px;height:34px;object-fit:contain;transition:transform .25s linear}
@@ -117,7 +113,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #free-hud .hud-spd{margin-left:auto;font-size:11px;color:var(--dim);text-align:right;line-height:1}
 #free-hud .hud-spd span{font-size:27px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
-#hud-graph{width:100%;height:52px;border-radius:8px;background:rgba(255,255,255,.05)}
+#hud-graph{width:max(100%,calc(200px * var(--hud-scale,1)));height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
 .hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
 .hud-graph-toggle:hover{color:var(--txt)}
 /* ---- minimapa de maniobra ---- */
@@ -306,11 +302,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
   <canvas id="hud-graph" width="200" height="52" title="Pulsa para cambiar la gráfica"></canvas>
   <button id="hud-graph-toggle" class="hud-graph-toggle" title="Cambiar gráfica: desnivel / velocidad">⛰ Desnivel — pulsa para cambiar</button>
-  <div class="hud-scale">
-    <button id="hud-scale-minus" title="Reducir tamaño">−</button>
-    <span id="hud-scale-val">100%</span>
-    <button id="hud-scale-plus" title="Agrandar tamaño">＋</button>
-  </div>
 </div>
 <!-- minimapa de previsualización de maniobra (canvas ligero) -->
 <div id="mnv-box">
@@ -1821,6 +1812,7 @@ function updateFreeHud(coords){
 function drawHudGraph(){
   const cv=document.getElementById('hud-graph');if(!cv)return;
   if(cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
+  if(cv.height!==cv.offsetHeight)cv.height=cv.offsetHeight;
   const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
   ctx.clearRect(0,0,w,h);
   const sm=freeStats?freeStats.samples:[];
@@ -2269,21 +2261,10 @@ makeSwitch('s-freehud','freeHud',()=>{if(!S.freeHud)freeStats=null;showFreeHud()
 function applyHudScale(){
   const h=document.getElementById('free-hud');
   if(h)h.style.setProperty('--hud-scale',S.hudScale);
-  const v=document.getElementById('hud-scale-val');
-  if(v)v.textContent=Math.round(S.hudScale*100)+'%';
   const se=document.getElementById('s-hud-scale'),sv=document.getElementById('v-hud-scale');
   if(se){se.value=Math.round(S.hudScale*100);if(sv)sv.textContent=se.value+'%';}
+  const cv=document.getElementById('hud-graph');if(cv)drawHudGraph();
 }
-document.getElementById('hud-scale-minus').onclick=e=>{
-  e.stopPropagation();
-  S.hudScale=Math.max(0.6,+(S.hudScale-0.1).toFixed(1));
-  saveS('hudScale',S.hudScale);applyHudScale();
-};
-document.getElementById('hud-scale-plus').onclick=e=>{
-  e.stopPropagation();
-  S.hudScale=Math.min(1.6,+(S.hudScale+0.1).toFixed(1));
-  saveS('hudScale',S.hudScale);applyHudScale();
-};
 applyHudScale();
 const hudScaleEl=document.getElementById('s-hud-scale');
 if(hudScaleEl)hudScaleEl.addEventListener('input',()=>{
