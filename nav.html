@@ -1015,8 +1015,8 @@ const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
 
 let lastOverpassFailed=false; // true si ninguna instancia Overpass respondió en el último intento
 const OVERPASS_ENDPOINTS=[
-  'https://overpass-api.de/api/interpreter',      // principal: datos globales, CORS OK (requiere Referer; el navegador lo envia siempre)
-  'https://overpass.openstreetmap.fr/api/interpreter', // respaldo RAPIDO, CORS OK, datos globales (tambien con Referer)
+  'https://overpass.openstreetmap.fr/api/interpreter', // principal RAPIDO: datos globales, CORS OK, ~1s (requiere Referer, que el navegador envia siempre)
+  'https://overpass-api.de/api/interpreter',      // respaldo: datos globales, fiable pero a veces lento (>10s / timeout)
   'https://overpass.kumi.systems/api/interpreter', // fallback (a veces caido/500)
   'https://overpass.osm.ch/api/interpreter',       // ultimo recurso (rapido, CORS OK; puede devolver 0 en algunas zonas)
 ];

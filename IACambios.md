@@ -1249,4 +1249,10 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 
 - **Brújula plegada (modo `hud-mini`) más grande**: brújula de 26→**36 px**, velocidad de 15→**19 px**, emblema y píldora con más padding y separación, para que el modo compacto se lea bien.
 - **Un poco más arriba**: la píldora pasa de `bottom:14px` a **`bottom:96px`** (no queda pegada abajo donde pueden estar otros controles).
-- **POIs — respaldo `overpass.openstreetmap.fr`**: probado en vivo responde con **datos reales y `Access-Control-Allow-Origin: *`** en ~1,3 s cuando el navegador envía Referer (igual que overpass-api.de). Se añade como **segundo endpoint** después de overpass-api.de: si la principal está lenta/caída, los POIs cargan mucho antes — reduce el aviso «Overpass caído — se conservan los marcadores actuales».
+- **POIs — respaldo `overpass.openstreetmap.fr`**: probado en vivo responde con **datos reales y `Access-Control-Allow-Origin: *`** en ~1 s cuando el navegador envía Referer (igual que overpass-api.de). Por la lentitud de overpass-api.de (timeouts >10 s), openstreetmap.fr pasó a ser el **primer endpoint** (ver 66).
+
+## 66. nav.html: POIs — openstreetmap.fr pasa a ser el primer endpoint Overpass (2026-09-01)
+
+- El usuario reportó el log de depuración `overpass ✗ overpass-api.de timeout 10 s (11448ms)`: la instancia principal es **lenta (>10 s) y a veces no responde**.
+- Probado en vivo (3 peticiones seguidas): **openstreetmap.fr 3/3 OK en ~0,8–1,8 s**, frente a overpass-api.de 2/3 con un timeout. Se **reordena**: `openstreetmap.fr` pasa a ser el **principal** (rápido) y `overpass-api.de` queda como **respaldo** junto a kumi.systems y osm.ch.
+- Resultado: los POIs cargan en ~1 s sin esperar los 10 s del timeout de la antigua principal.
