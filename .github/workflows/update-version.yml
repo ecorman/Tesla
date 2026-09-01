@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'tesla.html'
+      - 'nav.html'
+      - 'IACambios.md'
 
 jobs:
   update-version:
