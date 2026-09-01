@@ -959,3 +959,33 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   el recálculo por desvío.
 - De propina: el modo «Silencio» ahora es silencio de verdad (antes el pitido
   de maniobra cercana seguía sonando).
+
+## 38. nav.html: modos de vista 3D/DEM, Free Drive HUD, minimapa de maniobra y optimizaciones MCU
+
+**1. Modos de vista (Ajustes → Mapa → Modo de vista), como tesla.html:**
+- NORTE (norte arriba, pitch 0), AVANCE (sentido de la marcha, pitch 0),
+  3D (perspectiva, pitch 62) y 3D RELIEVE (pitch 73 + terreno DEM real de
+  Mapbox cuando el token lo permite + atmósfera/fog estilo tesla.html).
+- El slider de inclinación (Cámara) sigue funcionando para 3D/RELIEVE; el
+  icono del coche rota con el rumbo en NORTE (mapa fijo) y queda arriba en
+  AVANCE/3D (mapa que rota).
+
+**2. Free Drive HUD (🧭, abajo-derecha, al conducir SIN ruta):**
+- Rosa de los vientos (PNG/ROSA.PNG) rotando con el rumbo + grados y punto
+  cardinal, velocidad actual grande, altitud (GPS o terreno), velocidad media
+  y máxima, y gráfica de desnivel dibujada en canvas (sin Chart.js, más
+  ligera para la MCU).
+
+**3. Minimapa de previsualización de maniobra (🗺️, arriba-derecha, en ruta):**
+- Canvas ligero (sin segunda instancia de Mapbox GL): dibuja la ruta ~1,2 km
+  por delante, el punto de la próxima maniobra en rojo pulsante, el coche y
+  el destino. Alternativa ligera al minimapa de tesla.html.
+
+**4. Optimizaciones MCU (Ajustes → Mapa):**
+- Watchdog de memoria (🛡️): monitoriza el JS heap durante navegación; si
+  supera el 30% guarda el estado (ruta, destino, simulador) y recarga con
+  overlay "Recuperando navegación…", restaurando la ruta al volver.
+- Compensación de escala Tesla 0.6536 (📏), activable.
+- Planificador de tareas por prioridad: el refresco de capas (POIs/radares/
+  alertas/edificios) se cede a un timer de baja prioridad para no bloquear el
+  marcador ni el navTick.

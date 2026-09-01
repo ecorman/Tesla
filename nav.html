@@ -68,6 +68,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #speedo{padding:8px 14px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:12px;text-align:center}
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
+/* ---- Free Drive HUD ---- */
+#free-hud{position:absolute;right:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#free-hud .hud-row{display:flex;align-items:center;gap:8px}
+#hud-compass{width:34px;height:34px;object-fit:contain;transition:transform .25s linear}
+#free-hud .hud-head{display:flex;flex-direction:column;line-height:1.15;min-width:52px}
+#hud-orient{font-size:15px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
+#hud-cardinal{font-size:10px;color:var(--dim)}
+#free-hud .hud-spd{margin-left:auto;font-size:11px;color:var(--dim);text-align:right;line-height:1}
+#free-hud .hud-spd span{font-size:27px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+#hud-graph{width:100%;height:52px;border-radius:8px;background:rgba(255,255,255,.05)}
+/* ---- minimapa de maniobra ---- */
+#mnv-minimap{position:absolute;right:12px;top:212px;z-index:18;display:none;width:200px;height:128px;border-radius:12px;border:1px solid var(--line);background:#0e1016;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+/* ---- overlay recarga controlada ---- */
+#mem-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
+#mem-overlay .mem-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 28px;font-size:16px;color:var(--txt)}
 /* ---- settings panel ---- */
 #settings{position:absolute;top:0;right:-380px;width:360px;max-width:92vw;height:100%;z-index:40;background:var(--panel);border-left:1px solid var(--line);transition:right .25s ease;overflow-y:auto;padding:16px}
 #settings.open{right:0}
@@ -213,6 +229,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <button class="btn stop" id="btn-stop" style="display:none">■ Fin</button>
 </div>
 
+<!-- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) -->
+<div id="free-hud">
+  <div class="hud-row">
+    <img id="hud-compass" src="PNG/ROSA.PNG" alt="">
+    <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
+    <div class="hud-spd"><span id="hud-speed">0</span> km/h</div>
+  </div>
+  <div class="hud-stats">
+    <span id="hud-alt">— m</span>
+    <span id="hud-med">Med: —</span>
+    <span id="hud-max">Máx: —</span>
+  </div>
+  <canvas id="hud-graph" width="200" height="52"></canvas>
+</div>
+<!-- minimapa de previsualización de maniobra (canvas ligero) -->
+<canvas id="mnv-minimap" width="200" height="128"></canvas>
+<!-- overlay de recarga controlada (watchdog de memoria) -->
+<div id="mem-overlay"><div class="mem-box">🔄 Recuperando navegación…</div></div>
+
 <div id="settings">
   <h2>Ajustes <span class="close" id="set-close">✕</span></h2>
 
@@ -255,6 +290,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
   <div class="setgroup" data-tab="mapa">
     <div class="togglerow"><span>Edificios 3D</span><div class="switch" id="s-3d"></div></div>
+    <label style="margin-top:10px">Modo de vista</label>
+    <select id="s-view-mode">
+      <option value="norte">NORTE (norte arriba)</option>
+      <option value="avance">AVANCE (sentido de la marcha)</option>
+      <option value="3d">3D (perspectiva)</option>
+      <option value="relieve">3D RELIEVE (DEM + atmósfera)</option>
+    </select>
+    <div class="togglerow"><span>🧭 Free Drive HUD (sin ruta)</span><div class="switch" id="s-freehud"></div></div>
+    <div class="togglerow"><span>🗺️ Minimapa de maniobra</span><div class="switch" id="s-minimap"></div></div>
+    <div class="togglerow"><span>🛡️ Watchdog de memoria (recarga controlada)</span><div class="switch" id="s-memwatch"></div></div>
+    <div class="togglerow"><span>📏 Compensación de escala Tesla (0.6536)</span><div class="switch" id="s-tescascale"></div></div>
   </div>
 
   <div class="setgroup" data-tab="ruta">
@@ -443,6 +489,11 @@ const S={
   myradars:    localStorage.getItem(LS+'myradars')==='true',
   myradarRadius: parseInt(localStorage.getItem(LS+'myradarRadius'))||350,
   heading:     localStorage.getItem(LS+'heading')!=='false',  // orientar mapa según marcha
+  viewMode:    localStorage.getItem(LS+'viewMode')||'avance', // norte/avance/3d/relieve (tesla.html)
+  freeHud:     localStorage.getItem(LS+'freeHud')!=='false',
+  minimap:     localStorage.getItem(LS+'minimap')!=='false',
+  memWatch:    localStorage.getItem(LS+'memWatch')!=='false',
+  teslaScale:  localStorage.getItem(LS+'teslaScale')==='true',
   follow:      localStorage.getItem(LS+'follow')!=='false',   // mapa anclado al vehículo
   followTimeout:(()=>{const v=parseInt(localStorage.getItem(LS+'followTimeout'));return isFinite(v)?v:15;})(), // s para volver al coche tras mover el mapa (0=no)
 };
@@ -693,12 +744,14 @@ function initMap(){
     applyCarPadding();
     locateUser();
     refreshActiveLayers(true); // mapa nuevo: ignorar cooldown, las capas activas deben aparecer ya
+    applyViewMode();
+    tryMemoryRestore();
   });
   // refresco perezoso de capas activas al mover/zoom del mapa
   map.on('moveend',()=>{
     clearTimeout(layerRefreshTimer);
     if(!S.radars&&!S.pois&&!S.alerts&&!S.buildings3d)return;
-    layerRefreshTimer=setTimeout(refreshActiveLayers,1200);
+    layerRefreshTimer=setTimeout(()=>lowPri(refreshActiveLayers,0),1200);
   });
   map.on('zoomend',()=>{
     if(S.zoomMode==='off')manualZoomMemory=map.getZoom();
@@ -1113,8 +1166,8 @@ function updateCamera(){
   camBusy=true;
   const opts={
     center:userPos,
-    pitch:S.pitch,
-    bearing:(S.heading&&carHeading!=null&&!isNaN(carHeading))?carHeading:0,
+    pitch:currentViewPitch(),
+    bearing:(S.heading&&viewMode().follows&&carHeading!=null&&!isNaN(carHeading))?carHeading:0,
     duration:900,
     easing:t=>t, // lineal: sin aceleración brusca
   };
@@ -1124,7 +1177,7 @@ function updateCamera(){
   let targetZoom=null;
   if(mode==='route'){
     targetZoom=14.5;
-    opts.pitch=Math.max(4,S.pitch-3);
+    opts.pitch=Math.max(4,currentViewPitch()-3);
   }else if(mode==='eco'){
     const highway=navSpeedKmh>70&&lastManeuverDist>2000;
     if(highway){targetZoom=14.5;opts.pitch=Math.max(4,S.pitch-3);}
@@ -1144,8 +1197,47 @@ function updateCamera(){
 function updateCarRotation(){
   const img=carMarkerEl?carMarkerEl.querySelector('img'):null;
   if(!img)return;
-  const rot=(S.heading||carHeading==null||isNaN(carHeading))?0:carHeading;
+  const rot=((S.heading&&viewMode().follows)||carHeading==null||isNaN(carHeading))?0:carHeading;
   img.style.transform=`rotate(${rot}deg)`;
+}
+/* ---------- modos de vista: NORTE / AVANCE / 3D / 3D RELIEVE (igual tesla.html) ---------- */
+const VIEW_MODES={
+  norte:  {pitch:0,  bearing:0,   follows:false, relief:false},
+  avance: {pitch:0,  bearing:null, follows:true,  relief:false},
+  '3d':   {pitch:62, bearing:null, follows:true,  relief:false},
+  relieve:{pitch:73, bearing:null, follows:true,  relief:true},
+};
+function viewMode(){return VIEW_MODES[S.viewMode]||VIEW_MODES.avance;}
+function currentViewPitch(){
+  // NORTE/AVANCE van a 0°; 3D y RELIEVE usan el slider de inclinación
+  return (S.viewMode==='norte'||S.viewMode==='avance')?0:S.pitch;
+}
+function applyViewMode(){
+  if(!map)return;
+  const vm=viewMode();
+  if(S.pitch!==vm.pitch){S.pitch=vm.pitch;try{localStorage.setItem(LS+'pitch',S.pitch);}catch(e){}}
+  try{map.easeTo({pitch:S.pitch,duration:600});}catch(e){}
+  if(vm.bearing===0){try{map.easeTo({bearing:0,duration:600});}catch(e){}}
+  applyRelief();
+  if(!isFlying)updateCamera();
+  updateCarRotation();
+  try{syncCam();}catch(e){}
+}
+function applyRelief(){
+  if(!map)return;
+  const on=viewMode().relief;
+  // El terreno DEM necesita proyección mercator (globo y DEM no conviven)
+  try{if(typeof map.setProjection==='function')map.setProjection(on?'mercator':'globe');}catch(e){}
+  try{
+    if(on){
+      if(!map.getSource('nav-dem'))map.addSource('nav-dem',{type:'raster-dem',url:'mapbox://mapbox.terrain-dem-v1',tileSize:512,maxzoom:14});
+      try{map.setTerrain({source:'nav-dem',exaggeration:1.2});}catch(e){}
+    }else{
+      try{map.setTerrain(null);}catch(e){}
+      if(map.getSource('nav-dem'))try{map.removeSource('nav-dem');}catch(e){}
+    }
+  }catch(e){}
+  try{map.setFog(on?{'range':[0.9,10],'color':'#d8e2e8','horizon-blend':0.1,'high-color':'#58636B','space-color':'#02060e','star-intensity':0.5}:null);}catch(e){}
 }
 function computeHeading(p){
   if(p.coords.heading!=null&&!isNaN(p.coords.heading)&&p.coords.speed>0.5)
@@ -1221,6 +1313,7 @@ async function calcRoute(dest,name){
   maneuverIdx=0;voiceFlags={};
   tripStats={startTime:new Date(),travelledKm:0,maxSpeed:0,initialDistance:routeData.distance,initialDuration:routeData.duration,destName:name||lastDestName||'Destino'};
   lastTripPos=userPos.slice();
+  freeStats=null;
   document.getElementById('btn-stop').style.display='';
   document.getElementById('topbar').classList.add('banner-on');
   document.getElementById('banner').style.display='flex';
@@ -1363,6 +1456,7 @@ function navTick(){
   document.getElementById('nav-eta').textContent=fmtTime(totalEta);
   const arr=new Date(Date.now()+totalEta*1000);
   document.getElementById('nav-arr').textContent='llegada '+arr.getHours()+':'+String(arr.getMinutes()).padStart(2,'0');
+  drawMinimap();
   // check deviation: distancia PERPENDICULAR a la polilinea (no al vertice
   // mas cercano) y con cooldown de 15 s para no entrar en bucle de
   // recalculos cada pocos metros.
@@ -1487,6 +1581,162 @@ function fmtTime(s){
 let gpsWatch=null;
 /* Un unico camino de entrada para cada fix GPS: lo usa el GPS real (watchPosition)
    y el simulador, para que la simulacion sea exactamente igual que la realidad. */
+/* ---------- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) ----------
+   Se muestra al conducir SIN ruta activa. Alimentado desde handleGpsFix(). */
+let freeStats=null;
+function showFreeHud(){
+  const h=document.getElementById('free-hud');if(!h)return;
+  const on=!!S.freeHud&&!routeData&&!!userPos;
+  h.style.display=on?'flex':'none';
+  if(on&&!freeStats)freeStats={t0:Date.now(),km:0,max:0,altMin:Infinity,altMax:-Infinity,prev:null,samples:[]};
+  if(!on)return;
+  const cv=document.getElementById('hud-graph');if(cv)drawHudGraph();
+}
+function cardinalDeg(h){
+  const dirs=['N','NE','E','SE','S','SO','O','NO'];
+  return dirs[Math.round((((h%360)+360)%360)/45)%8];
+}
+function updateFreeHud(coords){
+  showFreeHud();
+  if(!freeStats)return;
+  const h=document.getElementById('free-hud');if(!h||h.style.display==='none')return;
+  const spd=navSpeedKmh||0;
+  if(spd>freeStats.max)freeStats.max=spd;
+  if(freeStats.prev)freeStats.km+=haversine(freeStats.prev,userPos)/1000;
+  freeStats.prev=userPos.slice();
+  let alt=null;
+  if(coords&&coords.altitude!=null&&isFinite(coords.altitude))alt=coords.altitude;
+  else{
+    try{const e=map.queryTerrainElevation(userPos);if(e!=null)alt=e;}catch(e){}
+  }
+  const hd=carHeading!=null&&!isNaN(carHeading)?carHeading:0;
+  document.getElementById('hud-speed').textContent=spd;
+  document.getElementById('hud-orient').textContent=hd?Math.round(hd)+'°':'—';
+  document.getElementById('hud-cardinal').textContent=hd?cardinalDeg(hd):'';
+  document.getElementById('hud-compass').style.transform='rotate('+hd+'deg)';
+  const hEls=Math.max(1,(Date.now()-freeStats.t0)/3600000);
+  document.getElementById('hud-med').textContent='Med: '+freeStats.km/hEls.toFixed(1);
+  document.getElementById('hud-max').textContent='Máx: '+freeStats.max;
+  const altEl=document.getElementById('hud-alt');
+  if(alt!=null){
+    altEl.textContent=Math.round(alt)+' m';
+    if(alt<freeStats.altMin)freeStats.altMin=alt;
+    if(alt>freeStats.altMax)freeStats.altMax=alt;
+    freeStats.samples.push({v:alt});
+    if(freeStats.samples.length>600)freeStats.samples.shift();
+    drawHudGraph();
+  }else altEl.textContent='— m';
+}
+function drawHudGraph(){
+  const cv=document.getElementById('hud-graph');if(!cv)return;
+  const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
+  ctx.clearRect(0,0,w,h);
+  const sm=freeStats?freeStats.samples:[];if(sm.length<2)return;
+  let mn=Infinity,mx=-Infinity;for(const p of sm){if(p.v<mn)mn=p.v;if(p.v>mx)mx=p.v;}
+  const span=Math.max(1,mx-mn);
+  ctx.strokeStyle='#4f8cff';ctx.lineWidth=1.6;ctx.beginPath();
+  for(let i=0;i<sm.length;i++){
+    const x=(i/(sm.length-1))*w;
+    const y=h-3-((sm[i].v-mn)/span)*(h-6);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.fillStyle='rgba(136,136,160,.8)';ctx.font='8px sans-serif';
+  ctx.fillText(Math.round(mx)+' m',2,8);
+  ctx.fillText(Math.round(mn)+' m',2,h-2);
+}
+
+/* ---------- minimapa de previsualización de maniobra (canvas ligero, sin 2ª instancia GL) ---------- */
+function drawMinimap(){
+  const cv=document.getElementById('mnv-minimap');if(!cv)return;
+  const on=!!S.minimap&&!!routeData;
+  cv.style.display=on?'block':'none';
+  if(!on||!routeData.coords||routeData.coords.length<2)return;
+  const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
+  ctx.clearRect(0,0,w,h);
+  const car=userPos||routeData.coords[0];
+  const step=routeData.steps[maneuverIdx]||routeData.steps[routeData.steps.length-1];
+  // puntos de la ruta hasta ~1,2 km por delante del coche
+  const pts=[car];let acc=0;
+  for(let i=0;i<routeData.coords.length-1;i++){
+    const d=haversine(routeData.coords[i],routeData.coords[i+1]);
+    if(acc+d>1200)break;
+    acc+=d;pts.push(routeData.coords[i+1]);
+  }
+  const mnv=step&&step.maneuver&&step.maneuver.location?[step.maneuver.location[0],step.maneuver.location[1]]:null;
+  const dest=routeData.coords[routeData.coords.length-1];
+  let minL=Infinity,maxL=-Infinity,minA=Infinity,maxA=-Infinity;
+  const all=pts.concat(mnv?[mnv]:[],dest?[dest]:[]);
+  for(const p of all){minL=Math.min(minL,p[0]);maxL=Math.max(maxL,p[0]);minA=Math.min(minA,p[1]);maxA=Math.max(maxA,p[1]);}
+  if(maxL-minL<0.0003){const c=(minL+maxL)/2;minL=c-0.00015;maxL=c+0.00015;}
+  if(maxA-minA<0.0003){const c=(minA+maxA)/2;minA=c-0.00015;maxA=c+0.00015;}
+  const pad=14;
+  const X=p=>pad+((p[0]-minL)/(maxL-minL))*(w-2*pad);
+  const Y=p=>h-pad-((p[1]-minA)/(maxA-minA))*(h-2*pad);
+  ctx.strokeStyle='#FFD700';ctx.lineWidth=2.5;ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(X(p),Y(p)):ctx.lineTo(X(p),Y(p)));
+  ctx.stroke();
+  if(dest){ctx.fillStyle='#e03030';ctx.beginPath();ctx.arc(X(dest),Y(dest),5,0,7);ctx.fill();}
+  if(mnv){
+    const mx=X(mnv),my=Y(mnv);
+    ctx.fillStyle='rgba(255,80,80,.25)';ctx.beginPath();ctx.arc(mx,my,10,0,7);ctx.fill();
+    ctx.fillStyle='#ff5050';ctx.beginPath();ctx.arc(mx,my,4.5,0,7);ctx.fill();
+  }
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(X(car),Y(car),4.5,0,7);ctx.fill();
+  ctx.strokeStyle='#4f8cff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(car),Y(car),4.5,0,7);ctx.stroke();
+}
+
+/* ---------- MCU: watchdog de memoria, escala 0.6536 y planificador de tareas ---------- */
+let memTimer=null;
+function startMemoryWatchdog(){
+  if(memTimer){clearTimeout(memTimer);clearInterval(memTimer);memTimer=null;}
+  if(!S.memWatch||!window.performance||!performance.memory)return;
+  const check=()=>{
+    if(!S.memWatch)return;
+    if(!routeData&&!simActive)return;
+    try{
+      const r=performance.memory.usedJSHeapSize/performance.memory.jsHeapSizeLimit;
+      if(r>0.3)controlledReload();
+    }catch(e){}
+  };
+  memTimer=setTimeout(()=>{check();memTimer=setInterval(check,120000);},180000);
+}
+function controlledReload(){
+  try{
+    const rec={t:Date.now(),viewMode:S.viewMode,mapStyle:S.mapStyle,mapProvider:S.mapProvider};
+    if(userPos)rec.userPos=userPos.slice();
+    if(destPoint)rec.dest=destPoint.slice();
+    if(routeData&&routeData.coords)rec.route={coords:routeData.coords,maneuverIdx:maneuverIdx};
+    if(simActive)rec.sim={active:true,speed:simSpeedKmh};
+    localStorage.setItem(LS+'recovery',JSON.stringify(rec));
+  }catch(e){}
+  const ov=document.getElementById('mem-overlay');if(ov)ov.style.display='flex';
+  setTimeout(()=>{try{location.reload();}catch(e){}},150);
+}
+function tryMemoryRestore(){
+  let rec=null;
+  try{rec=JSON.parse(localStorage.getItem(LS+'recovery')||'null');}catch(e){}
+  localStorage.removeItem(LS+'recovery');
+  if(!rec||!rec.dest)return;
+  if(rec.userPos)userPos=rec.userPos;
+  if(rec.sim&&rec.sim.active)simSpeedKmh=rec.sim.speed||60;
+  toast('Ruta restaurada tras recarga de memoria',3000);
+  setTimeout(()=>{
+    calcRoute(rec.dest,lastDestName||'Ruta restaurada');
+    if(rec.sim&&rec.sim.active)setTimeout(startSimulator,900);
+  },600);
+}
+function applyTeslaScale(){
+  try{document.documentElement.style.zoom=S.teslaScale?'0.6536':'';}catch(e){}
+}
+/* planificador de tareas por prioridad: lo no crítico se cede a un timer
+   para no bloquear el hilo del marcador/navTick */
+let lowPriTimers=[];
+function lowPri(fn,ms){
+  const id=setTimeout(()=>{fn();const i=lowPriTimers.indexOf(id);if(i>=0)lowPriTimers.splice(i,1);},ms||500);
+  lowPriTimers.push(id);
+}
+
 function handleGpsFix(coords){
   userPos=[coords.longitude,coords.latitude];
   carHeading=computeHeading({coords});
@@ -1498,6 +1748,7 @@ function handleGpsFix(coords){
   const spd=coords.speed!=null?Math.round(coords.speed*3.6):0;
   navSpeedKmh=spd;
   document.getElementById('se-spd').textContent=spd;
+  updateFreeHud(coords);
   // estadísticas de viaje (para el resumen de llegada)
   if(tripStats){
     if(spd>tripStats.maxSpeed)tripStats.maxSpeed=spd;
@@ -1790,6 +2041,19 @@ swFollow.onclick=()=>{S.follow=!S.follow;saveS('follow',S.follow);syncToggles();
   else applyCarPadding();
 };
 syncToggles();
+
+/* modos de vista + toggles nuevos */
+function makeSwitch(id,key,cb){
+  const sw=document.getElementById(id);
+  if(!sw)return;
+  sw.classList.toggle('on',S[key]);
+  sw.onclick=()=>{S[key]=!S[key];saveS(key,S[key]);sw.classList.toggle('on',S[key]);if(cb)cb();};
+}
+bindSelect('s-view-mode','viewMode',()=>applyViewMode());
+makeSwitch('s-freehud','freeHud',()=>{if(!S.freeHud)freeStats=null;showFreeHud();});
+makeSwitch('s-minimap','minimap',()=>drawMinimap());
+makeSwitch('s-memwatch','memWatch',()=>startMemoryWatchdog());
+makeSwitch('s-tescascale','teslaScale',()=>applyTeslaScale());
 
 /* ---------- seguimiento: mover el mapa pausa el anclaje; cuenta atrás para volver ----------
    El coche es un marcador geográfico. Si «Mapa anclado» está activo, arrastrar
@@ -2348,6 +2612,8 @@ updateMyRadarCount();
 
 /* ================================================================
    /* ---------- boot ---------- */
+applyTeslaScale();
+startMemoryWatchdog();
 initMap();
 </script>
 </body>
