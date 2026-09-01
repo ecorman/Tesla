@@ -1119,3 +1119,12 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Respaldo local creado**: `PNG/zbuildgs.js` (gitignored, no se sube) con el token de Mapbox recuperado del historial de git — verificado **vivo** vía `tokens/v2` (TokenValid). El mapa vuelve a renderizar en la preview. ⚠️ **ROTA ese token** (quedó expuesto en el historial) y re-guarda tus claves en el panel Keys/API keys para que Freebuff lo regenere con el tuyo nuevo.
 - **Gráfica que crece con la ventana**: al arrastrar la esquina de la brújula, el canvas ahora **llena la ventana** (flex 1 1 auto; la escala actúa como tamaño mínimo) y se **redibuja al cambiar el alto**, no solo el ancho.
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), zbuildgs.js servido (200), CSS flex y handler de redibujado presentes en la preview.
+
+## 54. Auditoría de claves + página de instrucciones + redacción de respaldos (2026-09-01)
+- **Auditoría**: claves expuestas detectadas y tratadas:
+  - **Mapbox** `pk.eyJ1…boardinggate11` (la del respaldo local): en historial de git y en 4 respaldos → **rota** (pasos en instrucciones.html §2).
+  - **Google/Firebase** `AIzaSyCEAWL1Pj1OM…`: en los mismos respaldos (probada: inválida; redactada igualmente).
+  - **OpenChargeMap** `be9a78f7-0f5e-4f28-…`: estaba **hardcodeada en tesla.html** y en **10 respaldos** → movida a `APP_CONFIG.keys.ocm` en tesla.html (respaldo local actualizado) y redactada en todos los respaldos.
+- **Redactadas 21 claves** en 11 ficheros de respaldo (A09, A10tesla, A34, A71, LEFT-ultima-luego-mapbox, TESLAB, tesla2antesrutasalternativas, teslaantesdesvioalt, teslasinmantenersesion, z, más las de la primera pasada). Verificado: 0 claves completas restantes en el árbol (salvo el gitignored PNG/zbuildgs.js).
+- **Nueva página `instrucciones.html`** (enlazada desde README): qué claves hay y dónde se usan (tesla vs nav), rotación del token de Mapbox paso a paso (con scopes y URL restriction), secret `APP_CONFIG_JSON` + Pages → GitHub Actions, revisión de reglas de Firestore, y tabla de qué configuración aplica a cada app (googleMaps y ocm solo tesla; mapbox/gemini/firebase en ambas; Valhalla/OSRM sin clave solo nav).
+- Verificado: 0 errores de sintaxis en tesla.html (4 scripts + ESM), instrucciones.html servido (200).

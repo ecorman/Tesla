@@ -7,7 +7,7 @@ Z01
     <title>BoardingGate</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/th.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">                                                                                                                                                                                                                                          import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";   import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, serverTimestamp, where, query, orderBy, limit, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"; console.log("Firebase Init Script: STARTING initialization.");   const firebaseConfig = {apiKey: "AIzaSyCEAWL1Pj1OMBrGnXLOS79W3iDjMkmTQGw",authDomain: "boardinggate-1df74.firebaseapp.com",databaseURL: "https://boardinggate-1df74-default-rtdb.europe-west1.firebaseio.com",projectId: "boardinggate-1df74",storageBucket: "boardinggate-1df74.appspot.com", messagingSenderId: "771541345352",appId: "1:771541345352:web:0447d72b3383875ac5a47d" };    try {    const app = initializeApp(firebaseConfig);     window.db = getFirestore(app);   window.doc = doc;  window.setDoc = setDoc;  window.getDoc = getDoc;  window.collection = collection; window.getDocs = getDocs;  window.deleteDoc = deleteDoc;  window.serverTimestamp = serverTimestamp;  window.where = where; window.query = query; window.orderBy = orderBy;window.limit = limit; window.addDoc = addDoc;  window.writeBatch = writeBatch; console.log("Firebase Init Script: SUCCESS Firestore initialized and functions exposed globally. window.db is:", window.db);  } catch (e) { console.error("Firebase Init Script: ERROR during initialization!", e); }  console.log("Firebase Init Script: END of initialization block.");</script>
+    <script type="module">                                                                                                                                                                                                                                          import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";   import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, serverTimestamp, where, query, orderBy, limit, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"; console.log("Firebase Init Script: STARTING initialization.");   const firebaseConfig = {apiKey: "CLAVE_REDACTADA",authDomain: "boardinggate-1df74.firebaseapp.com",databaseURL: "https://boardinggate-1df74-default-rtdb.europe-west1.firebaseio.com",projectId: "boardinggate-1df74",storageBucket: "boardinggate-1df74.appspot.com", messagingSenderId: "771541345352",appId: "1:771541345352:web:0447d72b3383875ac5a47d" };    try {    const app = initializeApp(firebaseConfig);     window.db = getFirestore(app);   window.doc = doc;  window.setDoc = setDoc;  window.getDoc = getDoc;  window.collection = collection; window.getDocs = getDocs;  window.deleteDoc = deleteDoc;  window.serverTimestamp = serverTimestamp;  window.where = where; window.query = query; window.orderBy = orderBy;window.limit = limit; window.addDoc = addDoc;  window.writeBatch = writeBatch; console.log("Firebase Init Script: SUCCESS Firestore initialized and functions exposed globally. window.db is:", window.db);  } catch (e) { console.error("Firebase Init Script: ERROR during initialization!", e); }  console.log("Firebase Init Script: END of initialization block.");</script>
 
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>eruda.init();</script>
@@ -20,7 +20,7 @@ Z01
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.13.0/mapbox-gl.js'></script>
     
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>                                                                                                                                                                                                                                               <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCEAWL1PjlOMBrGnXLOS79W3iDJMkmTQGw&v=beta&libraries=places&callback=initMap&loading=async"></script> <script>   function initMap() {} </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>                                                                                                                                                                                                                                               <script async src="https://maps.googleapis.com/maps/api/js?key=CLAVE_REDACTADA&v=beta&libraries=places&callback=initMap&loading=async"></script> <script>   function initMap() {} </script>
  </head>
 <style>  
 
@@ -4007,7 +4007,7 @@ body.mobile-view #locations-preview-modal { z-index: 11000 !important;}
 
     
 //ofu mapbox
-                                                                                                    mapboxgl.accessToken = "pk.eyJ1IjoiYm9hcmRpbmdnYXRlMTEiLCJhIjoiY21kOHdtMGU4MDEzaTJpcGh4cng0c3hmMiJ9.hDdGn_5VOMkN_bTuUowtRw";
+                                                                                                    mapboxgl.accessToken = "CLAVE_REDACTADA";
 
 // ===================================================================
 // NOMBRE: findGooglePlaceId (NUEVA VERSIÓN - Places API v2)
@@ -4934,8 +4934,8 @@ class CombinedMapControl {
     let minAverageSpeedInTrip = Infinity;
     let maxAverageSpeedInTrip = -Infinity;
 
-    const OCM_API_KEY = "be9a78f7-0f5e-4f28-b742-4b7ab4b7eb5a";
-    const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoiYm9hcmRpbmdnYXRlMTEiLCJhIjoiY21kOHdtMGU4MDEzaTJpcGh4cng0c3hmMiJ9.hDdGn_5VOMkN_bTuUowtRw";
+    const OCM_API_KEY = "be9a78f7-…REDACTADA";
+    const MAPBOX_ACCESS_TOKEN = "CLAVE_REDACTADA";
     let isGraphingActive = false;
     let pdrSearchState = 'initial'; 
     let lastPdrSearchResults = []; 

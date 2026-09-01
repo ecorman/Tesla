@@ -134,6 +134,8 @@ El navegador integrado de Tesla presenta limitaciones de memoria y cambios de re
 
 ---
 
+📖 **Instrucciones**: cómo rotar el token de Mapbox expuesto y qué configuración aplica a tesla vs nav → **[instrucciones.html](instrucciones.html)**
+
 ## 📦 Despliegue y Configuración
 
 ### 1. Configurar Claves de API

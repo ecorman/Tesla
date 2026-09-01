@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instrucciones — Claves y Configuración (tesla.html / nav.html)</title>
+<style>
+  :root{--bg:#0b0d12;--panel:#141821;--line:#262c3a;--txt:#e8ebf2;--dim:#9aa3b5;--acc:#4f8cff;--ok:#3dd68c;--warn:#ffb020;--danger:#ff5a5a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.55;padding:28px 16px 60px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-size:26px;margin-bottom:6px}
+  .sub{color:var(--dim);margin-bottom:26px}
+  h2{font-size:19px;margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--acc)}
+  h3{font-size:15px;margin:18px 0 8px}
+  p,li{color:var(--txt)}
+  ul,ol{padding-left:22px;margin:8px 0}
+  li{margin:5px 0}
+  code{background:#0d1020;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13px;color:#9ecbff;word-break:break-all}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+  .warn{border-left:4px solid var(--warn)}
+  .danger{border-left:4px solid var(--danger)}
+  .ok{border-left:4px solid var(--ok)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+  th{background:#0d1020;color:var(--acc)}
+  .tag{display:inline-block;border-radius:20px;padding:1px 10px;font-size:12px;font-weight:600;margin:2px 4px 2px 0}
+  .t-both{background:#12355f;color:#8fc3ff}
+  .t-tesla{background:#5f1234;color:#ff9ecb}
+  .t-nav{background:#1e5f12;color:#a5ff9e}
+  .step{display:flex;gap:12px;margin:10px 0}
+  .step b{flex:0 0 26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧭 Instrucciones — Claves y Configuración</h1>
+  <p class="sub">Para <code>tesla.html</code> y <code>nav.html</code>. Cómo rotar el token de Mapbox expuesto y qué configuración aplica a cada app.</p>
+
+  <h2>1. Qué claves hay y para qué sirven</h2>
+  <table>
+    <tr><th>Clave</th><th>Para qué</th><th>Dónde se usa</th></tr>
+    <tr><td><code>keys.mapbox</code></td><td>Mapa Mapbox (estilos vectoriales), perfil de ruta con tráfico real (<code>driving-traffic</code>) y terreno 3D Relieve (DEM)</td><td><span class="tag t-both">tesla + nav</span></td></tr>
+    <tr><td><code>keys.googleMaps</code></td><td>API de Google Maps (Places) para la búsqueda/buscador de lugares</td><td><span class="tag t-tesla">solo tesla</span></td></tr>
+    <tr><td><code>keys.ocm</code></td><td>Open Charge Map — puntos de recarga eléctrica</td><td><span class="tag t-tesla">solo tesla</span></td></tr>
+    <tr><td><code>endpoints.gemini</code></td><td>Asistente de rutas con IA (Gemini)</td><td><span class="tag t-both">tesla + nav</span></td></tr>
+    <tr><td><code>firebase</code></td><td>Alertas de tráfico comunitarias y notas (Firestore)</td><td><span class="tag t-both">tesla + nav</span></td></tr>
+  </table>
+  <p class="sub" style="margin-top:8px">Ambas apps leen el <b>mismo</b> fichero <code>PNG/zbuildgs.js</code> (que define <code>window.APP_CONFIG</code>). Lo que cambia es qué claves usa cada una.</p>
+
+  <h2>2. Cómo rotar el token de Mapbox (paso a paso)</h2>
+  <div class="card danger">
+    <b>⚠️ Por qué rotarlo:</b> el token actual (<code>pk.eyJ1IjoiYm9hcmRpbmdnYXRlMTEi…</code>) quedó <b>expuesto en el historial de git</b> y en varios ficheros de respaldo del repositorio. Cualquiera que vea el repo puede usarlo (con tu cuota gratuita de Mapbox). Rotarlo revoca el viejo y lo sustituye por uno nuevo.
+  </div>
+  <div class="step"><b>1</b><div>Entra en <a href="https://account.mapbox.com/" target="_blank">account.mapbox.com</a> e inicia sesión (el usuario de la cuenta actual es <code>boardinggate11</code>).</div></div>
+  <div class="step"><b>2</b><div>Ve a <b>Account → Tokens</b> (o «Access tokens»). Verás la lista de tokens <code>pk.…</code> (Default public token y los que hayas creado).</div></div>
+  <div class="step"><b>3</b><div>Identifica el token expuesto (empieza por <code>pk.eyJ1IjoiYm9hcmRpbmdnYXRlMTEi</code>) → <b>Revocar / Delete</b>.</div></div>
+  <div class="step"><b>4</b><div>Crea uno nuevo: <b>Create a token</b>. Ponle un nombre (p. ej. «Tesla app»), marca los scopes necesarios: <b>Styles, Fonts, Vision/Tiles, Directions</b> (para el tráfico) y <b>Terrain</b> (para el relieve 3D, si lo usas).</div></div>
+  <div class="step"><b>5</b><div>En <b>URL restrictions</b> añade tu dominio (p. ej. <code>https://TU_USUARIO.github.io/Tesla/*</code>) para que el token solo funcione desde tu app.</div></div>
+  <div class="step"><b>6</b><div>Pulsa <b>Create</b> y copia el nuevo token <code>pk.…</code>.</div></div>
+  <div class="step"><b>7</b><div>Pégalo en el <b>panel Keys/API keys de Freebuff</b> (clave <code>mapbox</code>) — Freebuff regenera <code>PNG/zbuildgs.js</code> automáticamente. Y si usas el despliegue de GitHub Actions, actualiza también el secret <code>APP_CONFIG_JSON</code>.</div></div>
+  <div class="step"><b>8</b><div>Comprueba que todo funciona (mapa, tráfico, relieve) y <b>vuelve a revocar el viejo</b> si no lo hiciste en el paso 3.</div></div>
+  <div class="card ok">✅ <b>Consejo:</b> el token nuevo no debe pegarse en ningún fichero del repo: vive en el panel de Keys (Freebuff) o en el secret encriptado de GitHub.</div>
+
+  <h2>3. Configuración necesaria (resumen)</h2>
+  <div class="card">
+    <ul>
+      <li><b>Fichero de claves:</b> <code>PNG/zbuildgs.js</code> — está en <code>.gitignore</code> y <b>NO se sube a GitHub</b>. Freebuff lo genera desde el panel Keys/API keys.</li>
+      <li><b>GitHub Pages (para que funcione el sitio publicado sin subir el token):</b>
+        <ol>
+          <li>Settings → <b>Secrets and variables → Actions</b> → New repository secret → nombre <code>APP_CONFIG_JSON</code>, valor = el JSON completo de <code>window.APP_CONFIG</code> (estructura en <code>PNG/zbuildgs.example.js</code>).</li>
+          <li>Settings → <b>Pages</b> → Source → <b>GitHub Actions</b>.</li>
+          <li>El workflow <code>.github/workflows/deploy-pages.yml</code> ya está en el repo: genera <code>PNG/zbuildgs.js</code> en el build desde el secret y publica el sitio.</li>
+        </ol>
+      </li>
+      <li><b>Firebase:</b> el proyecto es <code>boardinggate-1df74</code>. Si la base de datos está abierta, cualquiera puede escribir alertas: revisa las <b>reglas de Firestore</b> (solo lectura/escritura autenticada) en console.firebase.google.com.</li>
+      <li><b>Open Charge Map:</b> clave gratuita en openchargemap.org (nivel «developer»). Solo la usa tesla.html.</li>
+    </ul>
+  </div>
+
+  <h2>4. ¿Qué configuración del README aplica a cada app?</h2>
+  <div class="card">
+    <table>
+      <tr><th>Configuración</th><th>tesla.html</th><th>nav.html</th></tr>
+      <tr><td>Claves de API (<code>PNG/zbuildgs.js</code>)</td><td>✔ mapbox, googleMaps, ocm, gemini, firebase</td><td>✔ mapbox, gemini, firebase (googleMaps y ocm no se usan)</td></tr>
+      <tr><td>Despliegue estático (GitHub Pages / servidor)</td><td>✔</td><td>✔</td></tr>
+      <tr><td>Relieve 3D (DEM)</td><td>✔ (requiere token con Terrain)</td><td>✔ (requiere token con Terrain; sin token se degrada a 3D)</td></tr>
+      <tr><td>Tráfico en vivo</td><td>Mapbox <code>driving-traffic</code></td><td>Mapbox <code>driving-traffic</code> + Valhalla/OSRM gratuitos sin clave</td></tr>
+      <tr><td>Ajustes propios</td><td>Lanzador, favoritos, carga</td><td>Cámara, Ruta, Voz, Capas, Radares, Simulador</td></tr>
+    </table>
+    <p class="sub" style="margin-top:8px">Resumen: la <b>configuración de claves es la misma</b> para ambas (mismo fichero). Lo específico de tesla es Google Maps/Places y OpenChargeMap; lo específico de nav son sus propios ajustes de cámara/ruta/voz (no requieren claves extra).</p>
+  </div>
+
+  <h2>5. Claves expuestas detectadas (auditoría)</h2>
+  <div class="card warn">
+    <ul>
+      <li><b>Mapbox</b> <code>pk.eyJ1IjoiYm9hcmRpbmdnYXRlMTEi…</code> → en el historial de git (<code>PNG/zbuildgs.js</code> antiguo) y en los respaldos <code>A71.html</code>, <code>LEFT-ultima-luego-mapbox.html</code>, <code>tesla2antesrutasalternativas.html</code>, <code>teslaantesdesvioalt.html</code>. <b>Rotar (sección 2).</b></li>
+      <li><b>Google/Firebase</b> <code>AIzaSyCEAWL1Pj1OM…</code> → en esos mismos respaldos (probada: <b>inválida</b>, pero rota/elimínala igualmente).</li>
+      <li><b>Firebase</b> proyecto <code>boardinggate-1df74</code> (config completa) → en los respaldos. La config de Firebase es semipública por diseño; lo crítico son las reglas de Firestore.</li>
+      <li><b>OpenChargeMap</b> <code>be9a78f7-0f5e-4f28-…</code> → estaba <b>hardcodeada en tesla.html</b>; ya movida a <code>APP_CONFIG.keys.ocm</code>. Si quieres, genera una nueva en openchargemap.org.</li>
+    </ul>
+    <p class="sub" style="margin-top:8px">Los respaldos antiguos (<code>A71.html</code>, <code>LEFT-ultima-luego-mapbox.html</code>, <code>tesla2antesrutasalternativas.html</code>, <code>teslaantesdesvioalt.html</code>) se han <b>redactado</b> (claves sustituidas por marcadores). El historial de git conserva los valores antiguos: por eso la rotación es la medida definitiva.</p>
+  </div>
+</div>
+</body>
+</html>
