@@ -47,7 +47,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- maneuver banner ---- */
-#banner{position:absolute;top:2px;left:50%;transform:translateX(-50%);z-index:22;display:none;align-items:center;gap:10px;padding:8px 12px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(380px,calc(100vw - 80px))}
+#banner{position:absolute;top:2px;left:12px;z-index:22;display:none;align-items:center;gap:10px;padding:8px 12px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(350px,calc(100vw - 160px))}
 #nav-turn-box{width:52px;height:52px;flex-shrink:0;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 #nav-turn-box img{width:92%;height:92%;object-fit:contain}
 #banner .nav-mid{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center}
@@ -829,23 +829,27 @@ const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
 
 const OVERPASS_ENDPOINTS=[
   'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.nchc.org.tw/api/interpreter',
   'https://overpass.osm.ch/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
 ];
 async function fetchOverpass(query){
-  for(const base of OVERPASS_ENDPOINTS){
-    try{
-      const ctrl=new AbortController();
-      const tm=setTimeout(()=>ctrl.abort(),10000);
-      const r=await fetch(base+'?data='+encodeURIComponent(query),{headers:{'User-Agent':(navigator.userAgent||'').slice(0,120)||'MapboxGL/1','Accept':'application/json'},signal:ctrl.signal});
-      clearTimeout(tm);
-      if(!r.ok)continue;
-      const d=await r.json();
-      if(d&&Array.isArray(d.elements))return d.elements;
-    }catch(e){/* probar siguiente instancia */}
-  }
-  console.error('Overpass: sin respuesta de ninguna instancia');
+  // Lanza TODAS las instancias en paralelo: gana la que responda primero.
+  // (La cabecera User-Agent no se puede fijar desde el navegador — es una
+  // cabecera prohibida — asi que se manda la peticion normal.)
+  const attempts=OVERPASS_ENDPOINTS.map(base=>{
+    const ctrl=new AbortController();
+    const tm=setTimeout(()=>ctrl.abort(),8000);
+    return fetch(base+'?data='+encodeURIComponent(query),{headers:{'Accept':'application/json'},signal:ctrl.signal})
+      .then(r=>r.ok?r.json():null)
+      .then(d=>(d&&Array.isArray(d.elements))?d.elements:null)
+      .catch(()=>null)
+      .finally(()=>clearTimeout(tm));
+  });
+  const results=await Promise.all(attempts);
+  for(const res of results){if(res&&res.length)return res;}
+  for(const res of results){if(res)return res;}
   return [];
 }
 function mapCenterForFetch(){
@@ -1045,7 +1049,7 @@ function updateUserMarker(){
   if(!carMarker){
     carMarkerEl=document.createElement('div');
     carMarkerEl.style.cssText='width:42px;height:42px;pointer-events:none;transform:translate(-50%,-50%)';
-    carMarkerEl.innerHTML='<img src="PNG/AVANCE.PNG" alt="" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))">';
+    carMarkerEl.innerHTML='<img src="PNG/Coche_Sat.PNG" alt="" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">';
     carMarker=new mapboxgl.Marker({el:carMarkerEl}).setLngLat(userPos).addTo(map);
   }else carMarker.setLngLat(userPos);
 }
@@ -1361,13 +1365,14 @@ function checkVoice(step,dist){
   const type=step.maneuver.type||'';
   const isRA=type==='exit-roundabout'||type==='roundabout';
   const kind=isRA?'roundabout-exit':null;
+  // Aviso lejano (2 km): solo voz, sin pitido (el pitido se reserva para
+  // cuando queda poco tiempo para ejecutar la instruccion).
   if(dist<=2100&&dist>1900&&!voiceFlags.far){
-    alertSound(kind||'far');
     if(S.voiceMode==='voice')speak('En dos kilometros, '+stepName(step));
     voiceFlags.far=true;
   }
+  // Aviso medio (500 m): solo voz.
   if(dist<=550&&dist>450&&!voiceFlags.medium){
-    alertSound(kind||'medium');
     if(S.voiceMode==='voice')speak('En quinientos metros, '+stepName(step));
     voiceFlags.medium=true;
   }

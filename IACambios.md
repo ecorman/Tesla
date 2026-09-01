@@ -918,3 +918,21 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   para que funcione aunque uno de los endpoints esté bloqueado en el
   navegador del Tesla. Con la voz funcionando y los recalculos fuera del
   bucle, desaparecen también los pitidos repetidos.
+
+## 35. nav.html: flecha de navegación clásica, pitidos solo cerca, banner a la izquierda y POIs más fiables
+
+- Icono del coche: ahora es la flecha de navegación clásica apuntando hacia
+  arriba (PNG/Coche_Sat.PNG, la misma que usa tesla.html en satélite), blanca
+  con doble sombra para verse bien sobre mapa claro y satélite, rotando con
+  el rumbo.
+- Pitidos: lejos (2 km) y medio (500 m) avisan SOLO con voz, sin pitido. El
+  pitido queda reservado para cuando queda poco tiempo: <=230 m y en el
+  momento exacto de la maniobra (<=40 m).
+- Ventana de navegación: alineada a la IZQUIERDA (como tesla.html) y más
+  compacta (máx. 350px).
+- POIs: el fetch de Overpass ahora lanza TODAS las instancias en paralelo
+  (gana la más rápida) con timeout de 8 s por instancia, y añade el mirror
+  nchc.org.tw (datos globales). Antes se probaban en serie y, si la primera
+  instancia bloqueaba (overpass-api.de responde 406 a según qué IPs/UAs), los
+  POIs tardaban o nunca aparecían. Se quita la cabecera User-Agent manual
+  (los navegadores la ignoran por ser cabecera prohibida).
