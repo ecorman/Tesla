@@ -874,3 +874,17 @@ Overpass real (200); 21/21 tests con stubs (marcador del coche geográfico y
 su movimiento, pausa/cuenta atrás/retorno/cancelar/timeout 0, ⌖ re-engancha,
 updateCamera sin pelear, pestañas mostrar/ocultar/guardar, slider de timeout,
 sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
+
+## 32. nav.html: emblema de velocidad reubicado y ventana de maniobras compacta
+
+- La velocidad deja de estar en la esquina superior-izquierda (tapaba la barra
+  superior y la ventana de navegación). Ahora es un botón circular de 76 px con
+  el LOGOTESLA de fondo en la esquina inferior-izquierda, justo encima de la
+  barra inferior; pulsarlo sigue mostrando/ocultando la fila superior.
+- La ventana de maniobras era de ancho completo (left:12px→right:12px) y se
+  comía los controles de zoom de la derecha. Ahora es compacta, centrada
+  (máx. 520 px, se estrecha en pantallas pequeñas) y no invade la columna
+  derecha de botones.
+- Campos de tiempo arreglados: "tiempo restante" y "llegada HH:MM" se
+  mostraban pegados en la misma línea ("32 minllegada 14:55"). Ahora van en
+  columna con tipografía propia, sin cortarse.
