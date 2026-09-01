@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>NAV — Navegación</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
 <script src="PNG/zbuildgs.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -848,7 +849,7 @@ function initMap(){
   map.on('click',e=>{if(pickState)movePick(e.lngLat);});
   window.addEventListener('resize',()=>applyCarPadding());
   map.on('error',e=>{
-    const msg=e&&e.error&&e.error.message||e&&e.error&&e.error.status||'';
+    const msg=String((e&&e.error&&(e.error.message||e.error.status))||'');
     if(msg.includes('Token'))
       toast('Error de token Mapbox — cambia proveedor a OSM',4000);
     // 403 en tiles de Mapbox: el token no tiene acceso a los estilos.
@@ -977,17 +978,37 @@ const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
 let lastOverpassFailed=false; // true si ninguna instancia Overpass respondió en el último intento
 const OVERPASS_ENDPOINTS=[
   'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.nchc.org.tw/api/interpreter',
+  'https://overpass-api.ams3.klomp.space/api/interpreter',
   'https://overpass.osm.ch/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
 ];
-// NOTA: overpass.private.coffee eliminado — DNS muerto (ERR_NAME_NOT_RESOLVED).
+// NOTA: endpoints eliminados por DNS muerto / sin CORS: overpass.private.coffee,
+// overpass.nchc.org.tw (ERR_NAME_NOT_RESOLVED).
+// Circuit breaker por instancia: tras 2 fallos seguidos se desactiva 5 minutos,
+// y si TODAS fallan no se vuelve a intentar durante 60 s. Así no se inunda la
+// consola con errores en cada movimiento del mapa.
+let overpassState={}; // url -> {fails,offUntil}
+function overpassEnabled(url){
+  const st=overpassState[url];
+  return !(st&&st.offUntil>Date.now());
+}
+function overpassMark(url,ok){
+  if(ok){delete overpassState[url];return;}
+  const st=overpassState[url]||{fails:0,offUntil:0};
+  st.fails++;
+  if(st.fails>=2){st.fails=0;st.offUntil=Date.now()+5*60*1000;}
+  overpassState[url]=st;
+}
+let lastAllOverpassFail=0; // cooldown global tras un fallo total
 async function fetchOverpass(query){
+  if(Date.now()-lastAllOverpassFail<60000)return [];
+  const endpoints=OVERPASS_ENDPOINTS.filter(overpassEnabled);
+  if(!endpoints.length){lastOverpassFailed=true;return [];}
   // POST con cuerpo form-urlencoded: el mismo método que usa tesla.html y
   // el que está probado que funciona en el navegador del Tesla (con GET
   // algunas instancias fallan o truncan queries largas). Se lanzan todas
   // las instancias en paralelo y gana la primera respuesta con datos.
-  const attempts=OVERPASS_ENDPOINTS.map(base=>{
+  const attempts=endpoints.map(base=>{
     const ctrl=new AbortController();
     const tm=setTimeout(()=>ctrl.abort(),9000);
     return fetch(base,{
@@ -996,14 +1017,15 @@ async function fetchOverpass(query){
       body:'data='+encodeURIComponent(query),
       signal:ctrl.signal,
     })
-      .then(r=>r.ok?r.json():null)
-      .then(d=>(d&&Array.isArray(d.elements))?d.elements:null)
-      .catch(()=>null)
+      .then(r=>{if(!r.ok){overpassMark(base,false);return null;}return r.json();})
+      .then(d=>{overpassMark(base,true);return (d&&Array.isArray(d.elements))?d.elements:null;})
+      .catch(()=>{overpassMark(base,false);return null;})
       .finally(()=>clearTimeout(tm));
   });
   const results=await Promise.all(attempts);
   for(const res of results){if(res&&res.length){lastOverpassFailed=false;return res;}}
   lastOverpassFailed=results.every(r=>r==null); // ningún endpoint respondió
+  if(lastOverpassFailed)lastAllOverpassFail=Date.now();
   return [];
 }
 function mapCenterForFetch(){
