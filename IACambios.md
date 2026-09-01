@@ -445,3 +445,47 @@ habría descentrado el coche hasta el primer fix de GPS.
 - **Mejora**: al liberar `isFlying` (setTimeout), se llama una vez a
   `updateCamera()` para asentar la cámara sobre el coche y corregir cualquier
   desviación residual del aterrizaje.
+
+---
+
+## 18. Motor de voz nuevo: Google TTS online (MP3 por `<audio>`)
+
+### 18.1 El problema: la voz no sonaba en el navegador del Tesla
+
+Los motores anteriores dependían de recursos que **el navegador del Tesla no
+proporciona de forma fiable**:
+
+- **TTS nativo** (`speechSynthesis`): en el navegador del coche
+  `getVoices()` devuelve una lista vacía (no hay voces instaladas) y `speak()`
+  no emite nada.
+- **Clips WAV / Web Audio** (`AudioContext`): funciona en muchos casos, pero
+  el WebView del Tesla puede dejar el contexto en `suspended` si no hay un
+  gesto del usuario previo, y los clips sintetizados suenan robóticos.
+
+### 18.2 La solución adoptada (según experiencia de otros usuarios)
+
+Lo que la comunidad de apps de navegación web en el Tesla confirma que funciona
+es **reproducir un MP3 real por el pipeline de audio normal del navegador**
+(elemento `<audio>`), el mismo que usan los vídeos/streaming. El nuevo motor
+**“Google TTS online”** genera el MP3 al vuelo con el endpoint TTS de Google
+(`translate.google.com/translate_tts`, gratuito y sin API key) y lo reproduce
+con un `Audio()` reutilizable:
+
+- **Motor nuevo `online`** en `nav.html` y `tesla.html` (`speakOnline()`):
+  construye la URL del TTS con el texto de la maniobra (máx. 180 caracteres),
+  corta cualquier reproducción anterior y lanza `audio.play()`. Si no hay red
+  o el navegador bloquea el autoplay, cae al pitido (`alertSound('info')`).
+- **Desbloqueo por gesto** (`unlockAudioOnGesture`): al primer toque/pulsación
+  se crean y reanudan los `AudioContext` (pitidos y clips) y se reproduce un
+  WAV mudo, lo que habilita el audio en navegadores con política de autoplay
+  estricta (incluido el del Tesla). Se registran listeners `pointerdown` y
+  `touchstart`.
+- **Fallback automático en `speakNative`**: si `speechSynthesis` no existe o
+  `getVoices()` está vacío (caso Tesla), se deriva automáticamente a
+  `speakOnline()` en lugar de quedarse mudo.
+- **Motor recomendado en los ajustes**: nueva opción “Google TTS online (MP3,
+  recomendado en Tesla)” en el selector de motor de voz de `nav.html` y en los
+  dos selectores de `tesla.html` (modal de voz y modal de ayuda), con el texto
+  de ayuda actualizado.
+- **Default inteligente**: en `tesla.html`, si no hay `speechSynthesis`, el
+  motor por defecto pasa a `online` al cargar ajustes.

@@ -1990,7 +1990,7 @@ const originalBookmarks = [
     const PDRS_RUTA_CHECKED_KEY = 'boardinggate_pdrsRutaCheckboxChecked';
     const VOICE_GUIDANCE_KEY = 'boardinggate_voice_guidance';
     const VOICE_MODE_KEY = 'boardinggate_voice_mode';       // 'silence' | 'sounds' | 'voice'
-    const VOICE_ENGINE_KEY = 'boardinggate_voice_engine';   // 'native' | 'google'
+    const VOICE_ENGINE_KEY = 'boardinggate_voice_engine';   // 'native' | 'google' | 'clips' | 'online'
     let voiceGuidanceEnabled = false;
     let voiceGuidanceMode = JSON.parse(localStorage.getItem(VOICE_MODE_KEY) || '"silence"');
     let voiceGuidanceEngine = JSON.parse(localStorage.getItem(VOICE_ENGINE_KEY) || '"native"');
@@ -7860,6 +7860,8 @@ function speakNavigationInstruction(text) {
         speakWithClips(text);
     } else if (voiceGuidanceEngine === 'native') {
         speakNative(text);
+    } else if (voiceGuidanceEngine === 'online') {
+        speakOnline(text);
     } else {
         speakWithGoogleVoice(text);
     }
@@ -7982,7 +7984,9 @@ function speakWithClips(text) {
 
 // Motore "navigatore": SpeechSynthesis locale, offline, funziona su Chrome/WebView Tesla.
 function speakNative(text) {
-    if (!voiceSynthesis) return;
+    if (!voiceSynthesis) { speakOnline(text); return; }
+    let sysVoices = []; try { sysVoices = voiceSynthesis.getVoices() || []; } catch (e) {}
+    if (!sysVoices.length) { speakOnline(text); return; }
     if (voiceSynthesis.speaking) voiceSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -8020,6 +8024,51 @@ function speakWithGoogleVoice(text) {
     utterance.volume = 1;
     utterance.voice = googleVoice;
     voiceSynthesis.speak(utterance);
+}
+
+// ===================================================================
+// NOMBRE: speakOnline
+// RESUMEN: Motor de voz "Google TTS online". El navegador del Tesla no trae
+// voces de speechSynthesis (getVoices() vacío y speak() mudo) y el Web Audio
+// sintetizado puede no sonar en el coche. Lo que la comunidad de apps de
+// navegación web confirma que funciona en el Tesla es reproducir un MP3 real
+// por el pipeline de audio normal del navegador (<audio>): este motor genera
+// el MP3 al vuelo con el endpoint TTS de Google (gratis, sin API key) y lo
+// reproduce con un elemento Audio. Si no hay red o falla, cae al pitido.
+// ===================================================================
+const SILENT_WAV = 'data:audio/wav;base64,UklGRuQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YcADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+let onlineAudioEl = null;
+let audioUnlocked = false;
+
+// Los navegadores (incluido el del Tesla) bloquean el audio hasta que el
+// usuario interactúa con la página: el AudioContext nace 'suspended' y
+// <audio>.play() puede fallar. Un toque inicial desbloquea ambos caminos.
+function unlockAudioOnGesture() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try { ensureAudioCtx(); } catch (e) {}
+    try { ensureClipsCtx(); } catch (e) {}
+    try {
+        const probe = new Audio(SILENT_WAV);
+        probe.volume = 0.01;
+        const p = probe.play();
+        if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+}
+document.addEventListener('pointerdown', unlockAudioOnGesture, { passive: true });
+document.addEventListener('touchstart', unlockAudioOnGesture, { passive: true });
+
+function speakOnline(text) {
+    if (!text) return;
+    try {
+        const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q=' + encodeURIComponent(text.slice(0, 180));
+        if (onlineAudioEl) { onlineAudioEl.pause(); onlineAudioEl.src = ''; }
+        const a = new Audio(url);
+        onlineAudioEl = a;
+        a.volume = 1;
+        const p = a.play();
+        if (p && p.catch) p.catch(() => { playAlertSound('info'); });
+    } catch (e) { playAlertSound('info'); }
 }
 
 // --- AVVISI SONORI (WebAudio, nessun file esterno) ---
@@ -8124,7 +8173,8 @@ function loadSavedSettings() {
     voiceGuidanceMode = savedVoiceMode ? JSON.parse(savedVoiceMode) : (legacyVoiceEnabled ? 'voice' : 'silence');
     voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
     const savedVoiceEngine = localStorage.getItem(VOICE_ENGINE_KEY);
-    if (savedVoiceEngine) voiceGuidanceEngine = JSON.parse(savedVoiceEngine); 
+    if (savedVoiceEngine) voiceGuidanceEngine = JSON.parse(savedVoiceEngine);
+    else if (!window.speechSynthesis) voiceGuidanceEngine = 'online'; 
  
     baseCriticalRatio = parseInt(localStorage.getItem(PERFORMANCE_RATIO_CRITICAL_KEY)) || 3;
     performanceRatios.criticalUpdate = baseCriticalRatio;
@@ -13254,11 +13304,12 @@ function showVoiceOptionsModal() {
         <div class="voice-opt-group">
             <label for="voice-options-engine-select">Motor de voz:</label>
             <select id="voice-options-engine-select">
-                <option value="native">Navegador (offline, recomendado en Tesla)</option>
+                <option value="native">Navegador (offline, PC/m&oacute;vil)</option>
                 <option value="google">Google (red, solo si el sistema lo trae)</option>
-                <option value="clips">Clips pre-generados (WAV offline, m&aacute;x. compatibilidad Tesla)</option>
+                <option value="clips">Clips pre-generados (WAV offline)</option>
+                <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
             </select>
-            <div class="voice-opt-help">"Clips pre-generados" no depende del sintetizador del sistema: m&aacute;xima compatibilidad con el navegador del Tesla y siempre audible.</div>
+            <div class="voice-opt-help">En el Tesla, la voz m&aacute;s fiable es "Google TTS online": reproduce un MP3 real por el <audio> del navegador, sin depender del sintetizador del sistema (que en el coche no tiene voces).</div>
         </div>
         <button id="voice-options-test-btn" class="voice-opt-btn">🔊 Probar sonido</button>
         <button id="voice-options-ok-btn" class="voice-opt-btn voice-opt-btn-ok">Listo</button>
@@ -13283,7 +13334,7 @@ function showVoiceOptionsModal() {
         voiceGuidanceEngine = engineSelect.value;
         localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
         markCacheAsDirty();
-        const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : 'Google';
+        const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : voiceGuidanceEngine === 'online' ? 'Google TTS online (MP3)' : 'Google';
         showToast(`Motor de voz: ${engineLabel}.`, 'info');
     });
     modal.querySelector('#voice-options-test-btn').addEventListener('click', () => {
@@ -13405,9 +13456,10 @@ function showNavigationMapHelpModal() {
                              <div id="voice-engine-row" style="display: none; margin-top: 8px;">
                                  <label for="voice-engine-select" style="display:block; margin-bottom: 6px;">Motor de voz:</label>
                                  <select id="voice-engine-select" style="width: 100%; padding: 6px; background: #1a1a1a; color: #eee; border: 1px solid #444; border-radius: 6px;">
-                                     <option value="native">Navegador (offline, recomendado en Tesla)</option>
+                                     <option value="native">Navegador (offline, PC/m&oacute;vil)</option>
                                      <option value="google">Google (red, solo si el sistema lo trae)</option>
-                                     <option value="clips">Clips pre-generados (WAV offline, max compatibilidad Tesla)</option>
+                                     <option value="clips">Clips pre-generados (WAV offline)</option>
+                                     <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
                                  </select>
                              </div>
                              
@@ -13566,7 +13618,7 @@ function showNavigationMapHelpModal() {
             voiceGuidanceEngine = voiceEngineSelect.value;
             localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
             markCacheAsDirty();
-            const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : 'Google';
+            const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : voiceGuidanceEngine === 'online' ? 'Google TTS online (MP3)' : 'Google';
             showToast(`Motor de voz: ${engineLabel}.`, 'info');
         });
     }

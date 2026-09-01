@@ -157,6 +157,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <select id="s-voice-engine">
       <option value="native">Navegador (TTS offline)</option>
       <option value="clips">Clips pre-generados (WAV)</option>
+      <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
     </select>
     <div class="voicetest">
       <button class="btn" id="btn-test-voice">🔊 Probar voz</button>
@@ -188,7 +189,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
    NAV — punto de entrada limpio de navegación
    Mapa: Mapbox GL (vector) u OSM raster · Estilo: calles/oscuro/satélite
    3D buildings on/off · Rutas: OSRM (gratis) o Mapbox
-   Voz: TTS nativo o clips WAV · Coche: posición % en pantalla
+   Voz: TTS nativo, clips WAV o Google TTS online (MP3) · Coche: posición % en pantalla
 ================================================================ */
 
 /* ---------- settings (localStorage) ---------- */
@@ -252,6 +253,27 @@ function alertSound(kind){
   }
 }
 
+/* ---------- audio: unlock (primera interacción del usuario) ---------- */
+// Los navegadores (incluido el del Tesla) bloquean el audio hasta que el
+// usuario interactúa con la página: el AudioContext nace 'suspended' y
+// <audio>.play() puede fallar. Un toque inicial desbloquea ambos caminos.
+const SILENT_WAV='data:audio/wav;base64,UklGRuQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YcADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+let audioUnlocked=false;
+function unlockAudioOnGesture(){
+  if(audioUnlocked)return;
+  audioUnlocked=true;
+  try{ensureBeepCtx();}catch(e){}
+  try{ensureClipsCtx();}catch(e){}
+  try{
+    const probe=new Audio(SILENT_WAV);
+    probe.volume=0.01;
+    const p=probe.play();
+    if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+document.addEventListener('pointerdown',unlockAudioOnGesture,{passive:true});
+document.addEventListener('touchstart',unlockAudioOnGesture,{passive:true});
+
 /* ---------- voice: clips (WAV synthesized in memory) ---------- */
 const NAV_CLIPS={
   far:'En dos kilometros',medium:'En quinientos metros',near:'Ahora',
@@ -311,7 +333,10 @@ function speakWithClips(text){
   if(prefix)playClip(prefix).then(()=>playClip(clip));else playClip(clip);
 }
 function speakNative(text){
-  if(!window.speechSynthesis)return;
+  // Tesla: sin speechSynthesis o sin voces -> el sintetizador local no existe.
+  if(!window.speechSynthesis||!window.speechSynthesis.getVoices||!window.speechSynthesis.getVoices().length){
+    speakOnline(text);return;
+  }
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang='es-ES';u.rate=1.05;u.volume=1;
@@ -320,10 +345,33 @@ function speakNative(text){
   if(pref)u.voice=pref;
   speechSynthesis.speak(u);
 }
+
+/* ---------- voice: Google TTS online (MP3 vía <audio>) ---------- */
+// El navegador del Tesla no trae voces de speechSynthesis y el Web Audio
+// puede no sonar en el coche. Lo que la comunidad de apps de navegación web
+// confirma que funciona en el Tesla es reproducir un MP3 real por el pipeline
+// de audio normal del navegador (<audio>). Este motor genera el MP3 al vuelo
+// con el endpoint TTS de Google (gratis, sin API key) y lo reproduce con un
+// elemento Audio; si no hay red, cae al pitido.
+let onlineAudioEl=null;
+function speakOnline(text){
+  if(!text)return;
+  try{
+    const url='https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q='+encodeURIComponent(text.slice(0,180));
+    if(onlineAudioEl){onlineAudioEl.pause();onlineAudioEl.src='';}
+    const a=new Audio(url);
+    onlineAudioEl=a;
+    a.volume=1;
+    const p=a.play();
+    if(p&&p.catch)p.catch(()=>{alertSound('info');});
+  }catch(e){alertSound('info');}
+}
 function speak(text){
   if(S.voiceMode==='silence')return;
   if(S.voiceMode==='sounds'){alertSound('info');return;}
-  if(S.voiceEngine==='clips')speakWithClips(text);else speakNative(text);
+  if(S.voiceEngine==='clips')speakWithClips(text);
+  else if(S.voiceEngine==='online')speakOnline(text);
+  else speakNative(text);
 }
 
 /* ---------- map ---------- */
