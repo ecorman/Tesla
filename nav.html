@@ -221,6 +221,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <div id="map"></div>
 
 <!-- car marker (screen-space, positioned by %) -->
+<div id="keys-warn" style="display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:60;background:#3a2b08;border:1px solid #ffb020;color:#ffd98a;padding:8px 14px;border-radius:10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.5);max-width:92vw;text-align:center">⚠️ Claves no configuradas: el mapa no puede cargar sin el token de Mapbox. <a href="instrucciones.html" style="color:#ffcf5c;font-weight:700">Ver cómo configurarlo</a> <button id="keys-warn-close" style="margin-left:8px;background:none;border:none;color:#ffb020;cursor:pointer;font-size:14px">✕</button></div>
 <div id="topbar" class="hidden-btns">
   <div id="topbar-btns">
     <button class="icon-btn" id="btn-search" title="Buscar ruta">🔍</button>
@@ -979,8 +980,8 @@ const OVERPASS_ENDPOINTS=[
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.nchc.org.tw/api/interpreter',
   'https://overpass.osm.ch/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
 ];
+// NOTA: overpass.private.coffee eliminado — DNS muerto (ERR_NAME_NOT_RESOLVED).
 async function fetchOverpass(query){
   // POST con cuerpo form-urlencoded: el mismo método que usa tesla.html y
   // el que está probado que funciona en el navegador del Tesla (con GET
@@ -3131,6 +3132,15 @@ function mergeLegSteps(route){
 
 /* ================================================================
    /* ---------- boot ---------- */
+(function(){
+  const hasKey=!!(window.APP_CONFIG&&window.APP_CONFIG.keys&&window.APP_CONFIG.keys.mapbox);
+  const w=document.getElementById('keys-warn');
+  if(!hasKey&&w){
+    w.style.display='block';
+    const c=document.getElementById('keys-warn-close');
+    if(c)c.onclick=function(){w.style.display='none';};
+  }
+})();
 applyTeslaScale();
 startMemoryWatchdog();
 initMap();
