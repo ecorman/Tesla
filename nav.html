@@ -916,6 +916,9 @@ function bootFlyTo(){
   if(!map||!userPos)return;
   const pitch=S.pitch, zoom=S.zoom, bearing=0;
   isFlying=true;
+  // Aterrizar en mercator: evita la transición globo->mercator a mitad del
+  // flyTo con pitch alto (la cámara puede quedarse en negro / sin acercarse).
+  try{if(typeof map.setProjection==='function')map.setProjection('mercator');}catch(e){}
   // El centro del flyTo es userPos: con el setPadding de applyCarPadding
   // (ya aplicado al cargar el mapa), Mapbox pinta userPos exactamente en
   // la posición de pantalla del coche (carX/carY) — misma convención que
@@ -1318,10 +1321,12 @@ function applyViewMode(){
 function applyRelief(){
   if(!map)return;
   const on=viewMode().relief;
-  // El terreno DEM necesita proyección mercator (globo y DEM no conviven)
+  // El terreno DEM (mapbox://) necesita token de Mapbox: sin él, el renderer
+  // falla al pedir los tiles y el mapa se queda en negro. Se degrada a 3D sin relieve.
+  const hasMapbox=!!(window.APP_CONFIG&&window.APP_CONFIG.keys&&window.APP_CONFIG.keys.mapbox);
   try{if(typeof map.setProjection==='function')map.setProjection(on?'mercator':'globe');}catch(e){}
   try{
-    if(on){
+    if(on&&hasMapbox){
       if(!map.getSource('nav-dem'))map.addSource('nav-dem',{type:'raster-dem',url:'mapbox://mapbox.terrain-dem-v1',tileSize:512,maxzoom:14});
       try{map.setTerrain({source:'nav-dem',exaggeration:1.2});}catch(e){}
     }else{

@@ -1106,3 +1106,10 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **La escala (Ajustes → Cámara → Tamaño HUD, 60–160 %) ya NO redimensiona** el emblema Tesla/velocidad, la brújula ni los datos: ahora afecta **solo a la ventana de la gráfica** (canvas de desnivel/velocidad, que además crece en ancho y alto reales y se redibuja).
 - **Eliminados los botones − / ＋ de la ventana de la brújula** (ocupaban sitio): el ajuste de tamaño queda solo en el slider de Ajustes → Cámara.
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), **9/9 tests** (sin botones, #free-hud sin transform, gráfica con `calc(200px*var)`, var aplicada, slider sincronizado y persistido, gráfica redibujada).
+
+## 52. nav.html: mapa que desaparecía al encontrar posición — culpa del DEM sin token (2026-09-01)
+- **Síntoma**: el mapa salía en globo terráqueo, pero al localizar la posición se ponía negro y no acercaba el zoom.
+- **Causa**: `PNG/zbuildgs.js` sigue ausente (sin token de Mapbox) y el modo **3D Relieve** añadía la fuente de terreno `mapbox://mapbox.terrain-dem-v1` — sin token los tiles del DEM devuelven error y el renderer de Mapbox se rompe justo cuando la cámara vuela hacia el coche (donde se piden los tiles) → negro + zoom muerto.
+- **Fix 1 — `applyRelief`**: el terreno DEM solo se usa **si hay token de Mapbox**; sin token, el modo Relieve se degrada a 3D (proyección mercator, sin relieve) y se elimina cualquier fuente DEM sobrante. Con token, el relieve funciona igual que antes.
+- **Fix 2 — `bootFlyTo`**: antes de volar hacia el coche pasa la proyección a **mercator** explícitamente, evitando la transición globo→mercator a mitad de vuelo con pitch alto (otra vía conocida de cámara rota/pantalla negra).
+- Verificado: 0 errores de sintaxis (incl. módulo ESM), **9/9 tests** (sin token → no añade nav-dem y setTerrain(null); con token → añade el DEM y aplica terreno; 3D sin token → sin DEM; bootFlyTo → mercator antes del flyTo y zoom guardado 15.5).
