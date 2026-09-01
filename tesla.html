@@ -64,7 +64,7 @@
     <title>BoardingGate: Navegador avanzado y Favoritos web para Tesla</title>
     <link rel="icon" href="https://boardinggate.github.io/Tesla/th.jpeg" type="image/jpeg">
     <!-- Tailwind CDN eliminado: la app usa tesla.css y no depende de este script en producción. -->
-    <script type="module"> import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"; import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, serverTimestamp, where, query, orderBy, limit, addDoc, writeBatch, startAfter, updateDoc, FieldValue, runTransaction } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";  const firebaseConfig = window.APP_CONFIG.firebase; try { const app = initializeApp(firebaseConfig);window.db = getFirestore(app);window.doc = doc;window.setDoc = setDoc;window.getDoc = getDoc;window.collection = collection;window.getDocs = getDocs;window.deleteDoc = deleteDoc;window.serverTimestamp = serverTimestamp; window.where = where; window.query = query; window.orderBy = orderBy; window.limit = limit; window.addDoc = addDoc;window.writeBatch = writeBatch; window.startAfter = startAfter; window.updateDoc = updateDoc; window.FieldValue = FieldValue; window.runTransaction = runTransaction; } catch (e) {  }; </script>
+    <script type="module"> import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"; import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, serverTimestamp, where, query, orderBy, limit, addDoc, writeBatch, startAfter, updateDoc, FieldValue, runTransaction } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";  const firebaseConfig = (window.APP_CONFIG && window.APP_CONFIG.firebase) || {}; try { const app = initializeApp(firebaseConfig);window.db = getFirestore(app);window.doc = doc;window.setDoc = setDoc;window.getDoc = getDoc;window.collection = collection;window.getDocs = getDocs;window.deleteDoc = deleteDoc;window.serverTimestamp = serverTimestamp; window.where = where; window.query = query; window.orderBy = orderBy; window.limit = limit; window.addDoc = addDoc;window.writeBatch = writeBatch; window.startAfter = startAfter; window.updateDoc = updateDoc; window.FieldValue = FieldValue; window.runTransaction = runTransaction; } catch (e) {  }; </script>
 
     
     <link rel="stylesheet" href="tesla.css">
@@ -1375,7 +1375,7 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
 <script>
     
 //ofu mapbox
-                                                                                                                                                                                                    mapboxgl.accessToken = window.APP_CONFIG.keys.mapbox;                                                                                                   
+                                                                                                                                                                                                    if (window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.mapbox) { mapboxgl.accessToken = window.APP_CONFIG.keys.mapbox; }                                                                                                   
 
     
 //=======================================================        
@@ -11596,7 +11596,7 @@ async function fetchRouteData(coordsString, startHeading = null) {
     const mapboxService = {
         name: 'Mapbox',
         buildUrl: (coords) => {
-            const accessToken = window.APP_CONFIG.keys.mapbox;
+            const accessToken = (window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.mapbox) || '';
             const params = new URLSearchParams({
                 alternatives: 'false',
                 geometries: 'geojson',
@@ -26105,7 +26105,7 @@ function stopResourceMonitor() {
 function loadGoogleMapsScript() {
     if (window.google && window.google.maps) return;
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${window.APP_CONFIG.keys.googleMaps}&v=beta&libraries=places&callback=initMap&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${(window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.googleMaps) || ''}&v=beta&libraries=places&callback=initMap&loading=async`;
     script.async = true;
     document.head.appendChild(script);
 }
@@ -26217,7 +26217,7 @@ async function searchPoisByCategory(query, osmKey) {
 // INICIO: BLOQUE COMPLETO DEL ASISTENTE DE RUTAS IA
 
 //Of 
-const GAUL = window.APP_CONFIG.endpoints.gemini();                                                                                                                                                  
+const GAUL = (window.APP_CONFIG && window.APP_CONFIG.endpoints && window.APP_CONFIG.endpoints.gemini) ? window.APP_CONFIG.endpoints.gemini() : null;                                                                                                                                                  
 // ===================================================================
 // NOMBRE: openAiPlannerModal (Versión Copiloto Experto)
 // ===================================================================

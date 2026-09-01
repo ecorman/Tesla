@@ -1094,3 +1094,10 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Guard en `nav.html` (línea 777)**: si `PNG/zbuildgs.js` falta o no tiene clave, la app ya no se queda en negro — arranca el mapa igualmente (satélite/POIs sin token) y solo fallan Firebase/Gemini/tráfico Mapbox.
 - **IMPORTANTE (pasos manuales en GitHub)**: (1) crear el secret `APP_CONFIG_JSON` con el JSON completo de configuración; (2) en Settings → Pages cambiar Source de «Deploy from a branch» a **«GitHub Actions»**; (3) en Freebuff, re-guardar las claves en Keys/API keys para que se regenere `PNG/zbuildgs.js` en el workspace (ahora mismo falta el fichero local → la preview y el sitio necesitan ese paso).
 - Verificado: 0 errores de sintaxis (incl. módulo ESM), guard aplicado, preview sirviendo nav.html.
+
+## 50. tesla.html y nav.html: pantalla negra por fichero de claves ausente (2026-09-01)
+- **Causa de la pantalla negra**: `PNG/zbuildgs.js` (claves inyectadas por Freebuff) está **ausente** — se retiró del repo en la entrada 48 y aún no se han re-guardado las claves en el panel Keys/API keys. Sin él, `window.APP_CONFIG` no existe.
+- **tesla.html tenía 5 accesos a `APP_CONFIG` sin proteger** (el de `mapboxgl.accessToken` en top-level rompía TODO el script → pantalla negra y barra derecha muerta). Ahora los 5 son a prueba de ausencia: firebase ({}), mapbox accessToken ×2, buildUrl de Mapbox (''), script de Google Maps (''), y `GAUL` de Gemini (null).
+- **nav.html** ya tenía el guard (entrada 49); verificado con harness de arranque con ids reales: boot completo sin excepciones sin APP_CONFIG (mapa OSM raster, POIs Overpass y rutas OSRM/Valhalla funcionan sin token).
+- **Pendiente del usuario**: (1) re-guardar las claves en Keys/API keys para que Freebuff regenere `PNG/zbuildgs.js` (devuelve Firebase/IA/tráfico); (2) recargar con caché limpia (Ctrl+Shift+R) — el navegador puede tener la versión vieja que crasheaba.
+- Verificado: 0 errores de sintaxis en tesla.html (4 scripts + módulo ESM) y nav.html; preview sirviendo ambas versiones con guards.
