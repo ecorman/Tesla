@@ -1020,3 +1020,24 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - Los **waypoints se guardan** en rutas guardadas, se restauran tras recarga de memoria y se mantienen al recalcular por desvío.
 
 **Verificado:** 0 errores de sintaxis; **34/34 tests con stubs** (pin arrastrable, mover con clic, ventana oculta/visible según ruta activa, merge de steps multi-leg con arrive intermedio → continue, ventana detallada con filas y pasos, reordenación real de waypoints por drag, guardado/restauración de waypoints, select de ventana de ruta). Changelog: entrada 40.
+
+## 41. nav.html: modo de vista en Cámara, ángulo desactivado en modos planos, 3D+Satélite por defecto, HUD siempre visible y agrandable, minimapa sin tapar el zoom
+
+**1. Modo de vista → pestaña Cámara** ⚙
+- El selector «Modo de vista» se ha movido de la pestaña Mapa a la pestaña **Cámara**, junto al slider de inclinación.
+
+**2. Ángulo desactivado en modos planos** 📐
+- En **NORTE** y **AVANCE** (planos, sin inclinación) el slider de ángulo queda **desactivado** (atenuado). En **3D** y **3D RELIEVE** se activa.
+- Al volver de un modo plano a 3D se **restaura el último ángulo** que tenías (ya no se queda clavado en 0°).
+
+**3. Por defecto: 3D + Satélite** 🛰️
+- El modo de vista por defecto ahora es **3D** y el estilo del mapa **Satélite** (Google raster, sin token) para instalaciones nuevas.
+
+**4. HUD siempre visible y agrandable** 🧭
+- El HUD (brújula, velocidad, altímetro, medias, gráfica de desnivel) **ya no desaparece al navegar**: se queda visible con GPS, con o sin ruta.
+- **Toca la tarjeta para agrandarla/reducirla**: en grande la brújula, la velocidad y la gráfica crecen (240×90 vs 200×52).
+
+**5. Minimapa sin tapar los botones** 🗺️
+- La «ventanita» que tapaba el botón LIBRE del zoom era el **minimapa de maniobra**: se ha **bajado** (top 212→254) para no solapar los controles de la derecha y ahora lleva una **etiqueta «🗺️ Maniobra»** para que se sepa qué es.
+
+**Verificado:** 0 errores de sintaxis; **27/27 tests con stubs** (defaults 3D/satélite, pitch desactivado en planos, restauración del ángulo 3D, HUD visible navegando y oculto sin GPS, agrandar/reducir con el canvas, minimapa con etiqueta y sin solapar). Changelog: entrada 41.

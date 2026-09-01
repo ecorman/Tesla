@@ -98,7 +98,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
 /* ---- Free Drive HUD ---- */
-#free-hud{position:absolute;right:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#free-hud{position:absolute;right:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:196px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease}
+#free-hud.hud-big{min-width:264px}
+#free-hud.hud-big #hud-compass{width:46px;height:46px}
+#free-hud.hud-big .hud-spd span{font-size:38px}
+#free-hud.hud-big .hud-stats{font-size:12px}
+#free-hud.hud-big #hud-orient{font-size:19px}
+#settings input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 #free-hud .hud-row{display:flex;align-items:center;gap:8px}
 #hud-compass{width:34px;height:34px;object-fit:contain;transition:transform .25s linear}
 #free-hud .hud-head{display:flex;flex-direction:column;line-height:1.15;min-width:52px}
@@ -109,7 +115,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
 #hud-graph{width:100%;height:52px;border-radius:8px;background:rgba(255,255,255,.05)}
 /* ---- minimapa de maniobra ---- */
-#mnv-minimap{position:absolute;right:12px;top:212px;z-index:18;display:none;width:200px;height:128px;border-radius:12px;border:1px solid var(--line);background:#0e1016;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#mnv-box{position:absolute;right:12px;top:254px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
+#mnv-minimap{width:200px;height:128px;border-radius:8px;border:1px solid var(--line);background:#0e1016;display:block}
 /* ---- overlay recarga controlada ---- */
 #mem-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
 #mem-overlay .mem-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 28px;font-size:16px;color:var(--txt)}
@@ -293,7 +301,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <canvas id="hud-graph" width="200" height="52"></canvas>
 </div>
 <!-- minimapa de previsualización de maniobra (canvas ligero) -->
-<canvas id="mnv-minimap" width="200" height="128"></canvas>
+<div id="mnv-box">
+  <span id="mnv-label">🗺️ Maniobra</span>
+  <canvas id="mnv-minimap" width="200" height="128"></canvas>
+</div>
 <!-- overlay de recarga controlada (watchdog de memoria) -->
 <div id="mem-overlay"><div class="mem-box">🔄 Recuperando navegación…</div></div>
 
@@ -339,14 +350,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
   <div class="setgroup" data-tab="mapa">
     <div class="togglerow"><span>Edificios 3D</span><div class="switch" id="s-3d"></div></div>
-    <label style="margin-top:10px">Modo de vista</label>
-    <select id="s-view-mode">
-      <option value="norte">NORTE (norte arriba)</option>
-      <option value="avance">AVANCE (sentido de la marcha)</option>
-      <option value="3d">3D (perspectiva)</option>
-      <option value="relieve">3D RELIEVE (DEM + atmósfera)</option>
-    </select>
-    <div class="togglerow"><span>🧭 Free Drive HUD (sin ruta)</span><div class="switch" id="s-freehud"></div></div>
+    <div class="togglerow"><span>🧭 Free Drive HUD</span><div class="switch" id="s-freehud"></div></div>
     <div class="togglerow"><span>🗺️ Minimapa de maniobra</span><div class="switch" id="s-minimap"></div></div>
     <div class="togglerow"><span>🛡️ Watchdog de memoria (recarga controlada)</span><div class="switch" id="s-memwatch"></div></div>
     <div class="togglerow"><span>📏 Compensación de escala Tesla (0.6536)</span><div class="switch" id="s-tescascale"></div></div>
@@ -400,6 +404,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
   <div class="setgroup" data-tab="camara">
     <label>Cámara</label>
+    <label style="margin-top:8px">Modo de vista</label>
+    <select id="s-view-mode">
+      <option value="norte">NORTE (norte arriba, sin ángulo)</option>
+      <option value="avance">AVANCE (sentido de la marcha, sin ángulo)</option>
+      <option value="3d">3D (perspectiva)</option>
+      <option value="relieve">3D RELIEVE (DEM + atmósfera)</option>
+    </select>
     <div class="posrow"><label>📐</label><input type="range" id="s-pitch" min="0" max="75" value="62"><span class="val" id="v-pitch">62°</span></div>
     <div class="posrow"><label>🔍</label><input type="range" id="s-zoom" min="12" max="19" step="0.5" value="15.5"><span class="val" id="v-zoom">15.5</span></div>
     <label style="margin-top:8px">Modo de zoom</label>
@@ -525,7 +536,7 @@ const _savedPitch=parseFloat(localStorage.getItem(LS+'pitch'));
 const _savedZoom=parseFloat(localStorage.getItem(LS+'zoom'));
 const S={
   mapProvider: localStorage.getItem(LS+'mapProvider')||'osm', // raster por defecto: el token Mapbox no tiene acceso a estilos mapbox:// (403)
-  mapStyle:    localStorage.getItem(LS+'mapStyle')||'streets',
+  mapStyle:    localStorage.getItem(LS+'mapStyle')||'satellite',
   buildings3d: localStorage.getItem(LS+'buildings3d')==='true',
   radars:      localStorage.getItem(LS+'radars')==='true',
   alerts:      localStorage.getItem(LS+'alerts')==='true',
@@ -544,7 +555,7 @@ const S={
   myradars:    localStorage.getItem(LS+'myradars')==='true',
   myradarRadius: parseInt(localStorage.getItem(LS+'myradarRadius'))||350,
   heading:     localStorage.getItem(LS+'heading')!=='false',  // orientar mapa según marcha
-  viewMode:    localStorage.getItem(LS+'viewMode')||'avance', // norte/avance/3d/relieve (tesla.html)
+  viewMode:    localStorage.getItem(LS+'viewMode')||'3d', // norte/avance/3d/relieve (tesla.html)
   freeHud:     localStorage.getItem(LS+'freeHud')!=='false',
   minimap:     localStorage.getItem(LS+'minimap')!=='false',
   memWatch:    localStorage.getItem(LS+'memWatch')!=='false',
@@ -1269,10 +1280,15 @@ function currentViewPitch(){
   // NORTE/AVANCE van a 0°; 3D y RELIEVE usan el slider de inclinación
   return (S.viewMode==='norte'||S.viewMode==='avance')?0:S.pitch;
 }
+let last3dPitch=62;
 function applyViewMode(){
   if(!map)return;
   const vm=viewMode();
-  if(S.pitch!==vm.pitch){S.pitch=vm.pitch;try{localStorage.setItem(LS+'pitch',S.pitch);}catch(e){}}
+  if(vm.pitch>0&&S.pitch>0)last3dPitch=S.pitch;
+  if(S.pitch!==vm.pitch){
+    S.pitch=(vm.pitch>0&&last3dPitch>0)?last3dPitch:vm.pitch;
+    try{localStorage.setItem(LS+'pitch',S.pitch);}catch(e){}
+  }
   try{map.easeTo({pitch:S.pitch,duration:600});}catch(e){}
   if(vm.bearing===0){try{map.easeTo({bearing:0,duration:600});}catch(e){}}
   applyRelief();
@@ -1651,11 +1667,11 @@ let gpsWatch=null;
 /* Un unico camino de entrada para cada fix GPS: lo usa el GPS real (watchPosition)
    y el simulador, para que la simulacion sea exactamente igual que la realidad. */
 /* ---------- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) ----------
-   Se muestra al conducir SIN ruta activa. Alimentado desde handleGpsFix(). */
+   Visible siempre con GPS (también al navegar); toca la tarjeta para agrandarla. */
 let freeStats=null;
 function showFreeHud(){
   const h=document.getElementById('free-hud');if(!h)return;
-  const on=!!S.freeHud&&!routeData&&!!userPos;
+  const on=!!S.freeHud&&!!userPos;
   h.style.display=on?'flex':'none';
   if(on&&!freeStats)freeStats={t0:Date.now(),km:0,max:0,altMin:Infinity,altMax:-Infinity,prev:null,samples:[]};
   if(!on)return;
@@ -1719,6 +1735,8 @@ function drawHudGraph(){
 function drawMinimap(){
   const cv=document.getElementById('mnv-minimap');if(!cv)return;
   const on=!!S.minimap&&!!routeData;
+  const box=document.getElementById('mnv-box');
+  if(box)box.style.display=on?'flex':'none';
   cv.style.display=on?'block':'none';
   if(!on||!routeData.coords||routeData.coords.length<2)return;
   const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
@@ -2093,6 +2111,7 @@ const pitchVal=document.getElementById('v-pitch');
 const zoomVal=document.getElementById('v-zoom');
 function syncCam(){
   pitchEl.value=S.pitch;zoomEl.value=S.zoom;
+  pitchEl.disabled=(S.viewMode==='norte'||S.viewMode==='avance');
   pitchVal.textContent=Math.round(S.pitch)+'°';zoomVal.textContent=S.zoom;
   if(!isFlying)updateCamera();
   updateCarRotation();
@@ -2125,6 +2144,21 @@ function makeSwitch(id,key,cb){
 }
 bindSelect('s-view-mode','viewMode',()=>applyViewMode());
 makeSwitch('s-freehud','freeHud',()=>{if(!S.freeHud)freeStats=null;showFreeHud();});
+/* tocar el HUD lo agranda/reduce */
+(function(){
+  const hudEl=document.getElementById('free-hud');
+  if(!hudEl)return;
+  hudEl.title='Toca para agrandar o reducir';
+  hudEl.addEventListener('click',()=>{
+    hudEl.classList.toggle('hud-big');
+    const cv=document.getElementById('hud-graph');
+    if(cv){
+      const big=hudEl.classList.contains('hud-big');
+      cv.width=big?240:200;cv.height=big?90:52;
+      drawHudGraph();
+    }
+  });
+})();
 makeSwitch('s-minimap','minimap',()=>drawMinimap());
 makeSwitch('s-memwatch','memWatch',()=>startMemoryWatchdog());
 makeSwitch('s-tescascale','teslaScale',()=>applyTeslaScale());
