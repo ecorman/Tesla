@@ -62,6 +62,35 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #banner .nav-eta{text-align:right;font-size:12px;color:var(--dim);line-height:1.35;display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
 #banner .nav-eta b{font-size:16px;color:var(--txt)}
 #banner .nav-eta span{font-size:11px;color:var(--dim)}
+/* ---- selector de punto (confirmar destino, estilo tesla.html) ---- */
+#pick-card{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);z-index:30;display:none;flex-direction:column;gap:6px;padding:12px 14px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(340px,calc(100vw - 24px))}
+#pick-card .pc-row{display:flex;align-items:center;gap:8px}
+#pick-card .pc-row b{flex:1;font-size:15px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pick-card small{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+#pick-card .pc-hint{opacity:.85}
+#pick-card .pc-btns{display:flex;gap:8px;margin-top:4px}
+#pick-card .pc-btns .btn{flex:1}
+.pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
+/* ---- ventana de ruta detallada (debajo del banner) ---- */
+#route-detail{position:absolute;top:96px;left:12px;z-index:21;display:none;width:min(350px,calc(100vw - 160px));max-height:calc(100vh - 240px);overflow-y:auto;padding:10px 12px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#route-detail .rd-head{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+#route-detail .rd-head b{font-size:14px;color:var(--txt)}
+#route-detail .rd-head span{font-size:11px;color:var(--dim);margin-left:auto;font-variant-numeric:tabular-nums}
+#route-detail .rd-sub{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px}
+#wp-list{display:flex;flex-direction:column;gap:4px}
+.wp-row{display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;font-size:12px;color:var(--txt)}
+.wp-row.wp-dragging{opacity:.5}
+.wp-handle{cursor:grab;color:var(--dim);width:16px;text-align:center;user-select:none;touch-action:none;font-size:13px}
+.wp-ico{width:18px;text-align:center}
+.wp-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wp-sub{font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+.wp-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px}
+#rd-steps{display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto}
+.rd-step{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:12px;color:var(--dim)}
+.rd-step img{width:22px;height:22px;background:#fff;border-radius:6px;flex-shrink:0;object-fit:contain}
+.rd-step .rd-name{flex:1;color:var(--txt);min-width:0}
+.rd-step .rd-dist{font-size:11px;font-variant-numeric:tabular-nums;color:var(--dim)}
+.rd-step.cur{background:rgba(255,255,255,.1);outline:1px solid var(--line)}
 /* ---- bottom info ---- */
 #bottombar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:16px;padding:10px 16px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);pointer-events:none}
 #bottombar>*{pointer-events:auto}
@@ -221,6 +250,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
 </div>
 
+<!-- selector de punto: confirmar destino o añadir punto intermedio -->
+<div id="pick-card">
+  <div class="pc-row"><b id="pick-name">Punto</b><button class="icon-btn" id="pick-close" title="Cancelar">✕</button></div>
+  <small id="pick-coords"></small>
+  <small class="pc-hint">Toca el mapa o arrastra el pin para ajustar la posición</small>
+  <div class="pc-btns">
+    <button class="btn primary" id="pick-new">🛣 Nueva Ruta</button>
+    <button class="btn" id="pick-add">➕ Añadir Punto</button>
+  </div>
+</div>
+
+<!-- ventana de ruta detallada (puntos intermedios + instrucciones, debajo del banner) -->
+<div id="route-detail">
+  <div class="rd-head"><b>Ruta</b><span id="rd-summary"></span></div>
+  <div class="rd-sub">Puntos</div>
+  <div id="wp-list"></div>
+  <div class="rd-sub">Instrucciones</div>
+  <div id="rd-steps"></div>
+</div>
+
 <div id="results"></div>
 
 <div id="bottombar">
@@ -308,6 +357,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <select id="s-route-provider">
       <option value="osrm">OSRM (gratis, sin key)</option>
       <option value="mapbox">Mapbox Directions (con tráfico)</option>
+    </select>
+    <label style="margin-top:10px">Ventana de ruta</label>
+    <select id="s-route-view">
+      <option value="normal">Normal (solo banner)</option>
+      <option value="detallada">Detallada (puntos + instrucciones)</option>
     </select>
   </div>
 
@@ -480,6 +534,7 @@ const S={
   poiSize:     parseInt(localStorage.getItem(LS+'poiSize'))||40,
   zoomMode:    localStorage.getItem(LS+'zoomMode')||'auto', // LIBRE/AUTO/RUTA/ECO (igual que tesla.html)
   routeProvider:localStorage.getItem(LS+'routeProvider')||'osrm',
+  routeView:    localStorage.getItem(LS+'routeView')||'detallada',
   voiceMode:   localStorage.getItem(LS+'voiceMode')||'voice',
   voiceEngine: localStorage.getItem(LS+'voiceEngine')||'native',
   carX:        parseInt(localStorage.getItem(LS+'carX'))||50,
@@ -761,6 +816,8 @@ function initMap(){
     if(S.pois)updatePoiMarkerSizes();
   });
   hookFollowInteractions();
+  hookLongPress();
+  map.on('click',e=>{if(pickState)movePick(e.lngLat);});
   window.addEventListener('resize',()=>applyCarPadding());
   map.on('error',e=>{
     const msg=e&&e.error&&e.error.message||e&&e.error&&e.error.status||'';
@@ -1284,7 +1341,7 @@ async function doSearch(q){
         destInput.value=nm;
         lastDestName=nm;
         const dest=[parseFloat(d.lon),parseFloat(d.lat)];
-        calcRoute(dest,nm);
+        startPointPick(dest,nm);
       };
       resultsBox.appendChild(div);
     });
@@ -1295,11 +1352,14 @@ async function doSearch(q){
 /* ---------- routing ---------- */
 let routeData=null;      // {coords, steps, distance, duration}
 let destPoint=null;
+let routeWaypoints=[];      // puntos intermedios {lon,lat,name} (reordenables)
 let maneuverIdx=0;
 let voiceFlags={};
 
-async function calcRoute(dest,name){
+async function calcRoute(dest,name,waypoints){
   destPoint=dest;
+  routeWaypoints=Array.isArray(waypoints)?waypoints.map(w=>({lon:w.lon,lat:w.lat,name:w.name||'Punto'})):[];
+  cancelPick();
   if(!userPos){toast('Esperando GPS…');return;}
   toast('Calculando ruta…');
   let ok=false;
@@ -1317,6 +1377,7 @@ async function calcRoute(dest,name){
   document.getElementById('btn-stop').style.display='';
   document.getElementById('topbar').classList.add('banner-on');
   document.getElementById('banner').style.display='flex';
+  updateRouteDetail();
   speak(NAV_CLIPS.start);
   // El banner se rellena en el primer navTick (navTick también avanza la
   // maniobra actual, actualiza distancia/ETA y dispara la voz).
@@ -1325,7 +1386,8 @@ async function calcRoute(dest,name){
 
 async function routeOSRM(){
   try{
-    const coords=`${userPos[0]},${userPos[1]};${destPoint[0]},${destPoint[1]}`;
+    const pts=[userPos].concat(routeWaypoints.map(w=>[w.lon,w.lat])).concat([destPoint]);
+    const coords=pts.map(p=>p.join(',')).join(';');
     const url=`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`;
     const ctrl=new AbortController();
     const t=setTimeout(()=>ctrl.abort(),6000);
@@ -1338,7 +1400,7 @@ async function routeOSRM(){
       coords:route.geometry.coordinates,
       distance:route.distance,
       duration:route.duration,
-      steps:route.legs[0].steps,
+      steps:mergeLegSteps(route),
     };
     return true;
   }catch(e){return false;}
@@ -1347,7 +1409,8 @@ async function routeOSRM(){
 async function routeMapbox(){
   try{
     const token=window.APP_CONFIG.keys.mapbox;
-    const coords=`${userPos[0]},${userPos[1]};${destPoint[0]},${destPoint[1]}`;
+    const pts=[userPos].concat(routeWaypoints.map(w=>[w.lon,w.lat])).concat([destPoint]);
+    const coords=pts.map(p=>p.join(',')).join(';');
     const params=new URLSearchParams({
       geometries:'geojson',overview:'full',steps:'true',
       language:'es',access_token:token,
@@ -1361,7 +1424,7 @@ async function routeMapbox(){
       coords:route.geometry.coordinates,
       distance:route.distance,
       duration:route.duration,
-      steps:route.legs[0].steps,
+      steps:mergeLegSteps(route),
     };
     return true;
   }catch(e){return false;}
@@ -1457,6 +1520,9 @@ function navTick(){
   const arr=new Date(Date.now()+totalEta*1000);
   document.getElementById('nav-arr').textContent='llegada '+arr.getHours()+':'+String(arr.getMinutes()).padStart(2,'0');
   drawMinimap();
+  if(S.routeView==='detallada'&&document.getElementById('rd-steps')&&document.getElementById('rd-steps').children.length){
+    [...document.getElementById('rd-steps').children].forEach((el,i)=>el.classList.toggle('cur',i===maneuverIdx));
+  }
   // check deviation: distancia PERPENDICULAR a la polilinea (no al vertice
   // mas cercano) y con cooldown de 15 s para no entrar en bucle de
   // recalculos cada pocos metros.
@@ -1464,7 +1530,7 @@ function navTick(){
     lastRecalcTime=Date.now();
     toast('Desviado — recalculando…');
     speak(NAV_CLIPS.reroute);navBeep('reroute');
-    calcRoute(destPoint);
+    calcRoute(destPoint,lastDestName||'Destino',routeWaypoints);
     return;
   }
 }
@@ -1525,7 +1591,10 @@ function arrive(){
   document.getElementById('btn-stop').style.display='none';
   showArrivalStats();
   tripStats=null;lastTripPos=null;
+  routeWaypoints=[];
+  cancelPick();
   routeData=null;
+  updateRouteDetail();
 }
 function haversine(a,b){
   const R=6371000,dLat=(b[1]-a[1])*Math.PI/180,dLon=(b[0]-a[0])*Math.PI/180;
@@ -1707,6 +1776,7 @@ function controlledReload(){
     if(userPos)rec.userPos=userPos.slice();
     if(destPoint)rec.dest=destPoint.slice();
     if(routeData&&routeData.coords)rec.route={coords:routeData.coords,maneuverIdx:maneuverIdx};
+    if(routeWaypoints.length)rec.waypoints=routeWaypoints.map(w=>({...w}));
     if(simActive)rec.sim={active:true,speed:simSpeedKmh};
     localStorage.setItem(LS+'recovery',JSON.stringify(rec));
   }catch(e){}
@@ -1722,7 +1792,7 @@ function tryMemoryRestore(){
   if(rec.sim&&rec.sim.active)simSpeedKmh=rec.sim.speed||60;
   toast('Ruta restaurada tras recarga de memoria',3000);
   setTimeout(()=>{
-    calcRoute(rec.dest,lastDestName||'Ruta restaurada');
+    calcRoute(rec.dest,lastDestName||'Ruta restaurada',rec.waypoints||[]);
     if(rec.sim&&rec.sim.active)setTimeout(startSimulator,900);
   },600);
 }
@@ -1862,11 +1932,14 @@ document.getElementById('btn-search-close').onclick=()=>{
 document.getElementById('btn-stop').onclick=()=>{
   stopNavLoop();
   routeData=null;destPoint=null;maneuverIdx=0;voiceFlags={};
+  routeWaypoints=[];
   tripStats=null;lastTripPos=null;
+  cancelPick();
   if(map.getSource('route'))map.getSource('route').setData(emptyGeo());
   document.getElementById('topbar').classList.remove('banner-on');
   document.getElementById('banner').style.display='none';
   document.getElementById('btn-stop').style.display='none';
+  updateRouteDetail();
   toast('Navegación finalizada');
 };
 
@@ -1892,6 +1965,7 @@ function bindSelect(id,key,cb){
 bindSelect('s-map-provider','mapProvider',()=>initMap());
 bindSelect('s-map-style','mapStyle',()=>initMap());
 bindSelect('s-route-provider','routeProvider');
+bindSelect('s-route-view','routeView',()=>updateRouteDetail());
 bindSelect('s-voice-mode','voiceMode');
 bindSelect('s-voice-engine','voiceEngine');
 
@@ -2398,7 +2472,7 @@ function saveCurrentRoute(){
   const inp=document.getElementById('in-route-name');
   const name=(inp.value.trim()||lastDestName||'Ruta sin nombre').slice(0,60);
   const existing=savedRoutes.findIndex(r=>r.name.toUpperCase()===name.toUpperCase());
-  const obj={id:Date.now(),name:name,dest:destPoint.slice(),destName:lastDestName||name,distance:routeData.distance,duration:routeData.duration,createdAt:new Date().toISOString()};
+  const obj={id:Date.now(),name:name,dest:destPoint.slice(),destName:lastDestName||name,waypoints:routeWaypoints.map(w=>({...w})),distance:routeData.distance,duration:routeData.duration,createdAt:new Date().toISOString()};
   if(existing>=0)savedRoutes[existing]=obj;else savedRoutes.push(obj);
   inp.value='';
   saveSavedRoutes();
@@ -2407,7 +2481,7 @@ function saveCurrentRoute(){
 function loadSavedRoute(r){
   lastDestName=r.destName||r.name;
   toast('Cargando ruta: '+r.name);
-  calcRoute(r.dest.slice(),r.destName||r.name);
+  calcRoute(r.dest.slice(),r.destName||r.name,r.waypoints||[]);
 }
 function deleteSavedRoute(id){
   savedRoutes=savedRoutes.filter(r=>r.id!==id);
@@ -2609,6 +2683,233 @@ document.getElementById('in-radar-restore').addEventListener('change',e=>{
   e.target.value='';
 });
 updateMyRadarCount();
+
+/* ================================================================
+   ---------- selector de punto (confirmar destino / añadir punto) ---------- */
+let pickState=null;
+let pickMarker=null;
+function startPointPick(lonlat,name){
+  cancelPick();
+  pickState={lon:lonlat[0],lat:lonlat[1],name:name||'Punto en el mapa'};
+  const el=document.createElement('div');
+  el.className='pick-pin';el.textContent='📍';
+  pickMarker=new mapboxgl.Marker({el:el,anchor:'bottom',draggable:true})
+    .setLngLat([pickState.lon,pickState.lat]).addTo(map);
+  pickMarker.on('dragend',()=>{
+    const ll=pickMarker.getLngLat();
+    pickState.lon=ll.lng;pickState.lat=ll.lat;
+    updatePickCoords();
+  });
+  map.flyTo({center:[pickState.lon,pickState.lat],zoom:Math.max(map.getZoom(),14)});
+  document.getElementById('pick-name').textContent=pickState.name;
+  updatePickCoords();
+  document.getElementById('pick-add').style.display=(routeData&&destPoint)?'':'none';
+  document.getElementById('pick-card').style.display='flex';
+}
+function updatePickCoords(){
+  const c=document.getElementById('pick-coords');
+  if(c&&pickState)c.textContent=pickState.lat.toFixed(5)+', '+pickState.lon.toFixed(5);
+}
+function movePick(ll){
+  if(!pickState)return;
+  pickState.lon=ll.lng;pickState.lat=ll.lat;
+  if(pickMarker)pickMarker.setLngLat([ll.lng,ll.lat]);
+  updatePickCoords();
+}
+function cancelPick(){
+  pickState=null;
+  if(pickMarker){try{pickMarker.remove();}catch(e){}pickMarker=null;}
+  const c=document.getElementById('pick-card');
+  if(c)c.style.display='none';
+}
+document.getElementById('pick-new').onclick=()=>{
+  if(!pickState)return;
+  const p=[pickState.lon,pickState.lat],n=pickState.name;
+  cancelPick();
+  calcRoute(p,n,[]);
+};
+document.getElementById('pick-add').onclick=()=>{
+  if(!pickState)return;
+  const p=[pickState.lon,pickState.lat],n=pickState.name;
+  if(routeData&&destPoint){
+    routeWaypoints.push({lon:p[0],lat:p[1],name:n});
+    cancelPick();
+    toast('Punto intermedio añadido — recalculando…');
+    calcRoute(destPoint,lastDestName||'Destino',routeWaypoints);
+  }else{
+    cancelPick();
+    calcRoute(p,n,[]);
+  }
+};
+document.getElementById('pick-close').onclick=cancelPick;
+
+/* pulsación larga en el mapa -> selector de punto */
+let lpTimer=null,lpStart=null;
+function hookLongPress(){
+  const c=map.getContainer();
+  if(!c)return;
+  const start=e=>{
+    if(e.target&&e.target.classList&&!e.target.classList.contains('mapboxgl-canvas'))return;
+    const rect=c.getBoundingClientRect();
+    lpStart={x:e.clientX-rect.left,y:e.clientY-rect.top};
+    clearTimeout(lpTimer);
+    lpTimer=setTimeout(()=>{
+      if(!lpStart)return;
+      const ll=map.unproject([lpStart.x,lpStart.y]);
+      startPointPick([ll.lng,ll.lat],'Punto en el mapa');
+      lpStart=null;
+    },550);
+  };
+  const move=e=>{
+    if(!lpStart)return;
+    const rect=c.getBoundingClientRect();
+    if(Math.abs((e.clientX-rect.left)-lpStart.x)>10||Math.abs((e.clientY-rect.top)-lpStart.y)>10){
+      clearTimeout(lpTimer);lpStart=null;
+    }
+  };
+  const end=()=>{clearTimeout(lpTimer);lpStart=null;};
+  c.addEventListener('touchstart',start,{passive:true});
+  c.addEventListener('touchmove',move,{passive:true});
+  c.addEventListener('touchend',end);
+  c.addEventListener('mousedown',start);
+  c.addEventListener('mousemove',move);
+  c.addEventListener('mouseup',end);
+}
+
+/* ================================================================
+   ---------- ventana de ruta detallada (puntos + instrucciones) ---------- */
+function updateRouteDetail(){
+  const d=document.getElementById('route-detail');
+  if(!d)return;
+  const show=!!(routeData&&destPoint&&S.routeView==='detallada');
+  d.style.display=show?'block':'none';
+  if(show)renderRouteDetail();
+}
+function renderRouteDetail(){
+  const wpBox=document.getElementById('wp-list');
+  const stBox=document.getElementById('rd-steps');
+  if(!wpBox||!stBox||!routeData)return;
+  const sum=document.getElementById('rd-summary');
+  if(sum)sum.textContent=(routeWaypoints.length?routeWaypoints.length+' intermedios · ':'')+fmtDist(routeData.distance)+' · '+fmtTime(routeData.duration);
+  wpBox.innerHTML='';
+  const mkRow=(label,sub,ico,wpIdx)=>{
+    const row=document.createElement('div');
+    row.className='wp-row';
+    row.dataset.wpIdx=wpIdx;
+    const h=document.createElement('span');
+    h.className='wp-handle';
+    h.textContent=wpIdx>=0?'☰':'';
+    h.title=wpIdx>=0?'Arrastrar para reordenar':'';
+    const ic=document.createElement('span');
+    ic.className='wp-ico';ic.textContent=ico;
+    const nm=document.createElement('span');
+    nm.className='wp-name';nm.textContent=label;
+    const sb=document.createElement('span');
+    sb.className='wp-sub';sb.textContent=sub;
+    row.appendChild(h);row.appendChild(ic);row.appendChild(nm);row.appendChild(sb);
+    if(wpIdx>=0){
+      const del=document.createElement('button');
+      del.className='wp-del';del.textContent='✕';del.title='Quitar punto';
+      del.onclick=()=>{
+        routeWaypoints.splice(wpIdx,1);
+        toast('Punto intermedio quitado — recalculando…');
+        calcRoute(destPoint,lastDestName||'Destino',routeWaypoints);
+      };
+      row.appendChild(del);
+    }
+    wpBox.appendChild(row);
+  };
+  mkRow('Salida',userPos?userPos[1].toFixed(4)+', '+userPos[0].toFixed(4):'','🏠',-1);
+  routeWaypoints.forEach((w,i)=>mkRow(w.name||('Punto '+(i+1)),w.lat.toFixed(4)+', '+w.lon.toFixed(4),'📍',i));
+  mkRow('Destino',destPoint?destPoint[1].toFixed(4)+', '+destPoint[0].toFixed(4):'','🏁',-2);
+  wireWaypointDrag();
+  stBox.innerHTML='';
+  (routeData.steps||[]).forEach((st,i)=>{
+    const row=document.createElement('div');
+    row.className='rd-step'+(i===maneuverIdx?' cur':'');
+    const img=document.createElement('img');
+    img.src=getManeuverIconFilename(st.maneuver||{});
+    const nm=document.createElement('span');
+    nm.className='rd-name';nm.textContent=stepName(st);
+    const ds=document.createElement('b');
+    ds.className='rd-dist';ds.textContent=fmtDist(st.distance||0);
+    row.appendChild(img);row.appendChild(nm);row.appendChild(ds);
+    stBox.appendChild(row);
+  });
+}
+
+/* reordenar waypoints arrastrando (☰) con puntero (táctil + ratón) */
+function wireWaypointDrag(){
+  const list=document.getElementById('wp-list');
+  if(!list)return;
+  let drag=null;
+  list.onpointerdown=e=>{
+    const h=e.target.closest&&e.target.closest('.wp-handle');
+    if(!h)return;
+    const row=h.closest('.wp-row');
+    if(!row||+row.dataset.wpIdx<0)return;
+    e.preventDefault();
+    drag={row:row,idx:+row.dataset.wpIdx,startY:e.clientY};
+    row.classList.add('wp-dragging');
+    try{list.setPointerCapture(e.pointerId);}catch(err){}
+  };
+  list.onpointermove=e=>{
+    if(!drag)return;
+    drag.row.style.transform='translateY('+(e.clientY-drag.startY)+'px)';
+  };
+  const end=e=>{
+    if(!drag)return;
+    drag.row.classList.remove('wp-dragging');
+    drag.row.style.transform='';
+    const rows=[...list.querySelectorAll('.wp-row')].filter(r=>+r.dataset.wpIdx>=0);
+    const rect=drag.row.getBoundingClientRect();
+    const mid=rect.top+rect.height/2;
+    let target=0;
+    rows.forEach(r=>{
+      const rr=r.getBoundingClientRect();
+      if(rr.top+rr.height/2<mid)target++;
+    });
+    target=Math.max(0,Math.min(rows.length-1,target));
+    if(target!==drag.idx){
+      const item=routeWaypoints.splice(drag.idx,1)[0];
+      routeWaypoints.splice(target,0,item);
+      toast('Orden actualizado — recalculando…');
+      calcRoute(destPoint,lastDestName||'Destino',routeWaypoints);
+    }else{
+      renderRouteDetail();
+    }
+    drag=null;
+  };
+  list.onpointerup=end;
+  list.onpointercancel=end;
+}
+document.getElementById('wp-list').addEventListener('pointerdown',e=>{
+  const nm=e.target.closest&&e.target.closest('.wp-name');
+  if(!nm)return;
+  const row=nm.closest('.wp-row');
+  if(!row)return;
+  const idx=+row.dataset.wpIdx;
+  const wp=idx>=0?routeWaypoints[idx]:null;
+  const c=idx===-1?userPos:(idx===-2?destPoint:(wp&&[wp.lon,wp.lat]));
+  if(c)map.flyTo({center:c,zoom:Math.max(map.getZoom(),13)});
+});
+
+/* merge de steps multi-leg (OSRM/Mapbox con waypoints) */
+function mergeLegSteps(route){
+  const legs=route.legs||[];
+  if(!legs.length)return route.steps||[];
+  let steps=[];
+  legs.forEach((leg,i)=>{
+    let sts=(leg.steps||[]).slice();
+    if(i<legs.length-1&&sts.length&&sts[sts.length-1].maneuver&&sts[sts.length-1].maneuver.type==='arrive'){
+      const a=sts[sts.length-1];
+      a.maneuver={type:'continue',modifier:'straight'};
+      a.name=(routeWaypoints[i]&&routeWaypoints[i].name)||a.name;
+    }
+    steps=steps.concat(sts);
+  });
+  return steps;
+}
 
 /* ================================================================
    /* ---------- boot ---------- */

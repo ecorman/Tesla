@@ -1002,3 +1002,21 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   iconos usaba cadenas literales "U0001F37D" (texto visible) en vez de
   escapes unicode. Corregidos los 222 tokens a `\u{1F37D}` — ahora sí se
   ven los emojis reales (🍽️ ⛽ 🏨 📍…).
+
+## 40. nav.html: selector de punto con confirmación, pulsación larga y ventana de ruta detallada con waypoints reordenables
+
+**1. Buscar un lugar → te lleva al punto con pin arrastrable + ventana de confirmar** (como tesla.html)
+- Al pulsar un resultado de búsqueda ya no calcula la ruta directa: vuela al punto, deja un **pin 📍 arrastrable** y abre la ventana **«Nueva Ruta» / «Añadir Punto»** con el nombre y las coordenadas.
+- Puedes **hacer clic en el mapa** o arrastrar el pin para ajustar la posición exacta (se actualizan las coordenadas en vivo).
+
+**2. Pulsación larga en el mapa → ventana Nueva Ruta / Añadir Punto**
+- Pulsación larga (550 ms, táctil o ratón) sobre el mapa suelta un pin en ese punto y abre la misma ventana de confirmación.
+
+**3. Ventana de ruta detallada debajo de la de navegación**
+- **⚙ → Ruta → «Ventana de ruta»**: Normal (solo banner) o **Detallada** (puntos + instrucciones) — por defecto Detallada.
+- La ventana muestra: **Salida**, los **puntos intermedios** con icono **☰** (arrastra para reordenar) y **Destino**, más la lista de **instrucciones paso a paso** con icono, texto y distancia (la maniobra actual se resalta).
+- **Reordenar arrastrando**: el ☰ permite mover un punto intermedio a otra posición (táctil + ratón); al soltar recalcula la ruta con el nuevo orden.
+- Botón **✕** en cada punto intermedio para quitarlo.
+- Los **waypoints se guardan** en rutas guardadas, se restauran tras recarga de memoria y se mantienen al recalcular por desvío.
+
+**Verificado:** 0 errores de sintaxis; **34/34 tests con stubs** (pin arrastrable, mover con clic, ventana oculta/visible según ruta activa, merge de steps multi-leg con arrive intermedio → continue, ventana detallada con filas y pasos, reordenación real de waypoints por drag, guardado/restauración de waypoints, select de ventana de ruta). Changelog: entrada 40.
