@@ -7,12 +7,12 @@
 <script src="PNG/zbuildgs.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-  import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+  import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
   try{
     const fbApp=initializeApp(window.APP_CONFIG.firebase);
     window.db=getFirestore(fbApp);
     window.qCollection=collection;window.qQuery=query;window.qOrderBy=orderBy;window.qLimit=limit;window.qGetDocs=getDocs;
-    window.fDoc=doc;window.fSetDoc=setDoc;
+    window.fDoc=doc;window.fSetDoc=setDoc;window.fDeleteDoc=deleteDoc;
   }catch(e){console.warn('Firebase no disponible:',e);window.db=null;}
 </script>
 <script src='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.js'></script>
@@ -835,13 +835,19 @@ const OVERPASS_ENDPOINTS=[
   'https://overpass.private.coffee/api/interpreter',
 ];
 async function fetchOverpass(query){
-  // Lanza TODAS las instancias en paralelo: gana la que responda primero.
-  // (La cabecera User-Agent no se puede fijar desde el navegador — es una
-  // cabecera prohibida — asi que se manda la peticion normal.)
+  // POST con cuerpo form-urlencoded: el mismo método que usa tesla.html y
+  // el que está probado que funciona en el navegador del Tesla (con GET
+  // algunas instancias fallan o truncan queries largas). Se lanzan todas
+  // las instancias en paralelo y gana la primera respuesta con datos.
   const attempts=OVERPASS_ENDPOINTS.map(base=>{
     const ctrl=new AbortController();
-    const tm=setTimeout(()=>ctrl.abort(),8000);
-    return fetch(base+'?data='+encodeURIComponent(query),{headers:{'Accept':'application/json'},signal:ctrl.signal})
+    const tm=setTimeout(()=>ctrl.abort(),9000);
+    return fetch(base,{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
+      body:'data='+encodeURIComponent(query),
+      signal:ctrl.signal,
+    })
       .then(r=>r.ok?r.json():null)
       .then(d=>(d&&Array.isArray(d.elements))?d.elements:null)
       .catch(()=>null)
@@ -950,6 +956,7 @@ async function refreshAlerts(force){
     const feats=[];
     snap.forEach(d=>{
       const a=d.data();if(!a||a.latitude==null||a.longitude==null)return;
+      if(a.code===9)return; // marcadores de borrado: no se pintan
       const t=a.timestamp?((a.timestamp.seconds?a.timestamp.seconds*1000:a.timestamp)||0):0;
       if(t&&t<cutoff)return;
       feats.push({id:d.id,code:a.code||5,lat:a.latitude,lon:a.longitude});
@@ -1907,18 +1914,34 @@ function openAlertModal(){
 function closeAlertModal(){const ov=document.getElementById('alert-modal');if(ov)ov.classList.remove('open');}
 async function sendTrafficAlert(code,text){
   closeAlertModal();
-  if(!window.db||!window.fDoc||!window.fSetDoc){toast('Firebase no disponible');return;}
+  if(!window.db||!window.fDoc||!window.fSetDoc||!window.fDeleteDoc){toast('Firebase no disponible');return;}
   let pos=userPos;
   if(simActive&&simPos)pos=simPos; // si el simulador está activo, reportar desde ahí
   if(!pos){toast('Esperando posición GPS…');return;}
   const userId='Guest';
-  const data={user:userId,code:code,latitude:pos[1],longitude:pos[0],timestamp:new Date().toISOString()};
   try{
-    const ref=window.fDoc(window.qCollection(window.db,'users','ALERTAS','events'),Date.now()+'_'+userId);
-    await window.fSetDoc(ref,data);
-    toast('Alerta «'+text+'» enviada',2500);
-    if(S.alerts)refreshAlerts(true); // pintar la nueva alerta al instante
-  }catch(e){toast('Error al enviar la alerta: '+e.message,3500);}
+    if(code===9){
+      // «Ya no hay nada»: en vez de crear una alerta, BORRA las alertas que
+      // haya a <=800 m de la posición (mismo comportamiento que tesla.html:
+      // los marcadores de borrado eliminan las alertas cercanas).
+      const snap=await window.qGetDocs(window.qQuery(window.qCollection(window.db,'users','ALERTAS','events'),window.qOrderBy('timestamp','desc'),window.qLimit(150)));
+      const toDelete=[];
+      snap.forEach(d=>{
+        const a=d.data();if(!a||a.latitude==null||a.longitude==null)return;
+        if(haversine([pos[0],pos[1]],[a.longitude,a.latitude])<=800)toDelete.push(d.id);
+      });
+      for(const id of toDelete){
+        try{await window.fDeleteDoc(window.fDoc(window.qCollection(window.db,'users','ALERTAS','events'),id));}catch(e){}
+      }
+      toast(toDelete.length?('Alertas borradas ('+toDelete.length+')'):'No había alertas a menos de 800 m',3000);
+    }else{
+      const data={user:userId,code:code,latitude:pos[1],longitude:pos[0],timestamp:new Date().toISOString()};
+      const ref=window.fDoc(window.qCollection(window.db,'users','ALERTAS','events'),Date.now()+'_'+userId);
+      await window.fSetDoc(ref,data);
+      toast('Alerta «'+text+'» enviada',2500);
+    }
+    if(S.alerts)refreshAlerts(true); // pintar/limpiar al instante
+  }catch(e){toast('Error: '+e.message,3500);}
 }
 
 /* ---------- 2) Radares propios: crear aquí, importar KML, backup ---------- */
@@ -2161,12 +2184,27 @@ async function openVersions(){
   const pre=document.getElementById('versions-content');
   pre.textContent='Cargando histórico…';
   ov.classList.add('open');
+  // Cabecera con la fecha/hora del último commit (version.txt lo actualiza
+  // la GitHub Action en cada push).
+  let header='';
+  try{
+    const vr=await fetch('version.txt',{cache:'no-cache'});
+    if(vr.ok){
+      const v=(await vr.text()).trim();
+      if(v){
+        const d=new Date(v);
+        if(!isNaN(d)){
+          header='Última actualización del código (commit): '+d.toLocaleString('es-ES',{dateStyle:'long',timeStyle:'short'})+'\n\n';
+        }
+      }
+    }
+  }catch(e){}
   try{
     const r=await fetch('https://boardinggate.github.io/Tesla/updates.txt',{cache:'no-cache'});
     if(!r.ok)throw new Error('HTTP '+r.status);
-    pre.textContent=await r.text();
+    pre.textContent=header+(await r.text());
   }catch(e){
-    pre.textContent='No se pudo cargar el histórico ('+e.message+').\n\nConsulta IACambios.md en el repositorio.';
+    pre.textContent=header+'No se pudo cargar el histórico ('+e.message+').\n\nConsulta IACambios.md en el repositorio.';
   }
 }
 

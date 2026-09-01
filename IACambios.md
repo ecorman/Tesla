@@ -936,3 +936,16 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   instancia bloqueaba (overpass-api.de responde 406 a según qué IPs/UAs), los
   POIs tardaban o nunca aparecían. Se quita la cabecera User-Agent manual
   (los navegadores la ignoran por ser cabecera prohibida).
+
+## 36. nav.html (2026-09-01): borrar alertas con «Ya no hay nada», fecha/hora del commit en las notas y Overpass por POST
+
+- «Ya no hay nada» (código 9) ya funciona: en vez de crear una alerta nueva
+  (que era el punto que seguías viendo), ahora BORRA de Firestore todas las
+  alertas que haya a <=800 m de tu posición, como hace tesla.html. Además los
+  marcadores de borrado (code 9) ya no se pintan en el mapa.
+- El histórico de versiones (📋) muestra ahora la fecha y hora del último
+  commit («Última actualización del código»), leída de version.txt, que la
+  GitHub Action actualiza en cada push.
+- Overpass ahora se consulta por POST (el mismo método que usa tesla.html y
+  el probado en el navegador del Tesla): con GET algunas instancias fallaban
+  o truncaban la query — era una causa probable de que los POIs no salieran.
