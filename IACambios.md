@@ -1256,3 +1256,17 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - El usuario reportó el log de depuración `overpass ✗ overpass-api.de timeout 10 s (11448ms)`: la instancia principal es **lenta (>10 s) y a veces no responde**.
 - Probado en vivo (3 peticiones seguidas): **openstreetmap.fr 3/3 OK en ~0,8–1,8 s**, frente a overpass-api.de 2/3 con un timeout. Se **reordena**: `openstreetmap.fr` pasa a ser el **principal** (rápido) y `overpass-api.de` queda como **respaldo** junto a kumi.systems y osm.ch.
 - Resultado: los POIs cargan en ~1 s sin esperar los 10 s del timeout de la antigua principal.
+
+## 67. nav.html: voz real offline con eSpeak (meSpeak.js) para el navegador del Tesla (2026-09-01)
+
+- **Problema**: en el navegador del Tesla no había forma de que la nave hablase: el TTS nativo del navegador no tiene voces, los MP3 online (StreamElements/Google translate_tts) no suenan, y los «clips» eran patrones de tonos, no palabras. Solo funcionaban los pitidos (Web Audio).
+- **Solución**: motor **eSpeak offline** (meSpeak.js v2.0.7, vendido en `mespeak/`): sintetiza la voz íntegramente en el navegador (asm.js, sin red, sin API key, sin voces del sistema) y la reproduce por el mismo Web Audio de los pitidos — el único camino que sí funciona en el coche.
+  - `mespeak/mespeak.js` (24 KB), `mespeak/mespeak-core.js` (1,5 MB, motor eSpeak compilado), `mespeak/voices/es.json` (voz española, 8 KB), `License.txt` (GPL v3 de eSpeak).
+- **Cambios en `nav.html`**:
+  - Nuevo motor **«eSpeak offline (sin red — recomendado Tesla)»** en Ajustes → Voz, puesto como **motor por defecto**.
+  - Migración de una sola vez: los motores antiguos guardados (`native`/`clips`/`online`) pasan a `espeak` sin que el usuario tenga que tocar nada (clave `voiceEngineV2`).
+  - `speakEspeak()`: carga la voz ES bajo demanda, habla con amplitud 140 / tono 62 / 160 ppm (ajustable) y, si algo falla, cae con elegancia al motor anterior + pitido.
+  - El desbloqueo de audio del primer toque ahora también desbloquea el AudioContext de meSpeak (`meSpeak.unlockAudio`), igual que se hace con el de los pitidos.
+  - Logs de estado del motor en el panel de depuración (🔍), apartado voz.
+- **Verificación**: `test-espeak.cjs` carga los ficheros vendidos tal cual en Node, carga la voz `es` y sintetiza «En quinientos metros, gire a la derecha.» → WAV real de 22050 Hz con audio audible (**PASS**). La reproducción final es por Web Audio, el mismo camino que los pitidos que sí suenan en el Tesla.
+- Instrucciones: con el primer toque en la pantalla se desbloquea el audio; usa «🔊 Probar voz» en Ajustes → Voz para oírlo. Si el volumen del coche está bajo, sube amplitud 140 → 160-180 en `speakEspeak()`.

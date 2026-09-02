@@ -417,9 +417,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     </select>
     <label style="margin-top:10px">Motor de voz</label>
     <select id="s-voice-engine">
+      <option value="espeak">eSpeak offline (sin red — recomendado Tesla)</option>
       <option value="native">Navegador (TTS offline)</option>
       <option value="clips">Clips pre-generados (WAV)</option>
-      <option value="online">Voz online (MP3, recomendado en Tesla)</option>
+      <option value="online">Voz online (MP3)</option>
     </select>
     <div class="voicetest">
       <button class="btn" id="btn-test-voice">🔊 Probar voz</button>
@@ -562,6 +563,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <div id="dbg-lines"></div>
 </div>
 
+<script src="mespeak/mespeak.js"></script>
 <script>
 "use strict";
 /* ================================================================
@@ -600,7 +602,7 @@ const S={
   routeProvider:localStorage.getItem(LS+'routeProvider')||'osrm',
   routeView:    localStorage.getItem(LS+'routeView')||'detallada',
   voiceMode:   localStorage.getItem(LS+'voiceMode')||'voice',
-  voiceEngine: localStorage.getItem(LS+'voiceEngine')||'native',
+  voiceEngine: localStorage.getItem(LS+'voiceEngine')||'espeak',
   carX:        parseInt(localStorage.getItem(LS+'carX'))||50,
   carY:        parseInt(localStorage.getItem(LS+'carY'))||30,
   pitch:       isFinite(_savedPitch)?_savedPitch:62, // 3D perspectiva (igual que tesla.html)
@@ -674,11 +676,12 @@ function navBeep(kind){
 // <audio>.play() puede fallar. Un toque inicial desbloquea ambos caminos.
 const SILENT_WAV='data:audio/wav;base64,UklGRuQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YcADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
 let audioUnlocked=false;
-function unlockAudioOnGesture(){
+function unlockAudioOnGesture(event){
   if(audioUnlocked)return;
   audioUnlocked=true;
   try{ensureBeepCtx();}catch(e){}
   try{ensureClipsCtx();}catch(e){}
+  try{if(window.meSpeak&&meSpeak.unlockAudio)meSpeak.unlockAudio(event||{});}catch(e){}
   try{
     const probe=new Audio(SILENT_WAV);
     probe.volume=0.01;
@@ -795,9 +798,42 @@ function speakOnline(text){
   };
   tryEndpoint(0);
 }
+/* ---------- voice: eSpeak offline (meSpeak.js, vendido en mespeak/) ---------- */
+// Sintetiza en el propio navegador (asm.js) y suena por Web Audio — el mismo
+// camino que los pitidos (que sí funcionan en el Tesla). Sin red, sin API key,
+// sin voces del sistema ni endpoints externos que puedan caer o bloquearse.
+let espeakVoicePromise=null;
+function ensureEspeakVoice(){
+  if(espeakVoicePromise)return espeakVoicePromise;
+  espeakVoicePromise=new Promise(res=>{
+    try{
+      if(!window.meSpeak||!window.meSpeak.loadVoice){espeakVoicePromise=null;res(false);return;}
+      meSpeak.loadVoice('es',ok=>{
+        if(!ok){dbg&&dbg('voice','eSpeak: voz ES no cargada');espeakVoicePromise=null;res(false);return;}
+        dbg&&dbg('voice','eSpeak: voz ES cargada');
+        res(true);
+      });
+    }catch(e){espeakVoicePromise=null;res(false);}
+  });
+  return espeakVoicePromise;
+}
+function speakEspeak(text){
+  if(!window.meSpeak||!window.meSpeak.speak)return false;
+  ensureEspeakVoice().then(ok=>{
+    if(!ok){speakNative(text);return;}
+    try{
+      // amplitude más alta que el beep por defecto (0-200), tono algo más
+      // agudo y 160 ppm para que se entienda bien en los altavoces del coche
+      meSpeak.speak(String(text).slice(0,220),{amplitude:140,pitch:62,speed:160},
+        success=>{if(success===false)speakNative(text);});
+    }catch(e){speakNative(text);}
+  });
+  return true;
+}
 function speak(text){
   if(S.voiceMode==='silence')return;
   if(S.voiceMode==='sounds'){alertSound('info');return;}
+  if(S.voiceEngine==='espeak'){speakEspeak(text);return;}
   if(S.voiceEngine==='clips')speakWithClips(text);
   else if(S.voiceEngine==='online')speakOnline(text);
   else speakNative(text);
@@ -2372,6 +2408,12 @@ bindSelect('s-map-provider','mapProvider',()=>initMap());
 bindSelect('s-map-style','mapStyle',()=>initMap());
 bindSelect('s-route-provider','routeProvider');
 bindSelect('s-route-view','routeView',()=>updateRouteDetail());
+// migración de motor de voz v2: native/clips/online no hablan en el navegador
+// del Tesla -> eSpeak offline de serie (una sola vez).
+if(!localStorage.getItem(LS+'voiceEngineV2')){
+  try{localStorage.setItem(LS+'voiceEngine','espeak');}catch(e){}
+  try{localStorage.setItem(LS+'voiceEngineV2','1');}catch(e){}
+}
 bindSelect('s-voice-mode','voiceMode');
 bindSelect('s-voice-engine','voiceEngine');
 
