@@ -23,21 +23,33 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif}
 #map{position:absolute;inset:0}
-/* ---- top bar ---- */
-#topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;gap:8px;padding:10px 12px;background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent);pointer-events:none}
+/* ---- top bar unificada (menús + zoom horizontal) ---- */
+#topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:linear-gradient(to bottom,rgba(0,0,0,.8) 0%,rgba(0,0,0,.35) 70%,transparent 100%);pointer-events:none}
 #topbar>*{pointer-events:auto}
-.icon-btn,#gear{width:42px;height:42px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.icon-btn:hover,#gear:hover{background:#282830}
-#gear{position:absolute;top:10px;right:12px;z-index:21}
-/* ---- zoom control cluster (modos como tesla.html) ---- */
-#zoom-controls{position:absolute;right:12px;top:64px;z-index:21;display:flex;flex-direction:column;gap:6px;align-items:center}
-#zoom-controls .zbtn{width:42px;height:42px;border-radius:10px;background:rgba(20,20,24,.9);border:1px solid var(--line);color:var(--txt);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
-#zoom-controls .zbtn:hover{background:#282830}
-#zoom-controls .zbtn.mode{font-size:11px;font-weight:700;letter-spacing:.5px;line-height:1}
-#zoom-controls .zbtn.mode.active{background:var(--acc);border-color:var(--acc);color:#fff}
-#zoom-controls .zbtn.mode.route-mode{background:#1c5f2e;border-color:#2e8b3e;color:#fff}
-#z-level{font-size:11px;color:var(--dim);text-align:center;font-variant-numeric:tabular-nums}
-#search-panel{position:absolute;top:54px;left:0;z-index:25;display:none;flex-direction:column;gap:8px;width:min(430px,82vw);background:rgba(16,16,20,.97);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.topbar-left{display:flex;align-items:center;gap:8px;min-width:0}
+.icon-btn{width:42px;height:42px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s}
+.icon-btn:hover{background:#282830;border-color:var(--acc)}
+.app-menu-btn{width:42px;height:42px;border-radius:50%;background:rgba(100,100,100,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.4);transition:all .18s ease;padding:0}
+.app-menu-btn:hover{background:rgba(140,140,140,.55);border-color:rgba(255,255,255,.45);transform:scale(1.06)}
+.app-menu-btn img{width:64%;height:64%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+/* ---- icono de Tesla circular flotante en el mapa (clonado de tesla.html) ---- */
+#toggle-map-header-buttons-panel{position:absolute;left:16px;bottom:84px;width:82px;height:82px;background-color:rgba(100,100,100,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:22;box-shadow:0 4px 16px rgba(0,0,0,.45);transition:all .2s ease;user-select:none}
+#toggle-map-header-buttons-panel:hover{background-color:rgba(130,130,130,.55);border-color:rgba(255,255,255,.4);transform:scale(1.05)}
+#toggle-map-header-buttons-panel img{width:64%;height:64%;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6))}
+/* ---- zoom control cluster (fila superior horizontal) ---- */
+#zoom-controls{display:flex;flex-direction:row;gap:4px;align-items:center;flex-shrink:0;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:12px;padding:3px 5px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+#zoom-controls .zbtn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+#zoom-controls .zbtn:hover{background:rgba(255,255,255,.1)}
+#zoom-controls .zbtn.mode{width:auto;min-width:44px;padding:0 8px;font-size:11px;font-weight:700;letter-spacing:.5px;line-height:1;border-radius:8px}
+#zoom-controls .zbtn.mode.active{background:var(--acc);color:#fff}
+#zoom-controls .zbtn.mode.route-mode{background:#1c5f2e;color:#fff}
+#z-level{font-size:12px;font-weight:600;color:var(--dim);text-align:center;font-variant-numeric:tabular-nums;padding:0 4px;min-width:28px}
+/* ---- botón de ajustes horizontal abajo a la derecha ---- */
+#gear{position:absolute;bottom:14px;right:12px;z-index:25;height:40px;padding:0 14px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(0,0,0,.45);transition:all .15s ease;flex-shrink:0}
+#gear:hover{background:#282830;border-color:var(--acc)}
+#gear .gear-icon{font-size:18px;line-height:1}
+#gear .gear-text{font-size:13px;letter-spacing:.3px}
+#search-panel{position:absolute;top:54px;left:12px;z-index:25;display:none;flex-direction:column;gap:8px;width:min(430px,82vw);background:rgba(16,16,20,.97);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #search-panel.open{display:flex}
 .sp-row{display:flex;gap:6px;align-items:center}
 #dest-input{flex:1;padding:10px 14px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:15px;outline:none}
@@ -47,24 +59,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
-/* ---- maneuver banner ---- */
-/* ventana de navegacion compacta, mismo aspecto que tesla.html (zoom 0.6536) */
-#banner{position:absolute;top:2px;left:12px;z-index:22;display:none;align-items:center;gap:8px;padding:6px 9px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(230px,calc(100vw - 190px));zoom:.6536}
-#nav-turn-box{width:44px;height:44px;flex-shrink:0;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-#nav-turn-box img{width:92%;height:92%;object-fit:contain}
-#banner .nav-mid{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center}
-#banner .nav-maneuver-line{width:100%;text-align:center}
-#banner .nav-maneuver-text{font-size:13px;font-weight:600;color:var(--dim);text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.2}
-#nav-street-line{display:none;width:100%;text-align:center}
-.nav-road-sign{display:inline-block;background:rgba(26,83,40,.78);padding:4px 10px;border-radius:6px;color:#FFD700;border:1px solid #C8A97E;box-shadow:0 1px 3px rgba(0,0,0,.5);font-weight:700;font-size:15px;line-height:1.4;max-width:100%;word-wrap:break-word}
-#banner .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:84px}
-#banner .nav-dist{font-size:17px;font-weight:700;color:var(--acc);line-height:1}
-.nav-progress-wrap{width:86px;height:7px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
-#banner .nav-mtime{font-size:14px;font-weight:700;color:var(--warn);line-height:1;white-space:nowrap}
-#nav-progress{height:100%;width:0%;background:linear-gradient(to right,#680000,#FF0000 50%,#FA8072 97%);border-radius:99px;transition:width .3s linear}
-#banner .nav-eta{text-align:right;font-size:12px;color:var(--dim);line-height:1.35;display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
-#banner .nav-eta b{font-size:14px;color:var(--txt)}
-#banner .nav-eta span{font-size:11px;color:var(--dim)}
+/* ---- cajetín de navegación clonado de tesla.html ---- */
+#banner{position:absolute;top:58px;left:12px;z-index:22;display:none;align-items:stretch;padding:8px 12px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:fit-content;max-width:min(560px,calc(100vw - 24px));min-width:330px;gap:10px;font-family:'Segoe UI',system-ui,sans-serif}
+#banner .nav-main-col{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.nav-panel-top-row{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1}
+.nav-lock-icon{font-size:13px;line-height:1;flex-shrink:0}
+.route-progress-text{color:#ffd700;font-weight:700;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.8);letter-spacing:.3px}
+.nav-indicators-wrap{margin-left:auto;display:flex;align-items:center;gap:6px}
+.nav-triangles{color:#e84c4c;font-size:9px;letter-spacing:2px}
+.nav-live-dot{width:10px;height:10px;border-radius:50%;background:#38a5ff;box-shadow:0 0 7px #38a5ff;border:1px solid rgba(255,255,255,.8)}
+.nav-stage-banner-row{display:flex;align-items:center;gap:8px;margin-top:2px}
+.speed-limit-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2.5px solid #ff3333;background:#fff;color:#000;font-weight:900;font-size:11px;font-family:Arial,sans-serif;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+#nav-turn-icon{width:22px;height:22px;border-radius:5px;background:#fff;padding:1px;object-fit:contain;flex-shrink:0}
+.nav-stage-title-text{font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+#navigation-eta-info{display:flex;gap:12px;justify-content:space-between;margin-top:3px;font-family:Georgia,'Times New Roman',serif}
+.eta-col{flex:1;text-align:left;min-width:0}
+.eta-col strong{display:block;font-size:10px;font-weight:700;color:#ccc;margin-bottom:1px;text-transform:capitalize;font-family:system-ui,sans-serif;letter-spacing:.3px}
+.eta-values-line{font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9);white-space:nowrap;line-height:1.2}
+.eta-values-line .sep{color:#889098;font-weight:400;margin:0 3px}
+.eta-time-line{font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9);line-height:1.2;margin-top:2px}
+.eta-time-line span{color:#ffd700}
+/* chip de velocidad clonado de tesla.html */
+#nav-speed-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
+#nav-speed-chip .vel-lbl{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700}
+#nav-speed-chip .vel-val{font-size:27px;font-weight:800;color:#007aff;line-height:1;text-align:center;font-variant-numeric:tabular-nums;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+#nav-speed-chip .vel-unit{font-size:9px;color:#888ea0;font-weight:600}
 /* ---- selector de punto (confirmar destino, estilo tesla.html) ---- */
 #pick-card{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);z-index:30;display:none;flex-direction:column;gap:6px;padding:12px 14px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(340px,calc(100vw - 24px))}
 #pick-card .pc-row{display:flex;align-items:center;gap:8px}
@@ -205,7 +224,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* gear button */
 
 /* ---- velocidad: emblema Tesla (semi-transparente) + toggle barra superior ---- */
-#topbar-btns{position:absolute;left:12px;top:10px;display:flex;gap:8px;align-items:center;transition:top .2s ease}
+#topbar-btns{position:relative;display:flex;gap:8px;align-items:center;transition:opacity .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
 #speed-emblem{position:relative;display:flex;align-items:center;gap:9px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 #speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
@@ -254,9 +273,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- car marker (screen-space, positioned by %) -->
 <div id="keys-warn" style="display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:60;background:#3a2b08;border:1px solid #ffb020;color:#ffd98a;padding:8px 14px;border-radius:10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.5);max-width:92vw;text-align:center">⚠️ Claves no configuradas: el mapa no puede cargar sin el token de Mapbox. <a href="instrucciones.html" style="color:#ffcf5c;font-weight:700">Ver cómo configurarlo</a> <button id="keys-warn-close" style="margin-left:8px;background:none;border:none;color:#ffb020;cursor:pointer;font-size:14px">✕</button></div>
-<div id="topbar" class="hidden-btns">
-  <div id="topbar-btns">
-    <button class="icon-btn" id="btn-search" title="Buscar ruta">🔍</button>
+<div id="topbar">
+  <div class="topbar-left">
+    <button class="icon-btn app-menu-btn" id="btn-app-menu" title="Menú de aplicación (mostrar/ocultar accesos)">
+      <img src="PNG/Coche_Sat.PNG" alt="Tesla">
+    </button>
+    <div id="topbar-btns">
+      <button class="icon-btn" id="btn-search" title="Buscar ruta">🔍</button>
+      <button class="icon-btn" id="btn-routes" title="Rutas guardadas">⭐</button>
+      <button class="icon-btn" id="btn-ai" title="Asistente de rutas IA">🤖</button>
+      <button class="icon-btn" id="btn-report" title="Informar de una incidencia">⚠️</button>
+      <button class="icon-btn" id="btn-versions" title="Histórico de versiones">📋</button>
+      <button class="btn" id="btn-sim" title="Simula el GPS avanzando por la ruta calculada">▶ Simular GPS</button>
+      <button class="btn" id="btn-center" title="Centrar en el coche">⌖ Centrar</button>
+      <button class="btn stop" id="btn-stop" style="display:none" title="Finalizar la navegación">■ Fin</button>
+    </div>
+  </div>
+
   <div id="search-panel">
     <div class="sp-row">
       <input id="dest-input" type="text" placeholder="Buscar destino…" autocomplete="off">
@@ -265,36 +298,63 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     </div>
     <div id="results"></div>
   </div>
-  <button class="icon-btn" id="btn-routes" title="Rutas guardadas">⭐</button>
-  <button class="icon-btn" id="btn-ai" title="Asistente de rutas IA">🤖</button>
-  <button class="icon-btn" id="btn-report" title="Informar de una incidencia">⚠️</button>
-    <button class="icon-btn" id="btn-versions" title="Histórico de versiones">📋</button>
-    <button class="btn" id="btn-sim" title="Simula el GPS avanzando por la ruta calculada">▶ Simular GPS</button>
-    <button class="btn" id="btn-center" title="Centrar en el coche">⌖ Centrar</button>
-    <button class="btn stop" id="btn-stop" style="display:none" title="Finalizar la navegación">■ Fin</button>
+
+  <div id="zoom-controls">
+    <button class="zbtn" id="z-in" title="Acercar">+</button>
+    <div id="z-level">1.5</div>
+    <button class="zbtn" id="z-out" title="Alejar">−</button>
+    <button class="zbtn mode" id="z-mode" title="Modo de zoom">AUTO</button>
   </div>
 </div>
-<button id="gear" title="Ajustes">⚙</button>
 
-<div id="zoom-controls">
-  <button class="zbtn" id="z-in" title="Acercar">+</button>
-  <div id="z-level">1.5</div>
-  <button class="zbtn" id="z-out" title="Alejar">−</button>
-  <button class="zbtn mode" id="z-mode" title="Modo de zoom">AUTO</button>
+<button id="gear" title="Ajustes"><span class="gear-icon">⚙</span><span class="gear-text">Ajustes</span></button>
+
+<!-- Icono flotante circular de Tesla (clonado de tesla.html) -->
+<div id="toggle-map-header-buttons-panel" title="Menú de aplicación (mostrar/ocultar barra)">
+  <img src="PNG/Coche_Sat.PNG" alt="Tesla">
 </div>
 
-
+<!-- Cajetín de navegación clonado de tesla.html -->
 <div id="banner">
-  <div id="nav-turn-box"><img id="nav-turn-icon" src="PNG/continue.png" alt=""></div>
-  <div class="nav-mid">
-    <div id="nav-street-line"><span class="nav-road-sign" id="nav-street-name"></span></div>
-    <div class="nav-maneuver-line" id="nav-maneuver-line"><span class="nav-maneuver-text" id="nav-maneuver-text">—</span></div>
+  <div class="nav-main-col">
+    <div class="nav-panel-top-row">
+      <span class="nav-lock-icon">🔒</span>
+      <span id="route-progress-text" class="route-progress-text">0.0 km (Stop)</span>
+      <span class="nav-triangles" style="margin-left:3px">▲</span>
+      <div class="nav-indicators-wrap">
+        <span class="nav-triangles">▲ ▲</span>
+        <span class="nav-live-dot"></span>
+      </div>
+    </div>
+
+    <div class="nav-stage-banner-row">
+      <span class="speed-limit-badge" id="nav-speed-limit">30</span>
+      <img id="nav-turn-icon" src="PNG/continue.png" alt="" style="display:none">
+      <div class="nav-stage-title-text" id="nav-stage-title">Destino</div>
+    </div>
+
+    <div id="navigation-eta-info">
+      <div class="eta-col" id="col-next-stage" style="display:none">
+        <strong id="next-stage-label">Próxima Etapa</strong>
+        <div class="eta-values-line">
+          <span id="next-stage-distance">0.0 km</span><span class="sep">|</span><span id="next-stage-time">00:00</span><span class="sep">|</span>
+        </div>
+        <div class="eta-time-line">ETA: <span id="next-stage-eta">--:--</span></div>
+      </div>
+      <div class="eta-col" id="col-final-dest">
+        <strong id="final-dest-label">Destino</strong>
+        <div class="eta-values-line">
+          <span id="final-destination-distance">0.0 km</span><span class="sep">|</span><span id="final-destination-time">00:00</span><span class="sep">|</span>
+        </div>
+        <div class="eta-time-line">ETA: <span id="final-destination-eta">--:--</span></div>
+      </div>
+    </div>
   </div>
-  <div class="nav-right">
-    <div class="nav-dist" id="nav-dist">—</div>
-    <div class="nav-mtime" id="nav-man-time">en —</div>
-    <div class="nav-progress-wrap"><div id="nav-progress"></div></div>
-    <div class="nav-eta"><b id="nav-eta">—</b><span id="nav-arr">—</span></div>
+
+  <div id="nav-speed-chip" title="Velocidad actual">
+    <span class="vel-lbl">VEL.</span>
+    <span id="nav-speed-value" class="vel-val">0</span>
+    <span class="vel-unit">km/h</span>
   </div>
 </div>
 
@@ -1177,7 +1237,7 @@ document.getElementById('dbg-retry').onclick=()=>{lastAllOverpassFail=0;Object.k
    en paralelo y las instancias respondían HTTP 406 -> 0 POIs. */
 let overpassTail=Promise.resolve();
 function overpassSlot(){
-  const run=overpassTail.then(()=>new Promise(r=>setTimeout(r,700)));
+  const run=overpassTail.then(()=>new Promise(r=>setTimeout(r,300)));
   overpassTail=run.catch(()=>{});
   return run;
 }
@@ -1201,7 +1261,7 @@ async function fetchOverpass(query){
     try{
       await overpassSlot();
       const ctrl=new AbortController();
-      const tm=setTimeout(()=>ctrl.abort(),10000);
+      const tm=setTimeout(()=>ctrl.abort(),6000); // 6s por instancia: falla rápido y pasa a la siguiente
       let d=null,status=0;
       try{
         const r=await fetch(base,{
@@ -1543,13 +1603,15 @@ function updateUserMarker(){
   // fijo en pantalla que «no se movía» al arrastrar).
   if(!carMarker){
     carMarkerEl=document.createElement('div');
-    carMarkerEl.style.cssText='width:46px;height:46px;pointer-events:none';
-    // PNG/Flecha.PNG = la punta clásica en forma de A (cabezal triangular +
-    // cola en V), la del icono «navigation» que usan todos los navegadores.
-    // Raster puro: se ve siempre, también en el navegador del Tesla.
-    carMarkerEl.innerHTML='<div style="width:100%;height:100%;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">'+
-      '<img src="PNG/Flecha.PNG" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'+
-      '</div>';
+    carMarkerEl.style.cssText='width:46px;height:46px;pointer-events:none;position:relative';
+    // SVG inline tipo "A" (flecha de navegación): igual que los navegadores GPS modernos.
+    // Se usa SVG en lugar de PNG/Flecha.PNG para evitar problemas de case-sensitivity
+    // en Android/Linux y garantizar que siempre se vea la flecha, nunca una chincheta.
+    carMarkerEl.innerHTML=`<div style="width:100%;height:100%;filter:drop-shadow(0 2px 6px rgba(0,0,0,.9)) drop-shadow(0 0 3px rgba(0,0,0,.7))">
+      <svg id="car-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 48" width="46" height="46" style="display:block;transform-origin:center 58%">
+        <polygon points="20,2 36,44 20,36 4,44" fill="#007aff" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+    </div>`;
     carMarker=new mapboxgl.Marker({el:carMarkerEl}).setLngLat(userPos).addTo(map);
   }else carMarker.setLngLat(userPos);
 }
@@ -1629,12 +1691,13 @@ function updateCamera(){
 /* rotación del icono del coche: si el mapa gira con la marcha el icono
    apunta arriba; si el mapa va al norte, el icono rota según rumbo */
 function updateCarRotation(){
-  const img=carMarkerEl?carMarkerEl.querySelector('img'):null;
-  if(!img)return;
-  // la Flecha.PNG apunta ARRIBA: rot = rumbo (0° = norte = arriba).
+  // Rotar el SVG inline de la flecha: transform-origin ya está en "center 58%"
+  // (punto de cola del triángulo) para que la punta apunte hacia adelante.
+  const svg=carMarkerEl?carMarkerEl.querySelector('svg'):null;
+  if(!svg)return;
   const rot=((S.heading&&viewMode().follows)||carHeading==null||isNaN(carHeading))?0:carHeading;
-  img.style.transform=`rotate(${rot}deg)`;
-  img.style.transition='transform .4s linear';
+  svg.style.transform=`rotate(${rot}deg)`;
+  svg.style.transition='transform .4s linear';
 }
 /* ---------- modos de vista: NORTE / AVANCE / 3D / 3D RELIEVE (igual tesla.html) ---------- */
 const VIEW_MODES={
@@ -1977,36 +2040,53 @@ function navTick(){
   }
   // voice triggers
   checkVoice(step,stepDist,ra);
-  // update banner (estilo tesla.html: icono, texto con contorno, cartel de calle, barra de progreso)
+  // update banner (clonado de tesla.html)
   const mNav=step.maneuver||{};
   const isArrive=mNav.type==='arrive';
-  document.getElementById('nav-turn-icon').src=getManeuverIconFilename(mNav);
-  // banner sin texto de mas: icono = maniobra, cartel = calle de destino.
-  // El texto breve solo aparece cuando no hay calle (llegada, salida, rotonda
-  // sin nombre).
-  const roadTxt=(step.name||step.ref||'').trim();
-  const streetLine=document.getElementById('nav-street-line');
-  const manLine=document.getElementById('nav-maneuver-line');
-  if(!isArrive&&roadTxt){
-    document.getElementById('nav-street-name').textContent=roadTxt;
-    streetLine.style.display='block';
-    manLine.style.display='none';
-  }else{
-    streetLine.style.display='none';
-    document.getElementById('nav-maneuver-text').textContent=shortManeuverName(step);
-    manLine.style.display='block';
+  const turnIcon=document.getElementById('nav-turn-icon');
+  if(turnIcon){
+    turnIcon.src=getManeuverIconFilename(mNav);
+    turnIcon.style.display='inline-block';
   }
-  document.getElementById('nav-dist').textContent=fmtDist(stepDist);
+  const roadTxt=(step.name||step.ref||'').trim();
+  const stageTitle=document.getElementById('nav-stage-title');
   const totalEta=routeData.duration*(remain/Math.max(routeData.distance,1));
-  // tiempo hasta la maniobra (proporcional al ETA restante por distancia)
   const manTime=totalEta*(stepDist/Math.max(remain,1));
-  document.getElementById('nav-man-time').textContent=fmtManTime(manTime);
-  const stepTotal=step.distance||1;
-  const pct=stepTotal>0?Math.min(100,Math.max(0,((stepTotal-stepDist)/stepTotal)*100)):0;
-  document.getElementById('nav-progress').style.width=pct.toFixed(1)+'%';
-  document.getElementById('nav-eta').textContent=fmtTime(totalEta);
   const arr=new Date(Date.now()+totalEta*1000);
-  document.getElementById('nav-arr').textContent='llegada '+arr.getHours()+':'+String(arr.getMinutes()).padStart(2,'0');
+  const arrTimeStr=arr.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+  // Texto superior de progreso: km y Stop / tiempo
+  const progText=document.getElementById('route-progress-text');
+  if(progText){
+    const kmTravelled=(tripStats?tripStats.travelledKm:0).toFixed(1);
+    const timeStr=(navSpeedKmh>2&&tripStats)?(' ('+fmtTime((Date.now()-tripStats.start)/1000)+')'):' (Stop)';
+    progText.textContent=`${kmTravelled} km${timeStr}`;
+  }
+
+  // Columnas de etapas y destino
+  const nextCol=document.getElementById('col-next-stage');
+  if(routeWaypoints&&routeWaypoints.length>0){
+    if(nextCol)nextCol.style.display='block';
+    const curWp=routeWaypoints[0];
+    if(stageTitle)stageTitle.textContent=`Etapa 1 de ${routeWaypoints.length+1}: ${curWp.name||'Punto intermedio'}`;
+    const nextDist=document.getElementById('next-stage-distance');
+    if(nextDist)nextDist.textContent=fmtDist(stepDist);
+    const nextTime=document.getElementById('next-stage-time');
+    if(nextTime)nextTime.textContent=fmtManTime(manTime);
+    const stageEtaDate=new Date(Date.now()+manTime*1000);
+    const nextEta=document.getElementById('next-stage-eta');
+    if(nextEta)nextEta.textContent=stageEtaDate.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  }else{
+    if(nextCol)nextCol.style.display='none';
+    const destName=lastDestName||'Destino';
+    if(stageTitle)stageTitle.textContent=`${isArrive?'Llegada:':shortManeuverName(step)} ${roadTxt||destName}`;
+  }
+  const finalDist=document.getElementById('final-destination-distance');
+  if(finalDist)finalDist.textContent=fmtDist(remain);
+  const finalTime=document.getElementById('final-destination-time');
+  if(finalTime)finalTime.textContent=fmtTime(totalEta);
+  const finalEta=document.getElementById('final-destination-eta');
+  if(finalEta)finalEta.textContent=arrTimeStr;
   drawMinimap();
   // instrucciones detalladas: al cambiar de etapa se re-renderiza y la actual
   // queda marcada en la primera fila (renderRouteDetail reordena la lista).
@@ -2411,6 +2491,14 @@ function handleGpsFix(coords){
   const spd=coords.speed!=null?Math.round(coords.speed*3.6):0;
   navSpeedKmh=spd;
   document.getElementById('se-spd').textContent=Math.round(spd);
+  const nSpd=document.getElementById('nav-speed-value');
+  if(nSpd)nSpd.textContent=Math.round(spd);
+  const progText=document.getElementById('route-progress-text');
+  if(progText){
+    const kmTravelled=(tripStats?tripStats.travelledKm:0).toFixed(1);
+    const timeStr=(spd>2&&tripStats)?(' ('+fmtTime((Date.now()-tripStats.start)/1000)+')'):' (Stop)';
+    progText.textContent=`${kmTravelled} km${timeStr}`;
+  }
   updateFreeHud(coords);
   detectFreeDrive();
   // estadísticas de viaje (para el resumen de llegada)
@@ -2666,11 +2754,18 @@ syncPoiChips();
     placeTopbarBtns();
   });
 })();
-/* emblema de velocidad: mostrar/ocultar la barra superior (como tesla.html) */
-document.getElementById('speed-emblem').onclick=e=>{
+/* menú de aplicación (icono de Tesla arriba) y emblema de velocidad: mostrar/ocultar accesos */
+function toggleAppMenu(e){
   if(e)e.stopPropagation();
   document.getElementById('topbar').classList.toggle('hidden-btns');
-};
+}
+const appMenuBtn=document.getElementById('btn-app-menu');
+if(appMenuBtn)appMenuBtn.onclick=toggleAppMenu;
+const speedEmblemBtn=document.getElementById('speed-emblem');
+if(speedEmblemBtn)speedEmblemBtn.onclick=toggleAppMenu;
+// Botón flotante circular de Tesla (clonado de tesla.html): también abre/cierra el menú
+const mapTeslaBtn=document.getElementById('toggle-map-header-buttons-panel');
+if(mapTeslaBtn)mapTeslaBtn.onclick=toggleAppMenu;
 
 /* ---------- modos de zoom (igual que tesla.html: LIBRE/AUTO/RUTA/ECO) ---------- */
 let navSpeedKmh=0;          // velocidad actual (km/h), para AUTO/ECO
@@ -3551,7 +3646,7 @@ function placeTopbarBtns(){
     const d0=document.getElementById('route-detail');if(d0)d0.style.top='';
     return;
   }
-  const btnBottom=54; // fila superior fija (top:10 + altura 42 + margen)
+  const btnBottom=tb?Math.max(54,Math.round(tb.getBoundingClientRect().bottom)+4):54;
   const b=document.getElementById('banner');
   const bOn=b&&b.style.display!=='none';
   if(bOn&&b)b.style.top=btnBottom+'px';
