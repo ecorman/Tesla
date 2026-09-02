@@ -1369,3 +1369,9 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Rotación corregida**: como el PNG apunta al ESTE, la rotación ahora es `rumbo + 90°` para que con rumbo 0° (norte) la flecha mire hacia arriba. En modos con mapa fijo al norte rota según el rumbo; con mapa girado al avance queda fija hacia arriba.
 - **Limpieza**: eliminado `CAR_ICON_SVG` (código muerto).
 - **Verificación**: silueta de `PNG/AVANCE.PNG` decodificada y confirmada (flecha clásica); sintaxis completa de `nav.html` OK; `test-poi-live.cjs` **PASS 24/24**, `test-ra.cjs` PASS, `test-espeak.cjs` PASS.
+
+## 78. nav.html: coche = punta clásica en forma de A (PNG/Flecha.PNG) (2026-09-02)
+- **Problema (usuario)**: «el icono del coche no es correcto, cambialo por la típica punta en forma de A que se pone en todos los navegadores».
+- **Solución**: nuevo `PNG/Flecha.PNG` (64×64, raster con borde blanco y relleno azul) con la silueta del icono **«navigation»** — cabezal triangular ancho + cola en V invertida, apuntando **arriba** — el de Google/Apple Maps. Generado y verificado (silueta decodificada píxel a píxel).
+- **Rotación**: al apuntar arriba, `updateCarRotation` aplica el rumbo directamente (0° = norte = arriba); se elimina el +90° que compensaba la flecha diagonal de AVANCE.PNG. Sustituido en el marcador del coche (46 px, con sombra).
+- **Verificación**: sintaxis completa de `nav.html` OK; `test-poi-live.cjs` **PASS 24/24**, `test-ra.cjs` PASS, `test-espeak.cjs` PASS.

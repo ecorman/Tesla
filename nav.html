@@ -1544,10 +1544,11 @@ function updateUserMarker(){
   if(!carMarker){
     carMarkerEl=document.createElement('div');
     carMarkerEl.style.cssText='width:46px;height:46px;pointer-events:none';
-    // PNG/AVANCE.PNG = punta de flecha clásica (apunta a la derecha), la MISMA
-    // imagen que usa el coche de tesla.html: raster puro, se ve siempre.
+    // PNG/Flecha.PNG = la punta clásica en forma de A (cabezal triangular +
+    // cola en V), la del icono «navigation» que usan todos los navegadores.
+    // Raster puro: se ve siempre, también en el navegador del Tesla.
     carMarkerEl.innerHTML='<div style="width:100%;height:100%;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">'+
-      '<img src="PNG/AVANCE.PNG" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'+
+      '<img src="PNG/Flecha.PNG" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'+
       '</div>';
     carMarker=new mapboxgl.Marker({el:carMarkerEl}).setLngLat(userPos).addTo(map);
   }else carMarker.setLngLat(userPos);
@@ -1630,8 +1631,8 @@ function updateCamera(){
 function updateCarRotation(){
   const img=carMarkerEl?carMarkerEl.querySelector('img'):null;
   if(!img)return;
-  // el PNG apunta a la derecha (este): +90 para que 0° rumbo mire al NORTE.
-  const rot=((S.heading&&viewMode().follows)||carHeading==null||isNaN(carHeading))?0:carHeading+90;
+  // la Flecha.PNG apunta ARRIBA: rot = rumbo (0° = norte = arriba).
+  const rot=((S.heading&&viewMode().follows)||carHeading==null||isNaN(carHeading))?0:carHeading;
   img.style.transform=`rotate(${rot}deg)`;
   img.style.transition='transform .4s linear';
 }
