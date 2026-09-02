@@ -1289,3 +1289,25 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - Se guardan en localStorage (`voiceAmp`/`voicePitch`/`voiceSpeed`/`voiceVariant`) y `speakEspeak()` los aplica en la siguiente instrucción; el botón 🔊 Probar voz permite oír el ajuste al momento.
 - Los parámetros solo afectan al motor eSpeak (los demás motores no los usan).
 - Verificado: sintaxis del script OK.
+
+## 70. nav.html: instrucciones de rotonda en el punto correcto y pitido de salida (2026-09-02)
+
+- **Problema (usuario)**: «me dice gire a la derecha para entrar a la rotonda, y ya dentro me dice la salida — debería decirlo antes y sin decir gire a la derecha; tampoco hace el pitido al llegar a la salida».
+- **Causa**: OSRM/Valhalla/Mapbox devuelven la rotonda partida en dos pasos — `rotary`/`roundabout` (el anillo, con nº de salida) + `exit-rotary`/`exit-roundabout` (la calle de después). Cada paso se anunciaba por separado: el paso de giro previo («Gire a la derecha») y luego la salida cuando ya estabas dentro del anillo.
+- **Solución**:
+  - `normalizeRoundabouts()` **fusiona** anillo + calle de salida en UN solo paso con metadatos `_ra` (`ringLen` = longitud del anillo, `text` = voz). Se aplica en todos los proveedores de ruta (OSRM, Valhalla, Mapbox, simulación).
+  - Los avisos de voz se miden contra la **ENTRADA del anillo** y se dicen ANTES de entrar: «En quinientos metros, en la rotonda, tome la segunda salida…» (450–550 m) y «En la rotonda, tome la segunda salida…» + pitido de aproximación (150–230 m).
+  - Si hay una rotonda a ≤550 m, **manda la rotonda**: se suprimen los anuncios del paso actual («Gire a la derecha», «ahora» duplicado, etc.) para no liar.
+  - Una vez dentro del anillo **no se repite la salida por voz**: solo suena el **pitido especial de salida** (`roundabout-exit`, 4 notas sube-baja) cuando quedan ≤40 m del punto de salida del anillo.
+  - Los pasos normales (sin rotonda) conservan su comportamiento: aviso a 2 km → 500 m → «ahora» + pitido.
+- **Verificación**: nuevo `test-ra.cjs` que extrae las funciones reales de `nav.html` y simula la conducción con los pasos reales de OSRM (Glorieta de Bilbao): normalización, avisos en 500/200 m antes de la entrada, ausencia de «Gire a la derecha», pitido exactamente 1 en la salida y regresión de pasos normales → **PASS**. Además `test-espeak.cjs` PASS, `test-poi-live.cjs` PASS 12/12 y sintaxis completa de `nav.html` OK.
+
+## 71. nav.html: arreglado el chip «0 POIs» — una respuesta vacía de Overpass ya no borra los marcadores (2026-09-02)
+
+- **Problema (usuario)**: el chip/panel decía «0 POIs cargados» aunque se estaba en una zona donde antes sí se cargaban.
+  - **Causa**: `refreshPois()` trataba una respuesta válida pero **vacía** de la instancia primaria (openstreetmap.fr a veces devuelve 200 con 0 elementos de forma transitoria/parcial) como «zona sin POIs» y ejecutaba `clearLayerMarkers('pois')`: se borraban los marcadores existentes y el chip se quedaba en «📍 0 POIs — buscando…» hasta el siguiente refresco bueno.
+- **Solución** en `refreshPois()`:
+  - Si el resultado son **0 elementos y ya hay marcadores cargados → se conservan** (no se toca el mapa) y el debug registra «0 resultados y ya hay N marcadores — se conservan».
+  - Solo se limpia/reemplaza cuando hay resultados >0 (o cuando no hay nada que conservar).
+  - Nuevo estado `poiLastZero` para el chip: cuando el último refresco fue un 0 real ya no queda en «buscando…» eterno, sino «📍 0 POIs en esta zona — clic para reintentar».
+- **Verificación**: `test-poi-live.cjs` ampliado con el test de regresión 5: tras cargar 150 POIs reales se simula una respuesta Overpass con 0 elementos y se comprueba que `layerMarkers.pois` **sigue con 150** y que `poiLastZero=true` → **PASS 15/15**. `test-ra.cjs` PASS, `test-espeak.cjs` PASS y sintaxis completa de `nav.html` OK.

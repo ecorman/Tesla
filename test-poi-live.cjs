@@ -102,7 +102,7 @@ let boot=src
   .replace('let simActive=false;',BIND('simActive'))
   .replace('let map=null;','let map=globalThis.__map;')
   .replace('function toast(msg,ms=2500){','function toast(msg,ms=2500){globalThis.__toast(msg);return;')
-  + '\n;globalThis.__api={fetchOverpass,refreshPois,dbg,clearLayerMarkers};globalThis.__snap=()=>{globalThis.__out={layerMarkers,lastOverpassFailed,lastAllOverpassFail,overpassState,lastWorkingOverpass,S};};';
+  + '\n;globalThis.__api={fetchOverpass,refreshPois,dbg,clearLayerMarkers};globalThis.__snap=()=>{globalThis.__out={layerMarkers,lastOverpassFailed,lastAllOverpassFail,overpassState,lastWorkingOverpass,poiLastZero,S};};';
 
 const gb=globalThis;
 gb.__LS=LS;gb.__S=S;gb.__routeData=null;gb.__maneuverIdx=0;gb.__userPos=null;
@@ -150,6 +150,19 @@ const snap=()=>{gb.__snap&&gb.__snap();return gb.__out;};
   const st3=snap();
   // (el cooldown ya lo cubre el test estructural de sintaxis; aquí solo confirmamos estado sano)
   T('sin cooldown activo tras éxito',st3.lastAllOverpassFail===0||before===st3.lastAllOverpassFail);
+
+  // test 5 (regresión del chip «0 POIs»): una respuesta de Overpass con 0
+  // elementos NO puede borrar los POIs ya cargados (la instancia primaria a
+  // veces devuelve 0 de forma transitoria y antes se limpiaba el mapa entero)
+  const nPois=snap().layerMarkers.pois.length;
+  T('hay POIs cargados para el test',nPois>0);
+  const realFetch=globalThis.fetch;
+  globalThis.fetch=async()=>({ok:true,status:200,json:async()=>({elements:[]})});
+  try{await api.refreshPois(true);}catch(e){console.log('POI refresh vacío ERROR:',e.message);}
+  finally{globalThis.fetch=realFetch;}
+  const st5=snap();
+  T('0 elementos no borra los marcadores existentes',st5.layerMarkers.pois.length===nPois&&nPois>0);
+  T('poiLastZero marcado tras resultado vacío',st5.poiLastZero===true);
 
   console.log('markers creados:',snap().layerMarkers.pois.length,'| toast:',toasted.slice(-2).join(' | '));
   console.log('PASS:',passed,'FAIL:',failed);
