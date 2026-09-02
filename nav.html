@@ -422,6 +422,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <option value="clips">Clips pre-generados (WAV)</option>
       <option value="online">Voz online (MP3)</option>
     </select>
+    <label style="margin-top:10px">Parámetros de voz (motor eSpeak)</label>
+    <div class="posrow"><label>Volumen</label><input type="range" id="s-voice-amp" min="80" max="220" value="150"><span class="val" id="v-voice-amp">150</span></div>
+    <div class="posrow"><label>Tono</label><input type="range" id="s-voice-pitch" min="25" max="99" value="64"><span class="val" id="v-voice-pitch">64</span></div>
+    <div class="posrow"><label>Vel.</label><input type="range" id="s-voice-speed" min="80" max="260" value="170"><span class="val" id="v-voice-speed">170 ppm</span></div>
+    <label style="margin-top:8px">Timbre</label>
+    <select id="s-voice-variant">
+      <option value="">Estándar (masculino)</option>
+      <option value="f1">Femenina 1</option>
+      <option value="f2">Femenina 2</option>
+      <option value="f3">Femenina 3</option>
+      <option value="m1">Masculino 1</option>
+      <option value="whisper">Susurro</option>
+    </select>
+    <small style="color:var(--dim);font-size:11px;display:block;margin-top:4px">Se aplica a la siguiente instrucción — usa 🔊 Probar voz para oírlo.</small>
     <div class="voicetest">
       <button class="btn" id="btn-test-voice">🔊 Probar voz</button>
       <button class="btn" id="btn-test-beep">🔔 Probar pitido</button>
@@ -603,6 +617,10 @@ const S={
   routeView:    localStorage.getItem(LS+'routeView')||'detallada',
   voiceMode:   localStorage.getItem(LS+'voiceMode')||'voice',
   voiceEngine: localStorage.getItem(LS+'voiceEngine')||'espeak',
+  voiceAmp:    parseInt(localStorage.getItem(LS+'voiceAmp'))||150,
+  voicePitch:  parseInt(localStorage.getItem(LS+'voicePitch'))||64,
+  voiceSpeed:  parseInt(localStorage.getItem(LS+'voiceSpeed'))||170,
+  voiceVariant:localStorage.getItem(LS+'voiceVariant')||'f2',
   carX:        parseInt(localStorage.getItem(LS+'carX'))||50,
   carY:        parseInt(localStorage.getItem(LS+'carY'))||30,
   pitch:       isFinite(_savedPitch)?_savedPitch:62, // 3D perspectiva (igual que tesla.html)
@@ -824,7 +842,10 @@ function speakEspeak(text){
     try{
       // amplitude más alta que el beep por defecto (0-200), tono algo más
       // agudo y 160 ppm para que se entienda bien en los altavoces del coche
-      meSpeak.speak(String(text).slice(0,220),{amplitude:140,pitch:62,speed:160},
+      // Parámetros configurables en Ajustes → Voz (volumen/tono/velocidad/timbre).
+      const vOpts={voice:'es',amplitude:S.voiceAmp||150,pitch:S.voicePitch||64,speed:S.voiceSpeed||170};
+      if(S.voiceVariant)vOpts.variant=S.voiceVariant;
+      meSpeak.speak(String(text).slice(0,220),vOpts,
         success=>{if(success===false)speakNative(text);});
     }catch(e){speakNative(text);}
   });
@@ -843,9 +864,10 @@ function speak(text){
 if(window.APP_CONFIG&&window.APP_CONFIG.keys&&window.APP_CONFIG.keys.mapbox){mapboxgl.accessToken=window.APP_CONFIG.keys.mapbox;}
 let map=null;
 const CAR_ICON='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 64 64">'+
-  '<path d="M32 6 C34 6 36 8 37 11 L46 34 C47 37 45 40 42 40 L22 40 C19 40 17 37 18 34 L27 11 C28 8 30 6 32 6 Z" fill="#4f8cff" stroke="#fff" stroke-width="2.5"/>'+
-  '<circle cx="32" cy="26" r="5" fill="#fff" opacity=".85"/></svg>');
+  '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 64 64">'+
+  '<path d="M32 3 L58 41 L44 41 L44 61 L20 61 L20 41 L6 41 Z" fill="#4f8cff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>'+
+  '<path d="M32 3 L58 41 L44 41 L44 61 L20 61 L20 41 L6 41 Z" fill="none" stroke="#1b2a4a" stroke-opacity=".25" stroke-width="1.2"/>'+ 
+  '</svg>');
 
 function buildVectorStyle(style){
   const styles={
@@ -1033,17 +1055,26 @@ function addRouteLayers(){
 ------------------------------------------------------------------ */
 const ALERT_IMAGES={1:'PNG/AACCIDENTE.png',2:'PNG/AAVERIADO.png',3:'PNG/AGUARDIA22.png',4:'PNG/AATASCO.png',5:'PNG/APELIGRO.png',6:'PNG/ARESVALAR.png',7:'PNG/AOBRAS.png',8:'PNG/ACERRADA.png'};
 const ALERT_NAMES={1:'Accidente de tráfico',2:'Coche averiado',3:'Control / radar',4:'Atasco',5:'Peligro indeterminado',6:'Carretera en mal estado',7:'Obras',8:'Vía cerrada'};
+/* Iconos POI: SVG incrustado (sin emojis) — el navegador del Tesla no
+   tiene fuente de emojis en color y los pintaba en blanco/invisibles. */
+function poiSvg(fill,body){
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">'+
+    '<circle cx="12" cy="12" r="11.5" fill="'+fill+'" stroke="#111" stroke-width="1"/>'+
+    body+'</svg>');
+}
 const POI_CATS={
-  fuel:    {q:'node["amenity"="fuel"];',                          icon:'⛽'},
-  food:    {q:'node["amenity"~"^(restaurant|fast_food)$"];',      icon:'🍽️'},
-  coffee:  {q:'node["amenity"~"^(cafe|bar)$"];',                  icon:'☕'},
-  shop:    {q:'node["shop"~"^(supermarket|convenience)$"];',      icon:'🛒'},
-  health:  {q:'node["amenity"~"^(hospital|clinic|pharmacy)$"];',  icon:'🏥'},
-  parking: {q:'node["amenity"="parking"];',                       icon:'🅿️'},
-  charge:  {q:'node["amenity"="charging_station"];',              icon:'🔋'},
-  hotel:   {q:'node["tourism"="hotel"];',                         icon:'🏨'},
-  leisure: {q:'node["leisure"~"^(park|playground)$"];',           icon:'⛺'},
+  fuel:    {q:'node["amenity"="fuel"];',                       icon:poiSvg('#f97316','<path d="M9 2.5h6v6.5a3 3 0 0 1-6 0V2.5Z" fill="#fff"/><rect x="5.5" y="9" width="13" height="11" rx="2" fill="#fff"/><circle cx="9" cy="13" r="1.3" fill="#f97316"/>')},
+  food:    {q:'node["amenity"~"^(restaurant|fast_food)$"];',   icon:poiSvg('#f59e0b','<circle cx="12" cy="13.5" r="8" fill="#fff"/><path d="M8.2 13a3.8 3.8 0 0 0 7.6 0l-3.8-6.2L8.2 13Z" fill="#f59e0b"/>')},
+  coffee:  {q:'node["amenity"~"^(cafe|bar)$"];',               icon:poiSvg('#a16207','<path d="M5.5 9.5h11v3.5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V9.5Z" fill="#fff"/><path d="M16.6 10.5h1.1a2 2 0 0 1 0 4h-1.3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><rect x="7.4" y="5" width="7.2" height="2.6" rx="1.3" fill="#fff"/>')},
+  shop:    {q:'node["shop"~"^(supermarket|convenience)$"];',    icon:poiSvg('#22c55e','<path d="M5.5 9h13l-1.3 10.8H6.8L5.5 9Z" fill="#fff"/><path d="M9 9V7.2a3 3 0 0 1 6 0V9" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round"/>')},
+  health:  {q:'node["amenity"~"^(hospital|clinic|pharmacy)$"];',icon:poiSvg('#ef4444','<rect x="10" y="4.5" width="4" height="15" rx="1" fill="#fff"/><rect x="4.5" y="10" width="15" height="4" rx="1" fill="#fff"/>')},
+  parking: {q:'node["amenity"="parking"];',                    icon:poiSvg('#3b82f6','<path d="M8.5 20.5V4h4.6a4 4 0 0 1 0 8H8.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>')},
+  charge:  {q:'node["amenity"="charging_station"];',            icon:poiSvg('#10b981','<path d="M13 2.5 5.5 13h5l-1 8.5 7.5-10.5h-5l1-8.5Z" fill="#fff"/>')},
+  hotel:   {q:'node["tourism"="hotel"];',                      icon:poiSvg('#6366f1','<rect x="6" y="4.5" width="12" height="15" rx="1.5" fill="#fff"/><rect x="9" y="7.5" width="6" height="4" fill="#6366f1"/><rect x="9" y="13.5" width="6" height="4" fill="#6366f1"/>')},
+  leisure: {q:'node["leisure"~"^(park|playground)$"];',         icon:poiSvg('#14b8a6','<circle cx="12" cy="8" r="5.5" fill="#fff"/><rect x="10.8" y="13" width="2.4" height="7" rx="1.2" fill="#fff"/>')},
 };
+
 let layerMarkers={radars:[],pois:[],alerts:[]};
 let layerRefreshTimer=null;
 let lastLayerFetch={radars:0,pois:0,alerts:0,buildings:0};
@@ -1236,8 +1267,7 @@ function poiMarkerSize(){
 function applyPoiMarkerStyle(el){
   const sz=poiMarkerSize();
   el.style.width=sz+'px';el.style.height=sz+'px';
-  el.style.fontSize=Math.round(sz*0.6)+'px';
-  el.style.lineHeight=sz+'px';
+  const img=el.querySelector('img');if(img){img.style.width=sz+'px';img.style.height=sz+'px';img.style.padding=Math.round(sz*0.14)+'px';}
 }
 function updatePoiMarkerSizes(){
   if(!layerMarkers.pois||!layerMarkers.pois.length)return;
@@ -1256,7 +1286,7 @@ function poiIconFor(el){
   if(t.amenity==='charging_station')return POI_CATS.charge.icon;
   if(t.tourism==='hotel')return POI_CATS.hotel.icon;
   if(t.leisure==='park'||t.leisure==='playground')return POI_CATS.leisure.icon;
-  return '📍';
+  return poiSvg('#64748b','<path d="M12 2.5c-3.3 0-6 2.6-6 5.9 0 4.3 6 12.4 6 12.4s6-8.1 6-12.4c0-3.3-2.7-5.9-6-5.9Zm0 8a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Z" fill="#fff"/>');
 }
 /* Área visible del mapa (bbox ampliada un 25 %) para acotar la query de
    Overpass a lo que realmente se ve: respuesta rápida y sin saturar. */
@@ -1313,8 +1343,8 @@ async function refreshPois(force){
   shown.forEach(it=>{
     const name=(it.el.tags&&(it.el.tags.name||it.el.tags.brand||''))||'Punto de interés';
     const el2=document.createElement('div');
-    el2.style.cssText='border-radius:50%;background:rgba(255,255,255,.95);border:2px solid #111;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.5)';
-    el2.textContent=it.icon;
+    el2.style.cssText='display:flex;align-items:center;justify-content:center;cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,.65))';
+    el2.innerHTML='<img src="'+it.icon+'" alt="" style="width:100%;height:100%;object-fit:contain">';
     el2.title=name;
     el2.onclick=(ev)=>{ev.stopPropagation();startPointPick([it.lon,it.lat],name);};
     applyPoiMarkerStyle(el2);
@@ -2416,6 +2446,25 @@ if(!localStorage.getItem(LS+'voiceEngineV2')){
 }
 bindSelect('s-voice-mode','voiceMode');
 bindSelect('s-voice-engine','voiceEngine');
+bindSelect('s-voice-variant','voiceVariant');
+
+/* parámetros de voz eSpeak: sliders en vivo */
+const voiceAmpEl=document.getElementById('s-voice-amp');
+const voicePitchEl=document.getElementById('s-voice-pitch');
+const voiceSpeedEl=document.getElementById('s-voice-speed');
+const voiceAmpVal=document.getElementById('v-voice-amp');
+const voicePitchVal=document.getElementById('v-voice-pitch');
+const voiceSpeedVal=document.getElementById('v-voice-speed');
+function syncVoiceParams(){
+  voiceAmpEl.value=S.voiceAmp;voicePitchEl.value=S.voicePitch;voiceSpeedEl.value=S.voiceSpeed;
+  voiceAmpVal.textContent=S.voiceAmp;
+  voicePitchVal.textContent=S.voicePitch;
+  voiceSpeedVal.textContent=S.voiceSpeed+' ppm';
+}
+voiceAmpEl.addEventListener('input',()=>{saveS('voiceAmp',+voiceAmpEl.value);voiceAmpVal.textContent=voiceAmpEl.value;});
+voicePitchEl.addEventListener('input',()=>{saveS('voicePitch',+voicePitchEl.value);voicePitchVal.textContent=voicePitchEl.value;});
+voiceSpeedEl.addEventListener('input',()=>{saveS('voiceSpeed',+voiceSpeedEl.value);voiceSpeedVal.textContent=voiceSpeedEl.value+' ppm';});
+syncVoiceParams();
 
 /* 3D buildings toggle */
 const sw3d=document.getElementById('s-3d');

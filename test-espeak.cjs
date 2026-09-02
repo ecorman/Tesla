@@ -79,7 +79,7 @@ try {
   meSpeak.loadVoice('es', (ok, msg) => {
     if (!ok) { console.log('FAIL: voice es not loaded:', msg); process.exit(1); }
     console.log('voice es loaded OK, default =', meSpeak.getDefaultVoice());
-    meSpeak.speak('En quinientos metros, gire a la derecha.', { rawdata: true, amplitude: 140, pitch: 62, speed: 160 }, (success, id, stream) => {
+    meSpeak.speak('En quinientos metros, gire a la derecha.', { rawdata: true, voice: 'es', variant: 'f2', amplitude: 150, pitch: 64, speed: 170 }, (success, id, stream) => {
       if (!success || !stream) { console.log('FAIL: synthesis failed'); process.exit(1); }
       const buf = Buffer.from(stream instanceof ArrayBuffer ? new Uint8Array(stream) : stream);
       console.log('WAV bytes:', buf.length);

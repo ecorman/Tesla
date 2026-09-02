@@ -1270,3 +1270,22 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   - Logs de estado del motor en el panel de depuración (🔍), apartado voz.
 - **Verificación**: `test-espeak.cjs` carga los ficheros vendidos tal cual en Node, carga la voz `es` y sintetiza «En quinientos metros, gire a la derecha.» → WAV real de 22050 Hz con audio audible (**PASS**). La reproducción final es por Web Audio, el mismo camino que los pitidos que sí suenan en el Tesla.
 - Instrucciones: con el primer toque en la pantalla se desbloquea el audio; usa «🔊 Probar voz» en Ajustes → Voz para oírlo. Si el volumen del coche está bajo, sube amplitud 140 → 160-180 en `speakEspeak()`.
+
+## 68. nav.html: coche con punta de flecha clásica, POIs con iconos SVG (visibles en el Tesla) y voz eSpeak en castellano garantizado (2026-09-02)
+
+- **Coche**: el icono pasa a ser la **punta de flecha clásica de navegación** (triángulo con alas y cola, azul con borde blanco grueso), en lugar del pétalo con punto que se veía.
+- **POIs invisibles — causa encontrada**: los marcadores usaban **emojis** (⛽🍽️☕…) y el Chromium del navegador del Tesla **no tiene fuente de emojis en color**: se pintaban en blanco/invisibles por mucho que el debug dijera «150 POIs cargados».
+  - **Solución**: los 9 iconos de categoría ahora son **SVG incrustados** (badge circular de color + pictograma blanco: surtidor, plato, taza, bolsa, cruz, P de parking, rayo, hotel, árbol) + pin genérico de respaldo. Se renderizan vía `<img>` escalado con `poiSize`/zoom como antes. (10 SVGs validados bien formados.)
+- **Voz eSpeak**: ahora se pasa **`voice:'es'` explícito** (castellano garantizado, no dependía del estado interno del motor) + variante femenina `f2` y tono/velocidad algo más naturales (150/64/170). Sigue siendo sintetizada (electrónica) — es el precio de funcionar sin red en el Tesla; los parámetros son ajustables en `speakEspeak()`.
+- **Verificación**: `node --check` del script OK; 10 SVGs con balance de etiquetas OK; `test-espeak.cjs` PASS con los nuevos parámetros (voz es + f2, WAV audible de 5,7 s).
+
+## 69. nav.html: parámetros de voz ajustables en Ajustes → Voz (2026-09-02)
+
+- Nuevo bloque **«Parámetros de voz (motor eSpeak)»** en la pestaña Voz:
+  - **Volumen** (80–220, por defecto 150) — amplitud directa del sintetizador.
+  - **Tono** (25–99, por defecto 64).
+  - **Velocidad** (80–260 ppm, por defecto 170).
+  - **Timbre**: Estándar (masculino) / Femenina 1-3 / Masculino 1 / Susurro (por defecto Femenina 2).
+- Se guardan en localStorage (`voiceAmp`/`voicePitch`/`voiceSpeed`/`voiceVariant`) y `speakEspeak()` los aplica en la siguiente instrucción; el botón 🔊 Probar voz permite oír el ajuste al momento.
+- Los parámetros solo afectan al motor eSpeak (los demás motores no los usan).
+- Verificado: sintaxis del script OK.
