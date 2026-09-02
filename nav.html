@@ -48,21 +48,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- maneuver banner ---- */
-#banner{position:absolute;top:2px;left:12px;z-index:22;display:none;align-items:center;gap:10px;padding:8px 12px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(350px,calc(100vw - 160px))}
-#nav-turn-box{width:52px;height:52px;flex-shrink:0;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+/* ventana de navegacion compacta, mismo aspecto que tesla.html (zoom 0.6536) */
+#banner{position:absolute;top:2px;left:12px;z-index:22;display:none;align-items:center;gap:8px;padding:6px 9px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(230px,calc(100vw - 190px));zoom:.6536}
+#nav-turn-box{width:44px;height:44px;flex-shrink:0;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 #nav-turn-box img{width:92%;height:92%;object-fit:contain}
 #banner .nav-mid{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center}
 #banner .nav-maneuver-line{width:100%;text-align:center}
 #banner .nav-maneuver-text{font-size:13px;font-weight:600;color:var(--dim);text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.2}
 #nav-street-line{display:none;width:100%;text-align:center}
-.nav-road-sign{display:inline-block;background:rgba(26,83,40,.78);padding:6px 14px;border-radius:7px;color:#FFD700;border:1px solid #C8A97E;box-shadow:0 1px 3px rgba(0,0,0,.5);font-weight:700;font-size:19px;line-height:1.5;max-width:100%;word-wrap:break-word}
-#banner .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:96px}
-#banner .nav-dist{font-size:20px;font-weight:700;color:var(--acc);line-height:1}
-.nav-progress-wrap{width:104px;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+.nav-road-sign{display:inline-block;background:rgba(26,83,40,.78);padding:4px 10px;border-radius:6px;color:#FFD700;border:1px solid #C8A97E;box-shadow:0 1px 3px rgba(0,0,0,.5);font-weight:700;font-size:15px;line-height:1.4;max-width:100%;word-wrap:break-word}
+#banner .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:84px}
+#banner .nav-dist{font-size:17px;font-weight:700;color:var(--acc);line-height:1}
+.nav-progress-wrap{width:86px;height:7px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
 #banner .nav-mtime{font-size:14px;font-weight:700;color:var(--warn);line-height:1;white-space:nowrap}
 #nav-progress{height:100%;width:0%;background:linear-gradient(to right,#680000,#FF0000 50%,#FA8072 97%);border-radius:99px;transition:width .3s linear}
 #banner .nav-eta{text-align:right;font-size:12px;color:var(--dim);line-height:1.35;display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
-#banner .nav-eta b{font-size:16px;color:var(--txt)}
+#banner .nav-eta b{font-size:14px;color:var(--txt)}
 #banner .nav-eta span{font-size:11px;color:var(--dim)}
 /* ---- selector de punto (confirmar destino, estilo tesla.html) ---- */
 #pick-card{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);z-index:30;display:none;flex-direction:column;gap:6px;padding:12px 14px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);width:min(340px,calc(100vw - 24px))}
@@ -74,7 +75,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #pick-card .pc-btns .btn{flex:1}
 .pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
 /* ---- ventana de ruta detallada (debajo del banner) ---- */
-#route-detail{position:absolute;top:96px;left:12px;z-index:21;display:none;width:min(350px,calc(100vw - 160px));max-height:calc(100vh - 240px);overflow-y:auto;padding:10px 12px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#route-detail{position:absolute;top:96px;left:12px;z-index:21;display:none;width:min(260px,calc(100vw - 190px));max-height:calc(100vh - 240px);overflow-y:auto;padding:8px 10px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.45);zoom:.6536}
 #route-detail .rd-head{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
 #route-detail .rd-head b{font-size:14px;color:var(--txt)}
 #route-detail .rd-head span{font-size:11px;color:var(--dim);margin-left:auto;font-variant-numeric:tabular-nums}
@@ -677,6 +678,7 @@ function alertSound(kind){
     case 'medium':beep(740,740,120,.22,'square');beep(740,740,120,.22,'square',.18);beep(740,740,120,.22,'square',.36);break;
     case 'near':beep(1100,1100,90,.3,'square');beep(1100,1100,90,.3,'square',.14);break;
     case 'roundabout-exit':beep(600,900,120,.32,'triangle');beep(900,600,120,.32,'triangle',.16);beep(600,900,120,.32,'triangle',.32);beep(900,1200,220,.34,'triangle',.50);break;
+    case 'radar':beep(1400,1400,70,.3,'sawtooth');beep(1400,1400,70,.3,'sawtooth',.12);break;
     case 'arrive':beep(523,523,140,.25);beep(659,659,140,.25,'sine',.16);beep(784,784,220,.25,'sine',.32);break;
     case 'reroute':beep(440,440,100,.2,'sawtooth');beep(440,440,100,.2,'sawtooth',.14);break;
     default:beep(660,660,140,.2);
@@ -863,11 +865,21 @@ function speak(text){
 /* ---------- map ---------- */
 if(window.APP_CONFIG&&window.APP_CONFIG.keys&&window.APP_CONFIG.keys.mapbox){mapboxgl.accessToken=window.APP_CONFIG.keys.mapbox;}
 let map=null;
-const CAR_ICON='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 64 64">'+
-  '<path d="M32 3 L58 41 L44 41 L44 61 L20 61 L20 41 L6 41 Z" fill="#4f8cff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>'+
-  '<path d="M32 3 L58 41 L44 41 L44 61 L20 61 L20 41 L6 41 Z" fill="none" stroke="#1b2a4a" stroke-opacity=".25" stroke-width="1.2"/>'+ 
-  '</svg>');
+/* SVG CRUDO para inyectar inline: el navegador del Tesla no renderiza
+   <img src="data:image/svg+xml,..."> (POIs y coche invisibles); los <svg>
+   inline del DOM sí se pintan (asi lo hace tesla.html desde siempre). */
+/* Icono de RADAR: pictograma blanco (ondas + punto) sobre el badge rojo del
+   marcador. Antes se usaba PNG/radar.png, una imagen con forma de X diagonal
+   que se confundía con el icono del coche; con SVG incrustado se ve un radar
+   nítido dentro del círculo rojo (misma técnica que los iconos de POI). */
+const RADAR_ICON_SVG=
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+
+  '<circle cx="12" cy="15.5" r="2.1" fill="#fff" stroke="none"/>'+
+  '<path d="M12 15.5V4"/>'+
+  '<path d="M12 9.5a6 6 0 0 1 0 12"/>'+
+  '<path d="M7.8 5.8 5.9 3.9"/>'+
+  '<path d="M16.2 5.8 18.1 3.9"/>'+
+  '</svg>';
 
 function buildVectorStyle(style){
   const styles={
@@ -1058,10 +1070,9 @@ const ALERT_NAMES={1:'Accidente de tráfico',2:'Coche averiado',3:'Control / rad
 /* Iconos POI: SVG incrustado (sin emojis) — el navegador del Tesla no
    tiene fuente de emojis en color y los pintaba en blanco/invisibles. */
 function poiSvg(fill,body){
-  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">'+
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">'+
     '<circle cx="12" cy="12" r="11.5" fill="'+fill+'" stroke="#111" stroke-width="1"/>'+
-    body+'</svg>');
+    body+'</svg>';
 }
 const POI_CATS={
   fuel:    {q:'node["amenity"="fuel"];',                       icon:poiSvg('#f97316','<path d="M9 2.5h6v6.5a3 3 0 0 1-6 0V2.5Z" fill="#fff"/><rect x="5.5" y="9" width="13" height="11" rx="2" fill="#fff"/><circle cx="9" cy="13" r="1.3" fill="#f97316"/>')},
@@ -1076,6 +1087,8 @@ const POI_CATS={
 };
 
 let layerMarkers={radars:[],pois:[],alerts:[]};
+let radarAlertPoints=[];      // {lat,lon,name} de los radares Overpass, para las alertas de proximidad
+let alertedRadars=new Set();  // claves lat|lng de radares ya avisados (un pitido por radar y viaje)
 let layerRefreshTimer=null;
 let lastLayerFetch={radars:0,pois:0,alerts:0,buildings:0};
 const LAYER_MIN_INTERVAL=15000; // no repetir la misma capa antes de 15 s
@@ -1181,6 +1194,7 @@ async function fetchOverpass(query){
     endpoints=endpoints.filter(u=>u===lastWorkingOverpass).concat(endpoints.filter(u=>u!==lastWorkingOverpass));
   }
   // fallback SECUENCIAL: una petición cada vez, la siguiente instancia solo si falla
+  let sawValid=false; // alguna instancia respondió JSON válido (aunque sea 0)
   for(let i=0;i<endpoints.length;i++){
     const base=endpoints[i];
     const t0=Date.now();
@@ -1212,12 +1226,24 @@ async function fetchOverpass(query){
       // sin POIs). Los fallbacks pueden devolver 0 sin estar caídos (datos
       // parciales), así que un 0 de fallback NO se acepta: se sigue probando.
       if(Array.isArray(els)){
-        lastWorkingOverpass=base;lastOverpassFailed=false;
-        if(els.length>0||i===0)return els;
-        dbg('overpass','0 elementos de fallback ('+base+') — se sigue probando');
+        lastOverpassFailed=false;
+        if(els.length>0){lastWorkingOverpass=base;return els;}
+        // Respuesta valida PERO vacia: solo es un «resultado real» si viene
+        // del endpoint primario. Y aun asi no sustituye a un endpoint que si
+        // devolvio datos antes (evita el bucle «Overpass devolvió 0 elementos»
+        // eterno cuando una instancia parcial devuelve 0).
+        if(i===0&&!lastWorkingOverpass){return els;}
+        if(!sawValid){sawValid=true;}
+        dbg('overpass','0 elementos ('+base+') — se siguen probando el resto');
         continue;
       }
     }catch(e){dbg('overpass','✗ '+base+' excepción '+e);}
+  }
+  if(sawValid){
+    // Todas respondieron con JSON valido (todas 0): no es un fallo de red.
+    // Sin cooldown — la próxima query lo volverá a intentar directamente.
+    dbg('overpass','⚠ todas las instancias devolvieron 0 elementos — sin cooldown, reintentando en la próxima query');
+    return [];
   }
   lastOverpassFailed=true;
   lastAllOverpassFail=Date.now();
@@ -1242,19 +1268,48 @@ async function refreshRadars(force){
   if(!force&&Date.now()-lastLayerFetch.radars<LAYER_MIN_INTERVAL)return;
   lastLayerFetch.radars=Date.now();
   clearLayerMarkers('radars');
+  radarAlertPoints=[];
   const q='[out:json][timeout:8];(node["highway"~"^(speed_camera|speed_display)$"](around:20000,'+c.lat+','+c.lon+'););out;';
   const els=await fetchOverpass(q);
   els.forEach(el=>{
     const name=el.tags&&el.tags.maxspeed?('Radar — máx '+el.tags.maxspeed):'Radar de velocidad';
+    radarAlertPoints.push({lat:el.lat,lon:el.lon,name:name});
     const el2=document.createElement('div');
     el2.style.cssText='width:38px;height:38px;border-radius:50%;background:#e03030;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer';
-    const img=document.createElement('img');
-    img.src='PNG/radar.png';img.style.cssText='width:30px;height:30px;object-fit:contain';
-    el2.appendChild(img);
+    el2.title=name;
+    el2.innerHTML='<div style="width:30px;height:30px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">'+RADAR_ICON_SVG+'</div>';
     el2.onclick=()=>toast(name);
     layerMarkers.radars.push(new mapboxgl.Marker({el:el2}).setLngLat([el.lon,el.lat]).addTo(map));
   });
   dbg('radares','marcadores: '+layerMarkers.radars.length);
+}
+
+/* --- alertas de proximidad de radar (pitido + voz, una vez por radar) --- */
+function checkRadarAlerts(){
+  if(!userPos||(!S.radars&&!S.myradars))return;
+  const c=userPos,radius=S.myradarRadius||350;
+  if(S.radars){
+    for(const r of radarAlertPoints){
+      const key=r.lat.toFixed(4)+'|'+r.lon.toFixed(4);
+      if(alertedRadars.has(key))continue;
+      if(haversine([c[0],c[1]],[r.lon,r.lat])<=radius){
+        alertedRadars.add(key);
+        navBeep('radar');
+        speak(r.name||'Radar de velocidad');
+      }
+    }
+  }
+  if(S.myradars){
+    for(const r of myRadars){
+      const key='my|'+r.id;
+      if(alertedRadars.has(key))continue;
+      if(haversine([c[0],c[1]],[r.lon,r.lat])<=(r.radius||radius)){
+        alertedRadars.add(key);
+        navBeep('radar');
+        speak(r.name||'Radar');
+      }
+    }
+  }
 }
 
 /* --- POIs por categoría --- */
@@ -1269,7 +1324,7 @@ function poiMarkerSize(){
 function applyPoiMarkerStyle(el){
   const sz=poiMarkerSize();
   el.style.width=sz+'px';el.style.height=sz+'px';
-  const img=el.querySelector('img');if(img){img.style.width=sz+'px';img.style.height=sz+'px';img.style.padding=Math.round(sz*0.14)+'px';}
+  const svg=el.querySelector('svg');if(svg){svg.style.width=sz+'px';svg.style.height=sz+'px';svg.style.padding=Math.round(sz*0.14)+'px';svg.style.boxSizing='border-box';}
 }
 function updatePoiMarkerSizes(){
   if(!layerMarkers.pois||!layerMarkers.pois.length)return;
@@ -1297,6 +1352,11 @@ function viewportArea(c){
   try{
     const b=map.getBounds();
     const w=b.getWest(),e=b.getEast(),s=b.getSouth(),n=b.getNorth();
+    // globo 3D / vista lejana: getBounds puede devolver un bbox degenerado o
+    // planetario (0 elementos garantizados). Con un bbox no razonable, mejor
+    // un around: centrado, que SIEMPRE devuelve datos si la zona los tiene.
+    if(!(isFinite(w)&&isFinite(e)&&isFinite(s)&&isFinite(n)))return null;
+    if(e-w>180||n-s>120)return null;
     const dLon=(e-w)*0.25,dLat=(n-s)*0.25;
     return (s-dLat)+','+(w-dLon)+','+(n+dLat)+','+(e+dLon);
   }catch(err){return null;}
@@ -1340,7 +1400,11 @@ async function refreshPois(force){
   const shown=items.slice(0,150);
   dbg('pois','únicos: '+items.length+' → mostrando '+shown.length);
   if(!shown.length){
-    poiLastZero=true;
+    // Un 0 aqui solo es «zona sin POIs» si NINGUNA instancia devolvio datos
+    // validos antes (fetchOverpass ya filtra los 0 sospechosos). Si hay
+    // endpoint con historial de datos, tratarlo como transitorio: sin marcar
+    // poiLastZero (evita el «0 POIs en esta zona» falso del chip).
+    if(!lastWorkingOverpass)poiLastZero=true;
     if(layerMarkers.pois.length)dbg('pois','0 resultados y ya hay '+layerMarkers.pois.length+' marcadores — se conservan');
     else dbg('pois','0 resultados — zona sin POIs (se conserva el estado)');
     updatePoiStatus();
@@ -1354,7 +1418,7 @@ async function refreshPois(force){
     const name=(it.el.tags&&(it.el.tags.name||it.el.tags.brand||''))||'Punto de interés';
     const el2=document.createElement('div');
     el2.style.cssText='display:flex;align-items:center;justify-content:center;cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,.65))';
-    el2.innerHTML='<img src="'+it.icon+'" alt="" style="width:100%;height:100%;object-fit:contain">';
+    el2.innerHTML=it.icon; // SVG inline: el Tesla no pinta <img> con data:image/svg+xml
     el2.title=name;
     el2.onclick=(ev)=>{ev.stopPropagation();startPointPick([it.lon,it.lat],name);};
     applyPoiMarkerStyle(el2);
@@ -1471,18 +1535,20 @@ function emptyGeo(){return{type:'FeatureCollection',features:[]};}
 let userPos=null,userMarker=null,carMarker=null,carMarkerEl=null,carHeading=null,lastPosForBearing=null;
 function updateUserMarker(){
   if(!userPos)return;
-  if(!userMarker){
-    const el=document.createElement('div');
-    el.style.cssText='width:16px;height:16px;border-radius:50%;background:#3dd68c;border:3px solid #fff;box-shadow:0 0 8px rgba(61,214,140,.7)';
-    userMarker=new mapboxgl.Marker({el}).setLngLat(userPos).addTo(map);
-  }else userMarker.setLngLat(userPos);
+  // Sin marcador verde de precision: era el «punto/chincheta» que se veia
+  // sobre el coche. La flecha azul es el unico marcador de posicion.
+  if(userMarker){try{userMarker.remove();}catch(e){}userMarker=null;}
   // coche como marcador GEOGRÁFICO: si el usuario mueve el mapa, el coche se
   // queda en su posición GPS real y se desplaza con el mapa (antes era un div
   // fijo en pantalla que «no se movía» al arrastrar).
   if(!carMarker){
     carMarkerEl=document.createElement('div');
-    carMarkerEl.style.cssText='width:42px;height:42px;pointer-events:none;transform:translate(-50%,-50%)';
-    carMarkerEl.innerHTML='<img src="'+CAR_ICON+'" alt="" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">';
+    carMarkerEl.style.cssText='width:46px;height:46px;pointer-events:none';
+    // PNG/AVANCE.PNG = punta de flecha clásica (apunta a la derecha), la MISMA
+    // imagen que usa el coche de tesla.html: raster puro, se ve siempre.
+    carMarkerEl.innerHTML='<div style="width:100%;height:100%;filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6))">'+
+      '<img src="PNG/AVANCE.PNG" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'+
+      '</div>';
     carMarker=new mapboxgl.Marker({el:carMarkerEl}).setLngLat(userPos).addTo(map);
   }else carMarker.setLngLat(userPos);
 }
@@ -1564,8 +1630,10 @@ function updateCamera(){
 function updateCarRotation(){
   const img=carMarkerEl?carMarkerEl.querySelector('img'):null;
   if(!img)return;
-  const rot=((S.heading&&viewMode().follows)||carHeading==null||isNaN(carHeading))?0:carHeading;
+  // el PNG apunta a la derecha (este): +90 para que 0° rumbo mire al NORTE.
+  const rot=((S.heading&&viewMode().follows)||carHeading==null||isNaN(carHeading))?0:carHeading+90;
   img.style.transform=`rotate(${rot}deg)`;
+  img.style.transition='transform .4s linear';
 }
 /* ---------- modos de vista: NORTE / AVANCE / 3D / 3D RELIEVE (igual tesla.html) ---------- */
 const VIEW_MODES={
@@ -1849,6 +1917,7 @@ let freeDriveDetected=false; // aviso de navegación libre (una sola vez por ses
 
 function startNavLoop(){
   stopNavLoop();
+  alertedRadars.clear(); // nueva ruta: volver a avisar de los radares cercanos
   navInterval=setInterval(navTick,1000);
 }
 function stopNavLoop(){
@@ -1879,12 +1948,16 @@ function navTick(){
   let step=null,stepDist=Infinity;
   for(let i=maneuverIdx;i<routeData.steps.length;i++){
     const dAlong=(routeData.cumDist[i]||0)-carDist;
-    if(dAlong<=0&&i===maneuverIdx){maneuverIdx++;voiceFlags={};break;}
+    if(dAlong<=0&&i===maneuverIdx){maneuverIdx++;voiceFlags={};continue;}
     if(i===maneuverIdx){step=routeData.steps[i];stepDist=dAlong;break;}
   }
   if(!step){
-    // arrived
-    arrive();
+    // sin maniobra restante POR LA RUTA: solo es llegada si además estamos
+    // cerca del final de la polilínea (evita el "llega al destino
+    // inmediatamente": consumir la salida de paso y quedarse sin step no
+    // significa llegar).
+    const nearEnd=haversine(userPos,routeData.coords[routeData.coords.length-1])<60;
+    if(nearEnd){arrive();}
     return;
   }
   lastManeuverDist=stepDist;
@@ -2332,6 +2405,7 @@ function handleGpsFix(coords){
   updateUserMarker();
   updateCamera();
   updateCarRotation();
+  checkRadarAlerts();
   // speed
   const spd=coords.speed!=null?Math.round(coords.speed*3.6):0;
   navSpeedKmh=spd;
@@ -2551,7 +2625,7 @@ function syncPoiChips(){
     const chip=document.createElement('button');
     chip.type='button';
     chip.className='poi-chip'+(S.poiCats.includes(k)?' on':'');
-    chip.textContent=c.icon+' '+(POI_CAT_LABELS[k]||k);
+    chip.innerHTML='<span style="display:inline-block;width:13px;height:13px;vertical-align:-2px">'+c.icon+'</span> '+(POI_CAT_LABELS[k]||k);
     chip.title=k;
     chip.onclick=()=>{
       if(S.poiCats.includes(k))S.poiCats=S.poiCats.filter(x=>x!==k);
@@ -3374,6 +3448,10 @@ let pickMarker=null;
 function startPointPick(lonlat,name){
   cancelPick();
   pickState={lon:lonlat[0],lat:lonlat[1],name:name||'Punto en el mapa'};
+  // pausa el seguimiento para que la cámara VUELE al punto y se quede allí
+  // (si no, el próximo fix de GPS devuelve la cámara al coche y el usuario
+  // nunca ve el destino elegido).
+  if(typeof startFollowCountdown==='function')startFollowCountdown();
   const el=document.createElement('div');
   el.className='pick-pin';el.textContent='📍';
   pickMarker=new mapboxgl.Marker({el:el,anchor:'bottom',draggable:true})

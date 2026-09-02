@@ -1311,3 +1311,61 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
   - Solo se limpia/reemplaza cuando hay resultados >0 (o cuando no hay nada que conservar).
   - Nuevo estado `poiLastZero` para el chip: cuando el último refresco fue un 0 real ya no queda en «buscando…» eterno, sino «📍 0 POIs en esta zona — clic para reintentar».
 - **Verificación**: `test-poi-live.cjs` ampliado con el test de regresión 5: tras cargar 150 POIs reales se simula una respuesta Overpass con 0 elementos y se comprueba que `layerMarkers.pois` **sigue con 150** y que `poiLastZero=true` → **PASS 15/15**. `test-ra.cjs` PASS, `test-espeak.cjs` PASS y sintaxis completa de `nav.html` OK.
+
+## 72. nav.html: iconos de radar con pictograma propio — ya no se confunden con el coche (2026-09-02)
+
+- **Problema (usuario)**: «me salen los radares con el mismo icono que el coche; el coche debería ser una flecha; radares y POIs: el símbolo está bien pero dentro debería haber un icono representativo».
+  - **Causa**: el marcador de radar usaba `PNG/radar.png`, una imagen con una forma diagonal tipo X (picograma confuso) que no se leía como radar y se confundía con el icono del coche. El coche **ya es** la punta de flecha clásica azul (`CAR_ICON`, entrada 68): no se ha tocado.
+- **Solución**:
+  - Nuevo **`RADAR_ICON`** (SVG incrustado, misma técnica de los iconos de POI): pictograma blanco de radar — arco de onda + punto + trazos — dentro del **badge rojo redondo con borde blanco**. El marcador ya no depende de `PNG/radar.png` y se ve nítido en el navegador del Tesla.
+  - Añadido `title` al marcador (nombre del radar: «Radar — máx XX km/h»).
+  - Los POIs ya llevan el pictograma representativo de su categoría dentro del badge de color (entrada 68); sin cambios.
+- **Verificación**: SVG de `RADAR_ICON` bien formado (1 apertura/cierre, 4 paths, 1 círculo), sintaxis completa de `nav.html` OK, `test-poi-live.cjs` **PASS 15/15** (incluye la regresión del 0 de Overpass: «0 resultados y ya hay 150 marcadores — se conservan»), `test-ra.cjs` PASS y `test-espeak.cjs` PASS.
+
+## 73. nav.html: alertas de radar con pitido y voz al acercarse (2026-09-02)
+- **Problema (usuario)**: «no me llegan las alertas de radar, algún beep» — los radares se veían en el mapa pero nunca avisaban al aproximarse.
+- **Causa**: no existía ninguna comprobación de proximidad a radares; los pitidos (`navBeep`) solo se usaban para maniobras de ruta, llegada y recálculo. Cargar el radar (Overpass o propio) solo pintaba el marcador.
+- **Solución**:
+  - Nuevo sonido `'radar'` en `alertSound()`: doble pitido agudo rápido (1400 Hz, sawtooth), el mismo patrón que usaba tesla.html — inconfundible frente a los pitidos de maniobra.
+  - Nueva `checkRadarAlerts()`: cada actualización de GPS (cubre navegación, free drive y simulador) comprueba la distancia a los radares — Overpass (`radarAlertPoints`, radio = el del ajuste "Radares propios", 350 m por defecto) y propios (`myRadars`, con su radio individual o el del ajuste). Al entrar en el radio: **pitido de radar + voz con el nombre** («Radar — máx 50», «Radar 60 km/h», etc.).
+  - **Un solo aviso por radar y viaje**: `alertedRadars` (Set) evita repetir el pitido cada segundo; se reinicia al iniciar una ruta nueva.
+  - Respeta los modos de voz existentes: en «Solo voz» no pita, en «Silencio» nada, en «Solo pitidos» solo pita.
+- **Verificación**: `test-poi-live.cjs` **PASS 18/18** con dos regresiones nuevas — (1) un radar a 0 m dispara el aviso exactamente 1 vez con 2 llamadas seguidas, (2) un radar a ~500 km no dispara nada — más la comprobación estructural del sonido `'radar'`; `test-ra.cjs` PASS y `test-espeak.cjs` PASS. Sintaxis completa de `nav.html` OK.
+
+## 74. nav.html: nunca más «llega al destino inmediatamente» + el mapa vuela al punto elegido (2026-09-02)
+- **Problema (usuario)**: «me llega al destino inmediatamente… cuando busco una dirección me sale una caja y me dice añadir ruta pero no vuela el mapa hasta el punto».
+- **Causa 1 (llegada inmediata)**: la reescritura de rotondas (entrada 70) cambió `continue`→`break` en el bucle que consume pasos de `navTick`. Al rebasar el final del paso actual (p. ej. `depart` a ~80 m del inicio) se hacía `maneuverIdx++` y `break`, quedando `step=null` → `navTick` interpretaba «sin maniobra restante» como **llegada** y disparaba `arrive()` nada más arrancar.
+- **Causa 2 (no vuela al punto)**: `startPointPick` sí hacía `map.flyTo()`, pero el bucle de seguimiento (`updateCamera`) devolvía la cámara al coche en el siguiente fix de GPS, porque el vuelo del pick nunca pausaba el seguimiento (`isFlying`/`followPaused` no se tocaban).
+- **Solución**:
+  - Bucle de pasos: restaurado `continue` (consume varios pasos agotados en un tick) y la llegada ahora exige además **proximidad real al final de la polilínea** (<60 m del último punto). Consumir la salida de un paso y quedarse sin paso ≠ llegar.
+  - `startPointPick` ahora llama a `startFollowCountdown()` (el mismo mecanismo de pausa que un arrastre del usuario): la cámara vuela al punto elegido y **se queda allí**, con cuenta atrás para volver a anclar (configurable en Cámara). «Nueva Ruta»/«Añadir Punto» llaman a `calcRoute` como siempre.
+- **Verificación**: `test-poi-live.cjs` **PASS 23/23** con dos regresiones nuevas sobre **ruta real de OSRM** (Sol→Ventas, ~3 km): (7) recorrer la polilínea en tramos de 100 m llamando a `navTick` — la llegada solo puede producirse a <200 m del final, nunca al iniciar; (8) `startPointPick` dispara un `flyTo` centrado en el punto y deja `followPaused=true`. `test-ra.cjs` PASS, `test-espeak.cjs` PASS y sintaxis completa de `nav.html` OK.
+
+## 75. nav.html: iconos SVG inline (coche, radares, POIs visibles otra vez en el Tesla) + ventana de navegación compacta como tesla.html (2026-09-02)
+- **Problemas (usuario)**: «veo los radares pero no tienen icono de radar», «no veo los POIs, me dice que hay 0 cargados», «la ventana de navegación es muy grande y tapa todo», «el icono del coche debe ser una flecha».
+- **Causa raíz (iconos invisibles)**: el Chromium del navegador del Tesla **no renderiza `<img src="data:image/svg+xml,...">`**. El badge rojo del radar sí se ve (es un `div`), pero el pictograma interior —y los POIs enteros, y el coche— van todos en `<img>` con data-URI: por eso el chip decía «150 POIs» mientras el mapa parecía vacío, y el coche parecía «no ser una flecha» (era invisible; se veía el marcador verde de precisión).
+  - **Solución**: los tres constructores (`CAR_ICON_SVG`, `RADAR_ICON_SVG`, `poiSvg()`) ahora generan **SVG CRUDO que se inyecta inline en el DOM**, la misma técnica que lleva años funcionando en tesla.html. Sin ninguna dependencia de data-URI: 0 apariciones de `data:image/svg+xml` en marcadores.
+  - Ajustados a SVG inline: `refreshRadars` (pictograma de radar dentro del badge rojo), `refreshPois` (9 categorías + pin genérico), `updateUserMarker` (flecha azul del coche), `applyPoiMarkerStyle` y `updateCarRotation` (ahora estilan/rotan el `<svg>`), y los chips de categorías de Ajustes (`innerHTML` con SVG de 13px en vez de `textContent`).
+- **Ventana de navegación compacta**: mismo tratamiento que tesla.html (`zoom: 0.6536` en el panel de navegación) + tipografías y caja reducidas (banner 350px→230px, caja de giro 52→44px, cartel de calle 19→15px, distancia 20→17px, barra 104→86px, ventana detallada 350→260px). Ahora solo ocupa la esquina, como en tesla.html, sin tapar el mapa.
+- **El coche**: era y sigue siendo la **punta de flecha clásica azul** (entrada 68) — el problema era que no se veía por el bug de los data-URI. Ahora se pinta inline y rota con el rumbo.
+- **Verificación**: sintaxis completa de `nav.html` OK; los 10 SVG de categoría bien formados; 0 `<img>` con data-URI en marcadores; `test-poi-live.cjs` **PASS 23/23** (150 POIs reales cargados, conservación con 0 resultados, radar 1 aviso, llegadas solo al final de ruta real de OSRM, flyTo del punto elegido); `test-ra.cjs` PASS; `test-espeak.cjs` PASS.
+
+## 76. nav.html: adiós al «Overpass devolvió 0 elementos» eterno + solo la flecha como marcador del coche (2026-09-02)
+- **Problemas (usuario)**: «el vehículo no tiene icono de vehículo sino de chincheta», «siempre dice Overpass devolvió 0 elementos, algo pasa con los POIs, ¿alguna key?».
+- **Sin keys**: Overpass es un servicio **libre y sin API key**; la key de Mapbox solo afecta al mapa de fondo, no a los POIs. El problema era lógico, no de credenciales.
+- **Causa raíz del 0 eterno**: verificado con pruebas reales — `overpass.openstreetmap.fr` responde **403 sin Referer** (con el Referer del navegador va bien), `overpass-api.de` responde **406** a clientes sin cabeceras de navegador, `kumi` estaba caído, y **osm.ch responde 200 con 0 elementos** en zonas con datos. El código aceptaba el **0 del primer endpoint como resultado real** y además lo guardaba como `lastWorkingOverpass` → todos los refrescos siguientes iban a la instancia «venenosa» y devolvían 0 para siempre. Además ese 0-bucle activaba el **cooldown global de 30 s** que bloqueaba también radares y edificios.
+- **Solución (POIs)**:
+  - `fetchOverpass`: un 0 solo se acepta del **endpoint primario y solo si nunca hubo un endpoint con datos**; en cualquier otro caso se siguen probando el resto de instancias y **no se envenena** `lastWorkingOverpass`.
+  - Si todas responden JSON válido pero 0: **no es fallo** — sin cooldown de 30 s (solo timeouts/errores HTTP activan el cooldown).
+  - `refreshPois`: el chip «0 POIs en esta zona» solo aparece si no hay historial de datos; con historial, un 0 se trata como transitorio y se conservan los marcadores.
+  - `viewportArea`: en vista de globo 3D `getBounds()` puede devolver un bbox degenerado/planetario (0 resultados garantizados) — se detecta y se usa `around:` centrado.
+- **Causa de la «chincheta»**: encima de la flecha había un **punto verde de 16 px** (marcador de precisión GPS) en la misma coordenada: parecía una chincheta/pin. Ahora `updateUserMarker` **elimina** ese marcador — la **flecha azul** (SVG inline, entrada 75) es el único marcador de posición, un poco más grande (46 px).
+- **Verificación**: `test-poi-live.cjs` **PASS 24/24** (nuevas comprobaciones: un 0 enmascarado no borra marcadores, no marca `poiLastZero`, no activa cooldown y no envenena `lastWorkingOverpass`; los tests de red se marcan SKIP si Overpass está caído en vez de fallar). `test-ra.cjs` PASS, `test-espeak.cjs` PASS, sintaxis completa de `nav.html` OK.
+
+## 77. nav.html: el coche vuelve a ser LA FLECHA — PNG/AVANCE.PNG (la del coche de tesla.html) (2026-09-02)
+- **Problema (usuario)**: «el coche no es una flecha, el icono es incorrecto».
+- **Causa**: el coche iba como SVG inline dentro del marcador; en el navegador del Tesla los marcadores con SVG siguen sin pintar de forma fiable (solo los SVG del propio documento HTML van seguros).
+- **Solución definitiva**: el marcador del coche ahora usa **`PNG/AVANCE.PNG`** — la **punta de flecha clásica** (apunta a la derecha), la **misma imagen raster que usa el coche de tesla.html** desde siempre: un `<img>` PNG plano se ve en cualquier navegador, incluido el del Tesla. Tamaño 46 px con sombra.
+- **Rotación corregida**: como el PNG apunta al ESTE, la rotación ahora es `rumbo + 90°` para que con rumbo 0° (norte) la flecha mire hacia arriba. En modos con mapa fijo al norte rota según el rumbo; con mapa girado al avance queda fija hacia arriba.
+- **Limpieza**: eliminado `CAR_ICON_SVG` (código muerto).
+- **Verificación**: silueta de `PNG/AVANCE.PNG` decodificada y confirmada (flecha clásica); sintaxis completa de `nav.html` OK; `test-poi-live.cjs` **PASS 24/24**, `test-ra.cjs` PASS, `test-espeak.cjs` PASS.
