@@ -32,10 +32,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .app-menu-btn{width:42px;height:42px;border-radius:50%;background:rgba(100,100,100,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.4);transition:all .18s ease;padding:0}
 .app-menu-btn:hover{background:rgba(140,140,140,.55);border-color:rgba(255,255,255,.45);transform:scale(1.06)}
 .app-menu-btn img{width:64%;height:64%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
-/* ---- icono de Tesla circular flotante en el mapa (clonado de tesla.html) ---- */
-#toggle-map-header-buttons-panel{position:absolute;left:16px;bottom:84px;width:82px;height:82px;background-color:rgba(100,100,100,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:22;box-shadow:0 4px 16px rgba(0,0,0,.45);transition:all .2s ease;user-select:none}
-#toggle-map-header-buttons-panel:hover{background-color:rgba(130,130,130,.55);border-color:rgba(255,255,255,.4);transform:scale(1.05)}
-#toggle-map-header-buttons-panel img{width:64%;height:64%;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6))}
 /* ---- zoom control cluster (fila superior horizontal) ---- */
 #zoom-controls{display:flex;flex-direction:row;gap:4px;align-items:center;flex-shrink:0;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:12px;padding:3px 5px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
 #zoom-controls .zbtn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
@@ -60,11 +56,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- cajetín de navegación clonado de tesla.html ---- */
-#banner{position:absolute;top:58px;left:12px;z-index:22;display:none;align-items:stretch;padding:8px 12px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:fit-content;max-width:min(560px,calc(100vw - 24px));min-width:330px;gap:10px;font-family:'Segoe UI',system-ui,sans-serif}
+#banner{position:absolute;top:58px;left:12px;z-index:22;display:none;align-items:stretch;padding:8px 12px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:fit-content;max-width:min(560px,calc(100vw - 24px));min-width:230px;gap:10px;font-family:'Segoe UI',system-ui,sans-serif}
 #banner .nav-main-col{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
 .nav-panel-top-row{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1}
 .nav-lock-icon{font-size:13px;line-height:1;flex-shrink:0}
-.route-progress-text{color:#ffd700;font-weight:700;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.8);letter-spacing:.3px}
 .nav-indicators-wrap{margin-left:auto;display:flex;align-items:center;gap:6px}
 .nav-triangles{color:#e84c4c;font-size:9px;letter-spacing:2px}
 .nav-live-dot{width:10px;height:10px;border-radius:50%;background:#38a5ff;box-shadow:0 0 7px #38a5ff;border:1px solid rgba(255,255,255,.8)}
@@ -79,6 +74,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .eta-values-line .sep{color:#889098;font-weight:400;margin:0 3px}
 .eta-time-line{font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9);line-height:1.2;margin-top:2px}
 .eta-time-line span{color:#ffd700}
+/* ---- barra inferior de progreso + hora y hora de llegada (margen inferior izquierdo) ---- */
+#nav-progress-strip{position:absolute;left:12px;bottom:12px;z-index:24;display:none;align-items:center;flex-wrap:wrap;row-gap:6px;gap:16px;padding:8px 14px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;max-width:min(620px,calc(100vw - 24px))}
+#nav-progress-strip .nps-next{display:flex;flex-direction:column;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0}
+#nav-progress-strip .nps-next strong,#nav-progress-strip .nps-clock strong{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700;text-transform:uppercase}
+#nav-progress-strip .nps-next-line{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+#nav-progress-strip #nav-next-dist{font-size:21px;font-weight:800;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+#nav-progress-strip #nav-next-time{font-size:14px;font-weight:700;color:#ffd700;font-variant-numeric:tabular-nums}
+#nav-progress-strip .nps-next-line .sep{color:#889098}
+#nav-progress-strip #navigation-eta-info{margin-top:0;gap:18px}
+#nav-progress-strip .nps-clock{display:flex;flex-direction:column;gap:2px;padding:4px 10px;margin-left:auto;flex-shrink:0;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center}
+#nav-progress-strip #nav-clock-now{font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2}
+#nav-progress-strip .eta-col{flex:none}
 /* chip de velocidad clonado de tesla.html */
 #nav-speed-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
 #nav-speed-chip .vel-lbl{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700}
@@ -141,7 +148,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
 .hud-graph-toggle:hover{color:var(--txt)}
 /* brújula mini: tocar la brújula cierra la curva (gráfica) y su contenedor y
-   deja visible solo la brújula + la velocidad en un emblema Tesla compacto */
+   deja visible solo la brújula */
 #free-hud.hud-mini{flex-direction:row-reverse;align-items:center;gap:10px;min-width:0;width:auto;height:auto;bottom:96px;padding:8px 12px;box-shadow:none}
 #free-hud.hud-mini .hud-stats,
 #free-hud.hud-mini #hud-graph,
@@ -149,9 +156,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #free-hud.hud-mini .hud-head,
 #free-hud.hud-mini .rsz-handle{display:none}
 #free-hud.hud-mini #hud-compass{width:36px;height:36px}
-#free-hud.hud-mini #speed-emblem{padding:3px 9px;gap:5px;min-width:0}
-#free-hud.hud-mini .hud-emblem-v .se-v{font-size:19px}
-#free-hud.hud-mini .hud-emblem-v .se-u{font-size:8px}
 /* ---- minimapa de maniobra ---- */
 #mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;width:280px;height:200px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:grab}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
@@ -190,7 +194,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- toast ---- */
 #toast{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:50;padding:10px 20px;background:rgba(16,16,20,.95);border:1px solid var(--line);border-radius:10px;font-size:14px;display:none;max-width:80vw}
 /* ---- chip de estado POIs + panel de depuración ---- */
-#poi-status{position:absolute;left:12px;bottom:12px;z-index:46;/*X*/display:flex;align-items:center;gap:7px;padding:5px 11px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--txt);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);white-space:nowrap;max-width:52vw;overflow:hidden;transition:border-color .2s}
+#poi-status{position:absolute;left:12px;bottom:78px;z-index:46;/*X*/display:flex;align-items:center;gap:7px;padding:5px 11px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--txt);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);white-space:nowrap;max-width:52vw;overflow:hidden;transition:border-color .2s}
 #poi-status:hover{border-color:var(--acc)}
 #poi-status .dot{width:8px;height:8px;border-radius:50%;background:#3dd68c;flex:none}
 #poi-status.warn .dot{background:#f5b942}
@@ -223,15 +227,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #results .item small{display:block;color:var(--dim);font-size:12px;margin-top:2px}
 /* gear button */
 
-/* ---- velocidad: emblema Tesla (semi-transparente) + toggle barra superior ---- */
 #topbar-btns{position:relative;display:flex;gap:8px;align-items:center;transition:opacity .2s ease}
 #topbar.hidden-btns #topbar-btns{display:none}
-#speed-emblem{position:relative;display:flex;align-items:center;gap:9px;width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(20,20,26,.6);overflow:hidden;cursor:pointer;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
-#speed-emblem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;filter:grayscale(.15)}
-.hud-emblem-v{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:auto;text-align:center}
-.hud-emblem-v .se-v{font-size:27px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1;font-variant-numeric:tabular-nums}
-.hud-emblem-v .se-u{font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95);letter-spacing:.5px;text-transform:uppercase}
-#speed-emblem:hover{border-color:var(--acc)}
 /* ---- chips de categorías de POIs (multi-selección) ---- */
 #poi-cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .poi-chip{padding:6px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;color:var(--txt);font-size:12px;cursor:pointer;transition:background .15s}
@@ -266,6 +263,156 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .stat span{display:block;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
 .stat b{font-size:16px}
 </style>
+<script>
+/* Controlador de búsqueda robusto: Photon primero, Nominatim como respaldo.
+   Sustituye a la funcion doSearch original (el listener del input la llama). */
+(function(){
+  function installSearch(){
+    if(!window.doSearch)return;
+    var searchSeq=0;
+    var destInput=document.getElementById('dest-input');
+    var resultsBox=document.getElementById('results');
+    window.doSearch=async function(q){
+      var seq=++searchSeq;
+      var show=function(){return seq===searchSeq;};
+      resultsBox.style.display='block';
+      resultsBox.innerHTML='<div class="item" style="color:var(--dim);cursor:default">Buscando…</div>';
+      var photon='https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&limit=6';
+      var nominatim='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q='+encodeURIComponent(q)+'&limit=6&accept-language=es';
+      function pick(name,lon,lat){
+        if(!show())return;
+        document.getElementById('search-panel').classList.remove('open');
+        resultsBox.style.display='none';
+        destInput.value=name;
+        lastDestName=name;
+        startPointPick([parseFloat(lon),parseFloat(lat)],name);
+      }
+      function render(items){
+        if(!show())return;
+        resultsBox.innerHTML='';
+        if(!items.length){resultsBox.innerHTML='<div class="item" style="color:var(--dim);cursor:default">Sin resultados para “'+String(q).replace(/</g,'&lt;')+'”</div>';resultsBox.style.display='block';return;}
+        items.forEach(function(it){
+          var div=document.createElement('div');
+          div.className='item';
+          var name=document.createElement('span');
+          name.textContent=it.name;
+          var sub=document.createElement('small');
+          sub.textContent=it.sub;
+          div.appendChild(name);
+          div.appendChild(sub);
+          div.onclick=function(){pick(it.name,it.lon,it.lat);};
+          resultsBox.appendChild(div);
+        });
+        resultsBox.style.display='block';
+      }
+      try{
+        var r=await fetch(photon);
+        if(!r.ok)throw new Error('photon '+r.status);
+        var data=await r.json();
+        var items=(data.features||[]).map(function(f){
+          return {
+            name:(f.properties.name||'').trim()||(f.properties.city||'').trim(),
+            sub:(f.properties.street?f.properties.street+', ':'')+(f.properties.city||'')+(f.properties.state?', '+f.properties.state:'')+(f.properties.country?', '+f.properties.country:''),
+            lon:f.geometry.coordinates[0],
+            lat:f.geometry.coordinates[1]
+          };
+        });
+        render(items);
+      }catch(e1){
+        try{
+          var r2=await fetch(nominatim);
+          if(!r2.ok)throw new Error('nominatim '+r2.status);
+          var data2=await r2.json();
+          var items2=(data2||[]).map(function(d){
+            return {name:d.display_name.split(',')[0].trim(),sub:d.display_name.split(',').slice(1,6).join(',').trim(),lon:d.lon,lat:d.lat};
+          });
+          render(items2);
+        }catch(e2){if(show()){resultsBox.innerHTML='<div class="item" style="color:var(--err);cursor:default">Error de búsqueda</div>';resultsBox.style.display='block';}}
+      }
+    };
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',installSearch);}
+  else{installSearch();}
+})();
+</script>
+<script>
+/* Corrección de maniobra (IACambias #79): OSRM/Valhalla/Mapbox sitúan la
+   maniobra del paso i al INICIO de su tramo (frontera cum[i-1]); medirla
+   contra el FINAL de su tramo (cum[i]) anunciaba UN MOVIMIENTO TARDE. La
+   maniobra que el conductor va a ejecutar es la del paso i+1, ejecutada en
+   la frontera cum[i]: se anuncia ESE paso y la distancia apunta a esa
+   frontera. Se redefine navTick (misma lógica, selección de paso corregida)
+   una vez cargada la página. */
+(function(){
+  function applyManeuverFix(){
+    if(typeof navTick!=='function')return;
+    var src=navTick.toString();
+    if(src.indexOf('routeData.steps[Math.min(i+1')>=0)return; // ya corregido
+    if(src.indexOf('step=routeData.steps[i];')<0)return;
+    src=src.replace(
+      'step=routeData.steps[i];',
+      'step=routeData.steps[Math.min(i+1,routeData.steps.length-1)];'
+    );
+    navTick=new Function('return ('+src+')')();
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',applyManeuverFix);}
+  else{applyManeuverFix();}
+})();
+</script>
+<script>
+/* Barra inferior de progreso + hora de llegada: se muestra/oculta al mismo
+   tiempo que el banner de navegación (sin tocar la lógica de navTick). */
+(function(){
+  function syncStrip(){
+    var b=document.getElementById('banner');
+    var s=document.getElementById('nav-progress-strip');
+    if(!b||!s)return;
+    s.style.display=(b.style.display==='flex')?'flex':'none';
+  }
+  function init(){
+    syncStrip();
+    var b=document.getElementById('banner');
+    if(b&&window.MutationObserver){
+      new MutationObserver(syncStrip).observe(b,{attributes:true,attributeFilter:['style','class']});
+    }
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
+  else{init();}
+})();
+</script>
+<script>
+/* Barra inferior: cuenta atrás a la próxima maniobra (metros y segundos, estilo
+   Tesla) y reloj de hora actual. Se apoya en los globales que ya actualiza
+   navTick cada segundo; sin navegación activa se muestra "—". */
+(function(){
+  function fmtCountTime(s){
+    if(!isFinite(s)||s<=0)return '—';
+    if(s<60)return Math.max(1,Math.ceil(s))+' s';
+    var m=Math.floor(s/60),sec=Math.ceil(s%60);
+    if(sec===60){m++;sec=0;}
+    if(m<60)return m+' min'+(sec?' '+sec+' s':'');
+    var h=Math.floor(m/60);m=m%60;
+    return h+' h '+(m?m+' min':'');
+  }
+  function tickBottomStrip(){
+    try{
+      var clockEl=document.getElementById('nav-clock-now');
+      if(clockEl)clockEl.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      var distEl=document.getElementById('nav-next-dist');
+      var timeEl=document.getElementById('nav-next-time');
+      if(!distEl||!timeEl)return;
+      var d=lastManeuverDist;
+      if(!isFinite(d)||d<=0||d>1e8){distEl.textContent='—';timeEl.textContent='—';return;}
+      distEl.textContent=(d>=1000)?(d/1000).toFixed(1)+' km':Math.max(10,Math.round(d/5)*5)+' m';
+      var secs=(typeof routeData!=='undefined'&&routeData&&routeData.distance>0)?routeData.duration*d/routeData.distance:NaN;
+      timeEl.textContent=fmtCountTime(secs);
+    }catch(e){}
+  }
+  function startStripTick(){setInterval(tickBottomStrip,1000);tickBottomStrip();}
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',startStripTick);}
+  else{startStripTick();}
+})();
+</script>
 </head>
 <body>
 
@@ -309,17 +456,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <button id="gear" title="Ajustes"><span class="gear-icon">⚙</span><span class="gear-text">Ajustes</span></button>
 
-<!-- Icono flotante circular de Tesla (clonado de tesla.html) -->
-<div id="toggle-map-header-buttons-panel" title="Menú de aplicación (mostrar/ocultar barra)">
-  <img src="PNG/Coche_Sat.PNG" alt="Tesla">
-</div>
-
 <!-- Cajetín de navegación clonado de tesla.html -->
 <div id="banner">
   <div class="nav-main-col">
     <div class="nav-panel-top-row">
       <span class="nav-lock-icon">🔒</span>
-      <span id="route-progress-text" class="route-progress-text">0.0 km (Stop)</span>
       <span class="nav-triangles" style="margin-left:3px">▲</span>
       <div class="nav-indicators-wrap">
         <span class="nav-triangles">▲ ▲</span>
@@ -333,28 +474,42 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <div class="nav-stage-title-text" id="nav-stage-title">Destino</div>
     </div>
 
-    <div id="navigation-eta-info">
-      <div class="eta-col" id="col-next-stage" style="display:none">
-        <strong id="next-stage-label">Próxima Etapa</strong>
-        <div class="eta-values-line">
-          <span id="next-stage-distance">0.0 km</span><span class="sep">|</span><span id="next-stage-time">00:00</span><span class="sep">|</span>
-        </div>
-        <div class="eta-time-line">ETA: <span id="next-stage-eta">--:--</span></div>
-      </div>
-      <div class="eta-col" id="col-final-dest">
-        <strong id="final-dest-label">Destino</strong>
-        <div class="eta-values-line">
-          <span id="final-destination-distance">0.0 km</span><span class="sep">|</span><span id="final-destination-time">00:00</span><span class="sep">|</span>
-        </div>
-        <div class="eta-time-line">ETA: <span id="final-destination-eta">--:--</span></div>
-      </div>
-    </div>
   </div>
 
   <div id="nav-speed-chip" title="Velocidad actual">
     <span class="vel-lbl">VEL.</span>
     <span id="nav-speed-value" class="vel-val">0</span>
     <span class="vel-unit">km/h</span>
+  </div>
+</div>
+
+<!-- Barra inferior (margen inferior izquierdo): próxima maniobra + destino + hora actual -->
+<div id="nav-progress-strip">
+  <div class="nps-next" title="Distancia y tiempo hasta la próxima maniobra">
+    <strong>Próxima maniobra</strong>
+    <div class="nps-next-line">
+      <span id="nav-next-dist">—</span><span class="sep">·</span><span id="nav-next-time">—</span>
+    </div>
+  </div>
+  <div id="navigation-eta-info">
+    <div class="eta-col" id="col-next-stage" style="display:none">
+      <strong id="next-stage-label">Próxima Etapa</strong>
+      <div class="eta-values-line">
+        <span id="next-stage-distance">0.0 km</span><span class="sep">|</span><span id="next-stage-time">00:00</span><span class="sep">|</span>
+      </div>
+      <div class="eta-time-line">ETA: <span id="next-stage-eta">--:--</span></div>
+    </div>
+    <div class="eta-col" id="col-final-dest">
+      <strong id="final-dest-label">Destino</strong>
+      <div class="eta-values-line">
+        <span id="final-destination-distance">0.0 km</span><span class="sep">|</span><span id="final-destination-time">00:00</span><span class="sep">|</span>
+      </div>
+      <div class="eta-time-line">ETA: <span id="final-destination-eta">--:--</span></div>
+    </div>
+  </div>
+  <div class="nps-clock" title="Hora actual">
+    <strong>Hora</strong>
+    <span id="nav-clock-now">--:--</span>
   </div>
 </div>
 
@@ -378,21 +533,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <div id="rd-steps"></div>
 </div>
 
-<div id="results"></div>
-
 <!-- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) -->
 <div id="free-hud">
-  <button id="speed-emblem" title="Velocidad — pulsa para mostrar/ocultar la barra superior">
-    <img src="PNG/LOGOTESLA.jpg" alt="">
-    <div class="hud-emblem-v"><span class="se-v" id="se-spd">0</span><span class="se-u">km/h</span></div>
-  </button>
+  <!-- stubs ocultos: los scripts originales siguen escribiendo en ellos (velocidad/ mín) pero no se muestran -->
+  <span id="se-spd" hidden></span><span id="hud-min" hidden></span>
   <div class="hud-row">
-    <img id="hud-compass" src="PNG/ROSA.PNG" alt="" title="Compactar/expandir el HUD (solo brújula + velocidad)">
+    <img id="hud-compass" src="PNG/ROSA.PNG" alt="" title="Compactar/expandir el HUD (solo brújula)">
     <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
   </div>
   <div class="hud-stats">
     <span id="hud-alt">— m</span>
-    <span id="hud-min">Mín: —</span>
   </div>
   <canvas id="hud-graph" width="200" height="52" title="Pulsa para cambiar la gráfica"></canvas>
   <button id="hud-graph-toggle" class="hud-graph-toggle" title="Cambiar gráfica: desnivel / velocidad">⛰ Desnivel — pulsa para cambiar</button>
