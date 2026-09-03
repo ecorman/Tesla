@@ -67,6 +67,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .speed-limit-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2.5px solid #ff3333;background:#fff;color:#000;font-weight:900;font-size:11px;font-family:Arial,sans-serif;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 #nav-turn-icon{width:22px;height:22px;border-radius:5px;background:#fff;padding:1px;object-fit:contain;flex-shrink:0}
 .nav-stage-title-text{font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.nav-stage-col{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.nav-stage-next{display:flex;align-items:baseline;gap:5px;white-space:nowrap;min-width:0;font-variant-numeric:tabular-nums;line-height:1.15}
+.nav-stage-next #nav-next-dist{font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.nav-stage-next #nav-next-time{font-size:12px;font-weight:700;color:#ffd700;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.nav-stage-next .sep{color:#889098;font-weight:400}
+/* barra de progreso hasta la próxima maniobra (borde inferior del cajetín) */
+#nav-maneuver-progress{position:absolute;left:10px;right:10px;bottom:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden;pointer-events:none}
+#nav-maneuver-progress-fill{display:block;height:100%;width:0%;background:linear-gradient(90deg,#ff7a5f,#e03131);border-radius:3px;transition:width .5s linear}
 #navigation-eta-info{display:flex;gap:12px;justify-content:space-between;margin-top:3px;font-family:Georgia,'Times New Roman',serif}
 .eta-col{flex:1;text-align:left;min-width:0}
 .eta-col strong{display:block;font-size:10px;font-weight:700;color:#ccc;margin-bottom:1px;text-transform:capitalize;font-family:system-ui,sans-serif;letter-spacing:.3px}
@@ -100,62 +108,45 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #pick-card .pc-btns{display:flex;gap:8px;margin-top:4px}
 #pick-card .pc-btns .btn{flex:1}
 .pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
-/* ---- ventana de ruta detallada (debajo del banner) ---- */
-#route-detail{position:absolute;top:96px;left:12px;z-index:21;display:none;width:min(260px,calc(100vw - 190px));max-height:calc(100vh - 240px);overflow-y:auto;padding:8px 10px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.45);zoom:.6536}
-#route-detail .rd-head{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
-#route-detail .rd-head b{font-size:14px;color:var(--txt)}
-#route-detail .rd-head span{font-size:11px;color:var(--dim);margin-left:auto;font-variant-numeric:tabular-nums}
-#route-detail .rd-sub{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px}
-#wp-list{display:flex;flex-direction:column;gap:4px}
-.wp-row{display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;font-size:12px;color:var(--txt)}
-.wp-row.wp-dragging{opacity:.5}
-.wp-handle{cursor:grab;color:var(--dim);width:16px;text-align:center;user-select:none;touch-action:none;font-size:13px}
-.wp-ico{width:18px;text-align:center}
-.wp-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wp-sub{font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
-.wp-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px}
-#rd-steps{display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto}
-.rd-step{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:12px;color:var(--dim);cursor:pointer}
-.rd-step:hover{background:rgba(255,255,255,.07)}
-.rd-step.cur{background:rgba(79,140,255,.16);outline:1px solid var(--acc)}
-.rd-step img{width:22px;height:22px;background:#fff;border-radius:6px;flex-shrink:0;object-fit:contain}
-.rd-step .rd-name{flex:1;color:var(--txt);min-width:0}
-.rd-step .rd-dist{font-size:11px;font-variant-numeric:tabular-nums;color:var(--dim)}
-.rd-step.cur{background:rgba(79,140,255,.16);outline:1px solid var(--acc)}
+/* ---- ventana de ruta detallada: itinerario Salida → paradas → Destino ---- */
+#route-detail{position:absolute;top:96px;left:12px;z-index:21;display:none;width:min(340px,calc(100vw - 200px));max-height:calc(100vh - 200px);overflow-y:auto;padding:9px 11px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#route-detail .rd-head{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;padding:0 2px}
+#route-detail .rd-head b{font-size:16px;color:var(--txt)}
+#route-detail .rd-head span{font-size:13px;color:var(--dim);margin-left:auto;font-variant-numeric:tabular-nums}
+#rd-steps{display:flex;flex-direction:column;gap:5px}
+.rd-step{display:flex;align-items:center;gap:9px;padding:7px 9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:9px;font-size:15px;color:var(--dim);cursor:pointer;user-select:none}
+.rd-step:hover{background:rgba(255,255,255,.1);border-color:var(--line)}
+.rd-step.cur{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
+.rd-step .rd-ico{width:30px;height:30px;border-radius:8px;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:17px}
+.rd-step .rd-ico img{width:28px;height:28px;object-fit:contain;display:block}
+.rd-step .rd-name{flex:1;color:var(--txt);min-width:0;font-size:15px;font-weight:600;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rd-step .rd-dist{font-size:12px;font-variant-numeric:tabular-nums;color:var(--dim);flex-shrink:0;padding-left:2px}
+.rd-step.rd-wp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
+.rd-step.rd-wp .rd-ico{background:rgba(79,140,255,.25)}
+.rd-step.rd-wp.rd-stop .rd-ico{background:rgba(255,176,79,.3)}
+.rd-step.rd-wp.rd-end .rd-ico{background:rgba(255,95,95,.28)}
+.rd-wp .wp-handle{cursor:grab;color:var(--dim);width:20px;text-align:center;user-select:none;touch-action:none;font-size:15px;flex-shrink:0}
+.rd-wp .wp-handle:hover{color:var(--txt)}
+.rd-wp .wp-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0}
+.rd-wp .wp-del:hover{color:var(--err)}
+.rd-step.dragging{opacity:.5}
 /* ---- bottom info ---- */
 /* botones de simulación y centrado ahora en la barra superior (la barra inferior tapaba el HUD/brújula) */
 #topbar-btns .btn{padding:6px 10px;font-size:12px;border-radius:9px}
 #speedo{padding:8px 14px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:12px;text-align:center}
 #speedo .v{font-size:24px;font-weight:700}
 #speedo .u{font-size:10px;color:var(--dim)}
-/* ---- Free Drive HUD ---- */
-#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;gap:4px;padding:9px 11px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;transition:min-width .2s ease}
-#free-hud.hud-big{min-width:264px}
-#free-hud.hud-big #hud-compass{width:56px;height:56px}
-#free-hud.hud-big .hud-spd span{font-size:38px}
-#free-hud.hud-big .hud-stats{font-size:12px}
-#free-hud.hud-big #hud-orient{font-size:19px}
+/* ---- Brújula (siempre visible con GPS): rosa + grados debajo.
+   Un toque muestra/oculta la gráfica de velocidad / altura. ---- */
+#free-hud{position:absolute;left:12px;bottom:14px;z-index:18;display:none;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;min-width:74px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;user-select:none}
 #settings input[type=range]:disabled{opacity:.35;cursor:not-allowed}
-#free-hud .hud-row{display:flex;align-items:center;gap:8px}
-#hud-compass{width:44px;height:44px;object-fit:contain;transition:transform .25s linear;cursor:pointer}
-#free-hud .hud-head{display:flex;flex-direction:column;line-height:1.15;min-width:52px}
-#hud-orient{font-size:15px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
-#hud-cardinal{font-size:10px;color:var(--dim)}
-#free-hud .hud-spd{margin-left:auto;font-size:11px;color:var(--dim);text-align:right;line-height:1}
-#free-hud .hud-spd span{font-size:27px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
-.hud-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
-#hud-graph{width:100%;flex:1 1 auto;height:auto;min-height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
-.hud-graph-toggle{width:100%;margin-top:-2px;padding:3px 0;border:none;background:none;color:var(--dim);font-size:10px;cursor:pointer;text-align:center;transition:color .15s}
-.hud-graph-toggle:hover{color:var(--txt)}
-/* brújula mini: tocar la brújula cierra la curva (gráfica) y su contenedor y
-   deja visible solo la brújula */
-#free-hud.hud-mini{flex-direction:row-reverse;align-items:center;gap:10px;min-width:0;width:auto;height:auto;bottom:96px;padding:8px 12px;box-shadow:none}
-#free-hud.hud-mini .hud-stats,
-#free-hud.hud-mini #hud-graph,
-#free-hud.hud-mini .hud-graph-toggle,
-#free-hud.hud-mini .hud-head,
-#free-hud.hud-mini .rsz-handle{display:none}
-#free-hud.hud-mini #hud-compass{width:36px;height:36px}
+#hud-compass{width:calc(40px * var(--hud-scale,1));height:calc(40px * var(--hud-scale,1));object-fit:contain;transition:transform .25s linear}
+#hud-orient{font-size:calc(14px * var(--hud-scale,1));font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;line-height:1.1}
+#hud-cardinal{font-size:calc(10px * var(--hud-scale,1));color:var(--dim);line-height:1.1}
+#hud-alt{font-size:calc(10px * var(--hud-scale,1));color:var(--dim);font-variant-numeric:tabular-nums}
+#hud-graph{width:100%;height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05)}
+#free-hud.graph-hidden #hud-graph{display:none}
+#free-hud.graph-hidden{min-width:74px}
 /* ---- minimapa de maniobra ---- */
 #mnv-box{position:absolute;left:calc(12px + min(350px,calc(100vw - 160px)) + 12px);top:96px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;width:280px;height:200px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:grab}
 #mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
@@ -363,14 +354,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* Barra inferior de progreso + hora de llegada: se muestra/oculta al mismo
    tiempo que el banner de navegación (sin tocar la lógica de navTick). */
 (function(){
+  // La brújula vive abajo-izquierda: cuando la barra inferior de progreso está
+  // visible (navegando con ruta) se eleva por encima para no solaparse.
+  function placeCompass(){
+    var hud=document.getElementById('free-hud');
+    var s=document.getElementById('nav-progress-strip');
+    if(!hud||!s)return;
+    var h=(s.style.display==='flex'&&s.offsetHeight>0)?s.offsetHeight+10:14;
+    hud.style.bottom=h+'px';
+  }
   function syncStrip(){
     var b=document.getElementById('banner');
     var s=document.getElementById('nav-progress-strip');
     if(!b||!s)return;
     s.style.display=(b.style.display==='flex')?'flex':'none';
+    requestAnimationFrame(placeCompass);
   }
   function init(){
     syncStrip();
+    window.addEventListener('resize',placeCompass);
     var b=document.getElementById('banner');
     if(b&&window.MutationObserver){
       new MutationObserver(syncStrip).observe(b,{attributes:true,attributeFilter:['style','class']});
@@ -469,11 +471,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     </div>
 
     <div class="nav-stage-banner-row">
-      <span class="speed-limit-badge" id="nav-speed-limit">30</span>
       <img id="nav-turn-icon" src="PNG/continue.png" alt="" style="display:none">
-      <div class="nav-stage-title-text" id="nav-stage-title">Destino</div>
+      <div class="nav-stage-col">
+        <div class="nav-stage-title-text" id="nav-stage-title">Destino</div>
+        <div class="nav-stage-next" id="nav-next-line">
+          <span id="nav-next-dist">—</span><span class="sep">·</span><span id="nav-next-time">—</span>
+        </div>
+      </div>
+      <span class="speed-limit-badge" id="nav-speed-limit">30</span>
     </div>
 
+  <div id="nav-maneuver-progress" title="Progreso hasta la próxima maniobra"><i id="nav-maneuver-progress-fill"></i></div>
   </div>
 
   <div id="nav-speed-chip" title="Velocidad actual">
@@ -483,14 +491,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
 </div>
 
-<!-- Barra inferior (margen inferior izquierdo): próxima maniobra + destino + hora actual -->
+<!-- Barra inferior (margen inferior izquierdo): próxima etapa + destino + hora de llegada -->
 <div id="nav-progress-strip">
-  <div class="nps-next" title="Distancia y tiempo hasta la próxima maniobra">
-    <strong>Próxima maniobra</strong>
-    <div class="nps-next-line">
-      <span id="nav-next-dist">—</span><span class="sep">·</span><span id="nav-next-time">—</span>
-    </div>
-  </div>
   <div id="navigation-eta-info">
     <div class="eta-col" id="col-next-stage" style="display:none">
       <strong id="next-stage-label">Próxima Etapa</strong>
@@ -524,28 +526,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
 </div>
 
-<!-- ventana de ruta detallada (puntos intermedios + instrucciones, debajo del banner) -->
+<!-- ventana de ruta detallada: itinerario Salida → instrucciones → paradas → instrucciones → Destino -->
 <div id="route-detail">
   <div class="rd-head"><b>Ruta</b><span id="rd-summary"></span></div>
-  <div class="rd-sub">Puntos</div>
-  <div id="wp-list"></div>
-  <div class="rd-sub">Instrucciones</div>
   <div id="rd-steps"></div>
 </div>
 
-<!-- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) -->
-<div id="free-hud">
-  <!-- stubs ocultos: los scripts originales siguen escribiendo en ellos (velocidad/ mín) pero no se muestran -->
+<!-- Brújula (siempre visible con GPS): rosa + grados; un toque muestra/oculta la gráfica -->
+<div id="free-hud" class="graph-hidden" title="Pulsa para mostrar/ocultar la gráfica de velocidad / altura">
+  <!-- stubs ocultos: los scripts siguen escribiendo en ellos (velocidad/mín) pero no se muestran -->
   <span id="se-spd" hidden></span><span id="hud-min" hidden></span>
-  <div class="hud-row">
-    <img id="hud-compass" src="PNG/ROSA.PNG" alt="" title="Compactar/expandir el HUD (solo brújula)">
-    <div class="hud-head"><b id="hud-orient">—</b><span id="hud-cardinal"></span></div>
-  </div>
-  <div class="hud-stats">
-    <span id="hud-alt">— m</span>
-  </div>
-  <canvas id="hud-graph" width="200" height="52" title="Pulsa para cambiar la gráfica"></canvas>
-  <button id="hud-graph-toggle" class="hud-graph-toggle" title="Cambiar gráfica: desnivel / velocidad">⛰ Desnivel — pulsa para cambiar</button>
+  <img id="hud-compass" src="PNG/ROSA.PNG" alt="">
+  <b id="hud-orient">—</b>
+  <span id="hud-cardinal"></span>
+  <span id="hud-alt">— m</span>
+  <canvas id="hud-graph" width="150" height="52" title="Pulsa para cambiar la gráfica: desnivel / velocidad"></canvas>
 </div>
 <!-- minimapa de previsualización de maniobra (canvas ligero) -->
 <div id="mnv-box">
@@ -598,7 +593,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
   <div class="setgroup" data-tab="mapa">
     <div class="togglerow"><span>Edificios 3D</span><div class="switch" id="s-3d"></div></div>
-    <div class="togglerow"><span>🧭 Free Drive HUD</span><div class="switch" id="s-freehud"></div></div>
     <div class="togglerow"><span>🗺️ Minimapa de maniobra</span><div class="switch" id="s-minimap"></div></div>
     <div class="togglerow"><span>🛡️ Watchdog de memoria (recarga controlada)</span><div class="switch" id="s-memwatch"></div></div>
     <div class="togglerow"><span>📏 Compensación de escala Tesla (0.6536)</span><div class="switch" id="s-tescascale"></div></div>
@@ -2237,9 +2231,16 @@ function navTick(){
   if(finalTime)finalTime.textContent=fmtTime(totalEta);
   const finalEta=document.getElementById('final-destination-eta');
   if(finalEta)finalEta.textContent=arrTimeStr;
+  // barra roja de progreso hasta la próxima maniobra: se llena al acercarse
+  const mnvFill=document.getElementById('nav-maneuver-progress-fill');
+  if(mnvFill){
+    const stepTotal=(step&&step.distance)||0;
+    const pct=stepTotal>0?Math.max(0,Math.min(100,(1-stepDist/stepTotal)*100)):0;
+    mnvFill.style.width=pct+'%';
+  }
   drawMinimap();
-  // instrucciones detalladas: al cambiar de etapa se re-renderiza y la actual
-  // queda marcada en la primera fila (renderRouteDetail reordena la lista).
+  // instrucciones detalladas: al cambiar de etapa se re-renderiza el itinerario
+  // (Salida → paradas → Destino) y la maniobra actual queda resaltada.
   if(S.routeView==='detallada'&&maneuverIdx!==lastRenderedManeuver){
     lastRenderedManeuver=maneuverIdx;
     renderRouteDetail();
@@ -2422,12 +2423,12 @@ function fmtManTime(s){
 let gpsWatch=null;
 /* Un unico camino de entrada para cada fix GPS: lo usa el GPS real (watchPosition)
    y el simulador, para que la simulacion sea exactamente igual que la realidad. */
-/* ---------- Free Drive HUD (brújula, altímetro, medias, gráfica de desnivel) ----------
-   Visible siempre con GPS (también al navegar); toca la tarjeta para agrandarla. */
+/* ---------- Brújula (siempre visible con GPS): rosa + dirección en grados debajo.
+   Sin opción Free Drive HUD; un toque en la tarjeta muestra/oculta la gráfica de velocidad / altura. */
 let freeStats=null;
 function showFreeHud(){
   const h=document.getElementById('free-hud');if(!h)return;
-  const on=!!S.freeHud&&!!userPos;
+  const on=!!userPos;
   h.style.display=on?'flex':'none';
   if(on&&!freeStats)freeStats={t0:Date.now(),km:0,max:0,min:Infinity,altMin:Infinity,altMax:-Infinity,prev:null,samples:[]};
   if(!on)return;
@@ -2469,14 +2470,12 @@ function updateFreeHud(coords){
 }
 function drawHudGraph(){
   const cv=document.getElementById('hud-graph');if(!cv)return;
-  if(cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
-  if(cv.height!==cv.offsetHeight)cv.height=cv.offsetHeight;
+  if(cv.offsetWidth&&cv.width!==cv.offsetWidth)cv.width=cv.offsetWidth;
+  if(cv.offsetHeight&&cv.height!==cv.offsetHeight)cv.height=cv.offsetHeight;
   const ctx=cv.getContext('2d');const w=cv.width,h=cv.height;
   ctx.clearRect(0,0,w,h);
   const sm=freeStats?freeStats.samples:[];
   const mode=(S.hudGraph==='speed')?'speed':'alt';
-  const tb=document.getElementById('hud-graph-toggle');
-  if(tb)tb.textContent=(mode==='speed')?'🚗 Velocidad — pulsa para cambiar':'⛰ Desnivel — pulsa para cambiar';
   const pts=[];for(const p of sm){const v=(mode==='speed')?p.s:(p.a!=null?p.a:null);if(v!=null&&isFinite(v))pts.push(v);}
   if(pts.length<2)return;
   let mn=Infinity,mx=-Infinity;for(const v of pts){if(v<mn)mn=v;if(v>mx)mx=v;}
@@ -2617,17 +2616,13 @@ function lowPri(fn,ms){
 }
 
 /* detección de navegación libre, igual que tesla: sin ruta activa y
-   circulando a más de 20 km/h -> modo libre (fuerza el HUD y avisa una vez) */
+   circulando a más de 20 km/h -> modo libre (avisa una vez) */
 function detectFreeDrive(){
   if(routeData||freeDriveDetected)return;
   if((navSpeedKmh||0)<=20)return;
   freeDriveDetected=true;
-  if(!S.freeHud){
-    S.freeHud=true;saveS('freeHud',true);
-    const sw=document.getElementById('s-freehud');if(sw)sw.classList.add('on');
-  }
   showFreeHud();
-  toast('Navegación libre — sin destino: HUD activado');
+  toast('Navegación libre — sin destino');
 }
 function handleGpsFix(coords){
   userPos=[coords.longitude,coords.latitude];
@@ -3011,8 +3006,7 @@ function makeSwitch(id,key,cb){
   sw.onclick=()=>{S[key]=!S[key];saveS(key,S[key]);sw.classList.toggle('on',S[key]);if(cb)cb();};
 }
 bindSelect('s-view-mode','viewMode',()=>applyViewMode());
-makeSwitch('s-freehud','freeHud',()=>{if(!S.freeHud)freeStats=null;showFreeHud();});
-/* escala del HUD (ajustable a la pantalla) */
+/* escala de la brújula (ajustable a la pantalla) */
 function applyHudScale(){
   const h=document.getElementById('free-hud');
   if(h)h.style.setProperty('--hud-scale',S.hudScale);
@@ -3032,27 +3026,21 @@ function toggleHudGraph(){
   saveS('hudGraph',S.hudGraph);
   drawHudGraph();
 }
-const hudGraphBtn=document.getElementById('hud-graph-toggle');
-if(hudGraphBtn)hudGraphBtn.onclick=e=>{e.stopPropagation();toggleHudGraph();};
 const hudGraphCv=document.getElementById('hud-graph');
 if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
-/* tocar la brújula cierra la curva y su contenedor: deja solo brújula + velocidad
-   en un emblema Tesla compacto (se guarda/restaura el tamaño redimensionado) */
-const _hudMiniPrev={w:'',h:''};
-const hudCompassEl=document.getElementById('hud-compass');
-if(hudCompassEl)hudCompassEl.onclick=e=>{
-  e.stopPropagation();
-  const hud=document.getElementById('free-hud');
-  const goingMini=!hud.classList.contains('hud-mini');
-  hud.classList.toggle('hud-mini');
-  if(goingMini){
-    _hudMiniPrev.w=hud.style.width; _hudMiniPrev.h=hud.style.height;
-    hud.style.width=''; hud.style.height='';
-  }else{
-    if(_hudMiniPrev.w)hud.style.width=_hudMiniPrev.w; else hud.style.removeProperty('width');
-    if(_hudMiniPrev.h)hud.style.height=_hudMiniPrev.h; else hud.style.removeProperty('height');
-  }
-};
+/* brújula (siempre visible): un toque en la tarjeta muestra/oculta la gráfica */
+(function(){
+  const hudEl=document.getElementById('free-hud');
+  if(!hudEl)return;
+  hudEl.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('.rsz-handle'))return;
+    hudEl.classList.toggle('graph-hidden');
+    if(!hudEl.classList.contains('graph-hidden')){
+      const cv=document.getElementById('hud-graph');
+      if(cv)drawHudGraph();
+    }
+  });
+})();
 /* botón de actualizar POIs en Ajustes */
 const btnRefreshPois=document.getElementById('btn-refresh-pois');
 if(btnRefreshPois)btnRefreshPois.onclick=()=>{toast('Actualizando POIs…');refreshPois(true);};
@@ -3091,25 +3079,9 @@ function makeResizable(id,key,minW,minH){
   hd.addEventListener('click',e=>e.stopPropagation());
   el.appendChild(hd);
 }
-makeResizable('free-hud','hud',200,150);
 makeResizable('banner','banner',220,52);
 makeResizable('mnv-box','mnv',170,110);
 
-/* tocar el HUD lo agranda/reduce */
-(function(){
-  const hudEl=document.getElementById('free-hud');
-  if(!hudEl)return;
-  hudEl.title='Toca para agrandar o reducir';
-  hudEl.addEventListener('click',()=>{
-    hudEl.classList.toggle('hud-big');
-    const cv=document.getElementById('hud-graph');
-    if(cv){
-      const big=hudEl.classList.contains('hud-big');
-      cv.width=big?240:200;cv.height=big?90:52;
-      drawHudGraph();
-    }
-  });
-})();
 /* mover la ventana de maniobra arrastrando (además del redimensionado por la esquina) */
 function makeMovableWin(id){
   const el=document.getElementById(id);if(!el)return;
@@ -3808,7 +3780,7 @@ function placeTopbarBtns(){
 }
 
 /* ================================================================
-   ---------- ventana de ruta detallada (puntos + instrucciones) ---------- */
+   ---------- ventana de ruta detallada: itinerario Salida → paradas → Destino ---------- */
 function updateRouteDetail(){
   const d=document.getElementById('route-detail');
   if(!d)return;
@@ -3817,90 +3789,161 @@ function updateRouteDetail(){
   placeTopbarBtns();
   if(show)renderRouteDetail();
 }
-function renderRouteDetail(){
-  const wpBox=document.getElementById('wp-list');
-  const stBox=document.getElementById('rd-steps');
-  if(!wpBox||!stBox||!routeData)return;
-  const sum=document.getElementById('rd-summary');
-  if(sum)sum.textContent=(routeWaypoints.length?routeWaypoints.length+' intermedios · ':'')+fmtDist(routeData.distance)+' · '+fmtTime(routeData.duration);
-  wpBox.innerHTML='';
-  const mkRow=(label,sub,ico,wpIdx)=>{
-    const row=document.createElement('div');
-    row.className='wp-row';
-    row.dataset.wpIdx=wpIdx;
-    const h=document.createElement('span');
-    h.className='wp-handle';
-    h.textContent=wpIdx>=0?'☰':'';
-    h.title=wpIdx>=0?'Arrastrar para reordenar':'';
-    const ic=document.createElement('span');
-    ic.className='wp-ico';ic.textContent=ico;
-    const nm=document.createElement('span');
-    nm.className='wp-name';nm.textContent=label;
-    const sb=document.createElement('span');
-    sb.className='wp-sub';sb.textContent=sub;
-    row.appendChild(h);row.appendChild(ic);row.appendChild(nm);row.appendChild(sb);
-    if(wpIdx>=0){
-      const del=document.createElement('button');
-      del.className='wp-del';del.textContent='✕';del.title='Quitar punto';
-      del.onclick=()=>{
-        routeWaypoints.splice(wpIdx,1);
-        toast('Punto intermedio quitado — recalculando…');
-        calcRoute(destPoint,lastDestName||'Destino',routeWaypoints);
-      };
-      row.appendChild(del);
-    }
-    wpBox.appendChild(row);
-  };
-  mkRow('Salida',userPos?userPos[1].toFixed(4)+', '+userPos[0].toFixed(4):'','🏠',-1);
-  routeWaypoints.forEach((w,i)=>mkRow(w.name||('Punto '+(i+1)),w.lat.toFixed(4)+', '+w.lon.toFixed(4),'📍',i));
-  mkRow('Destino',destPoint?destPoint[1].toFixed(4)+', '+destPoint[0].toFixed(4):'','🏁',-2);
-  wireWaypointDrag();
-  stBox.innerHTML='';
-  const steps=routeData.steps||[];
-  // la etapa actual se queda en la primera fila; el resto en orden tras ella
-  const curIdx=Math.max(0,Math.min(maneuverIdx,steps.length-1));
-  const order=stepsOrdered(curIdx,steps.length);
-  for(const i of order){
-    const st=steps[i];
-    const row=document.createElement('div');
-    row.className='rd-step'+(i===curIdx?' cur':'');
-    row.title=simActive?'Saltar a 50 m antes de este punto':'Ver en el mapa';
-    const img=document.createElement('img');
-    img.src=getManeuverIconFilename(st.maneuver||{});
-    const nm=document.createElement('span');
-    nm.className='rd-name';nm.textContent=stepName(st);
-    const ds=document.createElement('b');
-    ds.className='rd-dist';ds.textContent=fmtDist(st.distance||0);
-    row.appendChild(img);row.appendChild(nm);row.appendChild(ds);
-    row.onclick=()=>onStepClick(i);
-    stBox.appendChild(row);
-  }
+function stepRoadLabel(st){
+  const m=(st&&st.maneuver)||{};const t=m.type||'';
+  if(t==='arrive'||t==='depart')return '';
+  const road=String(st&&(st.name||st.ref)||'').trim();
+  if(road)return road;
+  if((t==='roundabout'||t==='rotary'||t==='exit-roundabout'||t==='exit-rotary')&&typeof m.exit==='number'&&m.exit>0)return 'Salida '+m.exit;
+  if(t==='merge')return 'Incorpórese';
+  if(t==='fork')return 'Bifurcación';
+  if(t==='uturn'||m.modifier==='uturn')return 'Cambio de sentido';
+  return '';
 }
-
-/* reordenar waypoints arrastrando (☰) con puntero (táctil + ratón) */
+function addLocRow(box,kind,label,ico,wpIdx){
+  const row=document.createElement('div');
+  row.className='rd-step rd-wp'+(kind==='stop'?' rd-stop':kind==='end'?' rd-end':'');
+  row.dataset.wpIdx=wpIdx;
+  const h=document.createElement('span');
+  h.className='wp-handle';
+  if(wpIdx>=0){h.textContent='☰';h.title='Arrastrar para reordenar paradas';}
+  const ic=document.createElement('span');
+  ic.className='rd-ico';ic.textContent=ico;
+  const nm=document.createElement('span');
+  nm.className='rd-name';nm.textContent=label;
+  row.appendChild(h);row.appendChild(ic);row.appendChild(nm);
+  if(wpIdx>=0){
+    const del=document.createElement('button');
+    del.className='wp-del';del.textContent='✕';del.title='Quitar parada';
+    del.onclick=ev=>{
+      ev.stopPropagation();
+      routeWaypoints.splice(wpIdx,1);
+      toast('Parada quitada — recalculando…');
+      calcRoute(destPoint,lastDestName||'Destino',routeWaypoints);
+    };
+    row.appendChild(del);
+  }
+  row.onclick=()=>{
+    const wp=wpIdx>=0?routeWaypoints[wpIdx]:null;
+    const c=wpIdx===-1?userPos:(wpIdx===-2?destPoint:(wp&&[wp.lon,wp.lat]));
+    if(c&&map)map.flyTo({center:c,zoom:Math.max(map.getZoom(),13)});
+  };
+  box.appendChild(row);
+  return row;
+}
+function renderRouteDetail(){
+  const stBox=document.getElementById('rd-steps');
+  if(!stBox)return;
+  const d=document.getElementById('route-detail');
+  stBox.innerHTML='';
+  if(!routeData||!destPoint){if(d)d.style.display='none';return;}
+  const sum=document.getElementById('rd-summary');
+  if(sum)sum.textContent=(routeWaypoints.length?routeWaypoints.length+' paradas · ':'')+fmtDist(routeData.distance)+' · '+fmtTime(routeData.duration);
+  const steps=routeData.steps||[];
+  const W=routeWaypoints||[];
+  // frontera de tramo: paso en el que se sitúa cada parada intermedia
+  const bounds=[];let from=0;
+  for(let k=0;k<W.length;k++){
+    const wp=W[k];
+    let bi=-1;
+    for(let i=from;i<steps.length;i++){
+      const loc=(steps[i].maneuver||{}).location;
+      if(loc&&haversine([loc[0],loc[1]],[wp.lon,wp.lat])<250){bi=i;break;}
+    }
+    if(bi<0){ // sin marca exacta: reparto proporcional sobre los pasos restantes
+      bi=Math.min(steps.length-1,Math.max(from,Math.round(from+(steps.length-1-from)/(W.length-k))));
+    }
+    bounds.push(bi);from=bi+1;
+  }
+  let curRow=null;
+  const curIdx=Math.max(0,Math.min(maneuverIdx,steps.length-1));
+  // filas de instrucción (solo nombre de vía a seguir), uniendo tramos seguidos
+  // de la misma vía en una sola fila con la distancia acumulada
+  const addStepRange=(start,end)=>{
+    let prevLabel='',acc=0,openRow=null;
+    const flush=()=>{
+      if(openRow&&acc>0){const ds=openRow.querySelector('.rd-dist');if(ds)ds.textContent=fmtDist(acc);}
+      openRow=null;prevLabel='';acc=0;
+    };
+    for(let i=start;i<end;i++){
+      const st=steps[i];
+      if(!st)continue;
+      const t=(st.maneuver||{}).type||'';
+      if(t==='arrive'||t==='depart')continue; // salida/destino son filas de lugar
+      const label=stepRoadLabel(st);
+      if(!label)continue; // sin nombre de vía (p. ej. giro en calle sin nombre)
+      if(label===prevLabel&&openRow){acc+=(st.distance||0);continue;} // misma vía: acumula
+      flush();
+      const row=document.createElement('div');
+      row.className='rd-step'+(i===curIdx?' cur':'');
+      row.dataset.step=i;
+      row.title=simActive?'Saltar a 50 m antes de este punto':'Ver en el mapa';
+      const ic=document.createElement('span');
+      ic.className='rd-ico';
+      const img=document.createElement('img');
+      img.src=getManeuverIconFilename(st.maneuver||{});
+      img.alt='';
+      img.draggable=false;
+      ic.appendChild(img);
+      const nm=document.createElement('span');
+      nm.className='rd-name';nm.textContent=label;
+      const ds=document.createElement('b');
+      ds.className='rd-dist';
+      row.appendChild(ic);row.appendChild(nm);row.appendChild(ds);
+      row.onclick=()=>onStepClick(i);
+      stBox.appendChild(row);
+      openRow=row;prevLabel=label;acc=(st.distance||0);
+      if(i===curIdx)curRow=row;
+    }
+    flush();
+  };
+  addLocRow(stBox,'start','Salida','🏠',-1);
+  let segStart=0;
+  for(let k=0;k<W.length;k++){
+    const bi=Math.min(bounds[k],steps.length);
+    addStepRange(segStart,bi);
+    addLocRow(stBox,'stop',W[k].name||('Parada '+(k+1)),'📍',k);
+    segStart=bi+1;
+  }
+  let last=steps.length;
+  while(last>0&&((steps[last-1].maneuver||{}).type||'')==='arrive')last--;
+  addStepRange(segStart,last);
+  addLocRow(stBox,'end',lastDestName||'Destino','🏁',-2);
+  if(curRow){
+    try{
+      const cont=d||stBox.parentElement;
+      const pos=curRow.offsetTop-(cont?cont.clientHeight:0)/2+curRow.offsetHeight/2;
+      if(cont)cont.scrollTop=Math.max(0,pos);
+    }catch(e){}
+  }
+  wireWaypointDrag();
+  placeTopbarBtns();
+}
+/* reordenar paradas arrastrando (☰) sobre la lista de itinerario */
 function wireWaypointDrag(){
-  const list=document.getElementById('wp-list');
+  const list=document.getElementById('rd-steps');
   if(!list)return;
   let drag=null;
+  const wpRows=()=>[...list.querySelectorAll('.rd-step.rd-wp')].filter(r=>+r.dataset.wpIdx>=0);
   list.onpointerdown=e=>{
     const h=e.target.closest&&e.target.closest('.wp-handle');
     if(!h)return;
-    const row=h.closest('.wp-row');
+    const row=h.closest('.rd-step.rd-wp');
     if(!row||+row.dataset.wpIdx<0)return;
     e.preventDefault();
     drag={row:row,idx:+row.dataset.wpIdx,startY:e.clientY};
-    row.classList.add('wp-dragging');
+    row.classList.add('dragging');
     try{list.setPointerCapture(e.pointerId);}catch(err){}
   };
   list.onpointermove=e=>{
     if(!drag)return;
     drag.row.style.transform='translateY('+(e.clientY-drag.startY)+'px)';
   };
-  const end=e=>{
+  const end=()=>{
     if(!drag)return;
-    drag.row.classList.remove('wp-dragging');
+    drag.row.classList.remove('dragging');
     drag.row.style.transform='';
-    const rows=[...list.querySelectorAll('.wp-row')].filter(r=>+r.dataset.wpIdx>=0);
+    const rows=wpRows();
     const rect=drag.row.getBoundingClientRect();
     const mid=rect.top+rect.height/2;
     let target=0;
@@ -3921,23 +3964,6 @@ function wireWaypointDrag(){
   };
   list.onpointerup=end;
   list.onpointercancel=end;
-}
-document.getElementById('wp-list').addEventListener('pointerdown',e=>{
-  const nm=e.target.closest&&e.target.closest('.wp-name');
-  if(!nm)return;
-  const row=nm.closest('.wp-row');
-  if(!row)return;
-  const idx=+row.dataset.wpIdx;
-  const wp=idx>=0?routeWaypoints[idx]:null;
-  const c=idx===-1?userPos:(idx===-2?destPoint:(wp&&[wp.lon,wp.lat]));
-  if(c)map.flyTo({center:c,zoom:Math.max(map.getZoom(),13)});
-});
-
-/* orden circular: la etapa actual primero, el resto en orden a partir de ella */
-function stepsOrdered(cur,len){
-  const out=[];
-  for(let k=0;k<len;k++)out.push((Math.max(0,cur)+k)%Math.max(1,len));
-  return out;
 }
 /* punto 50 m antes del final del step i (por la polilinea de la ruta) */
 function simJumpTarget(i){
