@@ -189,12 +189,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- toast ---- */
 #toast{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:50;padding:10px 20px;background:rgba(16,16,20,.95);border:1px solid var(--line);border-radius:10px;font-size:14px;display:none;max-width:80vw}
 /* ---- chip de estado POIs + panel de depuración ---- */
-#poi-status{position:absolute;left:12px;bottom:78px;z-index:46;/*X*/display:flex;align-items:center;gap:7px;padding:5px 11px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--txt);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);white-space:nowrap;max-width:52vw;overflow:hidden;transition:border-color .2s}
+#poi-status{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:46;/*X*/display:flex;align-items:center;gap:7px;padding:5px 11px;background:rgba(16,16,20,.9);border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--txt);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.45);white-space:nowrap;max-width:52vw;overflow:hidden;transition:border-color .2s}
 #poi-status:hover{border-color:var(--acc)}
 #poi-status .dot{width:8px;height:8px;border-radius:50%;background:#3dd68c;flex:none}
 #poi-status.warn .dot{background:#f5b942}
 #poi-status.err .dot{background:#e03030}
-#dbg-panel{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:47;display:none;flex-direction:column;width:min(500px,calc(100vw - 24px));max-height:280px;background:rgba(10,10,14,.96);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.65);overflow:hidden}
+#dbg-panel{position:fixed;left:50%;bottom:46px;transform:translateX(-50%);z-index:47;display:none;flex-direction:column;width:min(500px,calc(100vw - 24px));max-height:280px;background:rgba(10,10,14,.96);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.65);overflow:hidden}
 #dbg-panel.open{display:flex}
 #dbg-head{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);background:rgba(255,255,255,.04)}
 #dbg-head b{color:var(--txt)}
@@ -468,7 +468,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- Cajetín de navegación clonado de tesla.html -->
 <div id="banner">
-  <div class="nav-main-col">
+  <!-- Barra de progreso global del viaje (superior) -->
+  <div id="trip-progress" style="position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.1);border-radius:14px 14px 0 0;overflow:hidden">
+    <div id="trip-progress-fill" style="height:100%;width:0%;background:#38a5ff;transition:width 1s"></div>
+  </div>
+  <div class="nav-main-col" style="margin-top:2px">
     <div class="nav-panel-top-row">
       <span class="nav-lock-icon">🔒</span>
       <span class="nav-triangles" style="margin-left:3px">▲</span>
@@ -2293,10 +2297,20 @@ function navTick(){
   if(finalTime)finalTime.textContent=fmtTime(totalEta);
   const finalEta=document.getElementById('final-destination-eta');
   if(finalEta)finalEta.textContent=arrTimeStr;
+  
+  // barra de progreso GLOBAL del viaje
+  const tripFill=document.getElementById('trip-progress-fill');
+  if(tripFill){
+    const tot=(routeData&&routeData.distance)||0;
+    const pct=(tot>0)?Math.max(0,Math.min(100,(1-remain/tot)*100)):0;
+    tripFill.style.width=pct+'%';
+  }
+
   // barra roja de progreso hasta la próxima maniobra: se llena al acercarse
   const mnvFill=document.getElementById('nav-maneuver-progress-fill');
   if(mnvFill){
-    const stepTotal=(step&&step.distance)||0;
+    const currentStep=routeData.steps[maneuverIdx];
+    const stepTotal=(currentStep&&currentStep.distance)||0;
     const pct=stepTotal>0?Math.max(0,Math.min(100,(1-stepDist/stepTotal)*100)):0;
     mnvFill.style.width=pct+'%';
   }
