@@ -641,6 +641,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="togglerow"><span>📡 Radares</span><div class="switch" id="s-radars"></div></div>
     <div class="togglerow"><span>⚠️ Alertas de tráfico</span><div class="switch" id="s-alerts"></div></div>
     <div class="togglerow"><span>📍 POIs cercanos</span><div class="switch" id="s-pois"></div></div>
+    <label style="margin-top:8px">Proveedor de POIs</label>
+    <select id="s-poi-provider">
+      <option value="overpass">Overpass (OSM, detallado — recomendado)</option>
+      <option value="photon">Photon / Komoot (OSM, sin token — alternativo)</option>
+    </select>
     <label style="margin-top:8px">Categorías de POIs (elige una o varias)</label>
     <div id="poi-cats"></div>
     <div class="posrow" style="margin-top:10px"><label>🔍</label><input type="range" id="s-poi-size" min="24" max="64" step="2" value="40"><span class="val" id="v-poi-size">40px</span></div>
@@ -905,6 +910,7 @@ const S={
   radars:      localStorage.getItem(LS+'radars')==='true',
   alerts:      localStorage.getItem(LS+'alerts')==='true',
   pois:        localStorage.getItem(LS+'pois')!=='false',
+  poiProvider:  localStorage.getItem(LS+'poiProvider')||'overpass',
   poiCats:     (()=>{try{const p=JSON.parse(localStorage.getItem(LS+'poiCats'));if(Array.isArray(p)&&p.length)return p;}catch(e){}const old=localStorage.getItem(LS+'poiCat');if(old)return[old];return['fuel','food','coffee','shop','health','parking','charge','hotel','leisure'];})(),
   poiSize:     parseInt(localStorage.getItem(LS+'poiSize'))||40,
   zoomMode:    localStorage.getItem(LS+'zoomMode')||'auto', // LIBRE/AUTO/RUTA/ECO (igual que tesla.html)
@@ -1103,12 +1109,14 @@ let onlineAudioEl=null;
 // el siguiente y, si fallan todos, un pitido corto.
 const TTS_ENDPOINTS=[
   {name:'streamelements',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Standard-A&text='+encodeURIComponent(t.slice(0,200))},
+  {name:'streamelements-b',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-C&text='+encodeURIComponent(t.slice(0,200))},
   {name:'google',url:t=>'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q='+encodeURIComponent(t.slice(0,180))},
+  {name:'mary',url:t=>'https://mary.dfki.de/process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&AUDIO=WAVE_FILE&VOICE=dfki-pavoque-neutral-hsmm&LOCALE=es&INPUT_TEXT='+encodeURIComponent(t.slice(0,180))},
 ];
 function speakOnline(text){
   if(!text)return;
   const tryEndpoint=i=>{
-    if(i>=TTS_ENDPOINTS.length){navBeep('info');return;}
+    if(i>=TTS_ENDPOINTS.length){speakEspeak(text);return;} // sin red/online bloqueado: eSpeak offline de respaldo
     try{
       if(onlineAudioEl){onlineAudioEl.pause();onlineAudioEl.src='';}
       const a=new Audio(TTS_ENDPOINTS[i].url(text));
@@ -1719,6 +1727,41 @@ function viewportArea(c){
     return (s-dLat)+','+(w-dLon)+','+(n+dLat)+','+(e+dLon);
   }catch(err){return null;}
 }
+/* Proveedor alternativo de POIs: Photon (Komoot, gratis, sin token, CORS).
+   Busca por término de categoría alrededor del bbox visible y devuelve
+   elementos con la forma que espera refreshPois (el/tags/icon). */
+const PHOTON_TERMS={
+  fuel:'gasolinera',food:'restaurante',coffee:'cafetería',shop:'supermercado',
+  health:'farmacia',parking:'aparcamiento',charge:'cargador coche electrico',
+  hotel:'hotel',leisure:'parque',
+};
+async function fetchPoisPhoton(cats,c){
+  const area=viewportArea(c);
+  let bbox='';
+  if(area){ // area = 'south,west,north,east' -> Photon espera 'west,south,east,north'
+    const pr=area.split(',');if(pr.length===4)bbox='&bbox='+pr[1]+','+pr[0]+','+pr[3]+','+pr[2];
+  }
+  const bias=bbox?'':'&lat='+c.lat+'&lon='+c.lon;
+  const items=[];
+  for(const cat of cats){
+    const cc=POI_CATS[cat]||POI_CATS.fuel;
+    const url='https://photon.komoot.io/api/?q='+encodeURIComponent(PHOTON_TERMS[cat]||cat)+'&limit=30'+bbox+bias;
+    try{
+      const r=await fetch(url);if(!r.ok)continue;
+      const d=await r.json();
+      if(!d||!Array.isArray(d.features))continue;
+      d.features.forEach(f=>{
+        const pr=f.properties||{};
+        const coord=f.geometry&&f.geometry.coordinates;
+        if(!coord||!Array.isArray(coord)||coord.length<2)return;
+        const lat=coord[1],lon=coord[0];
+        if(!(isFinite(lat)&&isFinite(lon)))return;
+        items.push({el:{tags:{name:pr.name||'',osm_key:pr.osm_key,osm_value:pr.osm_value}},lat,lon,icon:cc.icon});
+      });
+    }catch(e){}
+  }
+  return items;
+}
 async function refreshPois(force){
   const c=mapCenterForFetch();if(!c)return;
   if(!force&&Date.now()-lastLayerFetch.pois<LAYER_MIN_INTERVAL)return;
@@ -1727,32 +1770,39 @@ async function refreshPois(force){
   if(c.zoom<11){dbg('pois','zoom '+c.zoom.toFixed(1)+' < 11 — sin refresco de POIs');return;}
   lastLayerFetch.pois=Date.now();
   const cats=(S.poiCats&&S.poiCats.length)?S.poiCats:Object.keys(POI_CATS);
-  const area=viewportArea(c)||('around:8000,'+c.lat+','+c.lon);
-  // UNA query unión con todas las categorías seleccionadas: 1 petición en vez
-  // de 9, mucho más rápida y sin tocar los límites de las instancias.
-  const parts=cats.map(cat=>{
-    const cc=POI_CATS[cat]||POI_CATS.fuel;
-    return cc.q.replace(/;\s*$/,'')+'('+area+');';
-  });
-  const q='[out:json][timeout:12];('+parts.join('')+');out center tags;';
-  dbg('pois','1 query unión ('+cats.length+' categorías) en '+area+' — zoom '+c.zoom.toFixed(1));
-  const els=await fetchOverpass(q);
-  dbg('pois','Overpass devolvió '+els.length+' elementos');
-  if(lastOverpassFailed){
-    dbg('pois','Overpass caído — se conservan los marcadores actuales');
-    return;
+  let items=[];
+  if(S.poiProvider==='photon'){
+    items=await fetchPoisPhoton(cats,c);
+    dbg('pois','Photon devolvió '+items.length+' resultados');
+    if(!items.length){dbg('pois','Photon: 0 resultados — se conservan los marcadores actuales');updatePoiStatus();return;}
+    poiLastZero=false;
+  }else{
+    const area=viewportArea(c)||('around:8000,'+c.lat+','+c.lon);
+    // UNA query unión con todas las categorías seleccionadas: 1 petición en vez
+    // de 9, mucho más rápida y sin tocar los límites de las instancias.
+    const parts=cats.map(cat=>{
+      const cc=POI_CATS[cat]||POI_CATS.fuel;
+      return cc.q.replace(/;\s*$/,'')+'('+area+');';
+    });
+    const q='[out:json][timeout:12];('+parts.join('')+');out center tags;';
+    dbg('pois','1 query unión ('+cats.length+' categorías) en '+area+' — zoom '+c.zoom.toFixed(1));
+    const els=await fetchOverpass(q);
+    dbg('pois','Overpass devolvió '+els.length+' elementos');
+    if(lastOverpassFailed){
+      dbg('pois','Overpass caído — se conservan los marcadores actuales');
+      return;
+    }
+    const seen=new Set();
+    els.forEach(el=>{
+      const lat=el.lat!=null?el.lat:(el.center?el.center.lat:null);
+      const lon=el.lon!=null?el.lon:(el.center?el.center.lon:null);
+      if(lat==null||lon==null)return;
+      const key=lat.toFixed(4)+','+lon.toFixed(4);
+      if(seen.has(key))return;
+      seen.add(key);
+      items.push({el,lat,lon,icon:poiIconFor(el)});
+    });
   }
-  const seen=new Set();
-  const items=[];
-  els.forEach(el=>{
-    const lat=el.lat!=null?el.lat:(el.center?el.center.lat:null);
-    const lon=el.lon!=null?el.lon:(el.center?el.center.lon:null);
-    if(lat==null||lon==null)return;
-    const key=lat.toFixed(4)+','+lon.toFixed(4);
-    if(seen.has(key))return;
-    seen.add(key);
-    items.push({el,lat,lon,icon:poiIconFor(el)});
-  });
   // ordenar por distancia al centro: si hay más de 150, quedarse con los más cercanos
   items.sort((a,b)=>haversine([a.lon,a.lat],[c.lon,c.lat])-haversine([b.lon,b.lat],[c.lon,c.lat]));
   const shown=items.slice(0,150);
@@ -3216,6 +3266,7 @@ function bindSelect(id,key,cb){
 bindSelect('s-map-provider','mapProvider',()=>initMap());
 bindSelect('s-map-style','mapStyle',()=>initMap());
 bindSelect('s-route-provider','routeProvider');
+bindSelect('s-poi-provider','poiProvider');
 bindSelect('s-route-view','routeView',()=>updateRouteDetail());
 // migración de motor de voz v2: native/clips/online no hablan en el navegador
 // del Tesla -> eSpeak offline de serie (una sola vez).
