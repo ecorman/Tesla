@@ -917,7 +917,7 @@ const S={
   routeProvider:localStorage.getItem(LS+'routeProvider')||'osrm',
   routeView:    localStorage.getItem(LS+'routeView')||'siguiente',
   voiceMode:   localStorage.getItem(LS+'voiceMode')||'voice',
-  voiceEngine: localStorage.getItem(LS+'voiceEngine')||'espeak',
+  voiceEngine: localStorage.getItem(LS+'voiceEngine')||'online',
   voiceAmp:    parseInt(localStorage.getItem(LS+'voiceAmp'))||150,
   voicePitch:  parseInt(localStorage.getItem(LS+'voicePitch'))||64,
   voiceSpeed:  parseInt(localStorage.getItem(LS+'voiceSpeed'))||170,
@@ -1108,8 +1108,13 @@ let onlineAudioEl=null;
 // el clasico sin API key). Si uno falla (red, bloqueo, autoplay) se prueba
 // el siguiente y, si fallan todos, un pitido corto.
 const TTS_ENDPOINTS=[
-  {name:'streamelements',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Standard-A&text='+encodeURIComponent(t.slice(0,200))},
-  {name:'streamelements-b',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-C&text='+encodeURIComponent(t.slice(0,200))},
+  // Voces Google WaveNet (neural) primero: son las más naturales por el
+  // pipeline de MP3 del Tesla — el mismo mecanismo que hace que NaturalReader
+  // "hable bien" en el coche. Es-ES-Wavenet-C es la más natural en castellano.
+  {name:'se-wavenet-c',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-C&text='+encodeURIComponent(t.slice(0,200))},
+  {name:'se-wavenet-d',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-D&text='+encodeURIComponent(t.slice(0,200))},
+  {name:'se-wavenet-b',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-B&text='+encodeURIComponent(t.slice(0,200))},
+  {name:'se-standard-a',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Standard-A&text='+encodeURIComponent(t.slice(0,200))},
   {name:'google',url:t=>'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q='+encodeURIComponent(t.slice(0,180))},
   {name:'mary',url:t=>'https://mary.dfki.de/process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&AUDIO=WAVE_FILE&VOICE=dfki-pavoque-neutral-hsmm&LOCALE=es&INPUT_TEXT='+encodeURIComponent(t.slice(0,180))},
 ];
@@ -3270,9 +3275,13 @@ bindSelect('s-poi-provider','poiProvider');
 bindSelect('s-route-view','routeView',()=>updateRouteDetail());
 // migración de motor de voz v2: native/clips/online no hablan en el navegador
 // del Tesla -> eSpeak offline de serie (una sola vez).
-if(!localStorage.getItem(LS+'voiceEngineV2')){
-  try{localStorage.setItem(LS+'voiceEngine','espeak');}catch(e){}
-  try{localStorage.setItem(LS+'voiceEngineV2','1');}catch(e){}
+// migración de motor de voz v3: el motor online (MP3) es el que suena natural
+// en el Tesla (mismo pipeline que NaturalReader: MP3 real vía <audio>), mientras
+// que eSpeak offline suena robótico. Forzamos 'online' una vez; sin red cae solo
+// a eSpeak. La v2 había fijado eSpeak de serie, pero eso era lo que sonaba robot.
+if(!localStorage.getItem(LS+'voiceEngineV3')){
+  try{localStorage.setItem(LS+'voiceEngine','online');}catch(e){}
+  try{localStorage.setItem(LS+'voiceEngineV3','1');}catch(e){}
 }
 bindSelect('s-voice-mode','voiceMode');
 bindSelect('s-voice-engine','voiceEngine');
