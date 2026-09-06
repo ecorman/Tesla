@@ -24,6 +24,10 @@ const code = ['normalizeRoundabouts', 'isRAtype', 'ordinalEs', 'raTextFor', 'ste
 let events = [];
 let voiceFlags = {};
 const S = { voiceMode: 'voice' }; // voz + pitidos
+/* El checkVoice actual consulta la velocidad del coche y la lista de pasos
+   (para las instrucciones consecutivas «luego …»): stubs mínimos. */
+let navSpeedKmh = 0;          // 0 km/h => secToNext=Infinity => sin «luego …»
+const routeData = null;       // sin lista: curI=-1 => next=null => sin «luego …»
 // eslint-disable-next-line no-eval
 eval(code + `
 function speak(t){events.push('SPEAK: '+t);}
@@ -32,6 +36,7 @@ this.__norm = normalizeRoundabouts;
 this.__cv = checkVoice;
 this.__isRA = isRAtype;
 this.__raText = raTextFor;
+this.__stepName = stepName;
 `);
 
 const data = eval('this');

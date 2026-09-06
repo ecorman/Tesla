@@ -61,7 +61,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- cajetín de navegación clonado de tesla.html ---- */
 #banner{position:absolute;top:12px;left:12px;z-index:22;display:none;flex-direction:column;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:min(25vw,340px);max-width:min(25vw,calc(100vw - 24px));min-width:230px;max-height:min(60vh,calc(100vh - 170px));font-family:'Segoe UI',system-ui,sans-serif}
-#banner .nav-main-col{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+/* la cabecera (icono+maniobra+calle+barra) NO crece: todo el alto sobrante
+   es para #rd-steps — así se ven ~9 instrucciones, no solo 3 */
+#banner .nav-main-col{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;min-width:0}
 .nav-panel-top-row{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1}
 .nav-lock-icon{font-size:13px;line-height:1;flex-shrink:0}
 .nav-indicators-wrap{margin-left:auto;display:flex;align-items:center;gap:6px}
@@ -69,6 +71,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .nav-live-dot{width:10px;height:10px;border-radius:50%;background:#38a5ff;box-shadow:0 0 7px #38a5ff;border:1px solid rgba(255,255,255,.8)}
 .nav-stage-banner-row{display:flex;align-items:center;gap:8px;margin-top:2px}
 .speed-limit-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:4px solid #ff3333;background:#fff;color:#000;font-weight:900;font-size:15px;font-family:Arial,sans-serif;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+/* número de la instrucción actual en el banner (coincide con la lista) */
+.nav-step-num{flex:0 0 22px;height:22px;border-radius:50%;background:#4f8cff;color:#fff;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;text-shadow:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 #nav-turn-icon{width:44px;height:44px;border-radius:5px;background:#fff;padding:1px;object-fit:contain;flex-shrink:0}
 .nav-stage-title-text{font-size:12px;font-weight:700;color:#f0f0f0;white-space:normal;overflow:visible;word-break:break-word;line-height:1.3;text-shadow:0 1px 2px rgba(0,0,0,.8)}
 .nav-stage-col{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
@@ -127,19 +131,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #pick-card .pc-hint{opacity:.85}
 #pick-card .pc-btns{display:flex;gap:8px;margin-top:4px}
 #pick-card .pc-btns .btn{flex:1}
+/* ---- chinchetas de POI: pin apoyado en el suelo, anclado al punto exacto ---- */
+.poi-pin{display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
 .pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
 /* ---- ventana de ruta detallada: itinerario Salida → paradas → Destino ---- */
 #rd-steps{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;min-height:0;margin-top:8px;padding-right:2px}
 /* primera instrucción del itinerario (siguiente movimiento) resaltada */
 .rd-step.next-maneuver{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
 .rd-step.past{opacity:.55}
-.rd-step{display:flex;align-items:center;gap:9px;padding:7px 9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:9px;font-size:15px;color:var(--dim);cursor:pointer;user-select:none}
+.rd-step{display:flex;align-items:center;gap:.6em;padding:.47em .6em;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:.6em;font-size:15px;color:var(--dim);cursor:pointer;user-select:none}
 .rd-step:hover{background:rgba(255,255,255,.1);border-color:var(--line)}
 .rd-step.cur{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
-.rd-step .rd-ico{width:30px;height:30px;border-radius:8px;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:17px}
-.rd-step .rd-ico img{width:28px;height:28px;object-fit:contain;display:block}
-.rd-step .rd-name{flex:1;color:var(--txt);min-width:0;font-size:15px;font-weight:600;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rd-step .rd-dist{font-size:12px;font-variant-numeric:tabular-nums;color:var(--dim);flex-shrink:0;padding-left:2px}
+.rd-step .rd-ico{width:2em;height:2em;border-radius:.55em;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rd-step .rd-ico img{width:1.85em;height:1.85em;object-fit:contain;display:block}
+.rd-step .rd-name{flex:1;color:var(--txt);min-width:0;font-size:1em;font-weight:600;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rd-step .rd-dist{font-size:.8em;font-variant-numeric:tabular-nums;color:var(--dim);flex-shrink:0;padding-left:2px}
+/* numeración de las instrucciones (1, 2, 3…) igual en el banner y la lista */
+.rd-num{flex:0 0 1.4em;height:1.4em;border-radius:50%;background:rgba(79,140,255,.15);border:1px solid rgba(79,140,255,.5);color:#9ecbff;font-size:.75em;font-weight:800;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.rd-step.wheel-main .rd-num,.rd-step.cur .rd-num,.rd-step.next-maneuver .rd-num{background:var(--acc);border-color:var(--acc);color:#fff}
 .rd-step.rd-radar{background:rgba(255,176,79,.12);border:1px dashed rgba(255,176,79,.45)}
 .rd-step.rd-radar .rd-ico{background:rgba(255,176,79,.3)}
 .rd-step.rd-wp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
@@ -165,25 +174,62 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #hud-orient{white-space:nowrap;font-size:calc(13px * var(--hud-scale,1));font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;line-height:1.1}
 #hud-cardinal{white-space:nowrap;font-size:calc(10px * var(--hud-scale,1));color:var(--dim);line-height:1.1}
 #hud-alt{white-space:nowrap;font-size:calc(10px * var(--hud-scale,1));color:var(--dim);font-variant-numeric:tabular-nums}
-#hud-graph{position:fixed;right:8px;top:216px;width:280px;height:calc(52px * var(--hud-scale,1));border-radius:10px;background:rgba(8,10,14,.97);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.6)}
+#hud-graph{position:fixed;right:8px;top:216px;width:280px;height:calc(150px * var(--hud-scale,1));border-radius:10px;background:rgba(8,10,14,.97);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.6)}
 #free-hud.graph-hidden #hud-graph{display:none}
 #free-hud.graph-hidden{min-width:74px}
 /* ---- minimapa de maniobra ---- */
-#mnv-box{position:absolute;right:0;top:0;border-radius:0 0 0 14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;width:280px;height:200px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:grab}
-#mnv-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;padding:0 2px;cursor:pointer;user-select:none;align-self:flex-start;width:auto}
-#mnv-label:hover{color:var(--txt)}
+#mnv-box{position:absolute;right:0;top:0;border-radius:0 0 0 14px;z-index:18;display:none;flex-direction:column;gap:5px;padding:8px;width:280px;height:210px;background:rgba(16,16,20,.92);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:grab}
 #mnv-box.mnv-transparent #mnv-minimap{opacity:.75}
+/* el titulo «Ruta completa» ya no se usa: lo sustituye la barra de viaje */
+#mnv-label{display:none!important}
 #mnv-box.mnv-transparent{background:transparent;border-style:dashed}
-#mnv-box.mnv-icon-only{position:absolute!important;right:0!important;top:0!important;border-radius:0 0 0 14px!important;left:auto!important;width:auto!important;height:auto!important;min-width:0;padding:4px 6px;cursor:pointer;background:rgba(16,16,20,.92);border-radius:10px}
-#mnv-box.mnv-icon-only #mnv-label{font-size:22px;line-height:1;display:block;width:auto;max-width:none}
+/* ---- barra de progreso del viaje dentro del minimapa (siempre visible,
+   tambien en modo transparente y sin difuminar) ---- */
+/* la barra de progreso del viaje es ahora la BARRA DE TITULO del minimapa:
+   va arriba del todo (sin el texto «Ruta completa») y el minimapa debajo;
+   siempre visible en los 3 modos, sin difuminar en el transparente, y en el
+   modo icono solo queda esta barra (el clic conmuta de modo). */
+#mnv-trip{order:-1;flex:0 0 auto;position:relative;z-index:7;display:none;flex-direction:column;gap:1px;padding:3px 7px 3px;background:rgba(10,12,16,.93);border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.55);cursor:pointer;user-select:none;pointer-events:auto;touch-action:none}
+#mnv-trip-bar{position:relative;height:8px;margin:2px 0 1px;background:rgba(255,255,255,.24);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+#mnv-trip-fill{height:100%;width:0%;background:#38a5ff;border-radius:5px 0 0 5px;transition:width 1s}
+#mnv-trip .cap{position:absolute;top:-3px;width:3px;height:14px;background:#fff;border-radius:2px}
+#mnv-trip .cap.l{left:-1px}
+#mnv-trip .cap.r{right:-1px;background:#e03030}
+.mnv-trip-dot{position:absolute;top:-2px;width:5px;height:12px;margin-left:-2px;background:#ffb04f;border:1px solid #fff;border-radius:2px}
+.mnv-trip-radar{position:absolute;top:-5px;width:13px;height:13px;margin-left:-6px;font-size:11px;line-height:13px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+#mnv-trip-car{position:absolute;top:-4px;width:16px;height:16px;margin-left:-8px;background:#38a5ff;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.6);transition:left 1s}
+.mnv-trip-ends{display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000;letter-spacing:.04em}
+/* ---- vista Wheel/Picker del itinerario: la fila centrada es la principal ---- */
+#rd-steps .rd-step.wheel-main{background:rgba(79,140,255,.22);outline:1px solid rgba(255,255,255,.35)}
+#rd-steps{scroll-snap-type:y mandatory;scrollbar-width:none;scroll-behavior:smooth}
+#rd-steps::-webkit-scrollbar{display:none}
+#rd-steps .rd-step{scroll-snap-align:center;transition:font-size .15s ease,opacity .15s ease;will-change:opacity;opacity:.9}
+/* ---- cuenta atras en el boton de cierre de las ventanas (sustituye a la X) ---- */
+.ovl-count{position:relative;z-index:0;font-weight:700;color:var(--txt)}
+.ovl-count::before{content:'';position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(#4f8cff calc(var(--frac,1)*360deg),rgba(255,255,255,.18) 0);z-index:-1}
+.ovl-count::after{content:'✕';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--txt);pointer-events:none}
+/* ---- ventana de velocidad: mismo tamaño que la brújula, 2 presentaciones ---- */
+#nav-speed-chip{cursor:pointer;height:calc(64px*var(--hud-scale,1) + 14px);min-width:calc(64px*var(--hud-scale,1) + 14px)}
+#nav-speed-chip.chip-limit-only .vel-lbl,#nav-speed-chip.chip-limit-only .vel-val,#nav-speed-chip.chip-limit-only .vel-unit{display:none}
+#nav-speed-chip .chip-limit{display:none;width:40px;height:40px;font-size:14px;border-width:4px}
+#nav-speed-chip.chip-limit-only .chip-limit{display:inline-flex}
+/* presentación «velocidad + límite»: las dos velocidades en HORIZONTAL */
+#nav-speed-chip.chip-both{flex-direction:row;align-items:center;justify-content:center;gap:10px;padding:4px 10px}
+#nav-speed-chip.chip-both .vel-lbl,#nav-speed-chip.chip-both .vel-unit{display:none}
+#nav-speed-chip.chip-both .vel-val{font-size:23px}
+#nav-speed-chip.over{background:#7f1d1d;border-color:#ef4444}
+#nav-speed-chip.over .vel-val{color:#ffb4b4}
+/* modo icono del minimapa: SOLO queda la barra de progreso del viaje */
+#mnv-box.mnv-icon-only{position:absolute!important;right:0!important;top:0!important;left:auto!important;width:190px!important;height:auto!important;min-width:0;padding:3px 6px;cursor:pointer;background:rgba(16,16,20,.92);border-radius:10px}
+#mnv-box.mnv-icon-only #mnv-trip{border:none;background:transparent;box-shadow:none;padding:1px 2px}
+#mnv-box.mnv-icon-only .mnv-trip-ends{display:none}
 #mnv-box.mnv-icon-only #mnv-minimap{display:none!important}
-#mnv-box.mnv-icon-only #mnv-label{font-size:20px}
 #mnv-box.mnv-icon-only .rsz-handle{display:none}
 /* asa de redimensionado (esquina remarcada): HUD, navegación y maniobra */
 .rsz-handle{position:absolute;right:1px;bottom:1px;width:16px;height:16px;cursor:nwse-resize;z-index:6;opacity:.9;border-radius:0 0 12px 0}
 .rsz-handle::before{content:"";position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);border-radius:1px}
 .rsz-handle:hover{opacity:1}
-#mnv-minimap{width:100%;height:100%;flex:1 1 auto;min-height:70px;border-radius:8px;border:1px solid var(--line);overflow:hidden;background:#0e1016;touch-action:none}
+#mnv-minimap{position:relative;width:100%;height:100%;flex:1 1 auto;min-height:70px;border-radius:8px;border:1px solid var(--line);overflow:hidden;background:#0e1016;touch-action:none}
 /* ---- overlay recarga controlada ---- */
 #mem-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
 #mem-overlay .mem-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 28px;font-size:16px;color:var(--txt)}
@@ -303,7 +349,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     window.doSearch=async function(q){
       var seq=++searchSeq;
       var show=function(){return seq===searchSeq;};
-      resultsBox.style.display='block';
+      resultsBox.style.display='block';armOverlayAutoHide();
       resultsBox.innerHTML='<div class="item" style="color:var(--dim);cursor:default">Buscando…</div>';
       var photon='https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&limit=6';
       var nominatim='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q='+encodeURIComponent(q)+'&limit=6&accept-language=es';
@@ -318,7 +364,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       function render(items){
         if(!show())return;
         resultsBox.innerHTML='';
-        if(!items.length){resultsBox.innerHTML='<div class="item" style="color:var(--dim);cursor:default">Sin resultados para “'+String(q).replace(/</g,'&lt;')+'”</div>';resultsBox.style.display='block';return;}
+        if(!items.length){resultsBox.innerHTML='<div class="item" style="color:var(--dim);cursor:default">Sin resultados para “'+String(q).replace(/</g,'&lt;')+'”</div>';resultsBox.style.display='block';armOverlayAutoHide();return;}
         items.forEach(function(it){
           var div=document.createElement('div');
           div.className='item';
@@ -331,7 +377,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
           div.onclick=function(){pick(it.name,it.lon,it.lat);};
           resultsBox.appendChild(div);
         });
-        resultsBox.style.display='block';
+        resultsBox.style.display='block';armOverlayAutoHide();
       }
       try{
         var r=await fetch(photon);
@@ -355,7 +401,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
             return {name:d.display_name.split(',')[0].trim(),sub:d.display_name.split(',').slice(1,6).join(',').trim(),lon:d.lon,lat:d.lat};
           });
           render(items2);
-        }catch(e2){if(show()){resultsBox.innerHTML='<div class="item" style="color:var(--err);cursor:default">Error de búsqueda</div>';resultsBox.style.display='block';}}
+        }catch(e2){if(show()){resultsBox.innerHTML='<div class="item" style="color:var(--err);cursor:default">Error de búsqueda</div>';resultsBox.style.display='block';armOverlayAutoHide();}}
       }
     };
   }
@@ -463,7 +509,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       var d=lastBannerDist;
       if(!isFinite(d)||d<=0||d>1e8){distEl.textContent='—';timeEl.textContent='—';return;}
       distEl.textContent=(d>=1000)?(d/1000).toFixed(1)+' km':Math.max(10,Math.round(d/5)*5)+' m';
-      var secs=(typeof routeData!=='undefined'&&routeData&&routeData.distance>0)?routeData.duration*d/routeData.distance:NaN;
+      // tiempo hasta la maniobra con la velocidad REAL (no proporcional a la ruta)
+      var secs=(typeof navSpeedKmh!=='undefined'&&navSpeedKmh>2)?(d/(navSpeedKmh/3.6)):NaN;
       timeEl.textContent=fmtCountTime(secs);
     }catch(e){}
   }
@@ -500,7 +547,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="sp-row">
       <input id="dest-input" type="text" placeholder="Buscar destino…" autocomplete="off">
       <button class="btn primary" id="btn-go">Ruta</button>
-      <button class="icon-btn" id="btn-search-close" title="Cerrar">✕</button>
+      <button class="icon-btn" id="btn-search-close" title="Cerrar"></button>
     </div>
     <div id="results"></div>
   </div>
@@ -522,30 +569,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- Cajetín de navegación clonado de tesla.html -->
 <!-- Chip de velocidad: fijo arriba, centrado (se muestra/oculta desde Ajustes) -->
-<div id="nav-speed-chip" title="Velocidad actual">
+<div id="nav-speed-chip" title="Velocidad / límite — clic para cambiar presentación">
   <span class="vel-lbl">VEL.</span>
   <span id="nav-speed-value" class="vel-val">0</span>
   <span class="vel-unit">km/h</span>
+  <span class="speed-limit-badge chip-limit" id="chip-speed-limit" style="display:none">?</span>
 </div>
 
 <div id="banner">
-  <!-- Barra de progreso global del viaje (superior) -->
-  <div id="trip-progress" style="position:absolute;top:5px;left:8px;right:8px;height:8px;background:rgba(255,255,255,.12);border-radius:5px;overflow:visible">
-    <div id="trip-progress-fill" style="height:100%;width:0%;background:#38a5ff;transition:width 1s;border-radius:5px 0 0 5px"></div>
-    <span style="position:absolute;left:-1px;top:-3px;width:3px;height:14px;background:#fff;border-radius:2px"></span>
-    <span style="position:absolute;right:-1px;top:-3px;width:3px;height:14px;background:#e03030;border-radius:2px"></span>
-    <span id="trip-car-dot" style="position:absolute;top:-4px;left:0%;width:16px;height:16px;margin-left:-8px;background:#38a5ff;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.6);transition:left 1s"></span>
-  </div>
   <div class="nav-main-col" style="margin-top:2px">
-    <div class="nav-panel-top-row">
-      <span class="nav-triangles" style="margin-left:3px">▲</span>
-      <div class="nav-indicators-wrap">
-        <span class="nav-triangles">▲ ▲</span>
-        <span class="nav-live-dot"></span>
-      </div>
-    </div>
-
     <div class="nav-stage-banner-row">
+      <span class="nav-step-num" id="nav-step-num" style="display:none">1</span>
       <img id="nav-turn-icon" src="PNG/continue.png" alt="" style="display:none">
       <div class="nav-stage-col">
         <div class="nav-stage-title-text" id="nav-stage-title">Destino</div>
@@ -553,8 +587,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
           <span id="nav-next-dist">—</span><span class="sep">·</span><span id="nav-next-time">—</span>
         </div>
       </div>
-      <span class="speed-limit-badge" id="nav-speed-limit" style="display:none">?</span>
-    </div>
+          </div>
 
     <!-- Barra de progreso hasta la próxima maniobra (verde→azul, se llena al acercarse) -->
     <div id="nav-maneuver-progress" title="Progreso hasta la próxima maniobra"><i id="nav-maneuver-progress-fill"></i></div>
@@ -586,7 +619,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- selector de punto: confirmar destino o añadir punto intermedio -->
 <div id="pick-card">
-  <div class="pc-row"><b id="pick-name">Punto</b><button class="icon-btn" id="pick-close" title="Cancelar">✕</button></div>
+  <div class="pc-row"><b id="pick-name">Punto</b><button class="icon-btn" id="pick-close" title="Cancelar"></button></div>
   <small id="pick-coords"></small>
   <div class="pc-btns">
     <button class="btn primary" id="pick-new">🚗 Nueva ruta</button>
@@ -612,12 +645,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <div id="mnv-box">
   <span id="mnv-label">🗺️ Ruta completa</span>
   <div id="mnv-minimap"></div>
+  <div id="mnv-trip">
+    <div id="mnv-trip-bar">
+      <div id="mnv-trip-fill"></div>
+      <span class="cap l"></span><span class="cap r"></span>
+      <span id="mnv-trip-car" style="left:0%"></span>
+      <span id="mnv-trip-mid" class="mnv-trip-dot" style="left:50%;display:none"></span>
+      <span id="mnv-trip-radar" class="mnv-trip-radar" style="left:0%;display:none">📸</span>
+    </div>
+    <div class="mnv-trip-ends"><span>Inicio</span><span id="mnv-trip-mid-lbl"></span><span>Fin</span></div>
+  </div>
 </div>
 <!-- overlay de recarga controlada (watchdog de memoria) -->
 <div id="mem-overlay"><div class="mem-box">🔄 Recuperando navegación…</div></div>
 
 <div id="settings">
-  <h2>Ajustes <span class="close" id="set-close">✕</span></h2>
+  <h2>Ajustes <span class="close" id="set-close"></span></h2>
 
   <div class="set-tabs" id="set-tabs">
     <button class="set-tab on" data-tab="mapa">Mapa</button>
@@ -739,6 +782,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <input type="range" id="s-sim-speed" min="-60" max="160" step="5" value="60">
       <span class="val" id="v-sim-speed">60 km/h</span>
     </div>
+    <div class="togglerow"><span>🚦 Velocidad = máxima de la vía</span><div class="switch on" id="s-sim-roadmax"></div></div>
+    <small style="color:var(--dim);font-size:11px;display:block;margin-top:2px">Activada: el simulador circula al límite de la vía actual (Overpass). Sin dato de vía usa la velocidad manual del deslizador.</small>
     <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
       <button class="btn" id="btn-sim-minus" style="flex:1;padding:10px 0;font-size:18px;font-weight:700" title="Bajar velocidad de 10 en 10 (negativo = hacia atrás)">−10</button>
       <button class="btn" id="btn-sim-plus" style="flex:1;padding:10px 0;font-size:18px;font-weight:700" title="Subir velocidad de 10 en 10">＋10</button>
@@ -886,7 +931,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <div id="poi-status" title="Estado de los POIs — clic para ver el panel de depuración"><!--X--><span class="dot"></span><span id="poi-status-txt">POIs…</span></div>
 <div id="dbg-panel">
-  <div id="dbg-head"><b>🔍 Depuración</b><span id="dbg-state"></span><button id="dbg-retry">↻ Reintentar</button><button id="dbg-close">✕</button></div>
+  <div id="dbg-head"><b>🔍 Depuración</b><span id="dbg-state"></span><button id="dbg-retry">↻ Reintentar</button><button id="dbg-close"></button></div>
   <div id="dbg-lines"></div>
 </div>
 
@@ -929,7 +974,7 @@ const S={
   zoomMode:    localStorage.getItem(LS+'zoomMode')||'auto', // LIBRE/AUTO/RUTA/ECO (igual que tesla.html)
   routeProvider:localStorage.getItem(LS+'routeProvider')||'osrm',
   routeView:    localStorage.getItem(LS+'routeView')||'detallada',
-  detailLevel:  parseInt(localStorage.getItem(LS+'detailLevel'))||2,
+  detailLevel: (function(){const v=parseInt(localStorage.getItem(LS+'detailLevel'));return (v===1||v===2)?v:2;})(), // por defecto: listado completo (0 antiguo = solo actual)
   timesMode:    localStorage.getItem(LS+'timesMode')||'realizados',
   voiceMode:   localStorage.getItem(LS+'voiceMode')||'voice',
   voiceEngine: localStorage.getItem(LS+'voiceEngine')||'online',
@@ -949,6 +994,7 @@ const S={
   freeHud:     localStorage.getItem(LS+'freeHud')!=='false',
   showHud:     localStorage.getItem(LS+'showHud')!=='false', // brújula visible
   showSpeedChip: localStorage.getItem(LS+'showSpeedChip')!=='false',
+  simRoadMax:   localStorage.getItem(LS+'simRoadMax')!=='false', // simulador: circular a la maxima velocidad de la via (Overpass)
   showPoiStatus: localStorage.getItem(LS+'showPoiStatus')==='true', // chip de estado POIs (desactivado por defecto)
   hudScale:    parseFloat(localStorage.getItem(LS+'hudScale'))||1,
   hudGraph:    localStorage.getItem(LS+'hudGraph')||'alt', // alt | speed (gráfica del HUD)
@@ -1239,12 +1285,14 @@ let map=null;
    que se confundía con el icono del coche; con SVG incrustado se ve un radar
    nítido dentro del círculo rojo (misma técnica que los iconos de POI). */
 const RADAR_ICON_SVG=
+  /* radar de tráfico: cámara sobre poste con ondas laterales */
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+
-  '<circle cx="12" cy="15.5" r="2.1" fill="#fff" stroke="none"/>'+
-  '<path d="M12 15.5V4"/>'+
-  '<path d="M12 9.5a6 6 0 0 1 0 12"/>'+
-  '<path d="M7.8 5.8 5.9 3.9"/>'+
-  '<path d="M16.2 5.8 18.1 3.9"/>'+
+  '<rect x="8" y="4" width="8" height="7" rx="1.6" fill="#fff" stroke="none"/>'+
+  '<circle cx="10.4" cy="7.5" r="1.1" fill="#e03030" stroke="none"/>'+
+  '<circle cx="13.6" cy="7.5" r="1.1" fill="#e03030" stroke="none"/>'+
+  '<path d="M12 11v9" stroke-width="2.4"/>'+
+  '<path d="M6.5 6.5a6 6 0 0 0 0 7M17.5 6.5a6 6 0 0 1 0 7"/>'+
+  '<path d="M4 5a9.5 9.5 0 0 0 0 10M20 5a9.5 9.5 0 0 1 0 10" opacity=".75"/>'+
   '</svg>';
 
 function buildVectorStyle(style){
@@ -1314,7 +1362,7 @@ function initMap(){
     // mantener la flecha alineada MIENTRAS la cámara gira/anima (sin esto,
     // la flecha llega tarde al bearing y «da tumbos» durante el easeTo)
     map.on('rotate',()=>{if(carMarkerEl)updateCarRotation();});
-    map.on('move',()=>{if(carMarkerEl)updateCarRotation();});
+    map.on('move',()=>{if(carMarkerEl)updateCarRotation();if(S.pois&&layerMarkers.pois.length)updatePoiVisibility();placeCarScreen();});
     addRouteLayers();
     if(S.buildings3d)add3DBuildings();
     applyCarPadding();
@@ -1325,6 +1373,7 @@ function initMap(){
   });
   // refresco perezoso de capas activas al mover/zoom del mapa
   map.on('moveend',()=>{
+    if(S.pois&&layerMarkers.pois.length)updatePoiVisibility();
     clearTimeout(layerRefreshTimer);
     if(!S.radars&&!S.pois&&!S.alerts&&!S.buildings3d)return;
     layerRefreshTimer=setTimeout(()=>lowPri(refreshActiveLayers,0),1200);
@@ -1335,6 +1384,7 @@ function initMap(){
     const mbtn=document.getElementById('z-mode');if(mbtn)updateZoomBtn();
     if(S.myradars)updateMyRadarRadius();
     if(S.pois)updatePoiMarkerSizes();
+    if(S.pois)updatePoiVisibility();
   });
   hookFollowInteractions();
   hookLongPress();
@@ -1347,7 +1397,7 @@ function initMap(){
       toast('Error de token Mapbox — cambia proveedor a OSM',4000);
     // 403 en tiles de Mapbox: el token no tiene acceso a los estilos.
     // Fallback automático a raster (una sola vez por sesión).
-    if((msg.includes('403')||msg.includes('Forbidden'))&&S.mapProvider==='mapbox'&&!window._mapbox403Handled){
+    if((msg.includes('403')||msg.includes('Forbidden')||msg.includes('401')||msg.includes('Unauthorized'))&&S.mapProvider==='mapbox'&&!window._mapbox403Handled){
       window._mapbox403Handled=true;
       toast('Mapbox sin acceso (403) — cambiando a mapa raster',4000);
       S.mapProvider='osm';saveS('mapProvider','osm');
@@ -1389,6 +1439,9 @@ async function fallbackIpLocation(motivo){
 }
 function onUserLocated(aprox){
   updateUserMarker();
+  // primera posición conocida: relanzar la búsqueda de POIs/radares centrada
+  // en el COCHE (la del arranque usó el centro por defecto del mapa)
+  try{refreshActiveLayers(true);}catch(e){}
   bootFlyTo();
   toast(aprox?'Posición aproximada (IP). Activa el GPS para navegar.':'Posición GPS encontrada');
 }
@@ -1460,16 +1513,29 @@ function poiSvg(fill,body){
     '<circle cx="12" cy="12" r="11.5" fill="'+fill+'" stroke="#111" stroke-width="1"/>'+
     body+'</svg>';
 }
+/* Chincheta (pin) 36x44: cabeza de color con el icono dentro y punta al suelo.
+   El mapa la ancla por abajo (anchor bottom), asi el pin apoya en el punto
+   exacto y no parece flotar. */
+function poiPinSvg(color,body){
+  /* estilo radar: cabeza de COLOR con el glifo en BLANCO dentro (antes:
+     circulo blanco + glifo blanco = glifo invisible). El glifo se dibuja
+     en un viewBox 24x24 escalado al maximo dentro de la cabeza. */
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 44" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">'+
+    '<path d="M18 1C10.3 1 4.2 7.1 4.2 14.8 4.2 25.2 18 42.5 18 42.5S31.8 25.2 31.8 14.8C31.8 7.1 25.7 1 18 1Z" fill="'+color+'" stroke="#111" stroke-width="1.6"/>'+
+    '<circle cx="18" cy="14.5" r="9.6" fill="rgba(0,0,0,.22)"/>'+
+    '<g transform="translate(8.9,5.4) scale(0.76)">'+body+'</g>'+
+  '</svg>';
+}
 const POI_CATS={
-  fuel:    {q:'node["amenity"="fuel"];',                       icon:poiSvg('#f97316','<path d="M9 2.5h6v6.5a3 3 0 0 1-6 0V2.5Z" fill="#fff"/><rect x="5.5" y="9" width="13" height="11" rx="2" fill="#fff"/><circle cx="9" cy="13" r="1.3" fill="#f97316"/>')},
-  food:    {q:'node["amenity"~"^(restaurant|fast_food)$"];',   icon:poiSvg('#f59e0b','<circle cx="12" cy="13.5" r="8" fill="#fff"/><path d="M8.2 13a3.8 3.8 0 0 0 7.6 0l-3.8-6.2L8.2 13Z" fill="#f59e0b"/>')},
-  coffee:  {q:'node["amenity"~"^(cafe|bar)$"];',               icon:poiSvg('#a16207','<path d="M5.5 9.5h11v3.5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V9.5Z" fill="#fff"/><path d="M16.6 10.5h1.1a2 2 0 0 1 0 4h-1.3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><rect x="7.4" y="5" width="7.2" height="2.6" rx="1.3" fill="#fff"/>')},
-  shop:    {q:'node["shop"~"^(supermarket|convenience)$"];',    icon:poiSvg('#22c55e','<path d="M5.5 9h13l-1.3 10.8H6.8L5.5 9Z" fill="#fff"/><path d="M9 9V7.2a3 3 0 0 1 6 0V9" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round"/>')},
-  health:  {q:'node["amenity"~"^(hospital|clinic|pharmacy)$"];',icon:poiSvg('#ef4444','<rect x="10" y="4.5" width="4" height="15" rx="1" fill="#fff"/><rect x="4.5" y="10" width="15" height="4" rx="1" fill="#fff"/>')},
-  parking: {q:'node["amenity"="parking"];',                    icon:poiSvg('#3b82f6','<path d="M8.5 20.5V4h4.6a4 4 0 0 1 0 8H8.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>')},
-  charge:  {q:'node["amenity"="charging_station"];',            icon:poiSvg('#10b981','<path d="M13 2.5 5.5 13h5l-1 8.5 7.5-10.5h-5l1-8.5Z" fill="#fff"/>')},
-  hotel:   {q:'node["tourism"="hotel"];',                      icon:poiSvg('#6366f1','<rect x="6" y="4.5" width="12" height="15" rx="1.5" fill="#fff"/><rect x="9" y="7.5" width="6" height="4" fill="#6366f1"/><rect x="9" y="13.5" width="6" height="4" fill="#6366f1"/>')},
-  leisure: {q:'node["leisure"~"^(park|playground)$"];',         icon:poiSvg('#14b8a6','<circle cx="12" cy="8" r="5.5" fill="#fff"/><rect x="10.8" y="13" width="2.4" height="7" rx="1.2" fill="#fff"/>')},
+  fuel:    {q:'node["amenity"="fuel"];',                       icon:poiPinSvg('#e05a00','<rect x="7" y="5" width="7" height="14" rx="1" fill="#fff"/><rect x="8.4" y="6.5" width="4.2" height="4" fill="#e05a00"/><rect x="7" y="17" width="7" height="2" fill="#fff"/><path d="M16 9v8a1 1 0 0 0 2 0V10l-2-3Z" fill="#fff"/>')},
+  food:    {q:'node["amenity"~"^(restaurant|fast_food)$"];',   icon:poiPinSvg('#c77c02','<path d="M9 4v16" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M6.2 4v5.2a2.8 2.8 0 0 0 5.6 0V4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M16.5 4c-2 1.2-3 3.4-3 6.2h3V20" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')},
+  coffee:  {q:'node["amenity"~"^(cafe|bar)$"];',               icon:poiPinSvg('#8a5a06','<path d="M5.5 9h10v4.5A4.5 4.5 0 0 1 11 18h-1A4.5 4.5 0 0 1 5.5 13.5V9Z" fill="#fff"/><path d="M15.5 10h1.8a2.4 2.4 0 0 1 0 4.8h-1.8" fill="none" stroke="#fff" stroke-width="2.2"/><path d="M8.5 5.5h1.6M12 5.5h1.6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>')},
+  shop:    {q:'node["shop"~"^(supermarket|convenience)$"];',    icon:poiPinSvg('#159a3e','<path d="M5 9.5h14L17.6 20H6.4L5 9.5Z" fill="#fff"/><path d="M9 9V7.5a3 3 0 0 1 6 0V9" fill="none" stroke="#fff" stroke-width="2.4"/>')},
+  health:  {q:'node["amenity"~"^(hospital|clinic|pharmacy)$"];',icon:poiPinSvg('#d43a3a','<path d="M12 5.5v13M5.5 12h13" stroke="#fff" stroke-width="4.2" stroke-linecap="round"/>')},
+  parking: {q:'node["amenity"="parking"];',                    icon:poiPinSvg('#2464d8','<text x="12" y="18" font-family="Arial,sans-serif" font-size="16" font-weight="900" fill="#fff" text-anchor="middle">P</text>')},
+  charge:  {q:'node["amenity"="charging_station"];',            icon:poiPinSvg('#0a9164','<path d="M13.5 3.5 6 13.5h4.5L9.5 20.5 18 10h-5l0.5-6.5Z" fill="#fff"/>')},
+  hotel:   {q:'node["tourism"="hotel"];',                      icon:poiPinSvg('#4f46b8','<path d="M5.5 19.5V6h2.2v11.3H12v-8h6.5v10.2h.8v1Z" fill="#fff"/><circle cx="9" cy="8.8" r="1.4" fill="#4f46b8"/>')},
+  leisure: {q:'node["leisure"~"^(park|playground)$"];',         icon:poiPinSvg('#0d8f85','<circle cx="12" cy="7" r="4" fill="#fff"/><path d="M12 10.5V20" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M12 13.5 8.5 16M12 13l3.5 2.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>')},
 };
 
 let layerMarkers={radars:[],pois:[],alerts:[]};
@@ -1720,32 +1786,49 @@ function checkRadarAlerts(){
    en caliente en cada zoomend. */
 function poiMarkerSize(){
   const z=map?map.getZoom():15.5;
-  const f=z<13.5?1.2:z<14.5?1.1:z<15.5?1.0:z<17?0.9:0.8;
-  return Math.max(20,Math.round(S.poiSize*f));
+  const f=z<13.5?1.4:z<14.5?1.3:z<15.5?1.2:z<17?1.1:1.0;
+  return Math.max(28,Math.round(S.poiSize*f));
 }
 function applyPoiMarkerStyle(el){
   const sz=poiMarkerSize();
-  el.style.width=sz+'px';el.style.height=sz+'px';
-  const svg=el.querySelector('svg');if(svg){svg.style.width=sz+'px';svg.style.height=sz+'px';svg.style.padding=Math.round(sz*0.14)+'px';svg.style.boxSizing='border-box';}
+  el.style.width=sz+'px';el.style.height=Math.round(sz*1.22)+'px';
 }
 function updatePoiMarkerSizes(){
   if(!layerMarkers.pois||!layerMarkers.pois.length)return;
   layerMarkers.pois.forEach(w=>{try{applyPoiMarkerStyle(w.el);}catch(e){}});
 }
+/* Oculta los POI que quedan fuera del area visible proyectada en pantalla:
+   con vista 3D el bbox de datos es mas ancho que la vista, y sin esto los
+   pines "flotan" en el horizonte. */
+function updatePoiVisibility(){
+  if(!map||!map.project)return;
+  const W=window.innerWidth||1920,H=window.innerHeight||1080;
+  const M=Math.round(Math.max(W,H)*0.08); // margen perimetral del 8%
+  layerMarkers.pois.forEach(w=>{
+    try{
+      const p=map.project(w.marker.getLngLat());
+      const off=p.x<-M||p.x>W+M||p.y<-M||p.y>H+M;
+      w.el.style.visibility=off?'hidden':'visible';
+    }catch(e){}
+  });
+}
 /* Icono de categoría a partir de las etiquetas del elemento (la query unión
    mezcla categorías: el icono se deduce de los tags de cada POI). */
 function poiIconFor(el){
   const t=el.tags||{};
-  if(t.amenity==='fuel')return POI_CATS.fuel.icon;
-  if(t.amenity==='restaurant'||t.amenity==='fast_food')return POI_CATS.food.icon;
-  if(t.amenity==='cafe'||t.amenity==='bar')return POI_CATS.coffee.icon;
-  if(t.shop==='supermarket'||t.shop==='convenience')return POI_CATS.shop.icon;
-  if(t.amenity==='hospital'||t.amenity==='clinic'||t.amenity==='pharmacy')return POI_CATS.health.icon;
-  if(t.amenity==='parking')return POI_CATS.parking.icon;
-  if(t.amenity==='charging_station')return POI_CATS.charge.icon;
-  if(t.tourism==='hotel')return POI_CATS.hotel.icon;
-  if(t.leisure==='park'||t.leisure==='playground')return POI_CATS.leisure.icon;
-  return poiSvg('#64748b','<path d="M12 2.5c-3.3 0-6 2.6-6 5.9 0 4.3 6 12.4 6 12.4s6-8.1 6-12.4c0-3.3-2.7-5.9-6-5.9Zm0 8a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Z" fill="#fff"/>');
+  // Photon devuelve osm_key/osm_value en lugar de amenity/shop/...: se unifican
+  const k=t.amenity||t.shop||t.tourism||t.leisure||t.osm_value||'';
+  if(k==='fuel')return POI_CATS.fuel.icon;
+  if(k==='restaurant'||k==='fast_food')return POI_CATS.food.icon;
+  if(k==='cafe'||k==='bar'||k==='pub')return POI_CATS.coffee.icon;
+  if(k==='supermarket'||k==='convenience'||k==='bakery'||k==='kiosk')return POI_CATS.shop.icon;
+  if(k==='hospital'||k==='clinic'||k==='pharmacy'||k==='doctors')return POI_CATS.health.icon;
+  if(k==='parking'||k==='parking_space')return POI_CATS.parking.icon;
+  if(k==='charging_station')return POI_CATS.charge.icon;
+  if(k==='hotel'||k==='hostel'||k==='guest_house'||k==='motel')return POI_CATS.hotel.icon;
+  if(k==='park'||k==='playground'||k==='garden'||k==='pitch'||k==='sports_centre')return POI_CATS.leisure.icon;
+  if(t.amenity==='atm'||t.amenity==='bank')return POI_CATS.shop.icon;
+  return poiPinSvg('#5a6472','<circle cx="12" cy="12" r="5" fill="#fff"/><circle cx="12" cy="12" r="8.5" fill="none" stroke="#fff" stroke-width="2.4"/>');
 }
 /* Área visible del mapa (bbox ampliada un 25 %) para acotar la query de
    Overpass a lo que realmente se ve: respuesta rápida y sin saturar. */
@@ -1792,7 +1875,7 @@ async function fetchPoisPhoton(cats,c){
         if(!coord||!Array.isArray(coord)||coord.length<2)return;
         const lat=coord[1],lon=coord[0];
         if(!(isFinite(lat)&&isFinite(lon)))return;
-        items.push({el:{tags:{name:pr.name||'',osm_key:pr.osm_key,osm_value:pr.osm_value}},lat,lon,icon:cc.icon});
+        items.push({el:{tags:{name:pr.name||'',osm_key:pr.osm_key,osm_value:pr.osm_value}},lat,lon,icon:poiIconFor({tags:{osm_key:pr.osm_key,osm_value:pr.osm_value}})});
       });
     }catch(e){}
   }
@@ -1803,7 +1886,7 @@ async function refreshPois(force){
   if(!force&&Date.now()-lastLayerFetch.pois<LAYER_MIN_INTERVAL)return;
   // Con zoom de globo/vista lejana los marcadores no se ven: se salta (sin
   // marcar lastLayerFetch) para que al aterrizar se refresque con bbox rápido.
-  if(c.zoom<11){dbg('pois','zoom '+c.zoom.toFixed(1)+' < 11 — sin refresco de POIs');return;}
+  if(c.zoom<11&&!force){dbg('pois','zoom '+c.zoom.toFixed(1)+' < 11 — sin refresco de POIs');return;}
   lastLayerFetch.pois=Date.now();
   const cats=(S.poiCats&&S.poiCats.length)?S.poiCats:Object.keys(POI_CATS);
   let items=[];
@@ -1813,15 +1896,19 @@ async function refreshPois(force){
     if(!items.length){dbg('pois','Photon: 0 resultados — se conservan los marcadores actuales');updatePoiStatus();return;}
     poiLastZero=false;
   }else{
-    const area=viewportArea(c)||('around:8000,'+c.lat+','+c.lon);
-    // UNA query unión con todas las categorías seleccionadas: 1 petición en vez
-    // de 9, mucho más rápida y sin tocar los límites de las instancias.
-    const parts=cats.map(cat=>{
+    // query unión en DOS áreas: el viewport visible + un around:5000 en el
+    // COCHE (así siempre hay POIs cercanos aunque la cámara mire hacia otro lado)
+    const area=viewportArea(c);
+    const carLat=userPos?userPos[1]:c.lat, carLon=userPos?userPos[0]:c.lon;
+    const parts=[];
+    for(const cat of cats){
       const cc=POI_CATS[cat]||POI_CATS.fuel;
-      return cc.q.replace(/;\s*$/,'')+'('+area+');';
-    });
+      const qq=cc.q.replace(/;\s*$/,'');
+      if(area)parts.push(qq+'('+area+');');
+      parts.push(qq+'(around:5000,'+carLat+','+carLon+');');
+    }
     const q='[out:json][timeout:12];('+parts.join('')+');out center tags;';
-    dbg('pois','1 query unión ('+cats.length+' categorías) en '+area+' — zoom '+c.zoom.toFixed(1));
+    dbg('pois','1 query unión ('+parts.length+' áreas, coche + viewport) — zoom '+c.zoom.toFixed(1));
     const els=await fetchOverpass(q);
     dbg('pois','Overpass devolvió '+els.length+' elementos');
     if(lastOverpassFailed){
@@ -1839,9 +1926,24 @@ async function refreshPois(force){
       items.push({el,lat,lon,icon:poiIconFor(el)});
     });
   }
-  // ordenar por distancia al centro: si hay más de 150, quedarse con los más cercanos
-  items.sort((a,b)=>haversine([a.lon,a.lat],[c.lon,c.lat])-haversine([b.lon,b.lat],[c.lon,c.lat]));
-  const shown=items.slice(0,150);
+  // ordenar por cercanía al COCHE (no al centro del mapa): los POI sobre la
+  // ruta tienen mucha ventaja y los muy lejanos de la ruta quedan al final
+  const ref=userPos||[c.lon,c.lat];
+  const routePts=(routeData&&routeData.coords)||null;
+  const car=()=>userPos||ref;
+  const key=(it)=>{
+    const du=haversine([it.lon,it.lat],car());
+    if(!routePts||!routePts.length)return du;
+    let dr=Infinity;
+    // solo la parte de ruta cercana al coche (ventana de 200 puntos adelante)
+    let bestI=0,bd=Infinity;
+    for(let i=0;i<routePts.length;i+=2){const d=haversine(car(),routePts[i]);if(d<bd){bd=d;bestI=i;}}
+    const from=Math.max(0,bestI-10),to=Math.min(routePts.length,bestI+200);
+    for(let i=from;i<to;i++){const d=haversine([it.lon,it.lat],routePts[i]);if(d<dr)dr=d;}
+    return Math.min(du,dr*0.35); // a <=150 m de la ruta por delante: prioridad clara
+  };
+  items.sort((a,b)=>key(a)-key(b));
+  const shown=items.slice(0,200);
   dbg('pois','únicos: '+items.length+' → mostrando '+shown.length);
   if(!shown.length){
     // Un 0 aqui solo es «zona sin POIs» si NINGUNA instancia devolvio datos
@@ -1860,17 +1962,20 @@ async function refreshPois(force){
   const added=[];
   shown.forEach(it=>{
     const name=(it.el.tags&&(it.el.tags.name||it.el.tags.brand||''))||'Punto de interés';
+    // Chincheta apoyada en el suelo: anchor bottom -> la punta del pin clava
+    // el POI a su coordenada exacta y no parece volar sobre el mapa.
     const el2=document.createElement('div');
-    el2.style.cssText='display:flex;align-items:center;justify-content:center;cursor:pointer;filter:drop-shadow(0 1px 3px rgba(0,0,0,.65))';
+    el2.className='poi-pin';
     el2.innerHTML=it.icon; // SVG inline: el Tesla no pinta <img> con data:image/svg+xml
     el2.title=name;
     el2.onclick=(ev)=>{ev.stopPropagation();startPointPick([it.lon,it.lat],name);};
     applyPoiMarkerStyle(el2);
-    added.push({marker:new mapboxgl.Marker({element:el2,el:el2}).setLngLat([it.lon,it.lat]).addTo(map),el:el2});
+    added.push({marker:new mapboxgl.Marker({element:el2,el:el2,anchor:'bottom'}).setLngLat([it.lon,it.lat]).addTo(map),el:el2});
   });
   clearLayerMarkers('pois');
   layerMarkers.pois=added;
   dbg('pois','marcadores en el mapa: '+layerMarkers.pois.length);
+  updatePoiVisibility();
   updatePoiStatus();
 }
 
@@ -2276,7 +2381,7 @@ async function doSearch(q){
       };
       resultsBox.appendChild(div);
     });
-    resultsBox.style.display='block';
+    resultsBox.style.display='block';armOverlayAutoHide();
   }catch(e){toast('Error de búsqueda');}
 }
 
@@ -2479,7 +2584,7 @@ async function fetchRoadSpeedLimit(lon,lat){
   if(_speedLimitCache.val!==null&&now-_speedLimitCache.ts<30000){
     const dp=_speedLimitCache.pos;
     if(!dp||haversine([lon,lat],[dp[0],dp[1]])<150){
-      applySpeedLimitBadge(_speedLimitCache.val);return;
+      updateSpeedChip(navSpeedKmh);return;
     }
   }
   try{
@@ -2489,24 +2594,83 @@ async function fetchRoadSpeedLimit(lon,lat){
     const num=ms?parseInt(ms.replace(/[^\d]/g,'')):null;
     _speedLimitCache={val:isFinite(num)&&num>0?num:null,ts:now,pos:[lon,lat]};
     if(isFinite(num)&&num>0){
-      b&&b.dataset&&(b.dataset.held='1'); // hay dato: mantenerlo
-      window._speedLimitHoldUntil=Date.now()+180000;
-      applySpeedLimitBadge(num);
+      _speedLimitCache.val=num;
+      window._speedLimitHoldUntil=Date.now()+180000; // mantener el ultimo dato 3 min
     }else if(Date.now()>(window._speedLimitHoldUntil||0)){
-      b&&b.dataset&&delete b.dataset.held;
-      applySpeedLimitBadge(null);
-    } // si aún hay "hold", no tocar el badge: evita el parpadeo
+      _speedLimitCache.val=null;
+    } // si aún hay "hold", no tocar el limite: evita el parpadeo
+    updateSpeedChip(navSpeedKmh);
   }catch(e){/* sin cambios si falla */}
 }
 function applySpeedLimitBadge(val){
-  const b=document.getElementById('nav-speed-limit');
-  if(!b)return;
-  if(val){b.textContent=val;b.style.display='inline-flex';}
-  // sin dato nuevo: mantener el último valor visible unos minutos en lugar de
-  // ocultarlo (evita el parpadeo cuando Overpass no responde o está en cooldown)
-  else if(!b.dataset.held){b.style.display='none';}
+  // el limite ya NO se pinta en el banner: solo en la ventana de velocidad
+  if(val)_speedLimitCache.val=val;
+  updateSpeedChip(navSpeedKmh);
 }
 window._speedLimitHoldUntil=0;
+/* ---- ventana de velocidad: dos presentaciones (clic alterna) ----
+   0 = solo velocidad, 1 = solo limite, 2 = velocidad + limite.
+   Fondo rojo cuando la velocidad actual supera el limite. */
+let chipLimitMode=0; // 0 = velocidad, 1 = solo limite, 2 = ambos
+function updateSpeedChip(spd){
+  const chip=document.getElementById('nav-speed-chip');if(!chip)return;
+  const lim=_speedLimitCache.val;
+  const cb=document.getElementById('chip-speed-limit');
+  if(cb){if(lim){cb.textContent=lim;cb.style.display=chipLimitMode===0?'none':'inline-flex';}else cb.style.display='none';}
+  chip.classList.toggle('chip-limit-only',chipLimitMode===1&&!!lim);
+  chip.classList.toggle('chip-both',chipLimitMode===2&&!!lim); // las dos velocidades en horizontal
+  chip.classList.toggle('over',!!(lim&&spd>lim));
+  const vs=chip.querySelector('.vel-val'),ls=chip.querySelector('.vel-lbl');
+  if(vs)vs.style.display=chipLimitMode===1?'none':'';
+  if(ls)ls.style.display=chipLimitMode===1?'none':'';
+}
+(function(){
+  const chip=document.getElementById('nav-speed-chip');if(!chip)return;
+  chip.addEventListener('click',()=>{
+    chipLimitMode=(chipLimitMode+1)%3;
+    updateSpeedChip(navSpeedKmh);
+    toast('Velocidad: '+['solo velocidad','solo límite','velocidad + límite'][chipLimitMode],1500);
+  });
+})();
+/* barra de progreso del viaje sobre el minimapa: inicio/fin, parada
+   intermedia y radares sobre la ruta + coche en posicion actual */
+function updateMnvTripBar(remain){
+  const wrap=document.getElementById('mnv-trip');if(!wrap)return;
+  const tot=(routeData&&routeData.distance)||0;
+  const nav=(routeData&&destPoint);
+  wrap.style.display=nav?'flex':'none';
+  if(!nav)return;
+  const pct=tot>0?Math.max(0,Math.min(100,(1-remain/tot)*100)):0;
+  const fill=document.getElementById('mnv-trip-fill');
+  if(fill)fill.style.width=pct+'%';
+  const dot=document.getElementById('mnv-trip-car');
+  if(dot)dot.style.left=pct+'%';
+  // parada intermedia mas proxima (posicion por distancia acumulada)
+  const mid=document.getElementById('mnv-trip-mid'),midL=document.getElementById('mnv-trip-mid-lbl');
+  if(mid&&midL){
+    const W=routeWaypoints||[];
+    if(W.length){
+      // primera parada cuyo tramo aun no se ha superado (aprox por frontera de pasos)
+      const steps=routeData.steps||[];
+      let bi=0;
+      for(let k=0;k<W.length;k++){
+        const loc=(steps[Math.min(k*2,steps.length-1)]||{}).maneuver||{}.location;
+        bi=k?k/(W.length+1):0.33; // posicion aproximada si no hay marca exacta
+        break;
+      }
+      mid.style.display='block';mid.style.left=(bi*100)+'%';
+      midL.textContent=W.length===1?(W[0].name||'Parada'):(W.length+' paradas');
+    }else{mid.style.display='none';midL.textContent='';}
+  }
+  // siguiente radar sobre la ruta
+  const rd=document.getElementById('mnv-trip-radar');
+  if(rd){
+    const next=(routeRadars||[]).find(r=>r.along>0&&(r.along>=((routeData.distance||0)-remain)));
+    const showR=next&&tot>0;
+    rd.style.display=showR?'block':'none';
+    if(showR)rd.style.left=Math.min(100,(next.along/tot*100))+'%';
+  }
+}
 function navTick(){
   if(!routeData||!userPos)return;
   // find nearest point on route (distancia real en metros)
@@ -2545,7 +2709,10 @@ function navTick(){
     return;
   }
   lastManeuverDist=stepDist;
-  lastBannerDist=(step&&step.distance)||stepDist; // idéntico a la fila del detalle para ese paso
+  // distancia REAL hasta el punto de maniobra (por la ruta). NO usar step.distance:
+  // ese es el largo del tramo siguiente y hacía que el banner dijera p.ej. «15 m»
+  // faltando todavía un km hasta el giro (instrucciones desfasadas).
+  lastBannerDist=stepDist;
   // Próxima rotonda aún no superada: los avisos se miden contra la ENTRADA
   // del anillo (decirlos ANTES de entrar) y el pitido contra la SALIDA.
   let ra=null;
@@ -2605,6 +2772,16 @@ function navTick(){
       else stageTitle.textContent=stepRoadLabel(step)||shortManeuverName(step); // idéntico al texto de la lista detallada
     }
   }
+  // numero de la instruccion actual (mismo ordinal que su fila en la lista)
+  const navNum=document.getElementById('nav-step-num');
+  if(navNum){
+    const stepsArr=(routeData&&routeData.steps)||[];
+    const shownIdx=Math.max(0,Math.min(maneuverIdx+1,stepsArr.length-1));
+    const shownStep=stepsArr[shownIdx];
+    const shownT=shownStep&&((shownStep.maneuver||{}).type||'');
+    if(!shownStep||shownT==='arrive'){navNum.style.display='none';}
+    else{navNum.textContent=maneuverCount(shownIdx);navNum.style.display='inline-flex';}
+  }
   const tdEl=document.getElementById('np-time-done');
   if(tdEl){
     const el=(tripStats&&tripStats.startTime)?(Date.now()-new Date(tripStats.startTime).getTime())/1000:0;
@@ -2628,15 +2805,9 @@ function navTick(){
   const finalEta=document.getElementById('final-destination-eta');
   if(finalEta)finalEta.textContent=arrTimeStr;
   
-  // barra de progreso GLOBAL del viaje
-  const tripFill=document.getElementById('trip-progress-fill');
-  if(tripFill){
-    const tot=(routeData&&routeData.distance)||0;
-    const pct=(tot>0)?Math.max(0,Math.min(100,(1-remain/tot)*100)):0;
-    tripFill.style.width=pct+'%';
-    const dot=document.getElementById('trip-car-dot');
-    if(dot)dot.style.left=pct+'%';
-  }
+  // barra de progreso GLOBAL del viaje: ahora vive en el minimapa,
+  // siempre visible en los 3 modos y sin difuminar en el transparente
+  updateMnvTripBar(remain);
 
   // barra roja de progreso hasta la próxima maniobra: se llena al acercarse
   const mnvFill=document.getElementById('nav-maneuver-progress-fill');
@@ -2736,7 +2907,7 @@ function checkVoice(step,dist,ra){
     if(dist<=40&&!voiceFlags.immediate&&type!=='arrive'&&type!=='depart'){
       voiceFlags.immediate=true;
       navBeep(kind||'near');
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step));
+      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('ahora, '+stepName(step)+nextPhrase);
     }
   }
 }
@@ -3025,7 +3196,9 @@ function fitMiniToRoute(){
 function drawMinimap(){
   const on=!!S.minimap&&!!routeData;
   const box=document.getElementById('mnv-box');
+  const was=box&&box.style.display==='flex';
   if(box)box.style.display=on?'flex':'none';
+  if(on&&!was)armOverlayAutoHide();
   const el=document.getElementById('mnv-minimap');if(el)el.style.display=on?'block':'none';
   if(!on||!routeData||!routeData.coords||routeData.coords.length<2)return;
   initMiniMap();
@@ -3122,6 +3295,7 @@ function handleGpsFix(coords){
   document.getElementById('se-spd').textContent=Math.round(spd);
   const nSpd=document.getElementById('nav-speed-value');
   if(nSpd)nSpd.textContent=Math.round(spd);
+  updateSpeedChip(spd);
   const progText=document.getElementById('route-progress-text');
   if(progText){
     const kmTravelled=(tripStats?tripStats.travelledKm:0).toFixed(1);
@@ -3152,7 +3326,16 @@ startGps();
    codigo (marcador, camara, velocidad, banner, voz, modos de zoom, navTick)
    funciona exactamente igual que con el GPS real. */
 let simTimer=null,simActive=false,simIdx=0,simPos=null,simSpeedKmh=60;
-function simSpeedMps(){return simSpeedKmh/3.6;}
+/* velocidad efectiva de simulacion: con la opcion «maxima de la via» el
+   simulador circula al limite Overpass del tramo actual (el cache lo alimenta
+   handleGpsFix->fetchRoadSpeedLimit mientras se simula); si no hay dato de
+   via usa la velocidad manual del deslizador. El valor negativo (atras) se
+   respeta siempre. */
+function simTargetKmh(){
+  if(S.simRoadMax&&_speedLimitCache&&_speedLimitCache.val>0&&simSpeedKmh>=0)return _speedLimitCache.val;
+  return simSpeedKmh;
+}
+function simSpeedMps(){return simTargetKmh()/3.6;}
 function startSimulator(){
   if(simActive)return;
   if(!routeData||!routeData.coords||routeData.coords.length<2){toast('Calcula una ruta primero');return;}
@@ -3170,7 +3353,8 @@ function startSimulator(){
   if(gpsWatch){navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;}
   const b=document.getElementById('btn-sim');
   b.textContent='■';b.classList.add('stop');b.style.opacity='';b.style.pointerEvents='';b.title='Detener la simulación GPS';
-  toast('Simulando GPS a '+simSpeedKmh+' km/h');
+  const _tg=simTargetKmh();
+  toast(_tg<0?'Simulando GPS en retroceso':('Simulando GPS a '+Math.round(_tg)+' km/h'+(S.simRoadMax&&_speedLimitCache&&_speedLimitCache.val>0?' · máx. de la vía':'')));
   simTimer=setInterval(simTick,250);
 }
 function stopSimulator(){
@@ -3190,6 +3374,7 @@ function finishSim(){
 function simTick(){
   if(!simActive)return;
   if(!routeData||!routeData.coords||routeData.coords.length<2){stopSimulator();return;}
+  if(typeof updateSimSpeedLabel==='function')updateSimSpeedLabel(); // refleja el maximo de la via actual
   const mps=simSpeedMps();
   if(mps<0){ // depuración: retroceder por la ruta
     let remaining=-mps*0.25;
@@ -3254,7 +3439,12 @@ document.getElementById('btn-sim').onclick=()=>{
 };
 const simSpeedEl=document.getElementById('s-sim-speed');
 const simSpeedVal=document.getElementById('v-sim-speed');
-function syncSimSpeed(){simSpeedKmh=+simSpeedEl.value;simSpeedVal.textContent=simSpeedKmh+' km/h'+(simSpeedKmh<0?' (atrás)':'');}
+function updateSimSpeedLabel(){
+  if(!simSpeedEl||!simSpeedVal)return;
+  const tg=simTargetKmh();
+  simSpeedVal.textContent=Math.round(tg)+' km/h'+(tg<0?' (atrás)':'')+(S.simRoadMax&&_speedLimitCache&&_speedLimitCache.val>0?' · máx. vía':'');
+}
+function syncSimSpeed(){simSpeedKmh=+simSpeedEl.value;updateSimSpeedLabel();}
 function bumpSimSpeed(delta){
   let v=Math.max(-60,Math.min(160,(+simSpeedEl.value||0)+delta));
   simSpeedEl.value=v;syncSimSpeed();
@@ -3265,6 +3455,17 @@ if(simMinus)simMinus.onclick=()=>bumpSimSpeed(-10);
 if(simPlus)simPlus.onclick=()=>bumpSimSpeed(10);
 simSpeedEl.addEventListener('input',syncSimSpeed);
 syncSimSpeed();
+(function(){
+  const sw=document.getElementById('s-sim-roadmax');if(!sw)return;
+  sw.classList.toggle('on',!!S.simRoadMax);
+  sw.onclick=()=>{
+    S.simRoadMax=!S.simRoadMax;
+    saveS('simRoadMax',S.simRoadMax);
+    sw.classList.toggle('on',S.simRoadMax);
+    if(typeof updateSimSpeedLabel==='function')updateSimSpeedLabel();
+    toast('Simulación: '+(S.simRoadMax?'velocidad = máxima de la vía':'velocidad manual'),1500);
+  };
+})();
 
 /* ---------- UI wiring ---------- */
 document.getElementById('btn-go').onclick=()=>{
@@ -3287,11 +3488,32 @@ function closeOverlays(exceptId){
     else if(id==='search-panel'){el.classList.remove('open');if(typeof resultsBox!=='undefined'&&resultsBox)resultsBox.style.display='none';}
     else el.style.display='none';
   });
+  if(_overlayHideTimer){clearTimeout(_overlayHideTimer);_overlayHideTimer=null;}
 }
+/* Cualquier interaccion rearma el autocierre: si el conductor esta usando la
+   ventana no desaparece, pero en cuanto la deja tocar se cierra a los 10 s. */
+document.addEventListener('pointerdown',function(){
+  if(_overlayHideTimer)armOverlayAutoHide();
+},true);
 let _overlayHideTimer=null;
 function armOverlayAutoHide(ms){
   if(_overlayHideTimer)clearTimeout(_overlayHideTimer);
-  _overlayHideTimer=setTimeout(function(){closeOverlays(null);},ms||14000);
+  _overlayHideTimer=setTimeout(function(){closeOverlays();},ms||10000); // autocierre a los 10 s
+  startOverlayCountdown(ms||10000);
+}
+/* cuenta atras visible: el icono de cierre de cada ventana abierta se convierte
+   en un circulito (conic-gradient) que se va vaciando hasta el cierre */
+let _countdownRaf=null;
+function startOverlayCountdown(total){
+  if(_countdownRaf)cancelAnimationFrame(_countdownRaf);
+  const t0=Date.now();
+  const tick=()=>{
+    const frac=Math.max(0,1-(Date.now()-t0)/total);
+    document.querySelectorAll('.ovl-count').forEach(el=>{el.style.setProperty('--frac',frac.toFixed(3));});
+    if(frac>0&&_overlayHideTimer)_countdownRaf=requestAnimationFrame(tick);
+    else document.querySelectorAll('.ovl-count').forEach(el=>{el.style.setProperty('--frac',1);});
+  };
+  _countdownRaf=requestAnimationFrame(tick);
 }
 /* ---- boton de busqueda (abre el panel en dropdown) ---- */
 document.getElementById('btn-search').onclick=()=>{
@@ -3337,8 +3559,16 @@ document.getElementById('gear').onclick=()=>{
   closeOverlays('settings');
   if(wasOpen)return;
   settingsPanel.classList.add('open');
+  armOverlayAutoHide();
 };
 document.getElementById('set-close').onclick=()=>settingsPanel.classList.remove('open');
+/* el boton de cierre lleva la cuenta atras del autocierre en vez de la X */
+(function(){
+  const addCount=id=>{const b=document.getElementById(id);if(!b||b.classList.contains('ovl-count'))return;
+    b.classList.add('ovl-count');b.textContent=b.textContent||'';b.dataset.orig=b.textContent;
+    b.setAttribute('aria-label','Cerrar (autocierre)');};
+  ['btn-search-close','set-close','pick-close','dbg-close'].forEach(addCount);
+})();
 
 function bindSelect(id,key,cb){
   const el=document.getElementById(id);
@@ -3348,7 +3578,7 @@ function bindSelect(id,key,cb){
     if(cb)cb(el.value);
   });
 }
-bindSelect('s-map-provider','mapProvider',()=>initMap());
+bindSelect('s-map-provider','mapProvider',()=>{const sel=document.getElementById('s-map-provider');toast('Mapa: '+(sel&&sel.selectedOptions&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:S.mapProvider),2000);initMap();});
 bindSelect('s-map-style','mapStyle',()=>initMap());
 bindSelect('s-route-provider','routeProvider');
 bindSelect('s-poi-provider','poiProvider');
@@ -3451,15 +3681,16 @@ poiSizeEl.addEventListener('input',()=>{
 syncPoiSize();
 syncPoiChips();
 /* clic en el banner de navegación: ciclar el tamaño de la lista de instrucciones
-   0 = solo la instrucción actual, 1 = actual + próxima, 2 = listado completo */
+   1 = solo la instrucción actual, 2 = actual + próxima, 0 = listado completo */
 (function(){
   const b=document.getElementById('banner');
   if(!b)return;
   b.addEventListener('click',e=>{
     if(e.target&&e.target.closest('.rsz-handle'))return;
-    S.detailLevel=(S.detailLevel+1)%3;
+    // ciclo: completo -> solo actual -> actual+próxima -> completo ...
+    S.detailLevel=S.detailLevel===0?1:(S.detailLevel===1?2:0);
     saveS('detailLevel',S.detailLevel);
-    const names=['Solo actual','Actual + próxima','Listado completo'];
+    const names={0:'Listado completo',1:'Solo actual',2:'Actual + próxima'};
     toast('Instrucciones: '+names[S.detailLevel]);
     renderRouteDetail();
   });
@@ -3781,23 +4012,21 @@ function applyMnvMode(){
   lbl.textContent=mnvStyleMode===0?'🛰️ RUTA COMPLETA':mnvStyleMode===1?'🗺️ RUTA COMPLETA':'👁️ RUTA COMPLETA';
   lbl.title='Clic: conmutar satélite / calles / transparente / solo icono';
 }
+/* el clic en la barra de viaje (que sustituye al titulo) o en el minimapa
+   conmuta: satelite / calles / transparente / solo icono */
 (function(){
-  const lbl=document.getElementById('mnv-label');
   const box=document.getElementById('mnv-box');
+  const trip=document.getElementById('mnv-trip');
   const mapEl=document.getElementById('mnv-minimap');
-  if(!lbl||!box)return;
-  lbl.addEventListener('click',e=>{
+  if(!box)return;
+  const cycle=e=>{
     e.stopPropagation();
     mnvStyleMode=(mnvStyleMode+1)%4;
     applyMnvMode();
     if(mnvStyleMode!==3)drawMinimap();
-  });
-  if(mapEl)mapEl.addEventListener('click',e=>{
-    e.stopPropagation();
-    mnvStyleMode=(mnvStyleMode+1)%4;
-    applyMnvMode();
-    if(mnvStyleMode!==3)drawMinimap();
-  });
+  };
+  if(trip)trip.addEventListener('click',cycle);
+  if(mapEl)mapEl.addEventListener('click',cycle);
 })();
 
 /* mover la ventana de maniobra arrastrando (además del redimensionado por la esquina) */
@@ -3810,6 +4039,7 @@ function makeMovableWin(id){
   if(isFinite(y))el.style.top=Math.max(M,Math.min(window.innerHeight-el.offsetHeight-M,y))+'px';
   el.addEventListener('pointerdown',e=>{
     if(e.target&&e.target.closest('.rsz-handle'))return; // el asa sigue redimensionando
+    if(e.target&&e.target.closest('#mnv-trip'))return; // la barra de viaje no arrastra: clic = cambiar modo
     if(el.classList.contains('mnv-icon-only'))return; // el icono no se arrastra
     e.preventDefault();
     const M=8; // margen mínimo con los bordes de la pantalla
@@ -4501,8 +4731,11 @@ async function updatePickCoords(){
     if(city){const r=document.createElement('div');r.textContent=city;c.appendChild(r);}
     if(prov){const r=document.createElement('div');r.textContent=prov;c.appendChild(r);}
     if(!c.childNodes.length)c.textContent=j.display_name||pickState.lat.toFixed(5)+', '+pickState.lon.toFixed(5);
+    // NO sobrescribir el nombre del POI con la calle: solo si el nombre era
+    // genérico (seleccionaste un punto del mapa sin nombre conocido)
+    const generic=!pickState.name||pickState.name==='Destino'||pickState.name==='Punto de interés';
     const nm=document.getElementById('pick-name');
-    if(nm&&road){pickState.name=road;nm.textContent=road;}
+    if(nm&&road&&generic){pickState.name=road;nm.textContent=road;}
   }catch(e){
     if(my===_pickAddrCtl)c.textContent=pickState.lat.toFixed(5)+', '+pickState.lon.toFixed(5);
   }
@@ -4644,6 +4877,20 @@ function dispManeuverIdx(steps){
   const n=((steps||[]).length)||(routeData&&routeData.steps&&routeData.steps.length)||0;
   return Math.max(0,Math.min(maneuverIdx+1,Math.max(0,n-1)));
 }
+
+/* numero ordinal de la instruccion del paso idx dentro del itinerario
+   (salida/destino y las filas de lugar NO cuentan: solo maniobras). Es el
+   mismo numero que muestra la fila numerada de la lista detallada. */
+function maneuverCount(idx){
+  const stepsArr=(routeData&&routeData.steps)||[];
+  let n=0;
+  const end=Math.max(0,Math.min(idx,stepsArr.length-1));
+  for(let i=0;i<=end;i++){
+    const t=((stepsArr[i]||{}).maneuver||{}).type||'';
+    if(t!=='arrive'&&t!=='depart')n++;
+  }
+  return n;
+}
 function renderRouteDetail(){
   const stBox=document.getElementById('rd-steps');
   if(!stBox)return;
@@ -4669,7 +4916,8 @@ function renderRouteDetail(){
   const curIdx=dispManeuverIdx(steps); // mismo paso que muestra el banner
   // nivel de detalle: 0 = solo actual, 1 = actual + próxima, 2 = listado completo
   const Lv=S.detailLevel;
-  const maxStep=Lv===0?curIdx:(Lv===1?curIdx+1:Infinity); // último paso visible
+  const maxStep=Lv===1?curIdx+1:Infinity; // nivel 1: actual+próxima; 0 y 2: listado completo
+  let stepNum=0; // numeracion corrida de las instrucciones (1, 2, 3...)
   // filas de instrucción (solo nombre de vía a seguir), uniendo tramos seguidos
   // de la misma vía en una sola fila con la distancia acumulada
   const addStepRange=(start,end)=>{
@@ -4691,6 +4939,7 @@ function renderRouteDetail(){
       const row=document.createElement('div');
       row.className='rd-step'+(i===curIdx?' cur past':'');
       row.dataset.step=i;
+  row.dataset.stepNum=++stepNum;
       row.title=simActive?'Saltar a 50 m antes de este punto':'Ver en el mapa';
       const ic=document.createElement('span');
       ic.className='rd-ico';
@@ -4703,7 +4952,9 @@ function renderRouteDetail(){
       nm.className='rd-name';nm.textContent=label;
       const ds=document.createElement('b');
       ds.className='rd-dist';
-      row.appendChild(ic);row.appendChild(nm);row.appendChild(ds);
+      const nb=document.createElement('b');
+      nb.className='rd-num';nb.textContent=row.dataset.stepNum;
+      row.appendChild(nb);row.appendChild(ic);row.appendChild(nm);row.appendChild(ds);
       row.onclick=()=>onStepClick(i);
       if(firstStepRow<0&&i>curIdx)firstStepRow=i; // primera instrucción venidera = siguiente movimiento
       stBox.appendChild(row);
@@ -4718,26 +4969,50 @@ function renderRouteDetail(){
   };
   computeRouteRadars();
   const compact=Lv<2;
+  // Los radares se intercalan entre las instrucciones por su posicion real en
+  // la ruta (no todos al final): cada fila de radar se inserta tras el paso
+  // en cuyo tramo cae, igual que los avisos de voz.
+  const radarAfter={}; // idx de paso -> [radar...]
+  if(!compact&&routeData&&routeData.cumDist&&routeData.cumDist.length){
+    for(const rr of routeRadars){
+      // along (m sobre la ruta) -> primer paso cuyo tramo contiene el radar
+      let at=0;
+      while(at<routeData.cumDist.length-1&&routeData.cumDist[at]<rr.along)at++;
+      (radarAfter[at]=radarAfter[at]||[]).push(rr);
+    }
+  }
   if(!compact)addLocRow(stBox,'start','Salida','🏠',-1);
   let segStart=0;
+  const emitRadars=(i)=>{
+    const list2=radarAfter[i];
+    if(list2)for(const rr of list2)addRadarRow(stBox,rr);
+  };
   for(let k=0;k<W.length;k++){
     const bi=Math.min(bounds[k],steps.length);
-    addStepRange(segStart,bi);
+    for(let i=segStart;i<=bi;i++){
+      addStepRange(i,i+1);
+      emitRadars(i);
+    }
     if(!compact)addLocRow(stBox,'stop',W[k].name||('Parada '+(k+1)),'📍',k);
     segStart=bi+1;
   }
   let last=steps.length;
   while(last>0&&((steps[last-1].maneuver||{}).type||'')==='arrive')last--;
-  addStepRange(segStart,last);
+  for(let i=segStart;i<last;i++){addStepRange(i,i+1);emitRadars(i);}
   if(!compact)addLocRow(stBox,'end',lastDestName||'Destino','🏁',-2);
-  for(const rr of routeRadars)if(!compact)addRadarRow(stBox,rr);
-  if(curRow){
+  if(!compact)emitRadars(steps.length);
+  if(curRow&&stBox){
     try{
-      // el scrollable es #rd-steps: la instrucción actual queda en la primera
-      // fila visible y las anteriores quedan ocultas por arriba
-      if(stBox)stBox.scrollTop=Math.max(0,curRow.offsetTop-Math.round(curRow.offsetHeight*0.45));
+      // wheel/picker: la instruccion actual es la PRINCIPAL y queda centrada;
+      // las pasadas quedan arriba y las futuras abajo, todas mas pequenas
+      const _sh=stBox.clientHeight||0;
+      stBox.style.scrollSnapType='none'; // el snap obligatorio peleaba con el centrado y dejaba 2 filas grandes
+      stBox.style.scrollBehavior='auto';
+      stBox.scrollTop=Math.max(0,curRow.offsetTop-(_sh-curRow.offsetHeight)/2);
+      requestAnimationFrame(function(){stBox.style.scrollBehavior='';});
     }catch(e){}
   }
+  (typeof requestAnimationFrame==='function'?requestAnimationFrame:function(fn){fn();})(applyWheelPicker);
   wireWaypointDrag();
   placeTopbarBtns();
 }
@@ -4771,7 +5046,8 @@ function addRadarRow(box,radar){
   const row=document.createElement('div');
   row.className='rd-step rd-radar';
   const ic=document.createElement('span');
-  ic.className='rd-ico rd-ico-radar';ic.textContent='📸';
+  ic.className='rd-ico rd-ico-radar';
+  ic.innerHTML=RADAR_ICON_SVG;
   const nm=document.createElement('span');
   nm.className='rd-name';nm.textContent=radar.name;
   row.appendChild(ic);row.appendChild(nm);
@@ -4779,6 +5055,47 @@ function addRadarRow(box,radar){
   box.appendChild(row);
   return row;
 }
+/* ---- vista Wheel / Picker del itinerario ----
+   Como un selector rodante: con el scroll te mueves por la lista y la fila
+   que queda cerca del centro vertical es la "principal" (tamaño completo);
+   las demas son el mismo contenido, mas pequenas y algo mas tenues. */
+function applyWheelPicker(){
+  const list=document.getElementById('rd-steps');if(!list)return;
+  const rows=Array.prototype.slice.call(list.querySelectorAll('.rd-step'));
+  if(!rows.length)return;
+  const cRect=list.getBoundingClientRect();
+  const cy=cRect.top+cRect.height/2;
+  const radius=Math.max(90,cRect.height*0.62);
+  // exactamente UNA fila principal: la mas cercana al centro de la lista
+  let best=null,bd=Infinity;
+  rows.forEach(r=>{
+    const b=r.getBoundingClientRect();
+    const d=Math.abs((b.top+b.height/2)-cy);
+    if(d<bd){bd=d;best=r;}
+  });
+  rows.forEach(r=>{
+    const b=r.getBoundingClientRect();
+    const d=Math.abs((b.top+b.height/2)-cy);
+    const main=r===best;
+    if(main){r.style.fontSize='';r.style.opacity='';r.style.marginRight='';}
+    else{
+      // degradado REAL de tamano (font-size, no transform: el transform no
+      // cambia el layout y dejaba huecos/solapes): siguiente ~0.85 y cada
+      // vez mas pequeña hasta ~0.55 según distancia al centro
+      const f=Math.max(0,1-d/radius);
+      r.style.fontSize=(15*(0.5+0.35*f)).toFixed(1)+'px';
+      r.style.opacity=(0.4+0.4*f).toFixed(2);
+      // tamano de ancho tambien: margen derecho creciente -> la fila futura
+      // es literalmente mas estrecha, no solo tipografia mas pequenha
+      r.style.marginRight=Math.round(26*(1-f))+'px';
+    }
+    r.classList.toggle('wheel-main',main);
+  });
+}
+(function(){
+  const list=document.getElementById('rd-steps');if(!list)return;
+  list.addEventListener('scroll',()=>requestAnimationFrame(applyWheelPicker),{passive:true});
+})();
 /* reordenar paradas arrastrando (☰) sobre la lista de itinerario */
 function wireWaypointDrag(){
   const list=document.getElementById('rd-steps');

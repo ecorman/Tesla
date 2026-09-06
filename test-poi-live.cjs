@@ -1,7 +1,9 @@
 const fs=require('fs');
 const html=fs.readFileSync('nav.html','utf8');
 const scripts=[...html.matchAll(/<script(?![^>]*type="module")[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).filter(x=>x.trim());
-const src=scripts[0];
+/* El script principal es el ÚLTIMO <script> inline (el "use strict" grande);
+   el primero fue absorbido por el panel de depuración en el HTML actual. */
+const src=scripts[scripts.length-1];
 
 let passed=0,failed=0;
 function T(name,cond){if(cond){passed++;}else{failed++;console.log('FAIL:',name);}}
@@ -88,17 +90,18 @@ function makeMapStub(){
 }
 const mapObj=makeMapStub();
 
-// ---- inyección con bindings bidireccionales ----
+/* ---- inyección con bindings bidireccionales ---- */
 const BIND=(name)=>'let '+name+'=null;Object.defineProperty(globalThis,\'__'+name+'\',{configurable:true,get(){return '+name+';},set(v){'+name+'=v;}});';
 let boot=src
   .replace("const LS='nav_';",'const LS=globalThis.__LS;')
-  .replace(/const S=\{\n[\s\S]*?\};\n(?=function saveS)/,'const S=globalThis.__S;\n')
+  .replace(/const S=\{\n[\s\S]*?\n\};\n/, 'const S=globalThis.__S;\n')
   .replace('let isFlying=false;',BIND('isFlying'))
   .replace('let routeData=null;      // {coords, steps, distance, duration}',BIND('routeData'))
   .replace('let maneuverIdx=0,lastRenderedManeuver=-1;',BIND('maneuverIdx')+'let lastRenderedManeuver=-1;')
   .replace('let userPos=null,userMarker=null,carMarker=null,carMarkerEl=null,carHeading=null,lastPosForBearing=null;',BIND('userPos')+'let userMarker=null,carMarker=null,carMarkerEl=null,carHeading=null,lastPosForBearing=null;')
   .replace('let navSpeedKmh=0;          // velocidad actual (km/h), para AUTO/ECO',BIND('navSpeedKmh'))
   .replace('let freeDriveDetected=false; // aviso de navegación libre (una sola vez por sesión)',BIND('freeDriveDetected'))
+  .replace('let simTimer=null,simActive=false,simIdx=0,simPos=null,simSpeedKmh=60;','let simTimer=null,simIdx=0,simPos=null,simSpeedKmh=60;'+BIND('simActive'))
   .replace('let simActive=false;',BIND('simActive'))
   .replace('let followPaused=false,followTimer=null,followTimerLeft=0;',BIND('followPaused')+'let followTimer=null,followTimerLeft=0;')
   .replace('let map=null;','let map=globalThis.__map;')
@@ -144,7 +147,7 @@ const snap=()=>{gb.__snap&&gb.__snap();return gb.__out;};
   const st2=snap();
   if(overpassUp){
     T('refreshPois crea marcadores',st2.layerMarkers.pois.length>0);
-    T('marcadores <= 150 (límite)',st2.layerMarkers.pois.length<=150);
+    T('marcadores <= 200 (límite)',st2.layerMarkers.pois.length<=200);
     T('cada marcador tiene marker y el',st2.layerMarkers.pois.every(m=>m&&m.marker));
   }else{
     T('refreshPois crea marcadores (SKIP: Overpass caído)',true);
