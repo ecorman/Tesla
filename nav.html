@@ -26,7 +26,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- top bar unificada (menús + zoom horizontal) ---- */
 #topbar{position:fixed;top:0;left:0;right:0;bottom:0;z-index:20;pointer-events:none}
 #topbar>*{pointer-events:auto}
-.topbar-left{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;min-width:0}
+.topbar-left{position:absolute;left:10px;bottom:150px;top:auto;transform:none;display:flex;align-items:center;gap:8px;min-width:0}
 .icon-btn{width:42px;height:42px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s}
 .icon-btn:hover{background:#282830;border-color:var(--acc)}
 .app-menu-btn{width:42px;height:42px;border-radius:50%;background:rgba(100,100,100,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.4);transition:all .18s ease;padding:0}
@@ -60,7 +60,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- cajetín de navegación clonado de tesla.html ---- */
-#banner{position:absolute;top:12px;left:12px;z-index:22;display:none;flex-direction:column;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:min(25vw,340px);max-width:min(25vw,calc(100vw - 24px));min-width:230px;max-height:min(42vh,calc(100vh - 250px));font-family:'Segoe UI',system-ui,sans-serif}
+#banner{position:absolute;top:12px;left:12px;z-index:22;display:none;flex-direction:column;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:min(25vw,340px);max-width:min(25vw,calc(100vw - 24px));min-width:230px;max-height:min(60vh,calc(100vh - 170px));font-family:'Segoe UI',system-ui,sans-serif}
 #banner .nav-main-col{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
 .nav-panel-top-row{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1}
 .nav-lock-icon{font-size:13px;line-height:1;flex-shrink:0}
@@ -165,7 +165,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #hud-orient{white-space:nowrap;font-size:calc(13px * var(--hud-scale,1));font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;line-height:1.1}
 #hud-cardinal{white-space:nowrap;font-size:calc(10px * var(--hud-scale,1));color:var(--dim);line-height:1.1}
 #hud-alt{white-space:nowrap;font-size:calc(10px * var(--hud-scale,1));color:var(--dim);font-variant-numeric:tabular-nums}
-#hud-graph{position:absolute;left:calc(100% + 10px);bottom:0;width:150px;height:calc(52px * var(--hud-scale,1));border-radius:8px;background:rgba(255,255,255,.05);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#hud-graph{position:fixed;right:8px;top:216px;width:280px;height:calc(52px * var(--hud-scale,1));border-radius:10px;background:rgba(8,10,14,.97);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.6)}
 #free-hud.graph-hidden #hud-graph{display:none}
 #free-hud.graph-hidden{min-width:74px}
 /* ---- minimapa de maniobra ---- */
@@ -3641,6 +3641,20 @@ function toggleHudGraph(){
 }
 const hudGraphCv=document.getElementById('hud-graph');
 if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
+/* la ventana de perfil (gráfica) se ancla justo debajo del minimapa y lo sigue */
+function placeHudGraph(){
+  const cv=document.getElementById('hud-graph');
+  const mb=document.getElementById('mnv-box');
+  if(!cv||!mb||cv.offsetWidth===0)return; // oculta: sin nada que colocar
+  const r=mb.getBoundingClientRect();
+  if(r.width>0&&r.height>0){
+    cv.style.left=Math.round(r.left)+'px';
+    cv.style.right='auto';
+    cv.style.top=Math.round(r.bottom+8)+'px';
+    cv.style.width=Math.round(r.width)+'px';
+  }
+}
+window.addEventListener('resize',placeHudGraph);
 /* brújula (siempre visible): un toque en la tarjeta muestra/oculta la gráfica */
 (function(){
   const hudEl=document.getElementById('free-hud');
@@ -3650,7 +3664,7 @@ if(hudGraphCv)hudGraphCv.onclick=e=>{e.stopPropagation();toggleHudGraph();};
     hudEl.classList.toggle('graph-hidden');
     if(!hudEl.classList.contains('graph-hidden')){
       const cv=document.getElementById('hud-graph');
-      if(cv)drawHudGraph();
+      if(cv){placeHudGraph();drawHudGraph();}
     }
   });
 })();
@@ -3677,7 +3691,7 @@ function makeResizable(id,key,minW,minH){
       el.style.width=Math.round(nw)+'px';
       el.style.height=Math.round(nh)+'px';
       if(id==='free-hud'){const cv=document.getElementById('hud-graph');if(cv&&(cv.width!==cv.offsetWidth||cv.height!==cv.offsetHeight)){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;drawHudGraph();}}
-      if(id==='mnv-box'){if(miniMap)miniMap.resize();miniFitKey='';drawMinimap();}
+      if(id==='mnv-box'){if(miniMap)miniMap.resize();miniFitKey='';drawMinimap();if(typeof placeHudGraph==='function')placeHudGraph();}
     };
     const up=ev=>{
       move(ev);
@@ -3805,7 +3819,7 @@ function makeMovableWin(id){
       el.style.left=r.left+'px';el.style.top=r.top+'px';el.style.right='auto';
     }
     const sx=e.clientX,sy=e.clientY,ol=el.offsetLeft,ot=el.offsetTop;
-    const m=ev=>{el.style.left=Math.max(M,Math.min(window.innerWidth-el.offsetWidth-M,ol+ev.clientX-sx))+'px';el.style.top=Math.max(M,Math.min(window.innerHeight-el.offsetHeight-M,ot+ev.clientY-sy))+'px';};
+    const m=ev=>{el.style.left=Math.max(M,Math.min(window.innerWidth-el.offsetWidth-M,ol+ev.clientX-sx))+'px';el.style.top=Math.max(M,Math.min(window.innerHeight-el.offsetHeight-M,ot+ev.clientY-sy))+'px';if(id==='mnv-box'&&typeof placeHudGraph==='function')placeHudGraph();};
     const u=ev=>{m(ev);localStorage.setItem(LS+id+'X',el.offsetLeft);localStorage.setItem(LS+id+'Y',el.offsetTop);window.removeEventListener('pointermove',m);window.removeEventListener('pointerup',u);};
     window.addEventListener('pointermove',m);
     window.addEventListener('pointerup',u);
