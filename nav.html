@@ -24,32 +24,32 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif}
 #map{position:absolute;inset:0}
 /* ---- top bar unificada (menús + zoom horizontal) ---- */
-#topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:linear-gradient(to bottom,rgba(0,0,0,.8) 0%,rgba(0,0,0,.35) 70%,transparent 100%);pointer-events:none}
+#topbar{position:fixed;top:0;left:0;right:0;bottom:0;z-index:20;pointer-events:none}
 #topbar>*{pointer-events:auto}
-.topbar-left{display:flex;align-items:center;gap:8px;min-width:0}
+.topbar-left{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;min-width:0}
 .icon-btn{width:42px;height:42px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s}
 .icon-btn:hover{background:#282830;border-color:var(--acc)}
 .app-menu-btn{width:42px;height:42px;border-radius:50%;background:rgba(100,100,100,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.4);transition:all .18s ease;padding:0}
 .app-menu-btn:hover{background:rgba(140,140,140,.55);border-color:rgba(255,255,255,.45);transform:scale(1.06)}
 .app-menu-btn img{width:64%;height:64%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
 /* ---- zoom control cluster (fila superior horizontal) ---- */
-#zoom-controls{position:fixed;bottom:14px;right:12px;z-index:25;display:flex;flex-direction:row;transition:right .2s ease;gap:4px;align-items:center;flex-shrink:0;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:12px;padding:3px 5px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+#zoom-controls{position:fixed;bottom:14px;right:64px;z-index:25;display:flex;flex-direction:row;transition:right .2s ease;gap:4px;align-items:center;flex-shrink:0;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:12px;padding:3px 5px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
 #zoom-controls .zbtn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
 #zoom-controls .zbtn:hover{background:rgba(255,255,255,.1)}
 #zoom-controls .zbtn.mode{width:auto;min-width:44px;padding:0 8px;font-size:11px;font-weight:700;letter-spacing:.5px;line-height:1;border-radius:8px}
 #zoom-controls .zbtn.mode.active{background:var(--acc);color:#fff}
 #zoom-controls .zbtn.mode.route-mode{background:#1c5f2e;color:#fff}
-#zoom-controls.shifted{right:62px}
-#btn-center{display:none;position:fixed;bottom:14px;right:12px;z-index:26;width:44px;height:44px;padding:0;font-size:22px;align-items:center;justify-content:center;border-radius:12px;background:rgba(20,20,24,.9);border:1px solid var(--line);color:var(--txt);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);transition:all .15s ease}
+#zoom-controls.shifted{right:120px}
+#btn-center{display:none;position:fixed;bottom:14px;right:122px;z-index:26;width:44px;height:44px;padding:0;font-size:22px;align-items:center;justify-content:center;border-radius:12px;background:rgba(20,20,24,.9);border:1px solid var(--line);color:var(--txt);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);transition:all .15s ease}
 #btn-center:hover{background:#282830;border-color:var(--acc)}
 #btn-center.visible{display:flex}
 #z-level{font-size:12px;font-weight:600;color:var(--dim);text-align:center;font-variant-numeric:tabular-nums;padding:0 4px;min-width:28px}
 /* ---- botón de ajustes horizontal abajo a la derecha ---- */
-#gear{position:fixed;bottom:14px;right:262px;height:42px;z-index:26;width:42px;height:42px;padding:0;justify-content:center;border-radius:12px;font-size:18px;background:rgba(20,20,24,.9);border:1px solid var(--line);color:var(--txt);font-weight:600;cursor:pointer;display:flex;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.45);transition:all .15s ease;flex-shrink:0}
+#gear{position:fixed;bottom:14px;right:12px;z-index:26;width:42px;height:42px;padding:0;justify-content:center;border-radius:12px;font-size:18px;background:rgba(20,20,24,.9);border:1px solid var(--line);color:var(--txt);font-weight:600;cursor:pointer;display:flex;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.45);transition:all .15s ease;flex-shrink:0}
 #gear:hover{background:#282830;border-color:var(--acc)}
 #gear .gear-icon{font-size:18px;line-height:1}
 #gear .gear-text{font-size:13px;letter-spacing:.3px}
-#search-panel{position:absolute;top:54px;left:12px;z-index:70;display:none;flex-direction:column;gap:8px;width:min(430px,82vw);background:rgba(16,16,20,.97);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#search-panel{position:absolute;top:12px;left:12px;z-index:70;display:none;flex-direction:column;gap:8px;width:min(430px,82vw);background:rgba(16,16,20,.97);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #search-panel.open{display:flex}
 .sp-row{display:flex;gap:6px;align-items:center}
 #dest-input{flex:1;padding:10px 14px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:15px;outline:none}
@@ -60,7 +60,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn.primary:hover{background:#3d7aef}
 .btn.stop{background:var(--err);border-color:var(--err);color:#fff}
 /* ---- cajetín de navegación clonado de tesla.html ---- */
-#banner{position:absolute;top:58px;left:12px;z-index:22;display:none;align-items:stretch;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:fit-content;max-width:min(25vw,calc(100vw - 24px));min-width:230px;gap:10px;font-family:'Segoe UI',system-ui,sans-serif}
+#banner{position:absolute;top:12px;left:12px;z-index:22;display:none;flex-direction:column;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:min(25vw,340px);max-width:min(25vw,calc(100vw - 24px));min-width:230px;max-height:min(42vh,calc(100vh - 250px));font-family:'Segoe UI',system-ui,sans-serif}
 #banner .nav-main-col{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
 .nav-panel-top-row{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1}
 .nav-lock-icon{font-size:13px;line-height:1;flex-shrink:0}
@@ -100,13 +100,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip .nps-next-line .sep{color:#889098}
 #nav-progress-strip #navigation-eta-info{margin-top:0;gap:18px}
 #nav-progress-strip .nps-clock{display:flex;flex-direction:column;gap:2px;padding:4px 10px;margin-left:auto;flex-shrink:0;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center}
-#nav-progress-strip #nav-clock-now{font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2}
+#nav-progress-strip #nav-clock-diff{font-size:15px;font-weight:800;color:#2fd07a;font-variant-numeric:tabular-nums;line-height:1.2}
+#nav-progress-strip #nav-clock-diff.behind{color:#ff5252}
+#nav-progress-strip #final-destination-eta{font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2}
 #nav-progress-strip .np-col{display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.06);min-width:0;width:fit-content}
 #nav-progress-strip .np-col:last-child{align-items:flex-end}
 #nav-progress-strip .np-col strong{font-size:8px;color:#888ea0;letter-spacing:.5px;font-weight:700;text-transform:uppercase}
 #nav-progress-strip .np-col span{font-size:13px;font-weight:800;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap}
 #nav-progress-strip .np-col.np-now{background:rgba(0,0,0,.45)}
 #nav-progress-strip .eta-col{flex:none}
+#nav-progress-strip{cursor:pointer;user-select:none}
+#nav-progress-strip.mode-real .tm-pend{display:none}
+#nav-progress-strip.mode-pend .tm-real{display:none}
 /* chip de velocidad clonado de tesla.html */
 #nav-speed-chip{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:24;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
 #nav-speed-chip .vel-lbl{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700}
@@ -124,15 +129,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #pick-card .pc-btns .btn{flex:1}
 .pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
 /* ---- ventana de ruta detallada: itinerario Salida → paradas → Destino ---- */
-#route-detail{position:absolute;top:96px;left:12px;z-index:21;display:none;width:min(25vw,340px);max-height:min(46vh,calc(100vh - 260px));bottom:auto;overflow-y:auto;padding:9px 11px;background:rgba(14,16,22,.97);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
-#route-detail .rd-head{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;padding:0 2px}
-#route-detail .rd-head b{font-size:16px;color:var(--txt)}
-#route-detail .rd-head span{font-size:13px;color:var(--dim);margin-left:auto;font-variant-numeric:tabular-nums}
-#rd-steps{display:flex;flex-direction:column;gap:5px;max-height:34vh;overflow-y:auto}
-/* modo "siguiente movimiento": ventana de una sola fila */
-#route-detail.mini{width:min(25vw,340px);max-height:none;padding:6px 8px;overflow:visible}
-#route-detail.mini .rd-head{display:none!important}
-.rd-step.rd-mini-row{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
+#rd-steps{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;min-height:0;margin-top:8px;padding-right:2px}
 /* primera instrucción del itinerario (siguiente movimiento) resaltada */
 .rd-step.next-maneuver{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
 .rd-step.past{opacity:.55}
@@ -438,8 +435,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   }
   function tickBottomStrip(){
     try{
-      var clockEl=document.getElementById('nav-clock-now');
-      if(clockEl)clockEl.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      var diffEl=document.getElementById('nav-clock-diff');
+      if(diffEl){
+        try{
+          if(typeof routeData!=='undefined'&&routeData&&routeData.distance>0&&typeof tripStats!=='undefined'&&tripStats&&tripStats.startTime){
+            var start=+new Date(tripStats.startTime);
+            var total=routeData.distance;
+            var travelled=(tripStats.travelledKm||0)*1000;
+            var frac=Math.min(1,travelled/total);
+            var predRemaining=routeData.duration*(1-frac);
+            var originalArrival=start+routeData.duration*1000;
+            var projectedArrival=Date.now()+predRemaining*1000;
+            var diff=Math.round((projectedArrival-originalArrival)/1000);
+            var late=diff>0;
+            var m=Math.abs(Math.round(diff/60));
+            var sign=late?'+':'-';
+            diffEl.textContent=sign+String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+            diffEl.classList.toggle('behind',late);
+          }else{
+            diffEl.textContent='±0:00';diffEl.classList.remove('behind');
+          }
+        }catch(e){}
+      }
       var distEl=document.getElementById('nav-next-dist');
       var timeEl=document.getElementById('nav-next-time');
       if(!distEl||!timeEl)return;
@@ -542,26 +559,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <!-- Barra de progreso hasta la próxima maniobra (verde→azul, se llena al acercarse) -->
     <div id="nav-maneuver-progress" title="Progreso hasta la próxima maniobra"><i id="nav-maneuver-progress-fill"></i></div>
   </div>
-
+  <!-- ventana unificada: las instrucciones van pasando hacia arriba dentro del mismo banner -->
+  <div id="rd-steps"></div>
 </div>
 
 <!-- Barra inferior (margen inferior izquierdo): próxima etapa + destino + hora de llegada -->
 <div id="nav-progress-strip">
   <div class="np-col np-now">
-    <span id="nav-clock-now">--:--</span>
+    <span id="nav-clock-diff" title="Diferencia respecto a la previsión">±0:00</span>
     <strong>ETA</strong>
     <span id="final-destination-eta">--:--</span>
   </div>
   <div class="np-col">
-    <strong>Tiempo</strong>
-    <span id="np-time-done">00:00</span>
-    <span id="np-remaining-time">—</span>
+    <strong id="times-mode-label">Realizados</strong>
+    <span id="np-time-done" class="tm-real">00:00</span>
+    <span id="np-remaining-time" class="tm-pend">—</span>
     <span id="np-time-total">—</span>
   </div>
   <div class="np-col">
-    <strong>Km</strong>
-    <span id="np-km-done">0.0 km</span>
-    <span id="np-km-left">—</span>
+    <strong>Distancia</strong>
+    <span id="np-km-done" class="tm-real">0.0 km</span>
+    <span id="np-km-left" class="tm-pend">—</span>
     <span id="np-km-total">—</span>
   </div>
 </div>
@@ -574,11 +592,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <button class="btn primary" id="pick-new">🚗 Nueva ruta</button>
     <button class="btn" id="pick-add">➕ Añadir Punto</button>
   </div>
-</div>
-
-<!-- ventana de ruta detallada: itinerario Salida → instrucciones → paradas → instrucciones → Destino -->
-<div id="route-detail">
-  <div id="rd-steps"></div>
 </div>
 
 <!-- Brújula (siempre visible con GPS): rosa + grados; un toque muestra/oculta la gráfica -->
@@ -668,9 +681,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     </select>
     <label style="margin-top:10px">Ventana de ruta</label>
     <select id="s-route-view">
-      <option value="siguiente">Siguiente movimiento (una fila)</option>
-      <option value="normal">Normal (solo banner)</option>
-      <option value="detallada">Detallada (puntos + instrucciones)</option>
+      <option value="detallada">Unificada (banner + instrucciones)</option>
     </select>
   </div>
 
@@ -689,7 +700,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <option value="native">Navegador (TTS offline)</option>
       <option value="clips">Clips pre-generados (WAV)</option>
       <option value="online">Voz online (MP3)</option>
+      <option value="gcloud">Voz natural Google (API key)</option>
     </select>
+    <input id="s-voice-gkey" type="password" placeholder="API key de Google Cloud (text-to-speech)" autocomplete="off" style="margin-top:6px;width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid var(--border,#333);background:var(--panel,#15181d);color:var(--txt,#eee)">
     <label style="margin-top:10px">Parámetros de voz (motor eSpeak)</label>
     <div class="posrow"><label>Volumen</label><input type="range" id="s-voice-amp" min="80" max="220" value="150"><span class="val" id="v-voice-amp">150</span></div>
     <div class="posrow"><label>Tono</label><input type="range" id="s-voice-pitch" min="25" max="99" value="64"><span class="val" id="v-voice-pitch">64</span></div>
@@ -915,9 +928,12 @@ const S={
   poiSize:     parseInt(localStorage.getItem(LS+'poiSize'))||40,
   zoomMode:    localStorage.getItem(LS+'zoomMode')||'auto', // LIBRE/AUTO/RUTA/ECO (igual que tesla.html)
   routeProvider:localStorage.getItem(LS+'routeProvider')||'osrm',
-  routeView:    localStorage.getItem(LS+'routeView')||'siguiente',
+  routeView:    localStorage.getItem(LS+'routeView')||'detallada',
+  detailLevel:  parseInt(localStorage.getItem(LS+'detailLevel'))||2,
+  timesMode:    localStorage.getItem(LS+'timesMode')||'realizados',
   voiceMode:   localStorage.getItem(LS+'voiceMode')||'voice',
   voiceEngine: localStorage.getItem(LS+'voiceEngine')||'online',
+  gcloudKey:   localStorage.getItem(LS+'gcloudKey')||'',
   voiceAmp:    parseInt(localStorage.getItem(LS+'voiceAmp'))||150,
   voicePitch:  parseInt(localStorage.getItem(LS+'voicePitch'))||64,
   voiceSpeed:  parseInt(localStorage.getItem(LS+'voiceSpeed'))||170,
@@ -1108,15 +1124,10 @@ let onlineAudioEl=null;
 // el clasico sin API key). Si uno falla (red, bloqueo, autoplay) se prueba
 // el siguiente y, si fallan todos, un pitido corto.
 const TTS_ENDPOINTS=[
-  // Voces Google WaveNet (neural) primero: son las más naturales por el
-  // pipeline de MP3 del Tesla — el mismo mecanismo que hace que NaturalReader
-  // "hable bien" en el coche. Es-ES-Wavenet-C es la más natural en castellano.
-  {name:'se-wavenet-c',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-C&text='+encodeURIComponent(t.slice(0,200))},
-  {name:'se-wavenet-d',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-D&text='+encodeURIComponent(t.slice(0,200))},
-  {name:'se-wavenet-b',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Wavenet-B&text='+encodeURIComponent(t.slice(0,200))},
-  {name:'se-standard-a',url:t=>'https://api.streamelements.com/kappa/v2/speech?voice=es-ES-Standard-A&text='+encodeURIComponent(t.slice(0,200))},
+  // translate_tts: único endpoint keyless fiable para el Tesla (MP3 vía <audio>).
+  // Nota: StreamElements (Wavenet) ahora exige token (HTTP 401) y MaryTTS está caído;
+  // por eso ya no están. Para voz realmente natural usa el motor 'gcloud'.
   {name:'google',url:t=>'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q='+encodeURIComponent(t.slice(0,180))},
-  {name:'mary',url:t=>'https://mary.dfki.de/process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&AUDIO=WAVE_FILE&VOICE=dfki-pavoque-neutral-hsmm&LOCALE=es&INPUT_TEXT='+encodeURIComponent(t.slice(0,180))},
 ];
 function speakOnline(text){
   if(!text)return;
@@ -1136,6 +1147,25 @@ function speakOnline(text){
   };
   tryEndpoint(0);
 }
+function speakGoogle(text){
+  if(!text)return;
+  const key=(S.gcloudKey||'').trim();
+  if(!key){toast('Añade tu API key de Google Cloud en Ajustes → Voz para usar la voz natural');speakEspeak(text);return;}
+  const body={
+    input:{text:text.slice(0,5000)},
+    voice:{languageCode:'es-ES',name:'es-ES-Neural2-F'},
+    audioConfig:{audioEncoding:'MP3',speakingRate:1.0}
+  };
+  fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(key),{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+  }).then(r=>r.json()).then(d=>{
+    if(!d||!d.audioContent){throw new Error('no audio');}
+    if(onlineAudioEl){onlineAudioEl.pause();onlineAudioEl.src='';}
+    const a=new Audio('data:audio/mp3;base64,'+d.audioContent);
+    onlineAudioEl=a; a.volume=1; a.play().catch(()=>{});
+  }).catch(()=>{speakEspeak(text);});
+}
+
 /* ---------- voice: eSpeak offline (meSpeak.js, vendido en mespeak/) ---------- */
 // Sintetiza en el propio navegador (asm.js) y suena por Web Audio — el mismo
 // camino que los pitidos (que sí funcionan en el Tesla). Sin red, sin API key,
@@ -1192,6 +1222,7 @@ function speak(text){
   if(S.voiceMode==='sounds'){alertSound('info');return;}
   if(S.voiceEngine==='espeak'){speakEspeak(text);return;}
   if(S.voiceEngine==='auto'){speakAuto(text);return;}
+  if(S.voiceEngine==='gcloud'){speakGoogle(text);return;}
   if(S.voiceEngine==='clips')speakWithClips(text);
   else if(S.voiceEngine==='online')speakOnline(text);
   else speakNative(text);
@@ -2076,8 +2107,9 @@ function camLoopFrame(){
     camFollow={c:[ctr.lng,ctr.lat],b:map.getBearing()||0,z:map.getZoom(),p:map.getPitch()||0};
   }
   const k=0.14; // aproximación exponencial por frame: suave, sin oscilar
+  const kb=0.28; // el bearing persigue más rápido que centro/zoom: en rotondas
   const db=((t.b-camFollow.b)%360+540)%360-180; // siempre el giro corto
-  camFollow.b=(camFollow.b+db*k+360)%360;
+  camFollow.b=(camFollow.b+db*kb+360)%360;
   camFollow.c=[camFollow.c[0]+(t.c[0]-camFollow.c[0])*k,camFollow.c[1]+(t.c[1]-camFollow.c[1])*k];
   camFollow.z+=(t.z-camFollow.z)*k;
   camFollow.p+=(t.p-camFollow.p)*k;
@@ -2619,9 +2651,8 @@ function navTick(){
   drawMinimap();
   // instrucciones detalladas: al cambiar de etapa se re-renderiza el itinerario
   // (Salida → paradas → Destino) y la maniobra actual queda resaltada.
-  if(S.routeView==='siguiente'){
-    renderNextManeuverMini();
-  }else if(S.routeView==='detallada'&&maneuverIdx!==lastRenderedManeuver){
+  // ventana unificada: re-renderiza el itinerario al avanzar de maniobra
+  if(maneuverIdx!==lastRenderedManeuver){
     lastRenderedManeuver=maneuverIdx;
     renderRouteDetail();
   }
@@ -2640,6 +2671,21 @@ function checkVoice(step,dist,ra){
   const type=step.maneuver.type||'';
   const isRA=isRAtype(type);
   const kind=isRA?'roundabout-exit':null;
+  // Instrucción consecutiva a <15 s: si la siguiente maniobra llega a los pocos
+  // segundos de la actual, se anuncia junta («…, luego …») y NO se vuelve a
+  // preanunciar la siguiente antes de llegar al punto (se espera al momento
+  // exacto «ahora»). La distancia entre maniobras es la del paso actual.
+  const spd=(navSpeedKmh||0)/3.6;
+  const steps=routeData&&routeData.steps||[];
+  const curI=steps.indexOf(step);
+  const next=(curI>=0)?steps[curI+1]:null;
+  const secToNext=(spd>1&&next)?((step.distance||0)/spd):Infinity;
+  const closeNext=!!next&&secToNext<=15;
+  let nextPhrase='';
+  if(closeNext){
+    next._luego=true; // la siguiente ya se anuncia junta: no repetir su preaviso
+    if(!voiceFlags.luegoSpoken){voiceFlags.luegoSpoken=true;nextPhrase=' luego, '+stepName(next);}
+  }
   // La rotonda YA es el paso actual (se circula por el anillo): los anuncios
   // se hicieron al acercarse; aquí solo queda el pitido de SALIDA del anillo.
   if(step._ra){
@@ -2658,11 +2704,13 @@ function checkVoice(step,dist,ra){
   if(raActive){
     if(ra.dStart<=550&&ra.dStart>450&&!ra.s._raf.med){
       ra.s._raf.med=true;
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, en la rotonda, '+ra.text);
+      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, en la rotonda, '+ra.text+nextPhrase);
     }
     if(ra.dStart<=230&&ra.dStart>150&&!ra.s._raf.nearA){
       ra.s._raf.nearA=true;
       navBeep('near');
+      // si la siguiente maniobra llega justo después de la rotonda, ya se dijo
+      // en el aviso de 500 m; aquí solo se avisa la salida del anillo.
       if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En la rotonda, '+ra.text);
     }
   }
@@ -2672,13 +2720,16 @@ function checkVoice(step,dist,ra){
   }
   // Paso actual normal (sin rotonda próxima en cartera):
   if(!raActive){
-    if(dist<=550&&dist>450&&!voiceFlags.medium){
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, '+stepName(step));
+    // si esta maniobra ya se anunció como «luego …» en la anterior, no repetir
+    // su preaviso (500 m / 230 m); solo se dice en el momento exacto (ahora).
+    const alreadyTold=!!step._luego;
+    if(dist<=550&&dist>450&&!voiceFlags.medium&&!alreadyTold){
+      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, '+stepName(step)+nextPhrase);
       voiceFlags.medium=true;
     }
-    if(dist<=230&&dist>150&&!voiceFlags.near){
+    if(dist<=230&&dist>150&&!voiceFlags.near&&!alreadyTold){
       navBeep(kind||'near');
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step));
+      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step)+nextPhrase);
       voiceFlags.near=true;
     }
     // En el momento exacto de la maniobra (giros normales): pitido + "ahora"
@@ -3056,7 +3107,7 @@ function handleGpsFix(coords){
   if(rawH!=null&&!isNaN(rawH)){
     if(carHeading!=null&&!isNaN(carHeading)){
       let d=rawH-carHeading; d=((d%360)+540)%360-180;
-      const k=Math.min(0.6,0.25+Math.abs(d)*0.005);
+      const k=Math.min(0.85,0.35+Math.abs(d)*0.008);
       carHeading=(carHeading+d*k+360)%360;
     }else carHeading=rawH;
   }
@@ -3223,11 +3274,35 @@ document.getElementById('btn-go').onclick=()=>{
 };
 destInput.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-go').click();});
 
+/* ---------- ventanas superpuestas: solo una activa a la vez ----------
+   Cuando se abre una ventana flotante se cierran las demas y se programa un
+   autocierre para que la ultima desaparezca sola al cabo de unos segundos. */
+const OVERLAY_IDS=['search-panel','pick-card','settings','mnv-box'];
+function closeOverlays(exceptId){
+  OVERLAY_IDS.forEach(function(id){
+    if(id===exceptId)return;
+    const el=document.getElementById(id);
+    if(!el)return;
+    if(id==='settings')el.classList.remove('open');
+    else if(id==='search-panel'){el.classList.remove('open');if(typeof resultsBox!=='undefined'&&resultsBox)resultsBox.style.display='none';}
+    else el.style.display='none';
+  });
+}
+let _overlayHideTimer=null;
+function armOverlayAutoHide(ms){
+  if(_overlayHideTimer)clearTimeout(_overlayHideTimer);
+  _overlayHideTimer=setTimeout(function(){closeOverlays(null);},ms||14000);
+}
 /* ---- boton de busqueda (abre el panel en dropdown) ---- */
 document.getElementById('btn-search').onclick=()=>{
   const p=document.getElementById('search-panel');
-  p.classList.toggle('open');
-  if(p.classList.contains('open')){resultsBox.style.display='none';setTimeout(()=>destInput.focus(),80);}
+  const wasOpen=p.classList.contains('open');
+  closeOverlays('search-panel');
+  if(wasOpen)return; // toggle: ya estaba abierto -> cerrar
+  p.classList.add('open');
+  resultsBox.style.display='none';
+  armOverlayAutoHide();
+  setTimeout(()=>destInput.focus(),80);
 };
 document.getElementById('btn-search-close').onclick=()=>{
   document.getElementById('search-panel').classList.remove('open');
@@ -3257,7 +3332,12 @@ document.getElementById('btn-center').onclick=()=>{
 
 /* settings panel */
 const settingsPanel=document.getElementById('settings');
-document.getElementById('gear').onclick=()=>settingsPanel.classList.toggle('open');
+document.getElementById('gear').onclick=()=>{
+  const wasOpen=settingsPanel.classList.contains('open');
+  closeOverlays('settings');
+  if(wasOpen)return;
+  settingsPanel.classList.add('open');
+};
 document.getElementById('set-close').onclick=()=>settingsPanel.classList.remove('open');
 
 function bindSelect(id,key,cb){
@@ -3285,6 +3365,7 @@ if(!localStorage.getItem(LS+'voiceEngineV3')){
 }
 bindSelect('s-voice-mode','voiceMode');
 bindSelect('s-voice-engine','voiceEngine');
+const gkeyEl=document.getElementById('s-voice-gkey');if(gkeyEl){gkeyEl.value=S.gcloudKey;gkeyEl.addEventListener('input',()=>saveS('gcloudKey',gkeyEl.value));}
 bindSelect('s-voice-variant','voiceVariant');
 
 /* parámetros de voz eSpeak: sliders en vivo */
@@ -3369,27 +3450,58 @@ poiSizeEl.addEventListener('input',()=>{
 });
 syncPoiSize();
 syncPoiChips();
-/* clic en el banner de navegación: ocultar/mostrar las instrucciones detalladas */
+/* clic en el banner de navegación: ciclar el tamaño de la lista de instrucciones
+   0 = solo la instrucción actual, 1 = actual + próxima, 2 = listado completo */
 (function(){
   const b=document.getElementById('banner');
   if(!b)return;
   b.addEventListener('click',e=>{
     if(e.target&&e.target.closest('.rsz-handle'))return;
-    const order=['siguiente','normal','detallada'];
-    const i=order.indexOf(S.routeView);
-    S.routeView=order[(i+1)%order.length];
-    saveS('routeView',S.routeView);
-    const sel=document.getElementById('s-route-view');
-    if(sel)sel.value=S.routeView;
-    toast('Vista: '+(S.routeView==='siguiente'?'siguiente movimiento':S.routeView==='detallada'?'detalle completo':'solo banner'));
-    updateRouteDetail();
+    S.detailLevel=(S.detailLevel+1)%3;
+    saveS('detailLevel',S.detailLevel);
+    const names=['Solo actual','Actual + próxima','Listado completo'];
+    toast('Instrucciones: '+names[S.detailLevel]);
+    renderRouteDetail();
   });
 })();
 /* menú de aplicación (icono de Tesla arriba) y emblema de velocidad: mostrar/ocultar accesos */
+let menuAutoHideTimer=null;
+function armMenuAutoHide(){
+  if(menuAutoHideTimer)clearTimeout(menuAutoHideTimer);
+  menuAutoHideTimer=setTimeout(()=>{
+    const tb=document.getElementById('topbar');
+    if(tb&&!tb.classList.contains('hidden-btns'))tb.classList.add('hidden-btns');
+  },10000);
+}
 function toggleAppMenu(e){
   if(e)e.stopPropagation();
-  document.getElementById('topbar').classList.toggle('hidden-btns');
+  const tb=document.getElementById('topbar');
+  tb.classList.toggle('hidden-btns');
+  if(!tb.classList.contains('hidden-btns'))armMenuAutoHide();
 }
+(function(){
+  // cualquier interacción con los botones del menú reinicia el contador de 10 s
+  const btns=document.getElementById('topbar-btns');
+  if(btns)btns.addEventListener('click',()=>armMenuAutoHide());
+})();
+/* ventana de tiempos: clic alterna realizados/pendientes (oculta una de las 3 filas) */
+(function(){
+  const strip=document.getElementById('nav-progress-strip');
+  if(!strip)return;
+  function apply(){
+    const m=(S.timesMode==='pendientes')?'pendientes':'realizados';
+    strip.classList.toggle('mode-real',m==='realizados');
+    strip.classList.toggle('mode-pend',m==='pendientes');
+    const lab=document.getElementById('times-mode-label');
+    if(lab)lab.textContent=(m==='realizados')?'Realizados':'Pendientes';
+  }
+  apply();
+  strip.addEventListener('click',()=>{
+    S.timesMode=(S.timesMode==='pendientes')?'realizados':'pendientes';
+    localStorage.setItem(LS+'timesMode',S.timesMode);
+    apply();
+  });
+})();
 const appMenuBtn=document.getElementById('btn-app-menu');
 if(appMenuBtn)appMenuBtn.onclick=toggleAppMenu;
 const speedEmblemBtn=document.getElementById('speed-emblem');
@@ -4352,7 +4464,9 @@ function startPointPick(lonlat,name){
   document.getElementById('pick-name').textContent=pickState.name;
   updatePickCoords();
   document.getElementById('pick-add').style.display=(routeData&&destPoint)?'':'none';
+  closeOverlays('pick-card');
   document.getElementById('pick-card').style.display='flex';
+  armOverlayAutoHide();
 }
 let _pickAddrCtl=0;
 async function updatePickCoords(){
@@ -4453,72 +4567,20 @@ function placeTopbarBtns(){
   const btns=document.getElementById('topbar-btns');
   if(!tb||!btns)return;
   btns.style.top=''; // la fila de botones no se mueve
-  if(!tb.classList.contains('banner-on')){
-    const b0=document.getElementById('banner');if(b0)b0.style.top='';
-    const d0=document.getElementById('route-detail');if(d0)d0.style.top='';
-    return;
-  }
-  const btnBottom=tb?Math.max(54,Math.round(tb.getBoundingClientRect().bottom)+4):54;
-  const b=document.getElementById('banner');
-  const bOn=b&&b.style.display!=='none';
-  if(bOn&&b)b.style.top=btnBottom+'px';
-  const d=document.getElementById('route-detail');
-  if(d&&d.style.display==='block'){
-    const top=bOn&&b?Math.round(b.getBoundingClientRect().bottom)+8:btnBottom;
-    d.style.top=top+'px';
-  }
+  // El banner queda anclado arriba a la izquierda (CSS #banner) por encima de
+  // los botones centrados verticalmente; no se reubica aquí.
+  const b=document.getElementById('banner');if(b)b.style.top='';
 }
 
 /* ================================================================
    ---------- ventana de ruta detallada: itinerario Salida → paradas → Destino ---------- */
 function updateRouteDetail(){
-  const d=document.getElementById('route-detail');
-  if(!d)return;
-  const mode=S.routeView;
-  const show=!!(routeData&&destPoint)&&(mode==='detallada'||mode==='siguiente');
-  d.style.display=show?'block':'none';
-  d.classList.toggle('mini',mode==='siguiente');
+  // Ventana unificada: el banner ya es la única ventana; siempre renderizamos
+  // el itinerario completo (las instrucciones van pasando hacia arriba).
+  renderRouteDetail();
   placeTopbarBtns();
-  if(mode==='siguiente')renderNextManeuverMini();
-  else if(show)renderRouteDetail();
 }
 /* modo "siguiente movimiento": una sola fila con la maniobra actual, idéntica al panel principal */
-function renderNextManeuverMini(){
-  const box=document.getElementById('rd-steps');
-  const d=document.getElementById('route-detail');
-  if(!box||!d)return;
-  if(!routeData||!destPoint){d.style.display='none';return;}
-  box.innerHTML='';
-  const steps=routeData.steps||[];
-  const curIdx=dispManeuverIdx(steps); // paso actual (como el banner)
-  // modo compacto = SIGUIENTE instrucción: la que viene después de la actual
-  const nextIdx=Math.min(curIdx+1,steps.length-1);
-  const st=steps[nextIdx];
-  if(!st)return;
-  const row=document.createElement('div');
-  row.className='rd-step next-maneuver rd-mini-row';
-  const ic=document.createElement('span');
-  ic.className='rd-ico';
-  const img=document.createElement('img');
-  img.src=getManeuverIconFilename(st.maneuver||{});
-  img.alt='';img.draggable=false;
-  ic.appendChild(img);
-  const nm=document.createElement('span');
-  nm.className='rd-name';
-  const m=(st.maneuver||{});const t=m.type||'';
-  let label=stepRoadLabel(st);
-  if(!label){
-    if(isRAtype(t))label=shortManeuverName(st);
-    else label=shortManeuverName(st);
-  }
-  nm.textContent=label;
-  const ds=document.createElement('b');
-  ds.className='rd-dist';ds.textContent=fmtDist(st.distance||0);
-  row.appendChild(ic);row.appendChild(nm);row.appendChild(ds);
-  row.onclick=()=>onStepClick(nextIdx);
-  box.appendChild(row);
-  placeTopbarBtns();
-}
 function stepRoadLabel(st){
   const m=(st&&st.maneuver)||{};const t=m.type||'';
   if(t==='arrive'||t==='depart')return '';
@@ -4571,9 +4633,8 @@ function dispManeuverIdx(steps){
 function renderRouteDetail(){
   const stBox=document.getElementById('rd-steps');
   if(!stBox)return;
-  const d=document.getElementById('route-detail');
   stBox.innerHTML='';
-  if(!routeData||!destPoint){if(d)d.style.display='none';return;}
+  if(!routeData||!destPoint)return;
   const steps=routeData.steps||[];
   const W=routeWaypoints||[];
   // frontera de tramo: paso en el que se sitúa cada parada intermedia
@@ -4592,6 +4653,9 @@ function renderRouteDetail(){
   }
   let curRow=null;
   const curIdx=dispManeuverIdx(steps); // mismo paso que muestra el banner
+  // nivel de detalle: 0 = solo actual, 1 = actual + próxima, 2 = listado completo
+  const Lv=S.detailLevel;
+  const maxStep=Lv===0?curIdx:(Lv===1?curIdx+1:Infinity); // último paso visible
   // filas de instrucción (solo nombre de vía a seguir), uniendo tramos seguidos
   // de la misma vía en una sola fila con la distancia acumulada
   const addStepRange=(start,end)=>{
@@ -4601,6 +4665,7 @@ function renderRouteDetail(){
       openRow=null;prevLabel='';acc=0;
     };
     for(let i=start;i<end;i++){
+      if(i>maxStep)break; // compacto: no pintar pasos más allá del nivel elegido
       const st=steps[i];
       if(!st)continue;
       const t=(st.maneuver||{}).type||'';
@@ -4638,19 +4703,20 @@ function renderRouteDetail(){
     }
   };
   computeRouteRadars();
-  addLocRow(stBox,'start','Salida','🏠',-1);
+  const compact=Lv<2;
+  if(!compact)addLocRow(stBox,'start','Salida','🏠',-1);
   let segStart=0;
   for(let k=0;k<W.length;k++){
     const bi=Math.min(bounds[k],steps.length);
     addStepRange(segStart,bi);
-    addLocRow(stBox,'stop',W[k].name||('Parada '+(k+1)),'📍',k);
+    if(!compact)addLocRow(stBox,'stop',W[k].name||('Parada '+(k+1)),'📍',k);
     segStart=bi+1;
   }
   let last=steps.length;
   while(last>0&&((steps[last-1].maneuver||{}).type||'')==='arrive')last--;
   addStepRange(segStart,last);
-  addLocRow(stBox,'end',lastDestName||'Destino','🏁',-2);
-  for(const rr of routeRadars)addRadarRow(stBox,rr);
+  if(!compact)addLocRow(stBox,'end',lastDestName||'Destino','🏁',-2);
+  for(const rr of routeRadars)if(!compact)addRadarRow(stBox,rr);
   if(curRow){
     try{
       // el scrollable es #rd-steps: la instrucción actual queda en la primera
@@ -4832,14 +4898,17 @@ function normalizeRoundabouts(steps){
   for(let k=0;k<steps.length;k++){
     const s=steps[k];const m=s.maneuver||{};
     const next=steps[k+1];const nm=next&&next.maneuver||{};
-    const enters=/^(roundabout|rotary)$/.test(m.type)&&typeof m.exit==='number'&&m.exit>0;
+    const enters=/^(roundabout|rotary)$/.test(m.type);
     const exits=/^exit-(roundabout|rotary)$/.test(nm.type);
+    // Fusionar el anillo (roundabout/rotary) + su paso de salida (exit-*) en UN
+    // solo paso, aunque el paso de ENTRADA no lleve número de salida (OSRM a
+    // veces lo pone en el paso de salida). Así la rotonda es UNA instrucción.
     if(enters&&exits){
       const ringLen=s.distance||0;
       s.distance=(s.distance||0)+(next.distance||0);
       s.duration=(s.duration||0)+(next.duration||0);
       if(next.name)s.name=next.name;
-      s.maneuver.exit=m.exit;
+      s.maneuver.exit=(typeof m.exit==='number'&&m.exit>0)?m.exit:nm.exit;
       if(!s.maneuver.modifier||s.maneuver.modifier==='straight')s.maneuver.modifier=nm.modifier||s.maneuver.modifier;
       s._ra={ringLen,text:raTextFor(s)};
       out.push(s);
