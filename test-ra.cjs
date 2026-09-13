@@ -119,15 +119,16 @@ console.log('  eventos: ' + speaks.length + ' voz / ' + beeps.length + ' pitidos
 check(speaks.some(s => s.includes('En quinientos metros, en la rotonda, tome la segunda salida hacia Calle de San Bernardo')), 'aviso a 500 m ANTES de la entrada');
 check(speaks.some(s => s.startsWith('SPEAK: En la rotonda, tome la segunda salida')), 'aviso a 200 m ANTES de la entrada');
 check(!speaks.some(s => s.includes('Gire a la derecha')), 'NO se dice «Gire a la derecha» (ni al entrar a la rotonda)');
-check(!speaks.some(s => s.includes(' ahora')), 'sin «… ahora» duplicado en los 230 m previos');
+check(!speaks.slice(0, -1).some(s => s.includes(' ahora')), 'sin «… ahora» duplicado en los 230 m previos (solo el de salida)');
+check(speaks.some(s => s.includes('ahora, ')), 'aviso de voz al SALIR de la rotonda («ahora, tome la … salida»)');
 check((beepsAt['BEEP: near'] || 0) === 1, 'un único pitido de aproximación (200 m)');
-check((beepsAt['BEEP: roundabout-exit'] || 0) === 1, 'pitido de salida de rotonda: exactamente 1');
+check((beepsAt['BEEP: roundabout-exit'] || 0) === 1, 'pitido de salida de rotonda: exactamente 1 (a 60 m)');
 // el pitido de salida debe sonar cuando queda <=40 m del punto de salida del anillo
 const exitIdx = events.findIndex(e => e === 'BEEP: roundabout-exit');
 check(exitIdx >= 0, 'pitido de salida emitido');
 // sin voces dentro del anillo después del pitido (solo el pitido)
 const afterExit = events.slice(exitIdx + 1);
-check(!afterExit.some(e => e.startsWith('SPEAK:')), 'sin anuncios de voz dentro del anillo tras el pitido');
+check(afterExit.every(e => !e.startsWith('SPEAK:') || e.includes('ahora')), 'tras el pitido de salida solo queda el «ahora, tome la…»');
 
 console.log('== 3. regresión: paso normal sin rotondas ==');
 const norm2 = normalizeRoundabouts([
