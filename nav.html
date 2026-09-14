@@ -2839,27 +2839,29 @@ function maneuverIconSrc(maneuver){
     const l2x=cx+r*1.5*Math.cos(rad-0.38),l2y=cy+r*1.5*Math.sin(rad-0.38);
     // senal CIRCULAR amarilla (placa blanca + disco amarillo con borde negro):
     // anillo exterior: SOLO arco negro de la entrada (abajo) a la salida,
-    // el resto del circulo sin borde; flecha NEGRA en la salida y numero grande
+    // recorrido ANTIHORARIO (rotondas a la derecha: 1a salida = 3 en punto);
+    // el resto del circulo sin borde; flecha NEGRA que sobresale del anillo
     const rot=(clk-12)*30;
-    function arc(a0,a1,color,w){
-      const large=((a1-a0)%360+360)%360>180?1:0;
+    function arcCCW(a0,a1,color,w){ // arco antihorario de a0 a a1
+      const sweepCCW=((a0-a1)%360+360)%360; // grados recorridos antihorario
+      const large=sweepCCW>180?1:0;
       const r=28;
       const x0=32+r*Math.cos(a0*Math.PI/180),y0=32+r*Math.sin(a0*Math.PI/180);
       const x1=32+r*Math.cos(a1*Math.PI/180),y1=32+r*Math.sin(a1*Math.PI/180);
-      return '<path d="M '+x0.toFixed(1)+' '+y0.toFixed(1)+' A '+r+' '+r+' 0 '+large+' 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+'" fill="none" stroke="'+color+'" stroke-width="'+w+'" stroke-linecap="round"/>';
+      return '<path d="M '+x0.toFixed(1)+' '+y0.toFixed(1)+' A '+r+' '+r+' 0 '+large+' 0 '+x1.toFixed(1)+' '+y1.toFixed(1)+'" fill="none" stroke="'+color+'" stroke-width="'+w+'" stroke-linecap="round"/>';
     }
-    const aIn=90, aOut=rot-90; // entrada abajo (90 grados SVG), salida segun reloj
+    const aIn=90, aOut=(clk-3)*30; // entrada abajo, salida segun reloj
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
       +'<circle cx="32" cy="32" r="31" fill="#fff"/>'
       +'<circle cx="32" cy="32" r="29" fill="#f5c400"/>'
-      +arc(aIn,aOut,'#1a1a1a',8)
-      // flecha de salida NEGRA: rotada al angulo exacto (12 = arriba)
+      +arcCCW(aIn,aOut,'#1a1a1a',8)
+      // flecha de salida NEGRA, sobresale del anillo para verse clara
       +'<g transform="rotate('+rot+' 32 32)">'
-      +'<line x1="32" y1="18" x2="32" y2="5" stroke="#fff" stroke-width="11" stroke-linecap="round"/>'
-      +'<line x1="32" y1="19" x2="32" y2="6" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/>'
-      +'<polygon points="32,1.5 39,10.5 25,10.5" fill="#1a1a1a"/>'
+      +'<line x1="32" y1="24" x2="32" y2="1" stroke="#fff" stroke-width="11" stroke-linecap="round"/>'
+      +'<line x1="32" y1="23" x2="32" y2="3" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/>'
+      +'<polygon points="32,-2 40,8 24,8" fill="#1a1a1a"/>'
       +'</g>'
-      +'<text x="32" y="37" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="900" fill="#1a1a1a">'+m.exit+'</text>'
+      +'<text x="32" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="900" fill="#1a1a1a">'+m.exit+'</text>'
       +'</svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
