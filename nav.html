@@ -132,7 +132,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
    de flecha en el centro; pendiente: linea azul del CENTRO hasta el borde
    DERECHO con punta en el borde derecho. Mitades fijas (posicionamiento
    absoluto): nunca se deforman ni ocupan mas de su mitad. */
-#nav-progress-strip #np-arrow{position:relative;flex:0 0 120px;width:120px;margin:0 2px;height:6px}
+#nav-progress-strip #np-arrow{position:relative;flex:1 1 100%;order:-1;width:auto;margin:0 0 2px;height:6px;min-width:120px}
 #nav-progress-strip #np-arrow i{position:absolute;top:50%;transform:translateY(-50%);height:2px}
 #nav-progress-strip #np-arrow i.a-real{left:0;width:50%;background:#3dd68c}
 #nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);border-left:5px solid #3dd68c;border-top:3px solid transparent;border-bottom:3px solid transparent}
