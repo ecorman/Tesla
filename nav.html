@@ -125,20 +125,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip .np-col{display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:2px 5px;border-radius:9px;background:rgba(255,255,255,.06);min-width:0;width:fit-content;flex:0 0 auto}
 #nav-progress-strip .np-col:last-child{align-items:flex-end}
 #nav-progress-strip .np-col strong{display:none} /* sin textos de encabezado: ventana mas estrecha */
-/* flechas de progreso: realizado -> del borde izq. al centro; pendiente -> del centro al borde der. */
-/* flecha UNICA en la cabecera de la tira: realizado (verde, borde izq ->
-   centro) y pendiente (azul, centro -> borde der) como una sola linea */
-/* realizado: linea verde del borde IZQUIERDO hasta el CENTRO con punta
-   de flecha en el centro; pendiente: linea azul del CENTRO hasta el borde
-   DERECHO con punta en el borde derecho. Mitades fijas (posicionamiento
-   absoluto): nunca se deforman ni ocupan mas de su mitad. */
-#nav-progress-strip #np-arrow{position:relative;flex:1 1 100%;order:-1;width:auto;margin:0 0 2px;height:6px;min-width:120px}
-#nav-progress-strip #np-arrow i{position:absolute;top:50%;transform:translateY(-50%);height:2px}
-#nav-progress-strip #np-arrow i.a-real{left:0;width:50%;background:#3dd68c}
-#nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);border-left:5px solid #3dd68c;border-top:3px solid transparent;border-bottom:3px solid transparent}
-#nav-progress-strip #np-arrow i.a-pend{left:50%;width:50%;background:#4f8cff}
-#nav-progress-strip #np-arrow i.a-pend::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:5px solid #4f8cff;border-top:3px solid transparent;border-bottom:3px solid transparent}
-#nav-progress-strip.mode-real #np-arrow i.a-pend{display:none}
 #nav-progress-strip.mode-pend #np-arrow i.a-real{display:none}
 #nav-progress-strip .np-col span{font-size:12px;font-weight:800;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap}
 #nav-progress-strip .np-col.np-now{background:rgba(0,0,0,.45)}
@@ -146,6 +132,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip{cursor:pointer;user-select:none}
 #nav-progress-strip.mode-real .tm-pend{display:none}
 #nav-progress-strip.mode-pend .tm-real{display:none}
+/* colores por modo: realizado blanco, pendiente amarillo */
+#nav-progress-strip.mode-real .tm-real{color:#fff}
+#nav-progress-strip.mode-pend .tm-pend{color:#ffd700}
 /* chip de velocidad clonado de tesla.html */
 #nav-speed-chip{position:fixed;top:10px;left:12px;z-index:24;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
 #nav-speed-chip{flex-direction:row!important;gap:7px;padding:4px 10px}
@@ -726,7 +715,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- Barra inferior (margen inferior izquierdo): próxima etapa + destino + hora de llegada -->
 <div id="nav-progress-strip">
-  <div id="np-arrow" title="Realizado / pendiente"><i class="a-real"></i><i class="a-pend"></i></div>
   <div class="np-col np-now">
     <span id="nav-clock-diff" title="Diferencia respecto a la previsión">±0:00</span>
     <strong>ETA</strong>
