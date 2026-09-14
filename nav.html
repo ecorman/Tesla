@@ -3780,6 +3780,7 @@ function startSimulator(){
   }
   simPos=routeData.coords[best].slice();
   simIdx=Math.min(best+1,routeData.coords.length-1);
+  if(userPos)window._preSimGps=userPos.slice(); // GPS real: para volver al cancelar
   simActive=true;
   if(gpsWatch){navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;}
   const b=document.getElementById('btn-sim');
@@ -3791,6 +3792,11 @@ function startSimulator(){
 }
 function stopSimulator(){
   simActive=false;
+  if(window._preSimGps){ // cancelacion: volver a la posicion GPS real previa
+    const back=window._preSimGps.slice();
+    window._preSimGps=null;
+    try{handleGpsFix({longitude:back[0],latitude:back[1],speed:0,heading:carHeading||0});}catch(e){}
+  }
   try{syncSimHud();}catch(e){}
   if(simTimer){clearInterval(simTimer);simTimer=null;}
   const b=document.getElementById('btn-sim');
@@ -3799,6 +3805,7 @@ function stopSimulator(){
 }
 function finishSim(){
   if(!routeData)return;
+  window._preSimGps=null; // fin natural de la simulacion: quedarse donde esta
   simPos=routeData.coords[routeData.coords.length-1].slice();
   handleGpsFix({longitude:simPos[0],latitude:simPos[1],speed:0,heading:0});
   stopSimulator();
