@@ -3182,11 +3182,25 @@ function checkVoice(step,dist,ra){
     next._luego=true; // la siguiente ya se anuncia junta: no repetir su preaviso
     if(!voiceFlags.luegoSpoken){voiceFlags.luegoSpoken=true;nextPhrase=' luego, '+stepName(next);}
   }
+  // PREAVISO de la rotonda ANTES de entrar: se comprueba aqui (y no solo en
+  // el bloque raActive de abajo) porque el indice de maniobra puede apuntar
+  // ya a la rotonda sin que el coche haya llegado a la entrada del anillo.
+  if(ra&&ra.dStart>0){
+    if(ra.dStart<=560&&!ra.s._raf.med){
+      ra.s._raf.med=true;
+      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, en la rotonda, '+ra.text+nextPhrase);
+    }
+    if(ra.dStart<=240&&!ra.s._raf.nearA){
+      ra.s._raf.nearA=true;
+      navBeep('near');
+      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En la rotonda, '+ra.text);
+    }
+  }
   // La rotonda YA es el paso actual (se circula por el anillo): los anuncios
-  // se hicieron al acercarse; aquí solo queda el pitido de SALIDA del anillo.
+  // de aproximacion ya sonaron; aqui solo queda el pitido de SALIDA del anillo.
   if(step._ra){
     // DENTRO del anillo: avisos de distancia hasta NUESTRA salida
-    if(ra&&ra.dExit>0){
+    if(ra&&ra.dStart<=0&&ra.dExit>0){
       if(ra.dExit<=260&&!step._raf.ring300){
         step._raf.ring300=true;
         if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En doscientos cincuenta metros, '+ra.text);
@@ -3220,19 +3234,6 @@ function checkVoice(step,dist,ra){
     voiceFlags.immediate=true;
     navBeep(kind||'near');
     if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('ahora, '+stepName(step)+nextPhrase);
-  }
-  if(raActive){
-    if(ra.dStart<=560&&!ra.s._raf.med){
-      ra.s._raf.med=true;
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, en la rotonda, '+ra.text+nextPhrase);
-    }
-    if(ra.dStart<=240&&!ra.s._raf.nearA){
-      ra.s._raf.nearA=true;
-      navBeep('near');
-      // si la siguiente maniobra llega justo después de la rotonda, ya se dijo
-      // en el aviso de 500 m; aquí solo se avisa la salida del anillo.
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En la rotonda, '+ra.text);
-    }
   }
   if(ra&&ra.dExit<=40&&!ra.s._raf.exit&&ra.dStart>0){
     ra.s._raf.exit=true;
