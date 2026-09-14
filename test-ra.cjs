@@ -18,7 +18,7 @@ function extractFn(name) {
   return html.slice(i, j);
 }
 
-const code = ['normalizeRoundabouts', 'isRAtype', 'ordinalEs', 'raTextFor', 'stepName', 'checkVoice']
+const code = ['normalizeRoundabouts', 'isRAtype', 'ordinalEs', 'rbClockFromSteps', '_brgDeg', 'raTextFor', 'stepName', 'checkVoice']
   .map(extractFn).join('\n');
 
 let events = [];
