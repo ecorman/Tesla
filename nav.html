@@ -3169,26 +3169,28 @@ function checkVoice(step,dist,ra){
   let nextPhrase='';
   if(closeNext){
     next._luego=true; // la siguiente ya se anuncia junta: no repetir su preaviso
-    if(!voiceFlags.luegoSpoken){voiceFlags.luegoSpoken=true;nextPhrase=' luego, '+stepName(next);}
+    if(!next._luegoSpoken){next._luegoSpoken=true;nextPhrase=' luego, '+stepName(next);}
   }
   // PREAVISO por TIEMPO (2 min / 30 s / 5 s) para maniobras y rotondas:
   // se comprueba contra el paso ACTUAL (dist) y contra la rotonda por delante
   // (ra.dStart). El aviso de 5 s solo dice la instruccion principal.
   const secCur=(spd>1&&isFinite(dist/spd))?dist/spd:Infinity; // s hasta la maniobra actual
   const secRA=(ra&&ra.dStart>0&&spd>1)?ra.dStart/spd:Infinity; // s hasta la entrada de la rotonda
+  const vm=S.voiceMode==='voice'||S.voiceMode==='voice-only';
   function warnRA(txtShort){ // rotonda: mismo calendario de avisos
     const s=ra.s;
-    if(secRA<=120&&!s._raf.t2m){s._raf.t2m=true;if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En dos minutos, en la rotonda, '+ra.text);}
-    if(secRA<=30&&!s._raf.t30){s._raf.t30=true;navBeep('near');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En treinta segundos, en la rotonda, '+ra.text);}
-    if(secRA<=5&&!s._raf.t5){s._raf.t5=true;navBeep('roundabout-exit');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(txtShort);}
+    s._raf=s._raf||{};
+    if(secRA<=120&&!s._raf.t2m){s._raf.t2m=true;if(vm)speak('En dos minutos, en la rotonda, '+ra.text);}
+    if(secRA<=30&&!s._raf.t30){s._raf.t30=true;navBeep('near');if(vm)speak('En treinta segundos, en la rotonda, '+ra.text);}
+    if(secRA<=5&&!s._raf.t5){s._raf.t5=true;navBeep('roundabout-exit');if(vm)speak(txtShort);}
   }
   if(ra&&ra.dStart>0){
     warnRA('ahora, '+ra.text);
   }
   if(!raActiveWarned&&type!=='arrive'&&type!=='depart'&&secCur<Infinity){
-    if(secCur<=120&&!voiceFlags.t2m){voiceFlags.t2m=true;if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En dos minutos, '+stepName(step)+nextPhrase);}
-    if(secCur<=30&&!voiceFlags.t30){voiceFlags.t30=true;navBeep(kind||'near');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En treinta segundos, '+stepName(step)+nextPhrase);}
-    if(secCur<=5&&!voiceFlags.t5){voiceFlags.t5=true;navBeep(kind||'near');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(shortName(step));}
+    if(secCur<=120&&!voiceFlags.t2m){voiceFlags.t2m=true;if(vm)speak('En dos minutos, '+stepName(step)+nextPhrase);}
+    if(secCur<=30&&!voiceFlags.t30){voiceFlags.t30=true;navBeep(kind||'near');if(vm)speak('En treinta segundos, '+stepName(step)+nextPhrase);}
+    if(secCur<=5&&!voiceFlags.t5){voiceFlags.t5=true;navBeep(kind||'near');if(vm)speak(shortName(step));}
   }
   // La rotonda YA es el paso actual (se circula por el anillo): los anuncios
   // de aproximacion ya sonaron; aqui solo queda el pitido de SALIDA del anillo.
@@ -3703,8 +3705,22 @@ function handleGpsFix(coords){
   updateCamera();
   syncCarScreenMode(); // muestra el coche fijo en pantalla si follow activo
   checkRadarAlerts();
-  // speed
-  const spd=coords.speed!=null?Math.round(coords.speed*3.6):0;
+  // speed: si el GPS no informa speed (comun en los navegadores del coche),
+  // se DERIVA de la posicion: distancia recorrida / tiempo entre fixes.
+  const nowMs=Date.now();
+  let spd=coords.speed!=null?Math.round(coords.speed*3.6):0;
+  if(!spd&&lastPosForBearing&&window._lastFixMs&&(nowMs-window._lastFixMs)<5000){
+    const dt=(nowMs-window._lastFixMs)/1000;
+    if(dt>0.3){
+      const dm=haversine(lastPosForBearing,[coords.longitude,coords.latitude]);
+      const dv=dm/dt*3.6; // km/h
+      if(dv>1)window._derivedSpd=window._derivedSpd!=null?(window._derivedSpd*0.6+dv*0.4):dv; // suavizado
+      else if(window._derivedSpd!=null)window._derivedSpd*=0.7; // parado: decaer rapido
+    }
+  }
+  window._lastFixMs=nowMs;
+  if(coords.speed!=null)window._derivedSpd=null; // el GPS manda si da dato
+  if(!spd&&window._derivedSpd!=null)spd=Math.round(window._derivedSpd);
   navSpeedKmh=spd;
   document.getElementById('se-spd').textContent=Math.round(spd);
   const nSpd=document.getElementById('nav-speed-value');
