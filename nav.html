@@ -140,14 +140,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .poi-pin{display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
 .pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
 /* ---- ventana de ruta detallada: itinerario Salida → paradas → Destino ---- */
-#rd-steps{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;min-height:0;width:75%;min-width:0;margin-top:8px;padding-right:2px}
+#rd-steps{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;min-height:0;width:100%;min-width:0;margin-top:6px;padding-right:2px}
 /* los modos de visualizacion SOLO cambian el alto visible (1 / 2 / 5 filas);
    la lista siempre contiene todas las instrucciones y hace scroll */
 /* una sola fila resumida: el alto de la ventana se ajusta a la cabecera +
    esa fila (0 = sin fila, 1/2 = fila normal o algo mas alta) */
 #banner[data-lv="0"] #rd-steps{max-height:0;margin-top:0}
-#banner[data-lv="1"] #rd-steps{max-height:34px}
-#banner[data-lv="2"] #rd-steps{max-height:46px}
+#banner[data-lv="1"] #rd-steps{max-height:52px}
+#banner[data-lv="2"] #rd-steps{max-height:64px}
 /* primera instrucción del itinerario (siguiente movimiento) resaltada */
 .rd-step.next-maneuver{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
 .rd-step.past{opacity:.55}
@@ -157,7 +157,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .rd-step.cur .rd-name{font-weight:800;color:#fff;-webkit-line-clamp:3}
 .rd-step.cur .rd-dist{font-size:1em;font-weight:800;color:#ffd700}
 .rd-step.next-maneuver{font-size:13.5px;padding:.32em .55em;background:rgba(79,140,255,.14);outline:1px solid rgba(79,140,255,.45)}
-.rd-step.next-maneuver .rd-dist{font-size:1.15em;font-weight:800;color:#ffd700}
+/* distancia bajo el icono en la fila secundaria (misma layout que la principal) */
+.rd-ico-col{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+.rd-step .rd-step .rd-under,.rd-ico-col .rd-under{font-size:.95em!important;font-weight:800!important;color:#ffd700!important;padding-left:0;line-height:1.1}
 /* filas futuras compactas: menos alto y texto atenuado, la jerarquia la marca la actual */
 .rd-step:not(.cur):not(.next-maneuver):not(.rd-wp){font-size:13px;padding:.32em .55em;opacity:.92}
 .rd-step:not(.cur):not(.next-maneuver):not(.rd-wp) .rd-name{font-weight:500;color:var(--dim)}
@@ -3287,8 +3289,8 @@ function compactLabel(step){
   const m=(step&&step.maneuver)||{};const t=m.type||'';const mod=String(m.modifier||'');
   const road=String((step&&step.name)||(step&&step.ref)||'').trim();
   if(t==='roundabout'||t==='rotary'||t==='exit-roundabout'||t==='exit-rotary'){
-    const ex=(typeof m.exit==='number'&&m.exit>0)?(m.exit===1?'1ª':m.exit+'ª')+' sal.':'Rotonda';
-    return ex+(road?' · '+road:'');
+    // solo la via a coger en la salida: sin numero de salida ni reloj
+    return road||'Rotonda';
   }
   if(mod.includes('uturn'))return 'Cambio sentido'+(road?' · '+road:'');
   let act='';
@@ -3310,9 +3312,8 @@ function stageRoadLabel(step){
   const m=(step&&step.maneuver)||{};const t=m.type||'';
   const road=String((step&&step.name)||(step&&step.ref)||'').trim();
   if(t.indexOf('rotary')>=0||t==='roundabout'||t==='roundabout-turn'){
-    const clk=(typeof m.bearingDeg==='number'&&S.raClock)?(' · '+m.bearingDeg+' h'):'';
-    const ex=(typeof m.exit==='number'&&m.exit>0)?((m.exit===1?'1ª':m.exit+'ª')+' salida'+clk):'Rotonda';
-    return road?(ex+' · '+road):ex;
+    // solo la via a coger en la salida: sin numero de salida ni reloj
+    return road||'Rotonda';
   }
   if(!road){
     if(t==='merge'||t==='on ramp')return 'Incorporación';
@@ -5309,17 +5310,20 @@ function renderRouteDetail(){
     row.className='rd-step next-maneuver';
     row.dataset.step=String(nxtIdx);
     row.title=simActive?'Saltar a 50 m antes de este punto':'Ver en el mapa';
+    const icc=document.createElement('span');
+    icc.className='rd-ico-col';
     const ic=document.createElement('span');
     ic.className='rd-ico';
     const img=document.createElement('img');
     img.src=getManeuverIconFilename(nxt.maneuver||{});
     img.alt='';img.draggable=false;
     ic.appendChild(img);
+    const ds=document.createElement('b'); // distancia bajo el icono, como la principal
+    ds.className='rd-dist rd-under';
+    icc.appendChild(ic);icc.appendChild(ds);
     const nm=document.createElement('span');
     nm.className='rd-name';nm.textContent=compactLabel(nxt);
-    const ds=document.createElement('b');
-    ds.className='rd-dist';
-    row.appendChild(ic);row.appendChild(nm);row.appendChild(ds);
+    row.appendChild(icc);row.appendChild(nm);
     row.onclick=()=>onStepClick(nxtIdx);
     stBox.appendChild(row);
   }
