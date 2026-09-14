@@ -3183,11 +3183,11 @@ function checkVoice(step,dist,ra){
   if(step._ra){
     // DENTRO del anillo: avisos de distancia hasta NUESTRA salida
     if(ra&&ra.dExit>0){
-      if(ra.dExit<=250&&ra.dExit>170&&!step._raf.ring300){
+      if(ra.dExit<=260&&!step._raf.ring300){
         step._raf.ring300=true;
         if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En doscientos cincuenta metros, '+ra.text);
       }
-      if(ra.dExit<=110&&ra.dExit>65&&!step._raf.ring150){
+      if(ra.dExit<=120&&!step._raf.ring150){
         step._raf.ring150=true;
         navBeep('near');
         if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En cien metros, '+ra.text);
@@ -3218,11 +3218,11 @@ function checkVoice(step,dist,ra){
     if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('ahora, '+stepName(step)+nextPhrase);
   }
   if(raActive){
-    if(ra.dStart<=550&&ra.dStart>450&&!ra.s._raf.med){
+    if(ra.dStart<=560&&!ra.s._raf.med){
       ra.s._raf.med=true;
       if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, en la rotonda, '+ra.text+nextPhrase);
     }
-    if(ra.dStart<=230&&ra.dStart>150&&!ra.s._raf.nearA){
+    if(ra.dStart<=240&&!ra.s._raf.nearA){
       ra.s._raf.nearA=true;
       navBeep('near');
       // si la siguiente maniobra llega justo después de la rotonda, ya se dijo
@@ -3239,11 +3239,11 @@ function checkVoice(step,dist,ra){
     // si esta maniobra ya se anunció como «luego …» en la anterior, no repetir
     // su preaviso (500 m / 230 m); solo se dice en el momento exacto (ahora).
     const alreadyTold=!!step._luego;
-    if(dist<=550&&dist>450&&!voiceFlags.medium&&!alreadyTold){
+    if(dist<=560&&!voiceFlags.medium&&!alreadyTold){
       if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, '+stepName(step)+nextPhrase);
       voiceFlags.medium=true;
     }
-    if(dist<=230&&dist>150&&!voiceFlags.near&&!alreadyTold){
+    if(dist<=240&&!voiceFlags.near&&!alreadyTold){
       navBeep(kind||'near');
       if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step)+nextPhrase);
       voiceFlags.near=true;
