@@ -2836,17 +2836,24 @@ function maneuverIconSrc(maneuver){
     const hx=cx+r*2.15*Math.cos(rad),hy=cy+r*2.15*Math.sin(rad);
     const l1x=cx+r*1.5*Math.cos(rad+0.38),l1y=cy+r*1.5*Math.sin(rad+0.38);
     const l2x=cx+r*1.5*Math.cos(rad-0.38),l2y=cy+r*1.5*Math.sin(rad-0.38);
-    // senal amarilla de advertencia (rombo con borde negro), flecha curva
-    // negra girada al angulo EXACTO de salida (12 en punto = hacia arriba)
+    // senal CIRCULAR amarilla (placa blanca + disco amarillo con borde negro):
+    // anillo negro de la rotonda en el centro, flecha negra de salida que
+    // sale del anillo en el angulo EXACTO del reloj y numero de salida
     const rot=(clk-12)*30;
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
-      +'<rect width="64" height="64" rx="9" fill="#fff"/>'
-      +'<polygon points="32,4 60,32 32,60 4,32" fill="#f5c400" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>'
+      +'<circle cx="32" cy="32" r="30" fill="#fff"/>'
+      +'<circle cx="32" cy="32" r="27" fill="#f5c400" stroke="#1a1a1a" stroke-width="3"/>'
+      // anillo de la rotonda
+      +'<circle cx="32" cy="32" r="12" fill="none" stroke="#1a1a1a" stroke-width="6"/>'
+      // entrada del coche (abajo)
+      +'<line x1="32" y1="58" x2="32" y2="45" stroke="#1a1a1a" stroke-width="5" stroke-linecap="round"/>'
+      // flecha de salida: rotada al angulo exacto (12 = arriba)
       +'<g transform="rotate('+rot+' 32 32)">'
-      +'<path d="M 34 44 C 34 36 34 30 34 24 L 30 24 C 28 28 24 30 20 31 L 20 28 C 20 24 21 20 23 17 L 27 10 L 30 14 C 34 12 40 13 42 18 C 44 22 44 28 42 34 L 38 34 C 38 28 38 22 36 20 L 34 24" fill="#1a1a1a"/>'
-      +'<polygon points="27,10 35,12 31,20" fill="#1a1a1a"/>'
+      +'<line x1="32" y1="19" x2="32" y2="4" stroke="#fff" stroke-width="11" stroke-linecap="round"/>'
+      +'<line x1="32" y1="20" x2="32" y2="5" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/>'
+      +'<polygon points="32,1 38.5,10 25.5,10" fill="#1a1a1a"/>'
       +'</g>'
-      +'<text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="900" fill="#1a1a1a">'+m.exit+'</text>'
+      +'<text x="32" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="900" fill="#1a1a1a">'+m.exit+'</text>'
       +'</svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
