@@ -113,7 +113,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .eta-time-line{font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9);line-height:1.2;margin-top:2px}
 .eta-time-line span{color:#ffd700}
 /* ---- barra inferior de progreso + hora y hora de llegada (margen inferior izquierdo) ---- */
-#nav-progress-strip{position:absolute;left:12px;bottom:12px;z-index:24;display:none;align-items:center;flex-wrap:wrap;row-gap:2px;gap:8px;padding:4px 8px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;max-width:min(620px,calc(100vw - 24px))}
+#nav-progress-strip{position:absolute;left:12px;bottom:12px;z-index:24;display:none;align-items:center;flex-wrap:nowrap;gap:5px;padding:4px 8px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;width:max-content;max-width:calc(100vw - 24px);white-space:nowrap}
 #nav-progress-strip .nps-next{display:flex;flex-direction:column;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0}
 #nav-progress-strip .nps-next strong,#nav-progress-strip .nps-clock strong{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700;text-transform:uppercase}
 #nav-progress-strip .nps-next-line{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
@@ -122,7 +122,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip #nav-clock-diff{font-size:15px;font-weight:800;color:#2fd07a;font-variant-numeric:tabular-nums;line-height:1.2}
 #nav-progress-strip #nav-clock-diff.behind{color:#ff5252}
 #nav-progress-strip #final-destination-eta{font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2}
-#nav-progress-strip .np-col{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:3px 7px;border-radius:10px;background:rgba(255,255,255,.06);min-width:0;width:fit-content}
+#nav-progress-strip .np-col{display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:2px 5px;border-radius:9px;background:rgba(255,255,255,.06);min-width:0;width:fit-content;flex:0 0 auto}
 #nav-progress-strip .np-col:last-child{align-items:flex-end}
 #nav-progress-strip .np-col strong{display:none} /* sin textos de encabezado: ventana mas estrecha */
 /* flechas de progreso: realizado -> del borde izq. al centro; pendiente -> del centro al borde der. */
@@ -132,7 +132,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
    de flecha en el centro; pendiente: linea azul del CENTRO hasta el borde
    DERECHO con punta en el borde derecho. Mitades fijas (posicionamiento
    absoluto): nunca se deforman ni ocupan mas de su mitad. */
-#nav-progress-strip #np-arrow{position:relative;width:calc(100% + 12px);margin:1px -6px;height:6px;flex:0 0 auto}
+#nav-progress-strip #np-arrow{position:relative;flex:0 0 120px;width:120px;margin:0 2px;height:6px}
 #nav-progress-strip #np-arrow i{position:absolute;top:50%;transform:translateY(-50%);height:2px}
 #nav-progress-strip #np-arrow i.a-real{left:0;width:50%;background:#3dd68c}
 #nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);border-left:5px solid #3dd68c;border-top:3px solid transparent;border-bottom:3px solid transparent}
