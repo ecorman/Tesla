@@ -3894,7 +3894,7 @@ document.getElementById('btn-sim').onclick=()=>{
   // doble clic rápido = finalizar la navegación (sustituye al antiguo botón ■ Fin)
   simClickCount++;
   if(simClickCount===1){simClickTimer=setTimeout(()=>{simClickCount=0;startSimulator();},350);}
-  else{clearTimeout(simClickTimer);simClickCount=0;finishNavigation();}
+  else{clearTimeout(simClickTimer);simClickCount=0;if(simActive)stopSimulator();finishNavigation();}
 };
 const simSpeedEl=document.getElementById('s-sim-speed');
 const simSpeedVal=document.getElementById('v-sim-speed');
@@ -4023,6 +4023,7 @@ function finishNavigation(){
   b.addEventListener('click',e=>{
     e.stopPropagation();
     b.blur();
+    if(simActive)stopSimulator(); // fin de la simulacion + volver al GPS real
     finishNavigation();
     setTimeout(()=>{try{speak('Ruta cancelada');}catch(_){}},60);
   });
