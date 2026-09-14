@@ -128,15 +128,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* flechas de progreso: realizado -> del borde izq. al centro; pendiente -> del centro al borde der. */
 /* flecha UNICA en la cabecera de la tira: realizado (verde, borde izq ->
    centro) y pendiente (azul, centro -> borde der) como una sola linea */
-#nav-progress-strip #np-arrow{display:flex;flex-direction:row;align-items:center;width:calc(100% + 12px);margin:1px -6px 1px;height:5px;flex:0 0 auto}
-#nav-progress-strip #np-arrow i{position:relative;flex:1;height:1.5px}
-#nav-progress-strip #np-arrow i.a-real{background:#3dd68c;margin-right:5px}
-#nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border-left:4px solid #3dd68c;border-top:2.5px solid transparent;border-bottom:2.5px solid transparent}
-#nav-progress-strip #np-arrow i.a-pend{background:#4f8cff;margin-left:6px}
-#nav-progress-strip #np-arrow i.a-pend::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:4px solid #4f8cff;border-top:2.5px solid transparent;border-bottom:2.5px solid transparent}
-#nav-progress-strip.mode-real #np-arrow i.a-pend{visibility:hidden}
-#nav-progress-strip.mode-pend #np-arrow i.a-real{visibility:hidden}
+/* realizado: linea verde del borde IZQUIERDO hasta el CENTRO con punta
+   de flecha en el centro; pendiente: linea azul del CENTRO hasta el borde
+   DERECHO con punta en el borde derecho. Nunca las dos a la vez. */
+#nav-progress-strip #np-arrow{display:flex;flex-direction:row;align-items:center;width:calc(100% + 12px);margin:1px -6px 1px;height:6px;flex:0 0 auto}
+#nav-progress-strip #np-arrow i{position:relative;height:2px;flex:0 0 50%}
+#nav-progress-strip #np-arrow i.a-real{background:#3dd68c;margin-right:0}
+#nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);border-left:5px solid #3dd68c;border-top:3px solid transparent;border-bottom:3px solid transparent}
+#nav-progress-strip #np-arrow i.a-pend{background:#4f8cff;margin-left:0}
+#nav-progress-strip #np-arrow i.a-pend::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:5px solid #4f8cff;border-top:3px solid transparent;border-bottom:3px solid transparent}
+#nav-progress-strip.mode-real #np-arrow i.a-pend{display:none}
+#nav-progress-strip.mode-pend #np-arrow i.a-real{display:none}
 #nav-progress-strip.mode-pend #np-arrow{flex-direction:row-reverse}
+#nav-progress-strip.mode-pend #np-arrow i.a-pend{flex:0 0 50%;margin-left:50%}
 #nav-progress-strip .np-col span{font-size:12px;font-weight:800;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap}
 #nav-progress-strip .np-col.np-now{background:rgba(0,0,0,.45)}
 #nav-progress-strip .eta-col{flex:none}
