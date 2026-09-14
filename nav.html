@@ -149,6 +149,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip.mode-pend .tm-real{display:none}
 /* chip de velocidad clonado de tesla.html */
 #nav-speed-chip{position:fixed;top:10px;left:12px;z-index:24;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
+#nav-speed-chip{flex-direction:row!important;gap:7px;padding:4px 10px}
 #nav-speed-chip .vel-lbl{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700}
 #nav-speed-chip .vel-val{font-size:27px;font-weight:800;color:#007aff;line-height:1;text-align:center;font-variant-numeric:tabular-nums;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 #nav-speed-chip .vel-unit{font-size:9px;color:#888ea0;font-weight:600}
@@ -271,7 +272,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-speed-chip .chip-limit{display:none;width:40px;height:40px;font-size:14px;border-width:4px}
 #nav-speed-chip.chip-limit-only .chip-limit{display:inline-flex}
 /* presentación «velocidad + límite»: las dos velocidades en HORIZONTAL */
-#nav-speed-chip.chip-both{flex-direction:row;align-items:center;justify-content:center;gap:10px;padding:4px 10px}
+#nav-speed-chip.chip-both{align-items:center;justify-content:center}
 #nav-speed-chip.chip-both .vel-lbl,#nav-speed-chip.chip-both .vel-unit{display:none}
 #nav-speed-chip.chip-both .vel-val{font-size:23px}
 #nav-speed-chip.over{background:#7f1d1d;border-color:#ef4444}
@@ -3167,6 +3168,7 @@ function checkVoice(step,dist,ra){
   const type=step.maneuver.type||'';
   const isRA=isRAtype(type);
   const kind=isRA?'roundabout-exit':null;
+  const raActiveWarned=isRA; // la rotonda actual ya avisada al entrar
   // Instrucción consecutiva a <15 s: si la siguiente maniobra llega a los pocos
   // segundos de la actual, se anuncia junta («…, luego …») y NO se vuelve a
   // preanunciar la siguiente antes de llegar al punto (se espera al momento
@@ -3182,19 +3184,24 @@ function checkVoice(step,dist,ra){
     next._luego=true; // la siguiente ya se anuncia junta: no repetir su preaviso
     if(!voiceFlags.luegoSpoken){voiceFlags.luegoSpoken=true;nextPhrase=' luego, '+stepName(next);}
   }
-  // PREAVISO de la rotonda ANTES de entrar: se comprueba aqui (y no solo en
-  // el bloque raActive de abajo) porque el indice de maniobra puede apuntar
-  // ya a la rotonda sin que el coche haya llegado a la entrada del anillo.
+  // PREAVISO por TIEMPO (2 min / 30 s / 5 s) para maniobras y rotondas:
+  // se comprueba contra el paso ACTUAL (dist) y contra la rotonda por delante
+  // (ra.dStart). El aviso de 5 s solo dice la instruccion principal.
+  const secCur=(spd>1&&isFinite(dist/spd))?dist/spd:Infinity; // s hasta la maniobra actual
+  const secRA=(ra&&ra.dStart>0&&spd>1)?ra.dStart/spd:Infinity; // s hasta la entrada de la rotonda
+  function warnRA(txtShort){ // rotonda: mismo calendario de avisos
+    const s=ra.s;
+    if(secRA<=120&&!s._raf.t2m){s._raf.t2m=true;if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En dos minutos, en la rotonda, '+ra.text);}
+    if(secRA<=30&&!s._raf.t30){s._raf.t30=true;navBeep('near');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En treinta segundos, en la rotonda, '+ra.text);}
+    if(secRA<=5&&!s._raf.t5){s._raf.t5=true;navBeep('roundabout-exit');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(txtShort);}
+  }
   if(ra&&ra.dStart>0){
-    if(ra.dStart<=560&&!ra.s._raf.med){
-      ra.s._raf.med=true;
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, en la rotonda, '+ra.text+nextPhrase);
-    }
-    if(ra.dStart<=240&&!ra.s._raf.nearA){
-      ra.s._raf.nearA=true;
-      navBeep('near');
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En la rotonda, '+ra.text);
-    }
+    warnRA('ahora, '+ra.text);
+  }
+  if(!raActiveWarned&&type!=='arrive'&&type!=='depart'&&secCur<Infinity){
+    if(secCur<=120&&!voiceFlags.t2m){voiceFlags.t2m=true;if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En dos minutos, '+stepName(step)+nextPhrase);}
+    if(secCur<=30&&!voiceFlags.t30){voiceFlags.t30=true;navBeep(kind||'near');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En treinta segundos, '+stepName(step)+nextPhrase);}
+    if(secCur<=5&&!voiceFlags.t5){voiceFlags.t5=true;navBeep(kind||'near');if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(shortName(step));}
   }
   // La rotonda YA es el paso actual (se circula por el anillo): los anuncios
   // de aproximacion ya sonaron; aqui solo queda el pitido de SALIDA del anillo.
@@ -3219,18 +3226,13 @@ function checkVoice(step,dist,ra){
     }
     return;
   }
-  // Aviso lejano (2 km): solo voz, sin pitido.
-  if(dist<=2100&&dist>1900&&!voiceFlags.far){
-    if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En dos kilometros, '+stepName(step));
-    voiceFlags.far=true;
-  }
   // Próxima rotonda por delante: anunciar contra la ENTRADA, pitido contra la
   // SALIDA. Manda sobre el paso actual dentro de 550 m (nada de «gire a la
   // derecha» ni avisos duplicados justo antes de una rotonda).
   const raActive=ra&&ra.dStart>0&&ra.dStart<=550;
   // maniobra inmediata (sin rotonda delante): debe sonar «ahora» ANTES de
   // pasar el punto; antes se saltaba si había una rotonda en el horizonte.
-  if(!raActive&&type!=='arrive'&&type!=='depart'&&dist<=40&&!voiceFlags.immediate){
+  if(!raActive&&type!=='arrive'&&type!=='depart'&&dist<=40&&!voiceFlags.immediate&&!voiceFlags.t5){
     voiceFlags.immediate=true;
     navBeep(kind||'near');
     if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('ahora, '+stepName(step)+nextPhrase);
@@ -3239,21 +3241,15 @@ function checkVoice(step,dist,ra){
     ra.s._raf.exit=true;
     navBeep('roundabout-exit');
   }
-  // Paso actual normal (sin rotonda próxima en cartera):
-  if(!raActive){
-    // si esta maniobra ya se anunció como «luego …» en la anterior, no repetir
-    // su preaviso (500 m / 230 m); solo se dice en el momento exacto (ahora).
-    const alreadyTold=!!step._luego;
-    if(dist<=560&&!voiceFlags.medium&&!alreadyTold){
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak('En quinientos metros, '+stepName(step)+nextPhrase);
-      voiceFlags.medium=true;
-    }
-    if(dist<=240&&!voiceFlags.near&&!alreadyTold){
-      navBeep(kind||'near');
-      if(S.voiceMode==='voice'||S.voiceMode==='voice-only')speak(stepName(step)+nextPhrase);
-      voiceFlags.near=true;
-    }
-  }
+}
+/* instruccion principal en 5 s: solo el nucleo («a la derecha», «tercera salida»…) */
+function shortName(step){
+  const m=step.maneuver||{};
+  if(isRAtype(m.type||'')){const ex=(typeof m.exit==='number'&&m.exit>0)?ordinalEs(m.exit)+' salida':'';return ex||'salga de la rotonda';}
+  const dir={left:'a la derecha',right:'a la derecha','sharp left':'a la derecha','sharp right':'a la derecha','slight left':'a la derecha','slight right':'a la derecha','straight':'recto',uturn:'cambio de sentido'};
+  const mod=String(m.modifier||'');
+  if(mod.includes('left'))return 'a la izquierda';
+  return dir[mod]||'continue';
 }
 function stepName(step){
   const m=step.maneuver;
@@ -3408,18 +3404,9 @@ function compactLabel(step){
     // solo la via a coger en la salida: sin numero de salida ni reloj
     return road||'Rotonda';
   }
-  if(mod.includes('uturn'))return 'Cambio sentido'+(road?' · '+road:'');
-  let act='';
-  if(mod.includes('sharp left'))act='◺ Izq. brusca';
-  else if(mod.includes('sharp right'))act='◺ Der. brusca';
-  else if(mod.includes('slight left'))act='↗ Izq. suave';
-  else if(mod.includes('slight right'))act='↗ Der. suave';
-  else if(mod.includes('left'))act='← Izquierda';
-  else if(mod.includes('right'))act='→ Derecha';
-  else if(t==='merge')act='Incorp.';
-  else if(t==='fork')act='Bifurc.';
-  else act='Recto';
-  return act+(road?' · '+road:'');
+  if(mod.includes('uturn'))return road||'Cambio de sentido';
+  // solo la via: la accion (izquierda/derecha/recto...) la dice el icono
+  return road||'Continue';
 }
 /* etiqueta de la instruccion ACTUAL para el banner: solo la via (nombre,
    codigo, numero de salida), nunca el texto hablado completo — la accion
