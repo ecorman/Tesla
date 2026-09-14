@@ -60,6 +60,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #gear .gear-text{font-size:13px;letter-spacing:.3px}
 #search-panel{position:absolute;top:12px;left:12px;z-index:70;display:none;flex-direction:column;gap:8px;width:min(430px,82vw);background:rgba(16,16,20,.97);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #search-panel.open{display:flex}
+#sp-favs{display:none;flex-direction:column;gap:4px}
+#sp-favs.has{display:flex}
+#sp-favs .sp-fav-title{font-size:10px;color:#888ea0;letter-spacing:1px;font-weight:700;text-transform:uppercase;margin-top:2px}
+#sp-fav-list{display:flex;flex-direction:column;gap:3px;max-height:180px;overflow-y:auto}
+.sr-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:9px}
+.sr-row .sr-info{flex:1;min-width:0;cursor:pointer}
+.sr-row .sr-info b{display:block;font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-row .sr-info small{font-size:11px;color:var(--dim)}
+.sr-row .sr-btns{display:flex;gap:4px;flex-shrink:0}
 .sp-row{display:flex;gap:6px;align-items:center}
 #dest-input{flex:1;padding:10px 14px;background:rgba(20,20,24,.9);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-size:15px;outline:none}
 #dest-input:focus{border-color:var(--acc)}
@@ -71,7 +80,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* ---- cajetín de navegación clonado de tesla.html ---- */
 #nav-stop{position:absolute;top:-13px;right:-6px;width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:#c0392b;color:#fff;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:5;padding:0}
 #nav-stop:hover{background:#e74c3c}
-#banner{position:absolute;top:12px;left:12px;z-index:22;display:none;flex-direction:column;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:40vw;max-width:calc(100vw - 24px);min-width:min(230px,40vw);max-height:calc(100vh - 260px);font-family:'Segoe UI',system-ui,sans-serif}
+#banner{position:absolute;top:12px;left:12px;z-index:22;display:none;flex-direction:column;padding:8px 12px 6px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;width:40vw;max-width:calc(100vw - 24px);min-width:min(230px,40vw);max-height:calc(100vh - 320px);font-family:'Segoe UI',system-ui,sans-serif}
 /* la cabecera (icono+maniobra+calle+barra) NO crece: todo el alto sobrante
    es para #rd-steps — así se ven ~9 instrucciones, no solo 3 */
 #banner .nav-main-col{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -81,13 +90,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .nav-triangles{color:#e84c4c;font-size:9px;letter-spacing:2px}
 .nav-live-dot{width:10px;height:10px;border-radius:50%;background:#38a5ff;box-shadow:0 0 7px #38a5ff;border:1px solid rgba(255,255,255,.8)}
 .nav-stage-banner-row{display:flex;align-items:center;gap:8px;margin-top:2px}
-.speed-limit-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:4px solid #ff3333;background:#fff;color:#000;font-weight:900;font-size:15px;font-family:Arial,sans-serif;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.speed-limit-badge{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:4px solid #ff3333;background:#fff;color:#000;font-weight:900;font-size:15px;font-family:Arial,sans-serif;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 /* número de la instrucción actual en el banner (coincide con la lista) */
-#nav-turn-icon{width:44px;height:44px;border-radius:5px;background:#fff;padding:1px;object-fit:contain;flex-shrink:0}
-.nav-stage-title-text{font-size:19px;font-weight:800;color:#f0f0f0;white-space:normal;word-break:break-word;line-height:1.3;text-shadow:0 1px 2px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#nav-turn-icon{width:38px;height:38px;border-radius:5px;background:#fff;padding:1px;object-fit:contain;flex-shrink:0}
+.nav-stage-title-text{font-size:15.5px;font-weight:800;color:#f0f0f0;white-space:normal;word-break:break-word;line-height:1.3;text-shadow:0 1px 2px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .nav-stage-col{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
 #banner .nav-turn-wrap{flex-shrink:0;display:inline-flex;flex-direction:column;align-items:center;gap:2px}
-.nav-turn-dist{font-size:19px;font-weight:900;color:#ffd700;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.85);font-variant-numeric:tabular-nums;line-height:1}
+.nav-turn-dist{font-size:16px;font-weight:900;color:#ffd700;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.85);font-variant-numeric:tabular-nums;line-height:1}
 /* barra de progreso hasta la próxima maniobra — bajo el texto de distancia */
 #nav-maneuver-progress{display:block;width:100%;height:9px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;pointer-events:none;margin-top:5px;flex-shrink:0}
 #nav-maneuver-progress-fill{display:block;height:100%;width:0%;background:linear-gradient(90deg,#3dd68c,#4f8cff);border-radius:4px;transition:width .6s linear}
@@ -116,12 +125,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip .np-col:last-child{align-items:flex-end}
 #nav-progress-strip .np-col strong{display:none} /* sin textos de encabezado: ventana mas estrecha */
 /* flechas de progreso: realizado -> del borde izq. al centro; pendiente -> del centro al borde der. */
-#nav-progress-strip .np-col span:first-child{position:relative;padding-left:14px}
-#nav-progress-strip .np-col span:first-child::before{content:'';position:absolute;left:0;top:50%;width:10px;height:2px;background:#3dd68c;transform:translateY(-50%)}
-#nav-progress-strip .np-col span:first-child::after{content:'';position:absolute;left:9px;top:50%;border-left:5px solid #3dd68c;border-top:3px solid transparent;border-bottom:3px solid transparent;transform:translateY(-50%)}
-#nav-progress-strip .np-col span:first-child.tm-real::before,#nav-progress-strip .np-col span:first-child.tm-real::after{background:#3dd68c;border-left-color:#3dd68c}
-#nav-progress-strip .np-col span:first-child.tm-pend::before{background:#4f8cff;left:auto;right:0}
-#nav-progress-strip .np-col span:first-child.tm-pend::after{border-left-color:transparent;border-right:5px solid #4f8cff;left:auto;right:9px;transform:translateY(-50%) scaleX(-1)}
+/* UNA sola flecha por columna en el encabezado: realizado -> del borde
+   izq. al centro; pendiente -> del centro al borde der. (solo cuando esa
+   mitad es la visible en el modo de la tira) */
+#nav-progress-strip .np-col span:first-child{position:relative;padding-left:0}
+#nav-progress-strip .np-col span:first-child.tm-real::before{content:'';position:absolute;left:0;top:50%;width:calc(50% - 6px);height:2px;background:#3dd68c;transform:translateY(-50%)}
+#nav-progress-strip .np-col span:first-child.tm-real::after{content:'';position:absolute;left:calc(50% - 6px);top:50%;border-left:6px solid #3dd68c;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transform:translateY(-50%)}
+#nav-progress-strip .np-col span:first-child.tm-pend::before{content:'';position:absolute;left:calc(50% + 1px);top:50%;width:calc(50% - 7px);height:2px;background:#4f8cff;transform:translateY(-50%)}
+#nav-progress-strip .np-col span:first-child.tm-pend::after{content:'';position:absolute;right:0;top:50%;border-left:6px solid #4f8cff;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transform:translateY(-50%)}
+/* en modo por defecto (ambas visibles) la flecha solo va en el realizado */
+#nav-progress-strip:not(.mode-pend) .np-col span:first-child.tm-pend::before,#nav-progress-strip:not(.mode-pend) .np-col span:first-child.tm-pend::after{content:none}
 #nav-progress-strip .np-col span{font-size:13px;font-weight:800;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap}
 #nav-progress-strip .np-col.np-now{background:rgba(0,0,0,.45)}
 #nav-progress-strip .eta-col{flex:none}
@@ -129,7 +142,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip.mode-real .tm-pend{display:none}
 #nav-progress-strip.mode-pend .tm-real{display:none}
 /* chip de velocidad clonado de tesla.html */
-#nav-speed-chip{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:24;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
+#nav-speed-chip{position:fixed;top:10px;left:12px;z-index:24;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;background:rgba(14,16,20,.95);border:1px solid rgba(255,255,255,.12);border-radius:12px;flex-shrink:0;user-select:none;min-width:68px}
 #nav-speed-chip .vel-lbl{font-size:9px;color:#888ea0;letter-spacing:1px;font-weight:700}
 #nav-speed-chip .vel-val{font-size:27px;font-weight:800;color:#007aff;line-height:1;text-align:center;font-variant-numeric:tabular-nums;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 #nav-speed-chip .vel-unit{font-size:9px;color:#888ea0;font-weight:600}
@@ -157,13 +170,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #banner[data-lv="2"] #rd-steps{max-height:64px}
 /* primera instrucción del itinerario (siguiente movimiento) resaltada */
 .rd-step.next-maneuver{background:rgba(79,140,255,.18);outline:1px solid var(--acc)}
+/* ventana de la SIGUIENTE instruccion: elemento propio bajo el banner,
+   25% de ancho y alineada a la izquierda con el banner */
+#next-win{position:fixed;left:12px;z-index:23;display:none;align-items:center;gap:8px;padding:6px 10px;background:rgba(42,48,54,.96);border:1px solid rgba(255,255,255,.18);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.6);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;width:25vw;min-width:170px;cursor:pointer;user-select:none}
+#next-win .rd-ico{width:2.1em;height:2.1em;border-radius:.55em;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#next-win .rd-ico img{width:1.95em;height:1.95em;object-fit:contain;display:block}
+#next-win .rd-under{font-size:15px;font-weight:800;color:#ffd700;line-height:1.1;text-align:center;font-variant-numeric:tabular-nums}
+#next-win .nw-name{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:#dfe3ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 /* fila de la SIGUIENTE instruccion: ancho 25% de la pantalla; en modo 0 (icono+distancia) el nombre se oculta y la fila se comprime */
 #rd-steps .rd-step.next-maneuver{max-width:25vw}
 #rd-steps .rd-step.next-maneuver.hide-text .rd-name{display:none}
 .rd-step.past{opacity:.55}
 .rd-step{display:flex;align-items:center;gap:.6em;padding:.47em .6em;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:.6em;font-size:15px;color:var(--dim);cursor:pointer;user-select:none}
 .rd-step:hover{background:rgba(255,255,255,.1);border-color:var(--line)}
-.rd-step.cur{background:rgba(79,140,255,.18);outline:1px solid var(--acc);font-size:18px;padding:.55em .7em}
+.rd-step.cur{background:rgba(79,140,255,.18);outline:1px solid var(--acc);font-size:15px;padding:.4em .55em}
 .rd-step.cur .rd-name{font-weight:800;color:#fff;-webkit-line-clamp:3}
 .rd-step.cur .rd-dist{font-size:1em;font-weight:800;color:#ffd700}
 .rd-step.next-maneuver{font-size:13.5px;padding:.32em .55em;background:rgba(79,140,255,.14);outline:1px solid rgba(79,140,255,.45)}
@@ -199,7 +219,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #speedo .u{font-size:10px;color:var(--dim)}
 /* ---- Brújula (siempre visible con GPS): rosa + grados debajo.
    Un toque muestra/oculta la gráfica de velocidad / altura. ---- */
-#free-hud{position:fixed;top:8px;left:calc(50% + 60px);z-index:24;display:none;flex-direction:row;align-items:center;gap:10px;padding:6px 10px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;height:fit-content;max-height:90px;overflow:visible;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;user-select:none}
+#free-hud{position:fixed;top:8px;left:12px;z-index:24;display:none;flex-direction:row;align-items:center;gap:10px;padding:6px 10px;background:rgba(16,16,20,.88);border:1px solid var(--line);border-radius:14px;width:fit-content;height:fit-content;max-height:90px;overflow:visible;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;user-select:none}
 #settings input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 #hud-compass{width:calc(64px * var(--hud-scale,1));height:calc(64px * var(--hud-scale,1));object-fit:contain;transition:transform .25s linear}
 #hud-orient{white-space:nowrap;font-size:calc(13px * var(--hud-scale,1));font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;line-height:1.1}
@@ -251,7 +271,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-speed-chip.over{background:#7f1d1d;border-color:#ef4444}
 #nav-speed-chip.over .vel-val{color:#ffb4b4}
 /* velocidad + brújula: grupo unico (una ventana combinada) centrado en la pantalla */
-#hud-center{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:24;display:flex;flex-direction:row;align-items:center;gap:10px;pointer-events:none}
+#hud-center{position:fixed;top:8px;left:12px;z-index:24;display:flex;flex-direction:row;align-items:center;gap:10px;pointer-events:none}
 /* durante la navegacion (banner visible) la ventana pasa DEBAJO del banner:
    el JS la recoloca con top = alto del banner + margen */
 #hud-center>#nav-speed-chip,#hud-center>#free-hud{position:static;transform:none;pointer-events:auto}
@@ -510,6 +530,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       var bn=bVisible?b.offsetHeight:0;
       hc.style.top=(bn?bn+24:8)+'px';
     }
+    try{ if(typeof placeNextWin==='function')placeNextWin(); }catch(e){}
   }
   function syncStrip(){
     var b=document.getElementById('banner');
@@ -615,6 +636,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <button class="icon-btn" id="btn-search-close" title="Cerrar"></button>
     </div>
     <div id="results"></div>
+    <div id="sp-favs">
+      <div class="sp-fav-title">Rutas favoritas</div>
+      <div id="sp-fav-list"></div>
+    </div>
   </div>
 
 </div>
@@ -664,6 +689,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <canvas id="hud-graph" width="150" height="52" title="Pulsa para cambiar la gráfica: desnivel / velocidad"></canvas>
 </div>
 </div>
+
+<div id="next-win" title="Siguiente instruccion — clic para ver en el mapa; shift-clic alterna icono/texto"></div>
 
 <div id="banner">
   <button id="nav-stop" title="Cancelar navegación">■</button>
@@ -2787,20 +2814,24 @@ function getManeuverIconFilename(maneuver){
 function maneuverIconSrc(maneuver){
   const m=maneuver||{};const type=m.type||'';
   if((type.includes('roundabout')||type.includes('rotary'))&&typeof m.exit==='number'&&m.exit>=1){
-    const clk=(typeof m.bearingDeg==='number'&&m.bearingDeg>=1&&m.bearingDeg<=12)?m.bearingDeg:((m.exit-1)||12);
+    // estilo clasico (anillo completo + entradas) con la salida en el angulo
+    // EXACTO del reloj: brazo mas grueso, punta grande y numero de salida al centro
+    const clk=(typeof m.bearingDeg==='number'&&m.bearingDeg>=1&&m.bearingDeg<=12)?m.bearingDeg:(((m.exit-1)*3)%12||12);
     const ang=(clk-3)*30; // 12 en punto arriba -> -90º; el SVG usa 0º=derecha
     const rad=ang*Math.PI/180;
-    const cx=32,cy=32,r=17;
-    const ax=cx+r*Math.cos(rad),ay=cy+r*Math.sin(rad);
-    const tx=cx+r*1.35*Math.cos(rad),ty=cy+r*1.35*Math.sin(rad);
-    const hx=cx+r*1.55*Math.cos(rad),hy=cy+r*1.55*Math.sin(rad);
-    const l1x=cx+r*1.15*Math.cos(rad+0.35),l1y=cy+r*1.15*Math.sin(rad+0.35);
-    const l2x=cx+r*1.15*Math.cos(rad-0.35),l2y=cy+r*1.15*Math.sin(rad-0.35);
+    const cx=32,cy=32,r=16;
+    const ax=cx+(r+1)*Math.cos(rad),ay=cy+(r+1)*Math.sin(rad);
+    const tx=cx+r*1.6*Math.cos(rad),ty=cy+r*1.6*Math.sin(rad);
+    const hx=cx+r*1.95*Math.cos(rad),hy=cy+r*1.95*Math.sin(rad);
+    const l1x=cx+r*1.35*Math.cos(rad+0.42),l1y=cy+r*1.35*Math.sin(rad+0.42);
+    const l2x=cx+r*1.35*Math.cos(rad-0.42),l2y=cy+r*1.35*Math.sin(rad-0.42);
+    // entradas esteticas (abajo = entrada del coche; izquierda/derecha segun angulo)
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
-      +'<path d="M 15 32 A 17 17 0 1 1 49 32" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>'
-      +'<line x1="32" y1="58" x2="32" y2="44" stroke="#000" stroke-width="5" stroke-linecap="round"/>'
-      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#000" stroke-width="5" stroke-linecap="round"/>'
+      +'<circle cx="32" cy="32" r="16" fill="none" stroke="#000" stroke-width="7"/>'
+      +'<line x1="32" y1="60" x2="32" y2="49" stroke="#000" stroke-width="5" stroke-linecap="round"/>'
+      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#000" stroke-width="7" stroke-linecap="round"/>'
       +'<polygon points="'+hx.toFixed(1)+','+hy.toFixed(1)+' '+l1x.toFixed(1)+','+l1y.toFixed(1)+' '+l2x.toFixed(1)+','+l2y.toFixed(1)+'" fill="#000"/>'
+      +'<text x="32" y="37.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="900" fill="#000">'+m.exit+'</text>'
       +'</svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
@@ -3038,6 +3069,8 @@ function navTick(){
     if(!isFinite(stepDist)||stepDist<=0){tDistEl.style.visibility='hidden';}
     else{tDistEl.style.visibility='visible';tDistEl.textContent=(stepDist>=1000)?(stepDist/1000).toFixed(1)+' km':Math.max(10,Math.round(stepDist/5)*5)+' m';}
   }
+  // distancia en vivo bajo el icono de la SIGUIENTE instruccion
+  try{updateNextWinDistLive();}catch(e){}
   const tdEl=document.getElementById('np-time-done');
   if(tdEl){
     const el=(tripStats&&tripStats.startTime)?(Date.now()-new Date(tripStats.startTime).getTime())/1000:0;
@@ -3910,6 +3943,7 @@ document.getElementById('btn-search').onclick=()=>{
   if(wasOpen)return; // toggle: ya estaba abierto -> cerrar
   p.classList.add('open');
   resultsBox.style.display='none';
+  renderSearchFavs();
   armOverlayAutoHide();
   setTimeout(()=>destInput.focus(),80);
 };
@@ -4154,9 +4188,9 @@ function updateZoomBtn(){
   zoomBtn.textContent=m==='off'?'LIBRE':m.toUpperCase();
   zoomBtn.classList.toggle('active',m!=='off');
   zoomBtn.classList.toggle('route-mode',m==='route');
-  // en LIBRE solo se muestran + y −: sin nivel ni modo
-  const zl=document.getElementById('z-level');if(zl)zl.style.display=(m==='off')?'none':'';
-  zoomBtn.style.display=(m==='off')?'none':'';
+  // los controles de zoom SOLO se muestran en LIBRE: en AUTO/RUTA/ECO se ocultan
+  // enteros (el modo se cambia desde Ajustes o con la rueda del mapa)
+  const zc=document.getElementById('zoom-controls');if(zc)zc.style.display=(m==='off')?'flex':'none';
   zoomBtn.title='Modo de zoom: '+(m==='off'?'LIBRE (manual)':m==='auto'?'AUTO (por velocidad)':m==='route'?'RUTA (vista general)':'ECO (autopista/ciudad)');
 }
 function setZoomMode(m){
@@ -4823,7 +4857,28 @@ function showArrivalStats(){
 /* ---------- 4) Rutas guardadas + favoritos (localStorage) ---------- */
 const SAVED_ROUTES_KEY=LS+'savedRoutes';
 let savedRoutes=[];try{savedRoutes=JSON.parse(localStorage.getItem(SAVED_ROUTES_KEY)||'[]');}catch(e){savedRoutes=[];}
-function saveSavedRoutes(){localStorage.setItem(SAVED_ROUTES_KEY,JSON.stringify(savedRoutes));renderSavedRoutes();}
+function saveSavedRoutes(){localStorage.setItem(SAVED_ROUTES_KEY,JSON.stringify(savedRoutes));renderSavedRoutes();renderSearchFavs();}
+/* favoritos dentro del panel de busqueda (mismo listado que rutas guardadas) */
+function renderSearchFavs(){
+  const box=document.getElementById('sp-favs'),list=document.getElementById('sp-fav-list');
+  if(!box||!list)return;
+  list.innerHTML='';
+  box.classList.toggle('has',savedRoutes.length>0);
+  savedRoutes.forEach(r=>{
+    const row=document.createElement('div');row.className='sr-row';
+    const info=document.createElement('div');info.className='sr-info';
+    info.innerHTML='<b></b><small></small>';
+    info.querySelector('b').textContent=r.name;
+    info.querySelector('small').textContent=(r.distance?fmtDist(r.distance):'')+(r.duration?(' · '+fmtTime(r.duration)):'');
+    info.title='Cargar esta ruta';
+    info.onclick=()=>{document.getElementById('search-panel').classList.remove('open');loadSavedRoute(r);};
+    const btns=document.createElement('div');btns.className='sr-btns';
+    const bDel=document.createElement('button');bDel.className='icon-btn';bDel.textContent='🗑';bDel.title='Borrar';
+    bDel.onclick=(ev)=>{ev.stopPropagation();deleteSavedRoute(r.id);};
+    btns.appendChild(bDel);row.appendChild(info);row.appendChild(btns);
+    list.appendChild(row);
+  });
+}
 function saveCurrentRoute(){
   if(!routeData||!destPoint){toast('Calcula una ruta primero');return;}
   const inp=document.getElementById('in-route-name');
@@ -4843,6 +4898,7 @@ function loadSavedRoute(r){
 function deleteSavedRoute(id){
   savedRoutes=savedRoutes.filter(r=>r.id!==id);
   saveSavedRoutes();
+  renderSearchFavs();
 }
 function toggleRoutesPanel(){
   const p=document.getElementById('routes-panel');
@@ -5377,32 +5433,60 @@ function renderRouteDetail(){
   let nxtIdx=curIdx+1;
   while(nxtIdx<steps.length&&nxtIdx<=maneuverIdx)nxtIdx++;
   const nxt=nxtIdx<steps.length?steps[nxtIdx]:null;
-  if(nxt){
-    const row=document.createElement('div');
-    row.className='rd-step next-maneuver';
-    row.dataset.step=String(nxtIdx);
-    row.title=simActive?'Saltar a 50 m antes de este punto':'Ver en el mapa';
-    const icc=document.createElement('span');
-    icc.className='rd-ico-col';
-    const ic=document.createElement('span');
-    ic.className='rd-ico';
-    const img=document.createElement('img');
-    img.src=maneuverIconSrc(nxt.maneuver||{});
-    img.alt='';img.draggable=false;
-    ic.appendChild(img);
-    const ds=document.createElement('b'); // distancia bajo el icono, como la principal
-    ds.className='rd-dist rd-under';
-    icc.appendChild(ic);icc.appendChild(ds);
-    const nm=document.createElement('span');
-    nm.className='rd-name';nm.textContent=compactLabel(nxt);
-    row.appendChild(icc);row.appendChild(nm);
-    if(!S.nextMode)row.classList.add('hide-text'); // modo compacto: solo icono + distancia
-    row.onclick=(ev)=>{ if(ev.shiftKey){S.nextMode=S.nextMode?0:1;saveS('nextMode',S.nextMode);renderRouteDetail();return;} onStepClick(nxtIdx); };
-    stBox.appendChild(row);
-  }
+  renderNextWin(nxt,nxtIdx);
   if(typeof computeRouteRadars==='function')computeRouteRadars(); // voz + minimapa (ya no como filas)
   placeTopbarBtns();
 }
+/* ventana flotante con la SIGUIENTE instruccion: icono + distancia (+ nombre
+   corto de via en modo texto). Se alinea bajo el banner. */
+function renderNextWin(nxt,idx){
+  const w=document.getElementById('next-win');if(!w)return;
+  w.innerHTML='';
+  const banner=document.getElementById('banner');
+  const navOn=banner&&banner.style.display==='flex';
+  if(!nxt||!navOn){w.style.display='none';return;}
+  const icc=document.createElement('span');icc.className='rd-ico-col';
+  const ic=document.createElement('span');ic.className='rd-ico';
+  const img=document.createElement('img');
+  img.src=maneuverIconSrc(nxt.maneuver||{});
+  img.alt='';img.draggable=false;
+  ic.appendChild(img);
+  const ds=document.createElement('b');ds.className='rd-under';ds.textContent='—';
+  icc.appendChild(ic);icc.appendChild(ds);
+  w.appendChild(icc);
+  if(S.nextMode){ // modo texto: referencia corta a la via
+    const nm=document.createElement('span');nm.className='nw-name';
+    nm.textContent=compactLabel(nxt);w.appendChild(nm);
+  }
+  w.style.display='flex';
+  w._step=nxt;
+  w.onclick=(ev)=>{ if(ev.shiftKey){S.nextMode=S.nextMode?0:1;saveS('nextMode',S.nextMode);renderRouteDetail();return;} onStepClick(idx); };
+  updateNextWinDist(nxt);
+  placeNextWin();
+}
+/* distancia en vivo (por tick) de la siguiente instruccion */
+function updateNextWinDistLive(){
+  const w=document.getElementById('next-win');
+  if(!w||w.style.display==='none'||!w._step)return;
+  updateNextWinDist(w._step);
+}
+/* distancia en vivo bajo el icono de la siguiente instruccion */
+function updateNextWinDist(step){
+  const w=document.getElementById('next-win');if(!w||w.style.display==='none')return;
+  const el=w.querySelector('.rd-under');if(!el)return;
+  try{
+    const m=(step&&step.maneuver)||{};const loc=m.location;
+    if(loc&&userPos){el.textContent=fmtDist(haversine([loc[0],loc[1]],userPos));return;}
+  }catch(e){}
+  el.textContent=(step&&step.dist!=null)?fmtDist(step.dist):'—';
+}
+function placeNextWin(){
+  const w=document.getElementById('next-win');const b=document.getElementById('banner');
+  if(!w||!b)return;
+  if(w.style.display==='none')return;
+  w.style.top=(b.offsetTop+b.offsetHeight+8)+'px';
+}
+
 /* radares como instrucciones: los radares a menos de 300 m de la ruta se
    insertan en el itinerario (numerados como el resto) */
 let routeRadars=[];
