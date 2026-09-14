@@ -3807,6 +3807,9 @@ function simTick(){
   if(!routeData||!routeData.coords||routeData.coords.length<2){stopSimulator();return;}
   if(typeof updateSimSpeedLabel==='function')updateSimSpeedLabel(); // refleja el maximo de la via actual
   const mps=simSpeedMps();
+  const now=Date.now();
+  const dt=simLastTs?Math.min(1.5,(now-simLastTs)/1000):0.25; // tiempo REAL entre ticks
+  simLastTs=now;
   if(mps<0){ // depuración: retroceder por la ruta
     let remaining=-mps*dt;
     let guard=0;
@@ -3829,9 +3832,6 @@ function simTick(){
     handleGpsFix({longitude:simPos[0],latitude:simPos[1],speed:0,heading:carHeading||0});
     return;
   }
-  const now=Date.now();
-  const dt=simLastTs?Math.min(1.5,(now-simLastTs)/1000):0.25; // tiempo REAL entre ticks
-  simLastTs=now;
   let remaining=mps*dt; // metros recorridos segun la velocidad indicada
   let guard=0;
   while(remaining>0&&guard++<50000){
