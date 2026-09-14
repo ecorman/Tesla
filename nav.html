@@ -128,12 +128,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* flechas de progreso: realizado -> del borde izq. al centro; pendiente -> del centro al borde der. */
 /* flecha UNICA en la cabecera de la tira: realizado (verde, borde izq ->
    centro) y pendiente (azul, centro -> borde der) como una sola linea */
-#nav-progress-strip #np-arrow{display:flex;flex-direction:row;align-items:center;width:100%;height:8px;margin-bottom:2px}
-#nav-progress-strip #np-arrow i{position:relative;flex:1;height:2px}
+#nav-progress-strip #np-arrow{display:flex;flex-direction:row;align-items:center;width:100%;height:5px;margin-bottom:1px}
+#nav-progress-strip #np-arrow i{position:relative;flex:1;height:1.5px}
 #nav-progress-strip #np-arrow i.a-real{background:#3dd68c;margin-right:5px}
-#nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border-left:6px solid #3dd68c;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+#nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border-left:4px solid #3dd68c;border-top:2.5px solid transparent;border-bottom:2.5px solid transparent}
 #nav-progress-strip #np-arrow i.a-pend{background:#4f8cff;margin-left:6px}
-#nav-progress-strip #np-arrow i.a-pend::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:6px solid #4f8cff;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+#nav-progress-strip #np-arrow i.a-pend::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:4px solid #4f8cff;border-top:2.5px solid transparent;border-bottom:2.5px solid transparent}
 #nav-progress-strip.mode-real #np-arrow i.a-pend{visibility:hidden}
 #nav-progress-strip.mode-pend #np-arrow i.a-real{visibility:hidden}
 #nav-progress-strip.mode-pend #np-arrow{flex-direction:row-reverse}
@@ -178,7 +178,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #next-win .rd-ico{width:2.1em;height:2.1em;border-radius:.55em;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #next-win .rd-ico img{width:1.95em;height:1.95em;object-fit:contain;display:block}
 #next-win .rd-under{font-size:15px;font-weight:800;color:#ffd700;line-height:1.1;text-align:center;font-variant-numeric:tabular-nums}
-#next-win .nw-name{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:#dfe3ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+#next-win .nw-name{flex:1;min-width:0;font-size:10.5px;font-weight:600;color:#dfe3ea;line-height:1.25;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* fila de la SIGUIENTE instruccion: ancho 25% de la pantalla; en modo 0 (icono+distancia) el nombre se oculta y la fila se comprime */
 #rd-steps .rd-step.next-maneuver{max-width:25vw}
 #rd-steps .rd-step.next-maneuver.hide-text .rd-name{display:none}
@@ -273,7 +273,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-speed-chip.over{background:#7f1d1d;border-color:#ef4444}
 #nav-speed-chip.over .vel-val{color:#ffb4b4}
 /* velocidad + brújula: grupo unico (una ventana combinada) centrado en la pantalla */
-#hud-center{position:fixed;top:8px;left:12px;z-index:24;display:flex;flex-direction:row;align-items:center;gap:10px;pointer-events:none}
+#hud-center{position:fixed;top:8px;left:12px;z-index:19;display:flex;flex-direction:row;align-items:center;gap:10px;pointer-events:none}
 /* durante la navegacion (banner visible) la ventana pasa DEBAJO del banner:
    el JS la recoloca con top = alto del banner + margen */
 #hud-center>#nav-speed-chip,#hud-center>#free-hud{position:static;transform:none;pointer-events:auto}
@@ -894,7 +894,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <small style="color:var(--dim);font-size:11px;display:block;margin-top:4px">Registro de cambios de la app (updates.txt).</small>
     <label style="margin-top:12px">Simulador de GPS (debug)</label>
     <div class="posrow"><label>🚗</label>
-      <input type="range" id="s-sim-speed" min="-60" max="160" step="5" value="60">
+      <input type="range" id="s-sim-speed" min="-60" max="300" step="5" value="60">
       <span class="val" id="v-sim-speed">60 km/h</span>
     </div>
     <div class="togglerow"><span>🚦 Velocidad = máxima de la vía</span><div class="switch on" id="s-sim-roadmax"></div></div>
@@ -2837,16 +2837,13 @@ function maneuverIconSrc(maneuver){
     const l1x=cx+r*1.5*Math.cos(rad+0.38),l1y=cy+r*1.5*Math.sin(rad+0.38);
     const l2x=cx+r*1.5*Math.cos(rad-0.38),l2y=cy+r*1.5*Math.sin(rad-0.38);
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
-      +'<rect width="64" height="64" rx="10" fill="#fff"/>'
-      +'<circle cx="32" cy="32" r="13" fill="none" stroke="#1c4fa8" stroke-width="9"/>'
-      // halo de la flecha de salida (recorta el anillo azul)
-      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#fff" stroke-width="14" stroke-linecap="round"/>'
-      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#1c4fa8" stroke-width="7" stroke-linecap="round"/>'
-      +'<polygon points="'+hx.toFixed(1)+','+hy.toFixed(1)+' '+l1x.toFixed(1)+','+l1y.toFixed(1)+' '+l2x.toFixed(1)+','+l2y.toFixed(1)+'" fill="#1c4fa8"/>'
-      // entrada del coche (abajo)
-      +'<line x1="32" y1="61" x2="32" y2="44" stroke="#1c4fa8" stroke-width="6" stroke-linecap="round"/>'
-      +'<circle cx="32" cy="32" r="6.5" fill="#fff"/>'
-      +'<text x="32" y="36.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="900" fill="#1c4fa8">'+m.exit+'</text>'
+      // estilo plano negro sobre transparente, como el resto de senales (PNG)
+      +'<circle cx="32" cy="32" r="13" fill="none" stroke="#000" stroke-width="6"/>'
+      +'<line x1="32" y1="61" x2="32" y2="44" stroke="#000" stroke-width="5" stroke-linecap="round"/>'
+      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#fff" stroke-width="10" stroke-linecap="round"/>'
+      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#000" stroke-width="6" stroke-linecap="round"/>'
+      +'<polygon points="'+hx.toFixed(1)+','+hy.toFixed(1)+' '+l1x.toFixed(1)+','+l1y.toFixed(1)+' '+l2x.toFixed(1)+','+l2y.toFixed(1)+'" fill="#000"/>'
+      +'<text x="32" y="36.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="900" fill="#000">'+m.exit+'</text>'
       +'</svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
@@ -3745,7 +3742,7 @@ startGps();
    velocidad elegida y pasa un fix sintetico a handleGpsFix(): el resto del
    codigo (marcador, camara, velocidad, banner, voz, modos de zoom, navTick)
    funciona exactamente igual que con el GPS real. */
-let simTimer=null,simActive=false,simIdx=0,simPos=null,simSpeedKmh=60;
+let simTimer=null,simActive=false,simIdx=0,simPos=null,simSpeedKmh=60,simLastTs=0;
 /* velocidad efectiva de simulacion: con la opcion «maxima de la via» el
    simulador circula al limite Overpass del tramo actual (el cache lo alimenta
    handleGpsFix->fetchRoadSpeedLimit mientras se simula); si no hay dato de
@@ -3768,6 +3765,7 @@ function simTargetKmhLabel(){
 }
 function startSimulator(){
   if(simActive)return;
+  simLastTs=0;
   if(!routeData||!routeData.coords||routeData.coords.length<2){toast('Calcula una ruta primero');return;}
   // arrancar en el punto de la ruta mas cercano al GPS actual (o al inicio)
   let best=0,bd=Infinity;
@@ -3810,7 +3808,7 @@ function simTick(){
   if(typeof updateSimSpeedLabel==='function')updateSimSpeedLabel(); // refleja el maximo de la via actual
   const mps=simSpeedMps();
   if(mps<0){ // depuración: retroceder por la ruta
-    let remaining=-mps*0.25;
+    let remaining=-mps*dt;
     let guard=0;
     while(remaining>0&&guard++<50000){
       const b=simPos;
@@ -3831,7 +3829,10 @@ function simTick(){
     handleGpsFix({longitude:simPos[0],latitude:simPos[1],speed:0,heading:carHeading||0});
     return;
   }
-  let remaining=mps*0.25; // metros por tick (250 ms) -> movimiento suave
+  const now=Date.now();
+  const dt=simLastTs?Math.min(1.5,(now-simLastTs)/1000):0.25; // tiempo REAL entre ticks
+  simLastTs=now;
+  let remaining=mps*dt; // metros recorridos segun la velocidad indicada
   let guard=0;
   while(remaining>0&&guard++<50000){
     const a=simPos;
@@ -3877,9 +3878,16 @@ function updateSimSpeedLabel(){
   const tg=simTargetKmh();
   simSpeedVal.textContent=Math.round(tg)+' km/h'+(tg<0?' (atrás)':'')+(S.simRoadMax&&_speedLimitCache&&_speedLimitCache.val>0?' · máx. vía':'');
 }
-function syncSimSpeed(){simSpeedKmh=+simSpeedEl.value;updateSimSpeedLabel();}
+function syncSimSpeed(){
+  simSpeedKmh=+simSpeedEl.value;
+  if(S.simRoadMax){ // el valor manual prevalece sobre el maximo de la via
+    S.simRoadMax=false;saveS('simRoadMax',S.simRoadMax);
+    const sw=document.getElementById('s-sim-roadmax');if(sw)sw.classList.remove('on');
+  }
+  updateSimSpeedLabel();
+}
 function bumpSimSpeed(delta){
-  let v=Math.max(-60,Math.min(160,(+simSpeedEl.value||0)+delta));
+  let v=Math.max(-60,Math.min(300,(+simSpeedEl.value||0)+delta));
   simSpeedEl.value=v;syncSimSpeed();
 }
 const simMinus=document.getElementById('btn-sim-minus');
