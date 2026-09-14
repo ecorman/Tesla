@@ -61,7 +61,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #search-panel{position:absolute;top:12px;left:12px;z-index:70;display:none;flex-direction:column;gap:8px;width:min(430px,82vw);background:rgba(16,16,20,.97);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #search-panel.open{display:flex}
 #sp-favs{display:none;flex-direction:column;gap:4px}
-#sp-favs.has{display:flex}
+#sp-favs.show{display:flex}
+#btn-fav-toggle.on{color:#ffd700}
 #sp-favs .sp-fav-title{font-size:10px;color:#888ea0;letter-spacing:1px;font-weight:700;text-transform:uppercase;margin-top:2px}
 #sp-fav-list{display:flex;flex-direction:column;gap:3px;max-height:180px;overflow-y:auto}
 .sr-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:9px}
@@ -125,16 +126,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #nav-progress-strip .np-col:last-child{align-items:flex-end}
 #nav-progress-strip .np-col strong{display:none} /* sin textos de encabezado: ventana mas estrecha */
 /* flechas de progreso: realizado -> del borde izq. al centro; pendiente -> del centro al borde der. */
-/* UNA sola flecha por columna en el encabezado: realizado -> del borde
-   izq. al centro; pendiente -> del centro al borde der. (solo cuando esa
-   mitad es la visible en el modo de la tira) */
-#nav-progress-strip .np-col span:first-child{position:relative;padding-left:0}
-#nav-progress-strip .np-col span:first-child.tm-real::before{content:'';position:absolute;left:0;top:50%;width:calc(50% - 6px);height:2px;background:#3dd68c;transform:translateY(-50%)}
-#nav-progress-strip .np-col span:first-child.tm-real::after{content:'';position:absolute;left:calc(50% - 6px);top:50%;border-left:6px solid #3dd68c;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transform:translateY(-50%)}
-#nav-progress-strip .np-col span:first-child.tm-pend::before{content:'';position:absolute;left:calc(50% + 1px);top:50%;width:calc(50% - 7px);height:2px;background:#4f8cff;transform:translateY(-50%)}
-#nav-progress-strip .np-col span:first-child.tm-pend::after{content:'';position:absolute;right:0;top:50%;border-left:6px solid #4f8cff;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transform:translateY(-50%)}
-/* en modo por defecto (ambas visibles) la flecha solo va en el realizado */
-#nav-progress-strip:not(.mode-pend) .np-col span:first-child.tm-pend::before,#nav-progress-strip:not(.mode-pend) .np-col span:first-child.tm-pend::after{content:none}
+/* flecha UNICA en la cabecera de la tira: realizado (verde, borde izq ->
+   centro) y pendiente (azul, centro -> borde der) como una sola linea */
+#nav-progress-strip #np-arrow{display:flex;flex-direction:row;align-items:center;width:100%;height:8px;margin-bottom:2px}
+#nav-progress-strip #np-arrow i{position:relative;flex:1;height:2px}
+#nav-progress-strip #np-arrow i.a-real{background:#3dd68c;margin-right:5px}
+#nav-progress-strip #np-arrow i.a-real::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border-left:6px solid #3dd68c;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+#nav-progress-strip #np-arrow i.a-pend{background:#4f8cff;margin-left:6px}
+#nav-progress-strip #np-arrow i.a-pend::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);border-left:6px solid #4f8cff;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+#nav-progress-strip.mode-real #np-arrow i.a-pend{visibility:hidden}
+#nav-progress-strip.mode-pend #np-arrow i.a-real{visibility:hidden}
+#nav-progress-strip.mode-pend #np-arrow{flex-direction:row-reverse}
 #nav-progress-strip .np-col span{font-size:13px;font-weight:800;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap}
 #nav-progress-strip .np-col.np-now{background:rgba(0,0,0,.45)}
 #nav-progress-strip .eta-col{flex:none}
@@ -160,7 +162,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .poi-pin{display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
 .pick-pin{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));cursor:grab}
 /* ---- ventana de ruta detallada: itinerario Salida → paradas → Destino ---- */
-#rd-steps{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;min-height:0;width:100%;min-width:0;margin-top:6px;padding-right:2px}
+#rd-steps{display:none} /* la lista futura ya no va en el banner: solo instruccion actual + barra de progreso */
 /* los modos de visualizacion SOLO cambian el alto visible (1 / 2 / 5 filas);
    la lista siempre contiene todas las instrucciones y hace scroll */
 /* una sola fila resumida: el alto de la ventana se ajusta a la cabecera +
@@ -516,6 +518,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 (function(){
   // La brújula vive abajo-izquierda: cuando la barra inferior de progreso está
   // visible (navegando con ruta) se eleva por encima para no solaparse.
+  window.placeCompassHud=placeCompass;
   function placeCompass(){
     var hud=document.getElementById('free-hud');
     var s=document.getElementById('nav-progress-strip');
@@ -528,7 +531,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     if(hc&&b){
       var bVisible=(b.style.display==='flex');
       var bn=bVisible?b.offsetHeight:0;
-      hc.style.top=(bn?bn+24:8)+'px';
+      var top=bn?(bn+24):8;
+      // bajo el HUD va la ventana de la SIGUIENTE instruccion: no solaparse
+      var nw=document.getElementById('next-win');
+      if(nw&&nw.style.display==='flex'&&nw.offsetHeight>0){
+        nw.style.top=top+'px';
+        top=nw.offsetTop+nw.offsetHeight+8;
+      }
+      hc.style.top=top+'px';
     }
     try{ if(typeof placeNextWin==='function')placeNextWin(); }catch(e){}
   }
@@ -622,7 +632,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     </button>
     <div id="topbar-btns">
       <button class="icon-btn" id="btn-search" title="Buscar ruta">🔍</button>
-      <button class="icon-btn" id="btn-routes" title="Rutas guardadas">⭐</button>
       <button class="icon-btn" id="btn-ai" title="Asistente de rutas IA">🤖</button>
       <button class="icon-btn" id="btn-report" title="Informar de una incidencia">⚠️</button>
       <button class="icon-btn" id="btn-sim" title="Simular GPS — solo disponible con una ruta calculada" style="opacity:.45;pointer-events:none">🚗</button>
@@ -633,6 +642,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="sp-row">
       <input id="dest-input" type="text" placeholder="Buscar destino…" autocomplete="off">
       <button class="btn primary" id="btn-go">Ruta</button>
+      <button class="icon-btn" id="btn-fav-toggle" title="Rutas favoritas">☆</button>
       <button class="icon-btn" id="btn-search-close" title="Cerrar"></button>
     </div>
     <div id="results"></div>
@@ -711,6 +721,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- Barra inferior (margen inferior izquierdo): próxima etapa + destino + hora de llegada -->
 <div id="nav-progress-strip">
+  <div id="np-arrow" title="Realizado / pendiente"><i class="a-real"></i><i class="a-pend"></i></div>
   <div class="np-col np-now">
     <span id="nav-clock-diff" title="Diferencia respecto a la previsión">±0:00</span>
     <strong>ETA</strong>
@@ -2814,24 +2825,28 @@ function getManeuverIconFilename(maneuver){
 function maneuverIconSrc(maneuver){
   const m=maneuver||{};const type=m.type||'';
   if((type.includes('roundabout')||type.includes('rotary'))&&typeof m.exit==='number'&&m.exit>=1){
-    // estilo clasico (anillo completo + entradas) con la salida en el angulo
-    // EXACTO del reloj: brazo mas grueso, punta grande y numero de salida al centro
+    // senal europea de rotonda (anillo azul con flechas blancas) y la flecha
+    // de SALIDA en el angulo EXACTO del reloj, blanca y con halo azul grueso
     const clk=(typeof m.bearingDeg==='number'&&m.bearingDeg>=1&&m.bearingDeg<=12)?m.bearingDeg:(((m.exit-1)*3)%12||12);
     const ang=(clk-3)*30; // 12 en punto arriba -> -90º; el SVG usa 0º=derecha
     const rad=ang*Math.PI/180;
-    const cx=32,cy=32,r=16;
-    const ax=cx+(r+1)*Math.cos(rad),ay=cy+(r+1)*Math.sin(rad);
-    const tx=cx+r*1.6*Math.cos(rad),ty=cy+r*1.6*Math.sin(rad);
-    const hx=cx+r*1.95*Math.cos(rad),hy=cy+r*1.95*Math.sin(rad);
-    const l1x=cx+r*1.35*Math.cos(rad+0.42),l1y=cy+r*1.35*Math.sin(rad+0.42);
-    const l2x=cx+r*1.35*Math.cos(rad-0.42),l2y=cy+r*1.35*Math.sin(rad-0.42);
-    // entradas esteticas (abajo = entrada del coche; izquierda/derecha segun angulo)
+    const cx=32,cy=32,r=13;
+    const ax=cx+(r-1)*Math.cos(rad),ay=cy+(r-1)*Math.sin(rad);
+    const tx=cx+r*1.75*Math.cos(rad),ty=cy+r*1.75*Math.sin(rad);
+    const hx=cx+r*2.15*Math.cos(rad),hy=cy+r*2.15*Math.sin(rad);
+    const l1x=cx+r*1.5*Math.cos(rad+0.38),l1y=cy+r*1.5*Math.sin(rad+0.38);
+    const l2x=cx+r*1.5*Math.cos(rad-0.38),l2y=cy+r*1.5*Math.sin(rad-0.38);
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
-      +'<circle cx="32" cy="32" r="16" fill="none" stroke="#000" stroke-width="7"/>'
-      +'<line x1="32" y1="60" x2="32" y2="49" stroke="#000" stroke-width="5" stroke-linecap="round"/>'
-      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#000" stroke-width="7" stroke-linecap="round"/>'
-      +'<polygon points="'+hx.toFixed(1)+','+hy.toFixed(1)+' '+l1x.toFixed(1)+','+l1y.toFixed(1)+' '+l2x.toFixed(1)+','+l2y.toFixed(1)+'" fill="#000"/>'
-      +'<text x="32" y="37.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="900" fill="#000">'+m.exit+'</text>'
+      +'<rect width="64" height="64" rx="10" fill="#fff"/>'
+      +'<circle cx="32" cy="32" r="13" fill="none" stroke="#1c4fa8" stroke-width="9"/>'
+      // halo de la flecha de salida (recorta el anillo azul)
+      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#fff" stroke-width="14" stroke-linecap="round"/>'
+      +'<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="#1c4fa8" stroke-width="7" stroke-linecap="round"/>'
+      +'<polygon points="'+hx.toFixed(1)+','+hy.toFixed(1)+' '+l1x.toFixed(1)+','+l1y.toFixed(1)+' '+l2x.toFixed(1)+','+l2y.toFixed(1)+'" fill="#1c4fa8"/>'
+      // entrada del coche (abajo)
+      +'<line x1="32" y1="61" x2="32" y2="44" stroke="#1c4fa8" stroke-width="6" stroke-linecap="round"/>'
+      +'<circle cx="32" cy="32" r="6.5" fill="#fff"/>'
+      +'<text x="32" y="36.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="900" fill="#1c4fa8">'+m.exit+'</text>'
       +'</svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
@@ -3943,6 +3958,7 @@ document.getElementById('btn-search').onclick=()=>{
   if(wasOpen)return; // toggle: ya estaba abierto -> cerrar
   p.classList.add('open');
   resultsBox.style.display='none';
+  const ft=document.getElementById('btn-fav-toggle');if(ft){ft.classList.remove('on');document.getElementById('sp-favs').classList.remove('show');}
   renderSearchFavs();
   armOverlayAutoHide();
   setTimeout(()=>destInput.focus(),80);
@@ -4188,9 +4204,10 @@ function updateZoomBtn(){
   zoomBtn.textContent=m==='off'?'LIBRE':m.toUpperCase();
   zoomBtn.classList.toggle('active',m!=='off');
   zoomBtn.classList.toggle('route-mode',m==='route');
-  // los controles de zoom SOLO se muestran en LIBRE: en AUTO/RUTA/ECO se ocultan
-  // enteros (el modo se cambia desde Ajustes o con la rueda del mapa)
-  const zc=document.getElementById('zoom-controls');if(zc)zc.style.display=(m==='off')?'flex':'none';
+  // solo se ve el boton de modo: +/- y el nivel siempre ocultos
+  const zi=document.getElementById('z-in'),zo=document.getElementById('z-out'),zl=document.getElementById('z-level');
+  if(zi)zi.style.display='none';if(zo)zo.style.display='none';if(zl)zl.style.display='none';
+  const zc=document.getElementById('zoom-controls');if(zc)zc.style.display='flex';
   zoomBtn.title='Modo de zoom: '+(m==='off'?'LIBRE (manual)':m==='auto'?'AUTO (por velocidad)':m==='route'?'RUTA (vista general)':'ECO (autopista/ciudad)');
 }
 function setZoomMode(m){
@@ -4377,6 +4394,7 @@ function makeResizable(id,key,minW,minH){
   el.appendChild(hd);
 }
 localStorage.removeItem(LS+'hudW');localStorage.removeItem(LS+'hudH'); // tamaño antiguo de la brújula: olvidar
+localStorage.removeItem(LS+'bannerW');localStorage.removeItem(LS+'bannerH'); // alto antiguo con lista: olvidar
 makeResizable('banner','banner',220,52);
 makeResizable('mnv-box','mnv',170,110);
 (function(){
@@ -4863,7 +4881,7 @@ function renderSearchFavs(){
   const box=document.getElementById('sp-favs'),list=document.getElementById('sp-fav-list');
   if(!box||!list)return;
   list.innerHTML='';
-  box.classList.toggle('has',savedRoutes.length>0);
+  box.classList.toggle('show',box.classList.contains('show')&&savedRoutes.length>0);
   savedRoutes.forEach(r=>{
     const row=document.createElement('div');row.className='sr-row';
     const info=document.createElement('div');info.className='sr-info';
@@ -5051,7 +5069,14 @@ async function sendAi(){
 /* ---------- wiring de las nuevas funciones ---------- */
 document.getElementById('btn-report').onclick=openAlertModal;
 document.getElementById('alert-close').onclick=closeAlertModal;
-document.getElementById('btn-routes').onclick=toggleRoutesPanel;
+/* estrella del panel de busqueda: muestra/oculta las rutas favoritas */
+document.getElementById('btn-fav-toggle').onclick=()=>{
+  const box=document.getElementById('sp-favs'),b=document.getElementById('btn-fav-toggle');
+  const on=!box.classList.contains('show');
+  box.classList.toggle('show',on&&savedRoutes.length>0);
+  b.classList.toggle('on',on);
+  if(on){renderSearchFavs();if(!savedRoutes.length)toast('Sin rutas guardadas todavía');}
+};
 document.getElementById('routes-close').onclick=()=>document.getElementById('routes-panel').classList.remove('open');
 document.getElementById('btn-save-route').onclick=saveCurrentRoute;
 document.getElementById('btn-ai').onclick=openAi;
@@ -5485,6 +5510,7 @@ function placeNextWin(){
   if(!w||!b)return;
   if(w.style.display==='none')return;
   w.style.top=(b.offsetTop+b.offsetHeight+8)+'px';
+  try{if(typeof placeCompassHud==='function')placeCompassHud();}catch(e){}
 }
 
 /* radares como instrucciones: los radares a menos de 300 m de la ruta se
