@@ -68,6 +68,8 @@
 
     
     <link rel="stylesheet" href="tesla.css">
+    <!-- Motor de voz eSpeak offline (el mismo que usa nav.html) -->
+    <script src="mespeak/mespeak.js"></script>
     
 <!-- REVISAR CADA 30 DIAS API DE MAPBOX -->
     
@@ -722,8 +724,40 @@ body.boot-map #utils-button {
 #launcher-sectioned-container { display: none; width: 100%; max-width: 984px; margin: 0 auto; padding: 12px 6px; box-sizing: border-box; }
 #launcher-section-tabs { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
 #launcher-section-links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-content: start; }
+
+/* =============================================================
+   18. MODO COCHE: objetivos táctiles grandes en pantallas de Tesla.
+   La pantalla del coche (1254x784) activa zoom 0.6536 via JS; con
+   ese zoom los controles quedan pequeños, así que en pantallas
+   táctiles pequeñas agrandamos tabs y filas de enlaces y añadimos
+   botones laterales accesibles sin depender del puntero.
+   ============================================================= */
+@media (hover: none) and (pointer: coarse) and (max-width: 1280px) {
+    #launcher-section-tabs { gap: 14px; margin-bottom: 22px; }
+    .ql-tab { padding: 18px 30px; font-size: 1.55rem; border-radius: 14px; }
+    #launcher-section-links { grid-template-columns: 1fr; gap: 16px; }
+    .ql-link { min-height: 110px; padding: 18px 22px; }
+    .ql-link img { width: 66px; height: 66px; }
+    .ql-link span { font-size: 1.7rem; }
+    .ql-link:active { transform: scale(0.98); background-color: rgba(255,255,255,0.25); }
+    #grid-filter-input { min-height: 56px; font-size: 1.3rem; }
+    #clear-filter-button { width: 52px; height: 52px; font-size: 1.6rem; }
+    /* Botones laterales más grandes y separados (adjustButtonPositions usa 74+10) */
+    .toggle-image, .toggle-sign, .range-toggle { min-height: 84px; }
+    .range-toggle .sign { font-size: 1.6rem; }
+}
+/* Objetivo táctil mínimo global para controles del mapa en pantallas táctiles */
+@media (hover: none) and (pointer: coarse) {
+    .reminders-map-button-action { min-width: 60px; min-height: 60px; }
+    .reminders-map-button-action img { max-width: 100%; max-height: 100%; }
+}
 body.sectioned-launcher #bookmark-grid { display: none !important; }
 body.sectioned-launcher #launcher-sectioned-container { display: block; }
+/* En el lanzador por secciones no deben verse los controles laterales del grid antiguo */
+body.sectioned-launcher .toggle-image,
+body.sectioned-launcher .toggle-sign,
+body.sectioned-launcher .range-toggle,
+body.sectioned-launcher .scroll-toggle-button { display: none !important; }
 </style>
 
 </head>
@@ -805,6 +839,7 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
                 <span id="chat-message-globe">0</span>
             </span>
     <div id="user-id-display"></div>
+    <span id="sync-status" title="Estado de sincronización" style="display:inline-flex;align-items:center;margin-left:8px;padding:2px 7px;border-radius:10px;font-size:.72rem;font-weight:700;background:#e8f5e9;color:#247a3d;">LOCAL</span>
 </div>
     </div>
     
@@ -1094,14 +1129,14 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
         <div id="tab-content-usuario" class="config-tab-content active">
             <h3>Datos de Usuario y Sincronización</h3>
             <p style="font-size:.9rem;color:#555;margin-bottom:1.5rem;text-align:center;">
-                Introduce un nombre de usuario único para guardar y recuperar tus datos en la nube.
+                El ID de usuario es opcional: solo necesitas introducirlo si quieres guardar o recuperar datos en la nube.
             </p>
             <p style="font-size: .95rem; color: #005A9C; margin-bottom: 1.5rem; text-align: left; background-color: #e6f7ff; padding: 10px; border-radius: 5px; border-left: 5px solid #007bff;">
                 <strong>Modo Compañero (Móvil):</strong> Para sincronizar datos desde tu móvil, usa tu nombre de usuario seguido de <strong>@MOVIL o MÓVIL</strong> (ej: `MI_USUARIO@MOVIL`).
                 Al iniciar sesión, se cargarán los ÚLTIMOS DATOS que el coche haya GUARDADO EN LA NUBE. Cada cambio que hagas en el móvil (crear rutas, etc.) se guardará automáticamente en la nube para que esté disponible en el coche al CARGAR. 
                  -----IMPORTANTE!!!!---- SI QUIERES ENVIAR DATOS DESDE EL MÓVIL RECUERDA ANTES FORZAR UNA RECARGA DE LA PÁGINA EN EL COCHE (debes tener el check activo de copias automáticas) O REALIZAR MANUALMENTE UN BACKUP</p>
             <div class="user-data-grid">
-                <div><label for="user-id">* ID Usuario (Único, no se puede cambiar):</label><input type="text" id="user-id" name="userId" required></div>
+                <div><label for="user-id">ID Usuario (opcional, para sincronización en la nube):</label><input type="text" id="user-id" name="userId" autocomplete="username"></div>
                 <div><label for="tesla-model">Modelo Tesla:</label><input type="text" id="tesla-model" name="teslaModel"></div>
                 <div><label for="tesla-year">Año Modelo:</label><input type="number" id="tesla-year" name="teslaYear" min="2012" max="2099"></div>
                 <div><label for="tesla-province">Provincia:</label><input type="text" id="tesla-province" name="teslaProvince"></div>
@@ -1115,8 +1150,9 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
                     <label for="config-auto-backup-on-load">Sincronizar/Hacer copia de seguridad automática al cargar la página (en el coche)</label>
                 </div>
             </div>
-            <div class="user-buttons-container" style="margin-top:1.5rem;">
-                <button id="config-save-user-firebase" style="background-color:#16A34A;color:white;">Validar usuario y/o Sincronizar/Guardar en la nube</button>
+            <div class="user-buttons-container" style="margin-top:1.5rem;display:flex;gap:.6rem;flex-wrap:wrap;">
+                <button id="config-save-local" style="background-color:#2563EB;color:white;">Guardar solo en este dispositivo</button>
+                <button id="config-save-user-firebase" style="background-color:#16A34A;color:white;">Sincronizar ahora con la nube</button>
             </div>
             <p id="config-user-status" class="status-message"></p>
             </div>
@@ -1208,12 +1244,16 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
                  <div>
                     <h4>Crear Backup Local</h4>
                      <button id="config-generate-backup" style="background-color:#2563EB;color:white; margin-bottom: 1rem;">Generar Código</button>
+                     <button id="config-download-backup" style="background-color:#0F766E;color:white; margin-bottom: 1rem;">Descargar JSON</button>
                     <textarea id="config-backup-display" readonly style="display:none;"></textarea>
+                    <p style="font-size:.78rem;color:#666;">El backup local no incluye PIN ni claves de sincronización.</p>
                     <p id="config-backup-status" class="status-message"></p>
                 </div>
                 <div>
                     <h4>Restaurar Copia Local</h4>
-                    <button id="config-restore-backup" style="background-color:#10B981;color:white; margin-bottom: 1rem;">Restaurar</button>
+                    <button id="config-restore-backup" style="background-color:#10B981;color:white; margin-bottom: 1rem;">Restaurar código</button>
+                    <button id="config-import-backup" style="background-color:#7C3AED;color:white; margin-bottom: 1rem;">Importar JSON</button>
+                    <input id="config-import-backup-file" type="file" accept="application/json,.json" style="display:none;">
                     <textarea id="config-restore-input" placeholder="Pega el código de backup local aquí..."></textarea>
                 </div>
             </div>
@@ -1226,7 +1266,7 @@ body.sectioned-launcher #launcher-sectioned-container { display: block; }
             <h3 style="border-top: 1px solid #ccc; padding-top: 1.5rem; margin-top:1.5rem;">Acción Irreversible</h3>
             <button id="config-clear-cache" style="margin-bottom: 0.5rem;">Borrar TODO</button>
             <p>Elimina TODOS los datos locales.</p>
-            <p><strong style="color:red;">¡Sin deshacer!</strong> Ten backup.</p>
+            <p><strong style="color:red;">¡Sin deshacer!</strong> Ten un backup JSON antes de continuar.</p>
         </div>
         <div id="tab-content-normas" class="config-tab-content">
              <h3 style="text-align: center; font-size: 1.4rem; color: #c0392b; margin-bottom: 1rem;">Aviso Importante: Uso de la Aplicación de Navegación</h3>
@@ -1995,7 +2035,7 @@ const originalBookmarks = [
     const PDRS_RUTA_CHECKED_KEY = 'boardinggate_pdrsRutaCheckboxChecked';
     const VOICE_GUIDANCE_KEY = 'boardinggate_voice_guidance';
     const VOICE_MODE_KEY = 'boardinggate_voice_mode';       // 'silence' | 'sounds' | 'voice'
-    const VOICE_ENGINE_KEY = 'boardinggate_voice_engine';   // 'native' | 'google' | 'clips' | 'online'
+    const VOICE_ENGINE_KEY = 'boardinggate_voice_engine';   // 'native' | 'google' | 'clips' | 'online' | 'espeak'
     let voiceGuidanceEnabled = false;
     let voiceGuidanceMode = JSON.parse(localStorage.getItem(VOICE_MODE_KEY) || '"silence"');
     let voiceGuidanceEngine = JSON.parse(localStorage.getItem(VOICE_ENGINE_KEY) || '"native"');
@@ -2030,6 +2070,9 @@ const originalBookmarks = [
         SHOW_ROUTE_MINIMAP_KEY,
         VOICE_GUIDANCE_KEY
      ];
+
+    // Nunca exportar secretos en backups locales en texto/base64.
+    const LOCAL_BACKUP_EXCLUDED_KEYS = new Set(['password_pin', 'userData_backupPassword']);
 
     const managedDesc = managedKeys.map(k => {
         switch(k){
@@ -3036,6 +3079,11 @@ function generateAndCacheCleanManeuverList(route, actualWaypoints) {
             const isRealArrival = maneuver.type === 'arrive' && !actualWaypoints[legIdx + 1]?.isInternal;
 
             if (isFirstStepOfAll || isSignificantType || isLongContinuation || isRealArrival) {
+                cleanSteps.push({ ...step, originalLegIndex: legIdx, originalStepIndex: stepIdx });
+            }
+            // Salida de rotonda también es maniobra significativa: OSRM la marca
+            // como 'exit roundabout'/'exit rotary' tras entrar en el anillo.
+            else if (maneuver.type === 'exit roundabout' || maneuver.type === 'exit rotary') {
                 cleanSteps.push({ ...step, originalLegIndex: legIdx, originalStepIndex: stepIdx });
             }
         }
@@ -5274,8 +5322,7 @@ function deactivateRangeCalcMode() {
 // ===================================================================
 // NOMBRE: findGooglePlaceId 
 async function findGooglePlaceId(poiName, lat, lng) {
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-        showToast("Error: No se pudo cargar el servicio de lugares.", "error");
+    if (!await ensureGoogleMapsLoaded()) {
         return null;
     }
 
@@ -5301,8 +5348,7 @@ async function findGooglePlaceId(poiName, lat, lng) {
 // ===================================================================
 // NOMBRE: getGooglePlaceDetails 
 async function getGooglePlaceDetails(placeId, fields = null) {
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-        showToast("Error: No se pudo cargar el servicio de lugares.", "error");
+    if (!await ensureGoogleMapsLoaded()) {
         return null;
     }
     
@@ -6186,6 +6232,7 @@ async function openNavigationMap(isRecovery = false) {
 
         isNavigationMapActive = true;
         sessionStorage.setItem('mapContext', 'navigation');
+        checkReminders();
         
   
         setTimeout(() => { 
@@ -6568,8 +6615,8 @@ async function initializeApp() {
     // El backup en la nube sigue disponible como opcion voluntaria en Ajustes.
     const canAccessMaps = true;
   
-    // Apertura directa al mapa siempre; el lanzador solo aparece al pulsar Salir.
-    if (true) {
+    // El lanzador es la pantalla inicial; el mapa directo es una preferencia opcional.
+    if (shouldDirectToNav) {
         if(!recoveryExecuted) sessionStorage.setItem('isInDirectToMapMode', 'true');
         directToNavOnLoad = true;
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
@@ -6587,6 +6634,8 @@ async function initializeApp() {
 
         sessionStorage.removeItem('isInDirectToMapMode');
         directToNavOnLoad = false;
+        document.body.classList.remove('map-active', 'boot-map');
+        document.body.classList.add('sectioned-launcher');
         sessionStorage.removeItem(TEMP_PREVENT_DIRECT_NAV_KEY); 
 
         const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
@@ -6595,6 +6644,7 @@ async function initializeApp() {
         const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
         document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
         document.getElementById('grid-filter-container').style.display = 'flex';
+        renderGrid();
     }
     initializeConfigModalListeners();
     try { await updateVersion(); } catch (e) { }
@@ -6622,6 +6672,7 @@ async function initializeApp() {
         if (savedFilter !== null) filterInput.value = savedFilter;
         filterInput.addEventListener('input', () => {
              localStorage.setItem('gridFilterValue', filterInput.value);
+             if (document.body.classList.contains('sectioned-launcher')) renderSectionedLauncher();
              filterGridItems();
              if(isKeywordAssignmentMode) applyInitialKeywordHighlights();
         });
@@ -6631,6 +6682,7 @@ async function initializeApp() {
              if (filterInput) filterInput.value = '';
              localStorage.removeItem('gridFilterValue');
              markCacheAsDirty(); 
+             if (document.body.classList.contains('sectioned-launcher')) renderSectionedLauncher();
              filterGridItems();
              if(isKeywordAssignmentMode) applyInitialKeywordHighlights();
         });
@@ -7929,6 +7981,8 @@ function speakNavigationInstruction(text) {
         speakNative(text);
     } else if (voiceGuidanceEngine === 'online') {
         speakOnline(text);
+    } else if (voiceGuidanceEngine === 'espeak') {
+        speakEspeak(text);
     } else {
         speakWithGoogleVoice(text);
     }
@@ -8136,6 +8190,41 @@ function speakOnline(text) {
         const p = a.play();
         if (p && p.catch) p.catch(() => { playAlertSound('info'); });
     } catch (e) { playAlertSound('info'); }
+}
+
+// ===================================================================
+// NOMBRE: speakEspeak (voz robótica offline, portada de nav.html)
+// RESUMEN: Motor eSpeak offline vía meSpeak.js: sintetiza en el propio
+// navegador (asm.js) y suena por Web Audio, el mismo camino que los pitidos
+// (que sí funcionan en el Tesla). Sin red, sin API key y sin depender de
+// las voces del sistema. Es la voz robótica característica de nav.html.
+// ===================================================================
+let espeakVoicePromise = null;
+function ensureEspeakVoice() {
+    if (espeakVoicePromise) return espeakVoicePromise;
+    espeakVoicePromise = new Promise(res => {
+        try {
+            if (!window.meSpeak || !window.meSpeak.loadVoice) { espeakVoicePromise = null; res(false); return; }
+            meSpeak.loadVoice('es', ok => {
+                if (!ok) { console.warn('[Voice] eSpeak: voz ES no cargada'); espeakVoicePromise = null; res(false); return; }
+                console.log('[Voice] eSpeak: voz ES cargada');
+                res(true);
+            });
+        } catch (e) { espeakVoicePromise = null; res(false); }
+    });
+    return espeakVoicePromise;
+}
+function speakEspeak(text) {
+    if (!window.meSpeak || !window.meSpeak.speak) { speakOnline(text); return; }
+    ensureEspeakVoice().then(ok => {
+        if (!ok) { speakNative(text); return; }
+        try {
+            // amplitude 150 (0-200), tono 64 y 170 ppm: parámetros idénticos a
+            // nav.html para que suene igual que la voz robótica de navegación.
+            meSpeak.speak(String(text).slice(0, 220), { voice: 'es', amplitude: 150, pitch: 64, speed: 170 },
+                success => { if (success === false) speakNative(text); });
+        } catch (e) { speakNative(text); }
+    });
 }
 
 // --- AVVISI SONORI (WebAudio, nessun file esterno) ---
@@ -8851,6 +8940,15 @@ async function checkReminders() {
         updateReminderCount();
         updateButtonStyles();
     }
+
+    // Mientras se muestra el lanzador no necesitamos GPS, radares dinámicos ni
+    // comprobaciones frecuentes: conservamos el contador y reducimos actividad.
+    const launcherOnly = !isNavigationMapActive && !document.body.classList.contains('map-active');
+    if (launcherOnly) {
+        updateReminderCount();
+        reminderCheckIntervalId = setInterval(checkReminders, 5 * 60 * 1000);
+        return;
+    }
     
     const overdueReminders = [];
     let coords = navigationCurrentLocation;
@@ -8912,7 +9010,10 @@ async function checkReminders() {
         }
     });
     
-    if (overdueReminders.length > 0) {
+    // En el lanzador no interrumpimos la pantalla inicial con avisos vencidos.
+    // Se muestran al abrir el mapa o al entrar en la sección de recordatorios.
+    const canShowReminderWindow = isNavigationMapActive || document.body.classList.contains('map-active');
+    if (overdueReminders.length > 0 && canShowReminderWindow) {
         displayUnifiedReminderWindow(overdueReminders);
     } else if (isUnifiedWindowVisibleByLogic) {
         hideUnifiedReminderWindow();
@@ -11925,9 +12026,24 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
                 }
             }
 
-            // Salida de rotonda: pitido distintivo (diferente de los otros avisos)
+            // Salida de rotonda: pitido distintivo + aviso de voz específico.
             const isRoundaboutExit = type === 'exit roundabout' || type === 'exit rotary'
                 || type === 'roundabout turn' || (type.includes('roundabout') && type.includes('turn'));
+
+            if (isRoundaboutExit && voiceGuidanceMode === 'voice' && !nextStepToDisplay._roundaboutAnnounced) {
+                // Aviso inmediato al detectar la salida de rotonda como maniobra
+                // próxima, con la salida ordinal y el lado si están disponibles.
+                const exitNum = typeof maneuver.exit === 'number' ? maneuver.exit : null;
+                const ordinalsVoice = ['', 'primera', 'segunda', 'tercera', 'cuarta', 'quinta'];
+                const ordinalVoice = exitNum && exitNum >= 1 && exitNum <= 5 ? ordinalsVoice[exitNum] : (exitNum ? `${exitNum}ª` : '');
+                const sideVoice = (maneuver.modifier || '').includes('left') ? 'hacia la izquierda'
+                    : (maneuver.modifier || '').includes('right') ? 'hacia la derecha' : '';
+                const rdbVoice = ordinalVoice
+                    ? `Atención, rotonda. Toma la ${ordinalVoice} salida${sideVoice ? ' ' + sideVoice : ''}`
+                    : `Atención, rotonda${sideVoice ? '. Sal ' + sideVoice : ''}`;
+                speakNavigationInstruction(rdbVoice);
+                nextStepToDisplay._roundaboutAnnounced = true;
+            }
 
             if (distanceToNextManeuver <= 2100 && distanceToNextManeuver > 1900 && !nextStepToDisplay._voiceFlags.far) {
                 playAlertSound(isRoundaboutExit ? 'roundabout-exit' : 'far');
@@ -12863,6 +12979,29 @@ async function togglePdrsRuta(activo) {
    
 // NOMBRE: updateUserIdDisplay
 // ===================================================================
+function updateSyncStatus() {
+    const status = document.getElementById('sync-status');
+    if (!status) return;
+    const { primaryId } = parseUserId(localStorage.getItem('userData_userId'));
+    const autoSync = JSON.parse(localStorage.getItem('boardinggate_autoBackupOnLoad') || 'false');
+    if (!primaryId) {
+        status.textContent = 'LOCAL';
+        status.title = 'Los datos se guardan solo en este dispositivo';
+        status.style.background = '#e8f5e9';
+        status.style.color = '#247a3d';
+    } else if (autoSync) {
+        status.textContent = 'NUBE · AUTO';
+        status.title = `Sincronización automática activa para ${primaryId}`;
+        status.style.background = '#e3f2fd';
+        status.style.color = '#1565c0';
+    } else {
+        status.textContent = 'NUBE · MANUAL';
+        status.title = `Sincronización manual para ${primaryId}`;
+        status.style.background = '#fff3e0';
+        status.style.color = '#a45100';
+    }
+}
+
 function updateUserIdDisplay() {
     const userIdDisplay = document.getElementById('user-id-display');
     const userId = localStorage.getItem('userData_userId');
@@ -12875,6 +13014,7 @@ function updateUserIdDisplay() {
             userIdDisplay.style.display = 'none';
         }
     }
+    updateSyncStatus();
 }
 
 // ===================================================================
@@ -13389,8 +13529,9 @@ function showVoiceOptionsModal() {
                 <option value="google">Google (red, solo si el sistema lo trae)</option>
                 <option value="clips">Clips pre-generados (WAV offline)</option>
                 <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
+                <option value="espeak">eSpeak robótica (offline, igual que nav)</option>
             </select>
-            <div class="voice-opt-help">En el Tesla, la voz m&aacute;s fiable es "Google TTS online": reproduce un MP3 real por el <audio> del navegador, sin depender del sintetizador del sistema (que en el coche no tiene voces).</div>
+            <div class="voice-opt-help">En el Tesla: "eSpeak robótica" funciona sin internet (misma voz que nav.html) y "Google TTS online" suena más natural pero necesita conexión.</div>
         </div>
         <button id="voice-options-test-btn" class="voice-opt-btn">🔊 Probar sonido</button>
         <button id="voice-options-ok-btn" class="voice-opt-btn voice-opt-btn-ok">Listo</button>
@@ -17894,7 +18035,7 @@ function drawStaticMarkersOnProgressBar() {
     const route = navigationCurrentRouteData.routes[0];
     const totalJourneyDistanceForBar = (accumulatedDistanceBeforeCurrentSegment || 0) + route.distance;
 
-    overallProgressContainer.querySelectorAll('.waypoint-dot-on-progress-bar, .radar-marker-on-progress-bar, .task-marker-on-progress-bar').forEach(dot => dot.remove());
+    overallProgressContainer.querySelectorAll('.waypoint-dot-on-progress-bar, .radar-marker-on-progress-bar, .task-marker-on-progress-bar, .maneuver-dot-on-progress-bar').forEach(dot => dot.remove());
     
     const actualWaypoints = navigationWaypoints.filter(wp => wp && !wp.isInternal && !wp.isRecalculatedStart);
     if (actualWaypoints.length > 2 && totalJourneyDistanceForBar > 0 && typeof turf !== 'undefined' && navigationMapInstance.getSource('route') && navigationMapInstance.getSource('route')._data) {
@@ -17940,6 +18081,30 @@ function drawStaticMarkersOnProgressBar() {
     }
 
     const tareasRutaCheckbox = document.getElementById('tareas-ruta-checkbox');
+    // Puntos de maniobra: marcas sobre la barra de progreso del viaje que
+    // identifican dónde cambia la indicación (giros, rotondas, incorpotaciones...).
+    if (totalJourneyDistanceForBar > 0 && typeof turf !== 'undefined' && route._cleanSteps && route._cleanSteps.length > 0 && navigationMapInstance.getSource('route') && navigationMapInstance.getSource('route')._data) {
+        const routeGeoJSON = navigationMapInstance.getSource('route')._data;
+        const routeLineString = turf.lineString(routeGeoJSON.geometry.coordinates);
+        const startOfRoute = turf.point(routeLineString.geometry.coordinates[0]);
+        const totalRouteLength = turf.length(routeLineString, { units: 'meters' });
+        route._cleanSteps.forEach((cleanStep, idx) => {
+            const mnv = cleanStep.maneuver;
+            if (!mnv || mnv.type === 'depart' || mnv.type === 'arrive') return;
+            const mnvPoint = turf.point(mnv.location);
+            const nearest = turf.nearestPointOnLine(routeLineString, mnvPoint, { units: 'meters' });
+            const totalDistanceToMnv = (accumulatedDistanceBeforeCurrentSegment || 0) + nearest.properties.location;
+            const percent = (totalDistanceToMnv / totalJourneyDistanceForBar) * 100;
+            if (percent <= 0 || percent >= 100) return;
+            const dot = document.createElement('div');
+            dot.className = 'maneuver-dot-on-progress-bar';
+            const isRdb = (mnv.type || '').includes('roundabout') || (mnv.type || '').includes('rotary');
+            if (isRdb) dot.classList.add('roundabout');
+            dot.style.left = `calc(${percent}% - 4px)`;
+            dot.title = `${idx + 1}. ${getManeuverInstructionText(mnv)}`;
+            overallProgressContainer.appendChild(dot);
+        });
+    }
     if (tareasRutaCheckbox && tareasRutaCheckbox.checked && tareasEnRutaActual.length > 0 && totalJourneyDistanceForBar > 0) {
         tareasEnRutaActual.forEach(tarea => {
             if (tarea.distanceOnRoute !== undefined) {
@@ -18714,13 +18879,17 @@ async function getSuggestedRouteName(lat, lng, isMultiStage = false, totalWaypoi
 }
 
 function initializeConfigModalListeners() {
+    document.getElementById('config-save-local')?.addEventListener('click', () => saveLocalPreferencesFromForm());
     document.getElementById('config-save-user-firebase')?.addEventListener('click', validateAndSaveUserToFirebase);
     document.getElementById('config-save-user-firebase-from-backup-tab')?.addEventListener('click', validateAndSaveUserToFirebase);
     document.getElementById('config-restore-backup-firebase')?.addEventListener('click', restoreBackupFromFirebase);
     document.getElementById('config-save-pin')?.addEventListener('click', savePinSettings);
     document.getElementById('config-remove-pin')?.addEventListener('click', removePinSettings);
     document.getElementById('config-generate-backup')?.addEventListener('click', generateBackup);
+    document.getElementById('config-download-backup')?.addEventListener('click', downloadBackupFile);
     document.getElementById('config-restore-backup')?.addEventListener('click', restoreBackup);
+    document.getElementById('config-import-backup')?.addEventListener('click', () => document.getElementById('config-import-backup-file')?.click());
+    document.getElementById('config-import-backup-file')?.addEventListener('change', importBackupFile);
     document.getElementById('config-restore-grid-button')?.addEventListener('click', restoreOriginalGrid);
     document.getElementById('config-clear-cache')?.addEventListener('click', clearAllLocalData);
 
@@ -18770,7 +18939,14 @@ function initializeConfigModalListeners() {
     const autoBackupCheckbox = document.getElementById('config-auto-backup-on-load');
     if (autoBackupCheckbox && !autoBackupCheckbox.dataset.listenerAttached) {
         autoBackupCheckbox.addEventListener('change', () => {
+            const { primaryId } = parseUserId(document.getElementById('user-id')?.value || localStorage.getItem('userData_userId'));
+            if (!primaryId) {
+                autoBackupCheckbox.checked = false;
+                showToast('La sincronización automática requiere un ID de usuario.', 'warning', 3000);
+                return;
+            }
             localStorage.setItem('boardinggate_autoBackupOnLoad', JSON.stringify(autoBackupCheckbox.checked));
+            updateSyncStatus();
             showToast(`Copia de seguridad automática al inicio: ${autoBackupCheckbox.checked ? 'Activada' : 'Desactivada'}`, 'info', 3000);
         });
         autoBackupCheckbox.dataset.listenerAttached = "true";
@@ -19175,6 +19351,22 @@ async function renameUser(oldUsername, newUsername, pin) {
 }
 
 // ===================================================================
+// NOMBRE: saveLocalPreferencesFromForm
+function saveLocalPreferencesFromForm(statusEl = document.getElementById('config-user-status')) {
+    localStorage.setItem('userData_teslaModel', document.getElementById('tesla-model').value.trim());
+    localStorage.setItem('userData_teslaYear', document.getElementById('tesla-year').value.trim());
+    localStorage.setItem('userData_teslaProvince', document.getElementById('tesla-province').value.trim());
+    localStorage.setItem('userData_allowDMs', JSON.stringify(document.getElementById('allow-dms').checked));
+    localStorage.setItem('boardinggate_autoBackupOnLoad', JSON.stringify(document.getElementById('config-auto-backup-on-load').checked));
+    updateUserIdDisplay();
+    if (statusEl) {
+        statusEl.textContent = 'Configuración local guardada. No se ha usado la nube.';
+        statusEl.style.color = '#28a745';
+    }
+    showToast('Configuración local guardada.', 'success');
+}
+
+// ===================================================================
 // NOMBRE: validateAndSaveUserToFirebase 
 async function validateAndSaveUserToFirebase() {
     const statusEl = document.getElementById('config-user-status');
@@ -19182,8 +19374,8 @@ async function validateAndSaveUserToFirebase() {
     const { primaryId: newUsername, originalId: newOriginalId } = parseUserId(userIdInput.value);
 
     if (!newUsername) {
-        statusEl.textContent = 'El ID de Usuario es obligatorio.';
-        statusEl.style.color = '#EF4444';
+        statusEl.textContent = 'Introduce un ID de usuario para sincronizar. Para guardar localmente usa el botón azul.';
+        statusEl.style.color = '#a45100';
         return;
     }
 
@@ -19203,6 +19395,7 @@ async function validateAndSaveUserToFirebase() {
         localStorage.setItem('boardinggate_autoBackupOnLoad', JSON.stringify(document.getElementById('config-auto-backup-on-load').checked));
         localStorage.setItem('userData_backupPassword', pin);
         updateUserIdDisplay();
+        updateSyncStatus();
 
         const result = await autoSaveToFirebase(username, pin, isAnUpdate); // Pasamos el flag
 
@@ -19520,7 +19713,7 @@ function restoreBackup() {
         let incompatibleCount = 0;
         if (confirm('Esto sobreescribirá tus datos actuales con los del backup. ¿Estás seguro?')) {
             Object.keys(backupData).forEach(key => {
-                if (managedKeys.includes(key)) {
+                if (managedKeys.includes(key) && !LOCAL_BACKUP_EXCLUDED_KEYS.has(key)) {
                     localStorage.setItem(key, backupData[key]);
                     restoredCount++;
                 } else {
@@ -19640,7 +19833,12 @@ function hideNavigationUI() {
         if (roundaboutExitTypes.includes(type) && typeof exit === 'number' && exit > 0) {
              const ordinals = ["", "primera", "segunda", "tercera", "cuarta", "quinta"];
              const ordinalText = (exit >= 1 && exit <= 5) ? ordinals[exit] : `${exit}ª`;
-             text = `Sal en la rotonda en la ${ordinalText} salida`;
+             // Indicación horaria: si conocemos la dirección de giro (modifier)
+             // la añadimos para que el conductor sepa hacia qué lado salir.
+             const exitSide = (modifier.includes('left') ? ', hacia la izquierda'
+                 : (modifier.includes('right') ? ', hacia la derecha'
+                 : (modifier.includes('straight') ? ', de frente' : '')));
+             text = `Sal en la rotonda en la ${ordinalText} salida${exitSide || ''}`;
         }
         let baseText = text.charAt(0).toUpperCase() + text.slice(1);
         return baseText;
@@ -19845,8 +20043,11 @@ function showConfigModal() {
 
     const autoBackupCheckbox = document.getElementById('config-auto-backup-on-load');
     if (autoBackupCheckbox) {
+        const hasSyncIdentity = Boolean(parseUserId(storedUserId).primaryId);
         const savedAutoBackup = localStorage.getItem('boardinggate_autoBackupOnLoad');
-        autoBackupCheckbox.checked = savedAutoBackup === null ? true : JSON.parse(savedAutoBackup);
+        autoBackupCheckbox.disabled = !hasSyncIdentity;
+        autoBackupCheckbox.checked = hasSyncIdentity && savedAutoBackup === 'true';
+        if (!hasSyncIdentity) autoBackupCheckbox.title = 'Introduce un ID de usuario para activar la sincronización automática';
     }
 
     modal.classList.remove('hidden');
@@ -20663,17 +20864,23 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
         const tabsEl = document.getElementById('launcher-section-tabs');
         const linksEl = document.getElementById('launcher-section-links');
         if (!tabsEl || !linksEl) return;
+        const filterInput = document.getElementById('grid-filter-input');
+        const filterWords = (filterInput?.value || '').trim().split(/\s+/).filter(Boolean).map(normalizeText);
+        const matchesFilter = (bookmark) => !filterWords.length || filterWords.every(word => normalizeText(`${bookmark.name || ''} ${bookmark.url || ''}`).includes(word));
         const sections = [];
         currentToggleRanges.forEach(range => {
-            const links = range.assignedIndexes.map(i => currentBookmarks[i]).filter(b => b && b.url && b.url !== '#');
+            const links = range.assignedIndexes.map(i => currentBookmarks[i]).filter(b => b && b.url && b.url !== '#' && matchesFilter(b));
             if (links.length > 0) sections.push({ label: range.label || range.name || 'Sección', color: sectionColors[range.start] || sectionColors.unassigned, links });
         });
         const assigned = new Set(currentToggleRanges.flatMap(r => r.assignedIndexes));
-        const others = currentBookmarks.filter((b, i) => b && b.url && b.url !== '#' && !assigned.has(i));
+        const others = currentBookmarks.filter((b, i) => b && b.url && b.url !== '#' && !assigned.has(i) && matchesFilter(b));
         if (others.length > 0) sections.unshift({ label: 'General', color: sectionColors.unassigned, links: others });
         tabsEl.innerHTML = ''; linksEl.innerHTML = '';
         const showAll = sections.length > 0;
-        if (!showAll) return;
+        if (!showAll) {
+            if (filterWords.length) linksEl.innerHTML = '<p style="grid-column:1/-1;color:#fff;text-align:center;padding:24px;font-size:1.1rem;">No hay favoritos que coincidan con la búsqueda.</p>';
+            return;
+        }
         const renderLinks = (sec) => {
             linksEl.innerHTML = '';
             sec.links.forEach(b => {
@@ -20695,7 +20902,7 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
             const tab = document.createElement('button');
             tab.className = 'ql-tab' + (i === 0 ? ' ql-tab-active' : '');
             if (i === 0) tab.style.backgroundColor = sec.color;
-            tab.textContent = sec.label;
+            tab.textContent = `${sec.label} (${sec.links.length})`;
             tab.addEventListener('click', () => {
                 tabsEl.querySelectorAll('.ql-tab').forEach(t => { t.classList.remove('ql-tab-active'); t.style.backgroundColor = ''; });
                 tab.classList.add('ql-tab-active'); tab.style.backgroundColor = sec.color;
@@ -21359,7 +21566,7 @@ async function sendMessage() {
                 return;
             }
             const bookmark = currentBookmarks[index];
-            const bookmarkName = bookmark ? normalizeText(bookmark.name) : '';
+            const bookmarkName = bookmark ? normalizeText(`${bookmark.name || ''} ${bookmark.url || ''}`) : '';
             const isEmptySlot = !bookmark;
             let matchesFilter = true;
             if (filterWords.length > 0) {
@@ -24137,6 +24344,7 @@ function handleManualMapInteraction() {
 function generateBackup() {
     const backupData = {};
     managedKeys.forEach(key => {
+        if (LOCAL_BACKUP_EXCLUDED_KEYS.has(key)) return;
         const value = localStorage.getItem(key);
         if (value !== null) {
             backupData[key] = value;
@@ -24157,7 +24365,76 @@ function generateBackup() {
         document.getElementById('config-backup-status').textContent = 'Copia este código manualmente y guárdalo.';
         document.getElementById('config-backup-status').style.color = '#ffc107';
     }
-}    
+}
+
+// ===================================================================
+// NOMBRE: downloadBackupFile
+function downloadBackupFile() {
+    const backupData = {};
+    managedKeys.forEach(key => {
+        if (LOCAL_BACKUP_EXCLUDED_KEYS.has(key)) return;
+        const value = localStorage.getItem(key);
+        if (value !== null) backupData[key] = value;
+    });
+    const payload = {
+        format: 'boardinggate-local-backup',
+        version: 1,
+        createdAt: new Date().toISOString(),
+        data: backupData
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `boardinggate-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    const statusEl = document.getElementById('config-backup-status');
+    if (statusEl) {
+        statusEl.textContent = 'Archivo JSON descargado. No contiene PIN ni claves de sincronización.';
+        statusEl.style.color = '#28a745';
+    }
+    showToast('Backup JSON descargado.', 'success');
+}
+
+// ===================================================================
+// NOMBRE: importBackupFile
+function importBackupFile(event) {
+    const file = event.target.files?.[0];
+    const statusEl = document.getElementById('config-restore-status');
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const payload = JSON.parse(reader.result);
+            const backupData = payload && payload.format === 'boardinggate-local-backup' ? payload.data : payload;
+            if (!backupData || typeof backupData !== 'object' || Array.isArray(backupData)) throw new Error('Formato inválido');
+            const safeData = {};
+            Object.keys(backupData).forEach(key => {
+                if (managedKeys.includes(key) && !LOCAL_BACKUP_EXCLUDED_KEYS.has(key)) safeData[key] = backupData[key];
+            });
+            if (!Object.keys(safeData).length) throw new Error('Sin datos compatibles');
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(safeData))));
+            document.getElementById('config-restore-input').value = encoded;
+            restoreBackup();
+        } catch (error) {
+            if (statusEl) {
+                statusEl.textContent = 'El archivo no es un backup JSON válido o no contiene datos compatibles.';
+                statusEl.style.color = '#EF4444';
+            }
+            showToast('No se pudo importar el backup JSON.', 'error');
+        } finally {
+            event.target.value = '';
+        }
+    };
+    reader.onerror = () => {
+        if (statusEl) statusEl.textContent = 'No se pudo leer el archivo.';
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+}
 
 // ===================================================================
 function handleTouchCancel(e) {    if (!isEditMode) return;     handleTouchEndCleanup(); }
@@ -26103,17 +26380,39 @@ function stopResourceMonitor() {
 // ===================================================================
 // FIN: LÓGICA DE MONITOREO DE RECURSOS
 function loadGoogleMapsScript() {
-    if (window.google && window.google.maps) return;
+    if (window.google && window.google.maps) return true;
+    // Sin API key configurada no tiene sentido cargar el SDK de Google:
+    // solo generaría avisos 'NoApiKeys' y peticiones rechazadas (403).
+    const gmKey = window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.googleMaps;
+    if (!gmKey) return false;
+    if (document.querySelector('script[data-google-maps-loader]')) return true;
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${(window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.googleMaps) || ''}&v=beta&libraries=places&callback=initMap&loading=async`;
+    script.dataset.googleMapsLoader = 'true';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${gmKey}&v=beta&libraries=places&callback=initMap&loading=async`;
     script.async = true;
     document.head.appendChild(script);
+    return true;
+}
+
+// ===================================================================
+// NOMBRE: ensureGoogleMapsLoaded
+// RESUMEN: Carga perezosa del SDK de Google Maps. Solo se invoca cuando una
+// función lo necesita realmente (asistente IA de lugares).
+async function ensureGoogleMapsLoaded(maxWaitMs = 8000) {
+    if (window.google && window.google.maps && window.google.maps.places) return true;
+    if (!loadGoogleMapsScript()) return false;
+    const started = Date.now();
+    while (Date.now() - started < maxWaitMs) {
+        if (window.google && window.google.maps && window.google.maps.places) return true;
+        await new Promise(r => setTimeout(r, 150));
+    }
+    return Boolean(window.google?.maps?.places);
 }
 // ===================================================================
 // INICIO: LÓGICA DEL ASISTENTE DE RUTAS IA (Google Gemini - Versión Final Segura)
 async function ai_tool_google_search_places(args) {
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-        return { error: "El servicio de Google Places no está disponible." };
+    if (!await ensureGoogleMapsLoaded()) {
+        return { error: "El servicio de Google Places no está disponible (falta la API key de Google Maps)." };
     }
     if (!args.queries || args.queries.length === 0) {
         return { message: "No se proporcionaron lugares para buscar." };
@@ -26826,7 +27125,8 @@ async function checkForLiveUpdate() {
 // NOMBRE: DOMContentLoaded (MODIFICADO)
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // Ocultar el lanzador de inmediato: el mapa se abre directamente al cargar.
+    // Ocultar el lanzador durante la inicialización para evitar parpadeos.
+    // initializeApp lo mostrará si no está activado el modo mapa directo.
     try { document.querySelector('main').style.display = 'none'; document.querySelector('footer').style.display = 'none'; } catch (e) { }
     try { document.body.classList.add('map-active'); } catch (e) { }
 
@@ -26844,11 +27144,12 @@ document.addEventListener('DOMContentLoaded', async () => {
      storedPin = localStorage.getItem('password_pin');
      const savedPasswordActive = localStorage.getItem('password_active');
      isPasswordActive = savedPasswordActive ? JSON.parse(savedPasswordActive) : false;
-     const initialDirectToNavPref = true;
+     const initialDirectToNavPref = false;
      const tempPreventDirectNav = sessionStorage.getItem(TEMP_PREVENT_DIRECT_NAV_KEY);
 
-     // Primera apertura directa al mapa, salvo que el usuario ya haya elegido otra cosa.
-     if (localStorage.getItem(DIRECT_TO_NAVIGATION_KEY) === null) localStorage.setItem(DIRECT_TO_NAVIGATION_KEY, 'true');
+     // El primer arranque muestra el lanzador; el usuario puede activar después
+     // la entrada directa al mapa desde Ajustes > Clave de Acceso.
+     if (localStorage.getItem(DIRECT_TO_NAVIGATION_KEY) === null) localStorage.setItem(DIRECT_TO_NAVIGATION_KEY, 'false');
 
      if (isPasswordActive && storedPin && !(initialDirectToNavPref && !tempPreventDirectNav)) {
          promptForPin();
@@ -27061,7 +27362,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (graphIntervalTimer) clearInterval(graphIntervalTimer);
     });
 
-    setTimeout(loadGoogleMapsScript, 100);
+    // El SDK de Google Maps se carga bajo demanda (ensureGoogleMapsLoaded),
+    // no al arrancar: ahorra ancho de banda y evita avisos si no hay API key.
 
 <!--  SCRIPT DE GUIA -->
     
