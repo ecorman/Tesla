@@ -89,11 +89,16 @@
 /* 1. REGLA SUPREMA: Todo elemento con .hidden debe estar COMPLETAMENTE OCULTO */
 .hidden, [hidden], .map-modal-hidden,
 div.hidden, div.map-modal-hidden {
+
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
+
+/* Contenido de configuración: mostrar solo la pestaña activa. */
+.config-tab-content { display: none; }
+.config-tab-content.active { display: block; }
 
 /* 2. Cuando el mapa está activo, pantalla principal oculta */
 body.map-active {
@@ -654,7 +659,16 @@ body.map-active #pin-modal-content {
 }
 
 /* 17. Overlay de captura de pantalla */
+/* Separadores visuales: mapa · gestión de rutas · servicios · simulación. */
+#reminders-location-map-header #add-radar-here,
+#reminders-location-map-header #accident-alert-button-map { display:none !important; }
+
+.map-menu-divider { display:inline-block; width:1px; height:46px; margin:0 4px; background:rgba(255,255,255,.35); align-self:center; }
+.map-menu-label { color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.05em; writing-mode:vertical-rl; transform:rotate(180deg); opacity:.8; margin:0 2px; }
+@media (max-width:900px) { .map-menu-label { display:none; } .map-menu-divider { height:38px; margin:0 2px; } }
+
 #recovery-screenshot-overlay {
+    display: none !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -687,7 +701,7 @@ body.boot-map .toggle-sign,
 body.boot-map .toggle-image,
 body.boot-map .scroll-toggle-button,
 body.boot-map #bookmark-grid,
-body.boot-map #config-button,
+body.boot-map #config-button-launcher,
 body.boot-map #personal-button,
 body.boot-map #radar-button,
 body.boot-map #home-button,
@@ -751,8 +765,12 @@ body.boot-map #utils-button {
     .reminders-map-button-action { min-width: 60px; min-height: 60px; }
     .reminders-map-button-action img { max-width: 100%; max-height: 100%; }
 }
-body.sectioned-launcher #bookmark-grid { display: none !important; }
-body.sectioned-launcher #launcher-sectioned-container { display: block; }
+/* La pantalla de enlaces vive en enlaces.html; tesla.html queda reservado para el mapa. */
+#bookmark-grid,
+#launcher-sectioned-container,
+#grid-filter-container {
+    display: none !important;
+}
 /* En el lanzador por secciones no deben verse los controles laterales del grid antiguo */
 body.sectioned-launcher .toggle-image,
 body.sectioned-launcher .toggle-sign,
@@ -763,43 +781,12 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
 </head>
 <body class="min-h-screen bg-[#ABAB99] flex flex-col items-center p-6 boot-map">
 
-    <div id="recovery-screenshot-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100001; pointer-events: none;"></div>
     <script>
         (function() {
             const recoveryFlag = localStorage.getItem('boardinggate_nav_recovery_flag');
             const isControlled = sessionStorage.getItem('isControlledReload') === 'true';
-
-            if (recoveryFlag && !isControlled) {
-                document.body.classList.add('recovering-map-session');
-            }
-
-            const screenshotData = sessionStorage.getItem('recoveryScreenshot');
-            
-            if (isControlled && screenshotData) {
-                document.body.classList.add('map-active');
-                document.documentElement.style.zoom = "1";
-                const overlayContainer = document.getElementById('recovery-screenshot-overlay');
-                if (overlayContainer) {
-                    const img = document.createElement('img');
-                    img.src = screenshotData;
-                  
-                    const savedSaturation = localStorage.getItem('boardinggate_map_saturation') || '1.6';
-                    const savedContrast = localStorage.getItem('boardinggate_map_contrast') || '1.2';
-                    const filterStyle = `saturate(${savedSaturation}) contrast(${savedContrast})`;
-
-                    img.style.cssText = `
-                        width: 100%; 
-                        height: 100%; 
-                        object-fit: cover; 
-                        object-position: center; 
-                        filter: ${filterStyle};
-                    `;
-                    
-                    overlayContainer.appendChild(img);
-                    overlayContainer.style.display = 'block';
-                }
-            }
-            
+            if (recoveryFlag && !isControlled) document.body.classList.add('recovering-map-session');
+            // Las capturas de recuperación ya no se muestran: tesla.html debe entrar directamente al mapa.
             sessionStorage.removeItem('recoveryScreenshot');
             sessionStorage.removeItem('isControlledReload');
         })();
@@ -825,31 +812,12 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
         <span id="reminder-window-desc" class="hidden">Deslice para ver los recordatorios vencidos. Use los botones para gestionar cada recordatorio.</span>
     </div>
 
-    <div id="grid-filter-container">
+    <div id="grid-filter-container" style="display:none">
         <input type="text" id="grid-filter-input" placeholder="Filtrar grid...">
         <button id="clear-filter-button" title="Limpiar filtro">×</button>
     </div>
 
-<main>
-    <div id="open-chat-area" style="cursor: pointer;" title="Abrir Chat">
-        <div id="user-info-header">
-            <span id="user-count-globe"></span>
-            <span id="daily-user-count-globe" title="Usuarios conectados hoy"></span>
-            <span id="chat-icon-button">
-                <span id="chat-message-globe">0</span>
-            </span>
-    <div id="user-id-display"></div>
-    <span id="sync-status" title="Estado de sincronización" style="display:inline-flex;align-items:center;margin-left:8px;padding:2px 7px;border-radius:10px;font-size:.72rem;font-weight:700;background:#e8f5e9;color:#247a3d;">LOCAL</span>
-</div>
-    </div>
-    
-    <div id="bookmark-grid">
-    </div>
-    <div id="launcher-sectioned-container">
-        <div id="launcher-section-tabs"></div>
-        <div id="launcher-section-links"></div>
-    </div>
-</main>
+
     
 <div class="notices-icon-container">
     <img src="https://boardinggate.github.io/Tesla/PNG/IMG_4194.jpg" alt="Toggle Avisos" class="notice-off-icon" id="notice-toggle-icon">
@@ -858,9 +826,8 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
             <span class="notice" id="current-notice"></span>
         </div>
     </div>
-</div>
+</div>    <footer style="display:none">
 
-<footer>
     <div class="footer-content">
         <div class="header-container">
             <img src="https://boardinggate.github.io/Tesla/PNG/LOGOTESLA.jpg" class="header-logo">
@@ -900,11 +867,14 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
                 <button id="locate-me-on-reminders-map" class="reminders-map-button-action" title="Mostrar mi posición actual y activar seguimiento"><img src="PNG/ESTASAQUI.PNG" alt="Estás Aquí"></button>
                 <button id="start-navigation-button" class="reminders-map-button-action" title="Iniciar/Terminar Navegación"><img src="PNG/INICIARNAVEGACION.PNG" alt="Iniciar Navegación"></button>
                 <button id="save-route-button" class="reminders-map-button-action hidden" title="Guardar Ruta Actual"><img src="PNG/GUARDARRUTA.PNG" alt="Guardar Ruta"></button>
-                <button id="load-saved-route-button" class="reminders-map-button-action" title="Cargar Ruta Guardada"><img src="PNG/CARGARRUTA.PNG" alt="Cargar Ruta"></button>
+                <span class="map-menu-divider" aria-hidden="true" title="Gestión de rutas"></span>
+                <button id="load-saved-route-button" class="reminders-map-button-action" title="Cargar una ruta guardada o un destino"><img src="PNG/CARGARRUTA.PNG" alt="Cargar Ruta"></button>
                 <button id="delete-current-route-button" class="reminders-map-button-action hidden" title="Borrar Ruta Actual del Mapa"><img src="PNG/BORRARRUTA.PNG" alt="Borrar Ruta"></button>
-                <button id="add-radar-here" class="reminders-map-button-action" title="Crear RADAR en mi posición actual (radio 350m)"><img src="PNG/RADARAQUI.PNG" alt="Radar Aquí"></button>
-                <button id="accident-alert-button-map" class="reminders-map-button-action" title="Informar de una incidencia de tráfico"><img src="https://boardinggate.github.io/Tesla/PNG/AACCIDENTE.png" alt="Informar Incidencia"></button>
-                <button id="pdrs-ruta-button" class="reminders-map-button-action" title="Buscar Puntos de Recarga en Ruta"><img src="PNG/pdrs.png" alt="PDRs"></button>
+                <!-- Radar e incidencias siguen disponibles desde el panel lateral/gestos; no ocupan el menú superior. -->
+                <button id="add-radar-here" class="reminders-map-button-action" title="Crear RADAR en mi posición actual (radio 350m)" aria-hidden="true"><img src="PNG/RADARAQUI.PNG" alt="Radar Aquí"></button>
+                <button id="accident-alert-button-map" class="reminders-map-button-action" title="Informar de una incidencia de tráfico" aria-hidden="true"><img src="https://boardinggate.github.io/Tesla/PNG/AACCIDENTE.png" alt="Informar Incidencia"></button>
+                <span class="map-menu-divider" aria-hidden="true" title="Servicios sobre la ruta"></span>
+                <button id="pdrs-ruta-button" class="reminders-map-button-action" title="Buscar puntos de recarga en la ruta"><img src="PNG/pdrs.png" alt="PDRs"></button>
                  <div class="radares-ruta-control">
                     <input type="checkbox" id="radares-ruta-checkbox">
                     <div class="radares-ruta-label-container">
@@ -926,16 +896,11 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
                     <span id="pdrs-ruta-count" class="hidden">0</span>
                     </div>
                 </div> 
-                <div class="mapbox-control">
-                    <input type="checkbox" id="mapbox-primary-checkbox">
-                    <div class="mapbox-label-container">
-                        <label for="mapbox-primary-checkbox">Rutas<br>OSMR</label>
-                    </div>
-                </div>
                 <button id="add-reminder-at-location-button" class="reminders-map-button-action" title="Añadir recordatorio en punto del mapa">
                     <img src="https://boardinggate.github.io/Tesla/PNG/IMG_4197.jpg" alt="Añadir Recordatorio">
                 </button>
-                 <button id="toggle-simulate-gps-button" class="reminders-map-button-action" title="Activar/Desactivar Simulación GPS (recorrido o clic)"><img src="PNG/GPS.PNG" alt="Simular Recorrido"></button>
+                <span class="map-menu-divider" aria-hidden="true" title="Simulación y herramientas"></span>
+                 <button id="toggle-simulate-gps-button" class="reminders-map-button-action" title="Activar/Desactivar simulación GPS (recorrido o clic)"><img src="PNG/GPS.PNG" alt="Simular Recorrido"></button>
                 <button id="simulate-route-button" class="reminders-map-button-action" title="Simular interacciones de ruta"><img src="PNG/SIMULAR.PNG" alt="Simular Ruta"></button>
                 
                  <button id="range-calculator-button" class="reminders-map-button-action" title="Calcular radio de acción">
@@ -944,7 +909,8 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
 
                  
              </div>
-             <div class="button-row" id="search-row-map-header"> 
+             <div class="button-row" id="search-row-map-header" aria-label="Planificación y búsqueda de rutas">
+                <span class="map-menu-label">PLANIFICAR RUTA</span>
                 <button id="ai-route-planner-button" class="reminders-map-button-action" title="Asistente IA para crear rutas">  <img src="PNG/IA.PNG" alt="Asistente IA"></button>
                 <button id="reorder-route-stages-button" title="Ordenar Etapas de Ruta"><img src="./PNG/MOVER.PNG" alt="Ordenar Etapas"></button>
                 <button id="map-location-search-button" class="reminders-map-button-action"><img src="./PNG/ANADIRPUNTO.jpg" alt="Añadir Punto Ruta"></button>
@@ -952,7 +918,7 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
                 </button>
                 <input type="text" id="map-location-search-input" placeholder="Dirección,sitio,zona /Negocio /Ciudad /CP+Provincia (28001 Madrid /Lidl Lugo)">
                 <input type="text" id="filter-input" placeholder="Filtro"> 
-                <button id="voice-options-button" class="reminders-map-button-action" title="Opciones de Voz y Sonido" style="font-size: 15px; line-height: 1; padding: 0 8px; color: #eee; font-family: inherit;">🔊 Voz</button>
+                <button id="config-button-map" class="reminders-map-button-action" title="Configuración"><img src="PNG/personal.png" alt="Configuración"></button>
                 <button id="navigation-map-help-button" class="reminders-map-button-action" title="Ayuda del mapa de navegación/radares"><img src="PNG/IMG_4326.PNG" alt="Ayuda"></button>
              </div>
         </div>
@@ -1118,12 +1084,13 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
         <button id="config-close-modal" style="padding: 0.5rem 1rem; font-size:1rem;">Cerrar</button>
     </div>
     <div class="tab-buttons">
-        <button class="config-tab-button active" data-tab-target="#tab-content-usuario">Usuario</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-pin">Clave Acceso</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-radares">RADARES</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-backup-restore">Backup/Restore</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-borrar">Borrar Datos</button>
-        <button class="config-tab-button" data-tab-target="#tab-content-normas">Normas uso</button>
+        <button class="config-tab-button active" data-tab-target="#tab-content-usuario">Datos y nube</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-pin">Acceso</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-radares">Radares / POIs</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-voice">Voz y Sonido</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-backup-restore">Copias</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-borrar">Datos locales</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-normas">Seguridad</button>
     </div>
     <div class="tab-contents">
         <div id="tab-content-usuario" class="config-tab-content active">
@@ -1210,15 +1177,50 @@ body.sectioned-launcher .scroll-toggle-button { display: none !important; }
                     <input type="text" id="radar-filter-keywords" placeholder="Ej: FIJO CAMUFLADO MADRID">
                 </div>
             </div>
-            <div class="radar-import-options">
+<div class="radar-import-options">
                 <input type="checkbox" id="import-extra-radars-checkbox">
                 <label for="import-extra-radars-checkbox">Importar también radares móviles, semáforo, etc (usa ficheros KLM adicionales)</label>
             </div>
-             <div id="radar-import-progress-container" style="display:none;">
+            <hr style="margin: 1.5rem 0; border-color: #444;">
+            <h3 style="margin-top: 1rem;">Proveedor de Cálculo de Rutas</h3>
+            <div style="margin-top: 1rem;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 1rem;">
+                    <input type="checkbox" id="config-use-osrm-primary" style="width: 20px; height: 20px; accent-color: #2563EB;">
+                    <span>Usar OSRM como proveedor principal (rutas detalladas, sin tráfico)</span>
+                </label>
+                <p style="margin: 0.5rem 0 0; color: #888; font-size: 0.85rem;">Activado = OSRM (detallado, offline). Desactivado = Mapbox (con tráfico en tiempo real).</p>
+            </div>
+            <div id="radar-import-progress-container" style="display:none;">
                  <progress id="radar-import-progress-bar" value="0" max="100"></progress>
                  <p id="radar-import-status" class="status-message"></p>
              </div>
          </div>
+        <div id="tab-content-voice" class="config-tab-content">
+            <h3>Opciones de Voz y Sonido</h3>
+            <div class="voice-opt-group" style="margin-bottom: 1.5rem;">
+                <label for="voice-options-mode-select" style="display: block; margin-bottom: 6px; color: #eee; font-weight: 600;">Guiado durante navegación:</label>
+                <select id="voice-options-mode-select" style="width: 100%; padding: 8px; background: #1a1a1a; color: #eee; border: 1px solid #555; border-radius: 6px; font-size: 0.95rem;">
+                    <option value="silence">Silencio (sin voz ni sonidos)</option>
+                    <option value="sounds">Avisos sonoros (pitidos, mirar pantalla)</option>
+                    <option value="voice">Voz (narra las indicaciones)</option>
+                </select>
+                <div class="voice-opt-help" style="font-size: 0.85rem; color: #aaa; margin-top: 4px; line-height: 1.35;">En "Voz" se narran las maniobras con el motor elegido abajo. En "Avisos sonoros" solo se emiten pitidos (recomendado en Tesla).</div>
+            </div>
+            <div class="voice-opt-group" style="margin-bottom: 1.5rem;">
+                <label for="voice-options-engine-select" style="display: block; margin-bottom: 6px; color: #eee; font-weight: 600;">Motor de voz:</label>
+                <select id="voice-options-engine-select" style="width: 100%; padding: 8px; background: #1a1a1a; color: #eee; border: 1px solid #555; border-radius: 6px; font-size: 0.95rem;">
+                    <option value="native">Navegador (offline, PC/móvil)</option>
+                    <option value="google">Google (red, solo si el sistema lo trae)</option>
+                    <option value="clips">Clips pre-generados (WAV offline)</option>
+                    <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
+                    <option value="espeak">eSpeak robótica (offline, igual que nav)</option>
+                </select>
+                <div class="voice-opt-help" style="font-size: 0.85rem; color: #aaa; margin-top: 4px; line-height: 1.35;">En el Tesla: "eSpeak robótica" funciona sin internet (misma voz que nav.html) y "Google TTS online" suena más natural pero necesita conexión.</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="voice-options-test-btn" style="margin-top: 12px; margin-right: 8px; padding: 11px 16px; background: #1c4b6e; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem;">🔊 Probar sonido</button>
+            </div>
+        </div>
         <div id="tab-content-backup-restore" class="config-tab-content">
             <h3>Recuperar Backup / Hacer Copia en la Nube</h3>
             <p style="margin-bottom:1.2rem;">
@@ -1727,6 +1729,7 @@ const originalBookmarks = [
     let navigationRouteLayer = null;
     let navigationCurrentRouteData = null;
     let isNavigating = false;
+    let routeOverviewTimer = null;
     let routeStartTime = null;
     let navigationStartTimeForStats = null;
     let totalDistanceTravelledForStats = 0;
@@ -2040,6 +2043,11 @@ const originalBookmarks = [
     let voiceGuidanceMode = JSON.parse(localStorage.getItem(VOICE_MODE_KEY) || '"silence"');
     let voiceGuidanceEngine = JSON.parse(localStorage.getItem(VOICE_ENGINE_KEY) || '"native"');
     const voiceSynthesis = window.speechSynthesis;
+    // Pre-cargar voces al inicio (async en Chrome/Windows)
+    if (voiceSynthesis) {
+        voiceSynthesis.getVoices();
+        voiceSynthesis.addEventListener('voiceschanged', () => voiceSynthesis.getVoices());
+    }
     // Compat: deriva lo stato legacy dal modal
     voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
     // Audio context per i suoni di avviso (creato lazy: i browser esigono un gesto utente)
@@ -3052,6 +3060,7 @@ async function configureMapAtmosphere() {
 //===================================================================
 // NOMBRE: generateAndCacheCleanManeuverList
 function generateAndCacheCleanManeuverList(route, actualWaypoints) {
+    if (route) enrichRouteInstructions(route);
     if (!route || !route.legs) {
         if (route) route._cleanSteps = [];
         return;
@@ -3789,6 +3798,7 @@ async function toggleNavigationState(isRecalculationStop = false, isRecovery = f
             const loadingToast = document.getElementById("gps-init-toast"); if (loadingToast) loadingToast.remove(); activeToasts = activeToasts.filter(t => t.id !== "gps-init-toast");
             
             isNavigating = true;
+            if (routeOverviewTimer) { clearTimeout(routeOverviewTimer); routeOverviewTimer = null; }
             startMemoryManagement(true); 
             startDeviationChecker(); 
             mapHeaderButtonsVisible = false;
@@ -5783,11 +5793,9 @@ async function initiateControlledReload() {
 
             try {
                 dataUrl = canvas.toDataURL('image/jpeg', 0.50);
-                sessionStorage.setItem('recoveryScreenshot', dataUrl); 
             } catch (e) {
                 try {
                     dataUrl = canvas.toDataURL('image/jpeg', 0.30);
-                    sessionStorage.setItem('recoveryScreenshot', dataUrl);
                 } catch (e2) {
                     sessionStorage.removeItem('recoveryScreenshot');
                 }
@@ -5922,11 +5930,41 @@ async function initiateControlledReload() {
             const newRemainingRoute = newRouteData.routes[0];
 
             navigationCurrentRouteData = newRouteData;
+            enrichRouteInstructions(newRemainingRoute);
             precalculateRouteStepDistances(navigationCurrentRouteData);
 
             generateAndCacheCleanManeuverList(newRemainingRoute, navigationWaypoints.filter(wp => wp && !wp.isInternal && !wp.isRecalculatedStart));
             
             await drawRouteOnMap(newRemainingRoute);
+            
+            // Encuadra la ruta completa al confirmar el destino (solo planificación):
+            // muestra la ruta entera ~5s y luego vuelve a la posición del GPS/coche.
+            if (!wasNavigatingBeforeRecalc && !recoveryInfo && navigationMapInstance) {
+                if (routeOverviewTimer) { clearTimeout(routeOverviewTimer); routeOverviewTimer = null; }
+                const routeCoords = newRemainingRoute.geometry && newRemainingRoute.geometry.coordinates;
+                if (routeCoords && routeCoords.length > 1) {
+                    const routeBounds = new mapboxgl.LngLatBounds();
+                    routeCoords.forEach(c => routeBounds.extend(c));
+                    if (!routeBounds.isEmpty()) {
+                        isFlying = true;
+                        navigationMapInstance.fitBounds(routeBounds, { padding: 80, animate: true, duration: 1200, essential: true });
+                        navigationMapInstance.once('moveend', () => { isFlying = false; });
+                    }
+                }
+                routeOverviewTimer = setTimeout(() => {
+                    routeOverviewTimer = null;
+                    if (!navigationMapInstance || isNavigating || isFreeDriveActive) return;
+                    const gpsCoords = navigationCurrentLocation
+                        ? [navigationCurrentLocation.longitude, navigationCurrentLocation.latitude]
+                        : null;
+                    const startWp = gpsCoords ? null : navigationWaypoints.find(wp => wp && !wp.isInternal && !wp.isRecalculatedStart);
+                    const targetCoords = gpsCoords || (startWp ? [startWp.lng, startWp.lat] : null);
+                    if (!targetCoords) return;
+                    isFlying = true;
+                    navigationMapInstance.flyTo({ center: targetCoords, zoom: 17, duration: 1500 });
+                    navigationMapInstance.once('moveend', () => { isFlying = false; });
+                }, 5000);
+            }
             
             const isRadaresRutaActive = document.getElementById('radares-ruta-checkbox').checked;
 
@@ -6061,7 +6099,7 @@ function closeNavigationMap(force = false) {
     document.body.classList.remove('map-active');
     document.body.classList.remove('boot-map'); // Reaparece el lanzador al salir del mapa.
     const qlPanel = document.getElementById('quick-launcher-panel'); if (qlPanel) qlPanel.remove();
-    document.body.classList.add('sectioned-launcher'); // Salir muestra el lanzador por secciones (mismo estilo que el panel del mapa).
+    document.body.classList.remove('sectioned-launcher'); // El lanzador vive fuera de tesla.html, en enlaces.html.
     if (window.adaptTeslaResolution) window.adaptTeslaResolution(); // <--- Restaura el zoom para los botones principales    
     const aiModal = document.getElementById('ai-route-modal');
     if (aiModal) aiModal.classList.add('hidden');
@@ -6090,12 +6128,12 @@ function closeNavigationMap(force = false) {
         
         sessionStorage.setItem(TEMP_PREVENT_DIRECT_NAV_KEY, 'true');
 
-        const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
-        const footer = document.querySelector('footer'); if (footer) footer.style.display = 'block';
-        const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'flex';
-        const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
-        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
-        const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'flex';
+        const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
+        const footer = document.querySelector('footer'); if (footer) footer.style.display = 'none';
+        const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'none';
+        const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
+document.querySelectorAll('#config-button-launcher, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'none');
+        const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'none';
         
         return; }
  
@@ -6203,7 +6241,7 @@ function closeNavigationMap(force = false) {
     const footer = document.querySelector('footer'); if (footer) footer.style.display = 'block';
     const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'flex';
     const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
-    document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
+    document.querySelectorAll('#config-button-launcher, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
     const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'flex';
 }
 
@@ -6222,7 +6260,7 @@ async function openNavigationMap(isRecovery = false) {
         const footer = document.querySelector('footer'); if (footer) footer.style.display = 'none';
         const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'none';
         const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
-        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('#config-button-launcher, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button').forEach(el => el.style.display = 'none');
         const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'none';
 
         const mapModal = document.getElementById('reminders-location-map-modal');
@@ -6293,7 +6331,7 @@ async function openNavigationMap(isRecovery = false) {
         const footer = document.querySelector('footer'); if (footer) footer.style.display = 'none';
         const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'none';
         const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
-        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #accident-alert-button, #utils-button').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('#config-button-launcher, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #accident-alert-button, #utils-button').forEach(el => el.style.display = 'none');
         const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'none';
 
         isNavigationMapActive = true;
@@ -6324,7 +6362,7 @@ async function openNavigationMap(isRecovery = false) {
         const tareasCheckbox = document.getElementById('tareas-ruta-checkbox');
         if (tareasCheckbox) { tareasCheckbox.checked = localStorage.getItem(TAREAS_RUTA_CHECKED_KEY) === 'true'; }
         const mapboxCheckbox = document.getElementById('mapbox-primary-checkbox');
-        if (mapboxCheckbox) { mapboxCheckbox.checked = localStorage.getItem('boardinggate_useMapboxAsPrimary') === 'true'; }
+        if (mapboxCheckbox) { mapboxCheckbox.checked = localStorage.getItem('boardinggate_useOsrmAsPrimary') !== 'false'; }
         
         if (navigationMapInstance) {
             handleLoadOrDeleteRouteClick(null);
@@ -6613,39 +6651,20 @@ async function initializeApp() {
 
 // Login eliminado: los mapas ya no exigen cuenta de usuario.
     // El backup en la nube sigue disponible como opcion voluntaria en Ajustes.
-    const canAccessMaps = true;
-  
-    // El lanzador es la pantalla inicial; el mapa directo es una preferencia opcional.
-    if (shouldDirectToNav) {
-        if(!recoveryExecuted) sessionStorage.setItem('isInDirectToMapMode', 'true');
-        directToNavOnLoad = true;
-        const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
-        const footerContent = document.querySelector('footer'); if (footerContent) footerContent.style.display = 'none';
-        const noticesIconContainer = document.querySelector('.notices-icon-container'); if (noticesIconContainer) noticesIconContainer.style.display = 'none';
-        const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
-        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'none');
-        document.getElementById('grid-filter-container').style.display = 'none';
-        
-        if (!recoveryExecuted) {
-            document.body.classList.add('map-active');
-            openNavigationMap();
-        }
-    } else {
-
-        sessionStorage.removeItem('isInDirectToMapMode');
-        directToNavOnLoad = false;
-        document.body.classList.remove('map-active', 'boot-map');
-        document.body.classList.add('sectioned-launcher');
-        sessionStorage.removeItem(TEMP_PREVENT_DIRECT_NAV_KEY); 
-
-        const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'block';
-        const footerContent = document.querySelector('footer'); if (footerContent) footerContent.style.display = 'block';
-        const noticesIconContainer = document.querySelector('.notices-icon-container'); if (noticesIconContainer) noticesIconContainer.style.display = 'flex';
-        const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'flex');
-        document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'block');
-        document.getElementById('grid-filter-container').style.display = 'flex';
-        renderGrid();
-    }
+    const canAccessMaps = true;    // tesla.html es exclusivamente la aplicación de mapa. Los enlaces rápidos viven en enlaces.html.
+    sessionStorage.setItem('isInDirectToMapMode', 'true');
+    directToNavOnLoad = true;
+    document.body.classList.add('map-active');
+    document.body.classList.remove('sectioned-launcher');
+    document.body.classList.remove('boot-map');
+    sessionStorage.removeItem(TEMP_PREVENT_DIRECT_NAV_KEY);
+    const mainContent = document.querySelector('main'); if (mainContent) mainContent.style.display = 'none';
+    const footerContent = document.querySelector('footer'); if (footerContent) footerContent.style.display = 'none';
+    const noticesIconContainer = document.querySelector('.notices-icon-container'); if (noticesIconContainer) noticesIconContainer.style.display = 'none';
+    const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
+    document.querySelectorAll('#config-button-launcher, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #store-button, #utils-button').forEach(el => el.style.display = 'none');
+    const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'none';
+    if (!recoveryExecuted) openNavigationMap();
     initializeConfigModalListeners();
     try { await updateVersion(); } catch (e) { }
     try { await loadNotices(); startNoticeRotation(); } catch (e) { }
@@ -6818,7 +6837,7 @@ async function initializeApp() {
                 previewModal.classList.add('hidden');
             }
         }
-         if (targetId === 'close-address-suggestions-modal') {
+if (targetId === 'close-address-suggestions-modal') {
             hideAddressSuggestionsModal();
         }
     });
@@ -6833,6 +6852,12 @@ async function initializeApp() {
                 target.classList.add('active');
                 if (configModal.querySelector(tabTarget)) {
                     configModal.querySelector(tabTarget).classList.add('active');
+                }
+                if (tabTarget === '#tab-content-voice') {
+                    const modeEl = document.getElementById('voice-mode-display');
+                    const engineEl = document.getElementById('voice-engine-display');
+                    if (modeEl) modeEl.textContent = `Guiado: ${voiceGuidanceMode === 'silence' ? 'Silencio' : voiceGuidanceMode === 'sounds' ? 'Avisos sonoros' : 'Voz'}`;
+                    if (engineEl) engineEl.textContent = `Motor: ${voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips WAV' : voiceGuidanceEngine === 'online' ? 'Google TTS online' : voiceGuidanceEngine === 'espeak' ? 'eSpeak' : 'Google'}`;
                 }
             }
         });
@@ -8106,8 +8131,23 @@ function speakWithClips(text) {
 // Motore "navigatore": SpeechSynthesis locale, offline, funziona su Chrome/WebView Tesla.
 function speakNative(text) {
     if (!voiceSynthesis) { speakOnline(text); return; }
-    let sysVoices = []; try { sysVoices = voiceSynthesis.getVoices() || []; } catch (e) {}
-    if (!sysVoices.length) { speakOnline(text); return; }
+    let voices = voiceSynthesis.getVoices() || [];
+    if (!voices.length) {
+        // Voices not loaded yet, wait for them
+        return new Promise(resolve => {
+            const onVoicesChanged = () => {
+                voiceSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+                speakNative(text).then(resolve);
+            };
+            voiceSynthesis.addEventListener('voiceschanged', onVoicesChanged);
+            // Fallback timeout
+            setTimeout(() => {
+                voiceSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+                speakOnline(text);
+                resolve();
+            }, 500);
+        });
+    }
     if (voiceSynthesis.speaking) voiceSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -8116,7 +8156,6 @@ function speakNative(text) {
     utterance.volume = 1;
 
     // Preferisci una voce italiana/es spagnola di sistema (non Google, che su Tesla non esiste)
-    const voices = voiceSynthesis.getVoices();
     const preferred =
         voices.find(v => v.lang === 'es-ES' && !v.name.includes('Google')) ||
         voices.find(v => v.lang.startsWith('es')) ||
@@ -8204,26 +8243,51 @@ function ensureEspeakVoice() {
     if (espeakVoicePromise) return espeakVoicePromise;
     espeakVoicePromise = new Promise(res => {
         try {
-            if (!window.meSpeak || !window.meSpeak.loadVoice) { espeakVoicePromise = null; res(false); return; }
+            if (!window.meSpeak || !window.meSpeak.loadVoice) { 
+                console.warn('[Voice] meSpeak not available');
+                espeakVoicePromise = null; 
+                res(false); 
+                return; 
+            }
             meSpeak.loadVoice('es', ok => {
-                if (!ok) { console.warn('[Voice] eSpeak: voz ES no cargada'); espeakVoicePromise = null; res(false); return; }
+                if (!ok) { 
+                    console.warn('[Voice] eSpeak: voz ES no cargada'); 
+                    espeakVoicePromise = null; 
+                    res(false); 
+                    return; 
+                }
                 console.log('[Voice] eSpeak: voz ES cargada');
                 res(true);
             });
-        } catch (e) { espeakVoicePromise = null; res(false); }
+        } catch (e) { 
+            console.error('[Voice] eSpeak error:', e);
+            espeakVoicePromise = null; 
+            res(false); 
+        }
     });
     return espeakVoicePromise;
 }
 function speakEspeak(text) {
-    if (!window.meSpeak || !window.meSpeak.speak) { speakOnline(text); return; }
+    if (!window.meSpeak || !window.meSpeak.speak) { 
+        console.warn('[Voice] meSpeak not available, fallback to online');
+        speakOnline(text); 
+        return; 
+    }
     ensureEspeakVoice().then(ok => {
-        if (!ok) { speakNative(text); return; }
+        if (!ok) { 
+            console.warn('[Voice] eSpeak voice not loaded, fallback to native');
+            speakNative(text); 
+            return; 
+        }
         try {
             // amplitude 150 (0-200), tono 64 y 170 ppm: parámetros idénticos a
             // nav.html para que suene igual que la voz robótica de navegación.
             meSpeak.speak(String(text).slice(0, 220), { voice: 'es', amplitude: 150, pitch: 64, speed: 170 },
                 success => { if (success === false) speakNative(text); });
-        } catch (e) { speakNative(text); }
+        } catch (e) { 
+            console.error('[Voice] eSpeak speak error:', e);
+            speakNative(text); 
+        }
     });
 }
 
@@ -9345,7 +9409,8 @@ function showIntersectionPreviewMap(step, route, isSimulationContextOrClick = fa
         const lineStringToManeuver = turf.lineSlice(turf.point(routeSlice.geometry.coordinates[0]), maneuverPointTurf, routeSlice);
         const iconPositionPointTurf = turf.along(routeSlice, Math.max(0, turf.length(lineStringToManeuver, { units: 'meters' }) - 15), { units: 'meters' });
         
-        intersectionPreviewManeuverMarker.getElement().style.backgroundImage = `url('https://boardinggate.github.io/Tesla/${iconFilename}')`;
+        const previewIconUrl = roundaboutIconSource(maneuver) || `https://boardinggate.github.io/Tesla/${iconFilename}`;
+        intersectionPreviewManeuverMarker.getElement().style.backgroundImage = `url('${previewIconUrl}')`;
         intersectionPreviewManeuverMarker.setLngLat(iconPositionPointTurf.geometry.coordinates);
         
         requestAnimationFrame(() => {
@@ -11467,6 +11532,15 @@ function processRouteProgress(coords, mapInstanceToUse) {
     updateTurnByTurnDisplay(route, lastCarDistanceAlongRouteForNavLogic);
     updateNavigationProgressDisplay(route, lastCarDistanceAlongRouteForNavLogic);
 }
+
+// ===================================================================
+// NOMBRE: isRouteDrivingActive
+// RESUMEN: true durante navegación real O durante el recorrido automático
+// de simulación de ruta (sin free drive), para que las indicaciones
+// (flecha de maniobra, distancia, voz, zoom) también se muestren ahí.
+function isRouteDrivingActive() {
+    return isNavigating || (isSimulatingGpsLocation && automatedSimulationIntervalId && !isSimulatingFreeDrive);
+}
     
 // ===================================================================
 // NOMBRE: startGpsWatching 
@@ -11596,7 +11670,7 @@ function processSimulatedGpsPosition(forceExactPosition = false) {
     if (!isSimulatingGpsLocation || !simulatedGpsLocation) return;
     navigationCurrentLocation = { ...simulatedGpsLocation };
 
-    const isTripActive = isNavigating || isFreeDriveActive;
+    const isTripActive = isNavigating || isFreeDriveActive || (isSimulatingGpsLocation && automatedSimulationIntervalId && !isSimulatingFreeDrive);
     if (isTripActive && lastPositionForStats) {
         const distanceMovedSinceLastPoint = calculateDistance(lastPositionForStats.latitude, lastPositionForStats.longitude, navigationCurrentLocation.latitude, navigationCurrentLocation.longitude);
         
@@ -11672,7 +11746,7 @@ async function createAndLoadReturnTrip() {
 // NOMBRE: fetchRouteData 
 async function fetchRouteData(coordsString, startHeading = null) {
     const OSRM_PRIMARY_KEY = 'boardinggate_useOsrmAsPrimary';
-    const useOsrmAsPrimary = localStorage.getItem(OSRM_PRIMARY_KEY) === 'true';
+    const useOsrmAsPrimary = localStorage.getItem(OSRM_PRIMARY_KEY) !== 'false';
   
     const osrmService = {
         name: 'OSRM',
@@ -11819,6 +11893,7 @@ function adaptMapboxRouteToOSRMFormat(mapboxRoute) {
                     exit: step.maneuver.exit // <-- ¡ESTA ES LA LÍNEA CLAVE AÑADIDA!
                 },
                 name: step.name,
+                ref: step.ref || step.maneuver?.ref || '',
                 bannerInstructions: step.bannerInstructions || null
             };
         });
@@ -11856,7 +11931,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
 
     const isAutoStartModalVisible = !!document.getElementById('auto-start-nav-modal');
     
-    if (isFreeDriveActive || !route || !topInfoBar || !route.legs || route.legs.length === 0 || !progressBar || !maneuverCounterEl || (!isNavigating && !isAutoStartModalVisible && (!navigationCurrentRouteData || actualWaypoints.length < 2))) {
+    if (isFreeDriveActive || !route || !topInfoBar || !route.legs || route.legs.length === 0 || !progressBar || !maneuverCounterEl || (!isRouteDrivingActive() && !isAutoStartModalVisible && (!navigationCurrentRouteData || actualWaypoints.length < 2))) {
         if (topInfoBar) topInfoBar.style.display = 'none';
         if (miniNavCard) miniNavCard.style.display = 'none'; 
         if (minimapContainer) minimapContainer.classList.add('hidden');
@@ -11901,7 +11976,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
     if (announceManeuverWithFlash && distanceToNextManeuver < 220 && maneuverFlashTriggeredId !== uniqueManeuverId) { maneuverFlashTriggeredId = uniqueManeuverId; const borderOverlay = document.getElementById('maneuver-flashing-border-overlay'); if (borderOverlay) { borderOverlay.classList.remove('hidden'); setTimeout(() => { borderOverlay.classList.add('hidden'); }, 3000); } }
     
     const MANEUVER_ZONE_DISTANCE = 225;
-    if (isNavigating) { 
+    if (isRouteDrivingActive()) { 
         if (distanceToNextManeuver < MANEUVER_ZONE_DISTANCE) { 
             progressBar.classList.add('scaled-for-maneuver'); 
             if (compassControl && Date.now() > compassForceShowUntil) { 
@@ -11923,7 +11998,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
         if (weatherWidget) weatherWidget.classList.remove('hidden');
     }
     
-    const shouldHideMainBar = !isAutoStartModalVisible && !isProgressBarLocked && !isMapImmersiveModeActive && now > progressBarForceShowUntil && distanceToNextManeuver > 1000 && distanceIntoCurrentStep > 100;
+    const shouldHideMainBar = !isAutoStartModalVisible && !isProgressBarLocked && !isMapImmersiveModeActive && now > progressBarForceShowUntil && distanceToNextManeuver > 1000 && distanceIntoCurrentStep > 100 && !(isSimulatingGpsLocation && automatedSimulationIntervalId);
     const isForcedVisible = Date.now() < minimapForceShowUntil;
  
     progressBar.classList.toggle('progress-bar-auto-hidden', shouldHideMainBar);
@@ -11934,7 +12009,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
 
     if (infoOverlay) {
         if (shouldShowMinimap) infoOverlay.style.display = 'none';
-        else if (isNavigating) infoOverlay.style.display = 'block';
+        else if (isRouteDrivingActive()) infoOverlay.style.display = 'block';
     }
     
     if (showMinimapButton) {
@@ -11956,7 +12031,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
         const remainingDurationTotal = route.distance > 0 ? route.duration * (remainingDistanceTotal / route.distance) : 0;
         const currentFinalEta = new Date(Date.now() + remainingDurationTotal * 1000);
         
-        if (isNavigating && tripInitialOverallEtaTime) {
+        if (isRouteDrivingActive() && tripInitialOverallEtaTime) {
             const etaText = currentFinalEta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const finalDeviationMs = currentFinalEta.getTime() - tripInitialOverallEtaTime.getTime();
             const deviationHtml = formatDeviationForMiniCard(finalDeviationMs);
@@ -11997,7 +12072,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
                 streetNameText = arrivalWaypoint ? (arrivalWaypoint.address || "") : "";
             }
         } else {
-            maneuverText = maneuver.instruction || getManeuverInstructionText(maneuver);
+            maneuverText = getManeuverInstructionText(maneuver);
             const banner = nextStepToDisplay.bannerInstructions;
             if (banner && banner.length > 0 && banner[0].primary) {
                 let bannerPrimaryText = banner[0].primary.text;
@@ -12006,10 +12081,17 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             } else {
                 streetNameText = (type === 'depart' || type.includes('roundabout') || type === 'end of road') ? '' : (nextStepToDisplay.name || '');
             }
+            // Mostrar siempre nombre y código/ref de la vía cuando el proveedor los devuelve.
+            // En rotondas el texto principal (maneuverText) ya contiene el nombre/código de la vía
+            // y el número de salida se muestra dentro del icono de la rotonda: evitamos duplicarlo.
+            if (!isRoundaboutInstructionType(type)) {
+                const enrichedRoadLabel = nextStepToDisplay.roadLabel || roadLabelForStep(nextStepToDisplay);
+                if (enrichedRoadLabel) streetNameText = enrichedRoadLabel;
+            }
         }
 
         // --- LÓGICA DE VOZ INSERTADA AQUÍ ---
-        if (isNavigating && voiceGuidanceMode !== 'silence') {
+        if (isRouteDrivingActive() && voiceGuidanceMode !== 'silence') {
             if (!nextStepToDisplay._voiceFlags) {
                 nextStepToDisplay._voiceFlags = { far: false, medium: false, near: false };
             }
@@ -12027,8 +12109,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             }
 
             // Salida de rotonda: pitido distintivo + aviso de voz específico.
-            const isRoundaboutExit = type === 'exit roundabout' || type === 'exit rotary'
-                || type === 'roundabout turn' || (type.includes('roundabout') && type.includes('turn'));
+            const isRoundaboutExit = isRoundaboutInstructionType(type);
 
             if (isRoundaboutExit && voiceGuidanceMode === 'voice' && !nextStepToDisplay._roundaboutAnnounced) {
                 // Aviso inmediato al detectar la salida de rotonda como maniobra
@@ -12036,11 +12117,14 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
                 const exitNum = typeof maneuver.exit === 'number' ? maneuver.exit : null;
                 const ordinalsVoice = ['', 'primera', 'segunda', 'tercera', 'cuarta', 'quinta'];
                 const ordinalVoice = exitNum && exitNum >= 1 && exitNum <= 5 ? ordinalsVoice[exitNum] : (exitNum ? `${exitNum}ª` : '');
-                const sideVoice = (maneuver.modifier || '').includes('left') ? 'hacia la izquierda'
-                    : (maneuver.modifier || '').includes('right') ? 'hacia la derecha' : '';
+                // bearingDeg ya es la salida REAL (relativa horaria 1-12 calculada con
+                // bearing_before/bearing_after de OSRM). El modifier de una rotonda indica
+                // la dirección de ENTRADA, no la de salida: no lo usamos en la voz.
+                const clockVoice = Number(maneuver.bearingDeg) ? ` a las ${maneuver.bearingDeg}` : '';
+                const rdbRoad = maneuver.roadLabel ? ` hacia ${maneuver.roadLabel}` : '';
                 const rdbVoice = ordinalVoice
-                    ? `Atención, rotonda. Toma la ${ordinalVoice} salida${sideVoice ? ' ' + sideVoice : ''}`
-                    : `Atención, rotonda${sideVoice ? '. Sal ' + sideVoice : ''}`;
+                    ? `Atención, rotonda. Toma la ${ordinalVoice} salida${clockVoice}${rdbRoad}`
+                    : `Atención, rotonda${clockVoice}${rdbRoad}`;
                 speakNavigationInstruction(rdbVoice);
                 nextStepToDisplay._roundaboutAnnounced = true;
             }
@@ -12067,9 +12151,10 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
 
         if (turnIconDisplayEl) {
             const iconFilename = getManeuverIconFilename(maneuver);
-            if (iconFilename !== lastDisplayedManeuverIcon) {
-                turnIconDisplayEl.innerHTML = `<img src="https://boardinggate.github.io/Tesla/${iconFilename}" alt="${maneuverText}" style="width: 95%; height: 95%; object-fit: contain;">`;
-                lastDisplayedManeuverIcon = iconFilename;
+            const iconSource = roundaboutIconSource(maneuver) || `https://boardinggate.github.io/Tesla/${iconFilename}`;
+            if (iconSource !== lastDisplayedManeuverIcon) {
+                turnIconDisplayEl.innerHTML = `<img src="${iconSource}" alt="${maneuverText}" style="width: 95%; height: 95%; object-fit: contain;">`;
+                lastDisplayedManeuverIcon = iconSource;
             }
         }
         if (maneuverTextEl.textContent !== maneuverText) {
@@ -12099,7 +12184,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             progressBarFillEl.style.width = newWidthPercent;
         }
         const isRelevantIntersectionManeuver = type !== 'continue' && type !== 'new name' && type !== 'depart' && type !== 'straight';
-        if (isNavigating && distanceToNextManeuver < 800 && distanceToNextManeuver >= 100 && isRelevantIntersectionManeuver && (!intersectionPreviewWindow || intersectionPreviewWindow.classList.contains('hidden') || intersectionPreviewWindow.dataset.source !== 'click') && (currentLegIndex + '_' + currentStepIndex) !== lastAutoShownManeuverId) {
+        if (isRouteDrivingActive() && distanceToNextManeuver < 800 && distanceToNextManeuver >= 100 && isRelevantIntersectionManeuver && (!intersectionPreviewWindow || intersectionPreviewWindow.classList.contains('hidden') || intersectionPreviewWindow.dataset.source !== 'click') && (currentLegIndex + '_' + currentStepIndex) !== lastAutoShownManeuverId) {
             showIntersectionPreviewMap(nextStepToDisplay, route, false, 10000);
             lastAutoShownManeuverId = currentLegIndex + '_' + currentStepIndex;
         } else if (intersectionPreviewWindow && !intersectionPreviewWindow.classList.contains('hidden') && intersectionPreviewWindow.dataset.source !== 'click' && (distanceToNextManeuver >= 800 || distanceToNextManeuver < 100 || !isRelevantIntersectionManeuver)) {
@@ -13632,6 +13717,7 @@ function showNavigationMapHelpModal() {
 
         <h2 class="text-xl font-bold mb-4">Ayuda del Mapa de Navegación</h2>
         <div class="modal-top-buttons" style="justify-content: flex-end;">
+            <button type="button" id="help-open-voice-options" style="flex: 0 1 auto; min-width: 150px;">🔊 Voz y sonido</button>
             <button type="button" id="close-reminders-map-help-instance" style="flex: 0 1 auto; min-width: 120px;">Entendido</button>
         </div>
         <div style="max-height: 70vh; overflow-y: auto; padding-right: 15px;">
@@ -14105,6 +14191,11 @@ function showNavigationMapHelpModal() {
     };
     
     closeButtonHelp.addEventListener('click', closeHandlerHelp); 
+    const voiceFromHelpButton = helpModal.querySelector('#help-open-voice-options');
+    if (voiceFromHelpButton) voiceFromHelpButton.addEventListener('click', () => {
+        closeHandlerHelp();
+        showVoiceOptionsModal();
+    });
     addModalAutoCloseTimer(helpModal, closeButtonHelp, 'reminders-map-help-modal-instance', 90000);
 }
 
@@ -14243,7 +14334,7 @@ async function checkForAndExecuteCrashRecovery() {
             const footer = document.querySelector('footer'); if (footer) footer.style.display = 'none';
             const noticesContainer = document.querySelector('.notices-icon-container'); if (noticesContainer) noticesContainer.style.display = 'none';
             const sideControls = document.querySelectorAll('.toggle-image, .toggle-sign, .scroll-toggle-button'); sideControls.forEach(el => el.style.display = 'none');
-            document.querySelectorAll('#config-button, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #accident-alert-button, #utils-button').forEach(el => el.style.display = 'none');
+document.querySelectorAll('#config-button-launcher, #personal-button, #radar-button, #home-button, #reload-button, #keyword-assignment-button, #password-toggle-button, #versions-button, #info-button, #accident-alert-button, #utils-button').forEach(el => el.style.display = 'none');
             const gridFilter = document.getElementById('grid-filter-container'); if (gridFilter) gridFilter.style.display = 'none';
             
             try {
@@ -14305,7 +14396,7 @@ function updateNavigationProgressDisplay(route, carDistanceAlongTheRoute = 0) {
             if (overallProgressContainer) overallProgressContainer.style.display = 'block';
             if (etaInfoContainer) etaInfoContainer.style.display = 'flex';
 
-            if (isNavigating) {
+            if (isRouteDrivingActive()) {
                 if (topInfoBar) topInfoBar.style.display = 'flex';
                 if (maneuverDistanceWrapper) maneuverDistanceWrapper.style.display = 'block';
                 if (hrSeparator) hrSeparator.style.display = 'block';
@@ -14394,8 +14485,8 @@ function updateNavigationProgressDisplay(route, carDistanceAlongTheRoute = 0) {
         }
     }
     if (routeProgressTextEl) {
-        let kmRecorridosTexto = isNavigating && navigationStartTimeForStats ? `${(totalDistanceTravelledForStats / 1000).toFixed(1)} km` : "0.0 km";
-        let timeInfoString = isNavigating && navigationStartTimeForStats ? ` (${navigationStartTimeForStats.getHours().toString().padStart(2, '0')}:${navigationStartTimeForStats.getMinutes().toString().padStart(2, '0')} • ${String(Math.floor((Date.now() - navigationStartTimeForStats) / 3600000)).padStart(2, '0')}:${String(Math.floor(((Date.now() - navigationStartTimeForStats) % 3600000) / 60000)).padStart(2, '0')})` : ` (Stop)`;
+        let kmRecorridosTexto = isRouteDrivingActive() && navigationStartTimeForStats ? `${(totalDistanceTravelledForStats / 1000).toFixed(1)} km` : "0.0 km";
+        let timeInfoString = isRouteDrivingActive() && navigationStartTimeForStats ? ` (${navigationStartTimeForStats.getHours().toString().padStart(2, '0')}:${navigationStartTimeForStats.getMinutes().toString().padStart(2, '0')} • ${String(Math.floor((Date.now() - navigationStartTimeForStats) / 3600000)).padStart(2, '0')}:${String(Math.floor(((Date.now() - navigationStartTimeForStats) % 3600000) / 60000)).padStart(2, '0')})` : ` (Stop)`;
         
         const newProgressTextHtml = `${kmRecorridosTexto}${timeInfoString}`;
         if (routeProgressTextEl.innerHTML !== newProgressTextHtml) {
@@ -14485,7 +14576,7 @@ function updateNavigationProgressDisplay(route, carDistanceAlongTheRoute = 0) {
         if(nextStageDeviationEl && nextStageDeviationEl.innerHTML !== "") nextStageDeviationEl.innerHTML = "";
     }
    
-    if (isNavigating) {
+    if (isRouteDrivingActive()) {
         const destinationWp = navigationWaypoints[navigationWaypoints.length - 1];
         if (destinationWp && destinationWp.address) {
             const mapOverlay = document.getElementById('map-info-overlay');
@@ -16465,7 +16556,7 @@ function assignMapButtonListeners() {
             
             switch (button.id) {
                  case 'close-reminders-location-map': closeNavigationMap(false); setTimeout(() => openNavigationMap(), 50); break;
-                 case 'quick-launcher-button': openQuickLauncher(); break;
+                 case 'quick-launcher-button': window.location.href = 'enlaces.html'; break;
                  case 'locate-me-on-reminders-map': handleLocateMeClick(true); break;
                  case 'nav-map-zoomtoggle-button': handleZoomToggleButtonClick(button); break;
                  case 'start-navigation-button': toggleNavigationState(false, false); break;
@@ -16479,8 +16570,13 @@ function assignMapButtonListeners() {
                  case 'toggle-simulate-gps-button': handleGpsSimulationToggle(); break;
                  case 'simulate-route-button': showSimulationModal(); break;
                  case 'reorder-route-stages-button': showReorderStagesModal(); break;
-                 case 'voice-options-button': showVoiceOptionsModal(); break;
-                 case 'navigation-map-help-button':
+                 case 'map-configuration-button': showNavigationMapHelpModal(); break;
+                 case 'config-button-map':
+                    if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) {
+                        showConfigModal();
+                    }
+                    break;
+                case 'navigation-map-help-button':
                     const existingChoiceModal = document.querySelector('.choice-modal.help-choice');
                     if(existingChoiceModal) existingChoiceModal.remove();
 
@@ -16492,7 +16588,6 @@ function assignMapButtonListeners() {
                         <p>¿Qué deseas hacer?</p>
                         <div class="personalization-options">
                             <button id="start-interactive-guide-choice">Iniciar Guía Interactiva</button>
-                            <button id="open-config-panel-choice">Abrir Panel de Configuración</button>
                             <button id="cancel-help-choice-btn">Cancelar</button>
                         </div>
                     `;
@@ -16504,9 +16599,7 @@ function assignMapButtonListeners() {
                             iniciarGuiaInteractivaCompleta();
                         }
                     };
-                    document.getElementById('open-config-panel-choice').onclick = () => {
-                        choiceModal.remove();
-                        showNavigationMapHelpModal();  };
+
                     document.getElementById('cancel-help-choice-btn').onclick = () => {
                         choiceModal.remove();
                     };
@@ -16595,16 +16688,6 @@ function assignMapButtonListeners() {
     const pdrsCheckbox = reassignElement(document.getElementById('pdrs-ruta-checkbox'));
     pdrsCheckbox.addEventListener('change', (e) => {
         togglePdrsRuta(e.target.checked);
-    });
-    
-    const mapboxCheckbox = reassignElement(document.getElementById('mapbox-primary-checkbox'));
-    mapboxCheckbox.addEventListener('change', (e) => {
-        const OSRM_PRIMARY_KEY = 'boardinggate_useOsrmAsPrimary';
-        localStorage.setItem(OSRM_PRIMARY_KEY, e.target.checked);
-        markCacheAsDirty();
-        const serviceName = e.target.checked ? 'OSRM' : 'Mapbox';
-        showToast(`Servicio primario cambiado a ${serviceName}. Recalculando ruta...`, 'success');
-        if (navigationWaypoints.length >= 2) { recalculateAndDrawRoute(false); }
     });
     
     newMapLocationSearchInput.value = '';
@@ -18951,6 +19034,75 @@ function initializeConfigModalListeners() {
         });
         autoBackupCheckbox.dataset.listenerAttached = "true";
     } 
+
+    const osrmCheckbox = document.getElementById('config-use-osrm-primary');
+    if (osrmCheckbox && !osrmCheckbox.dataset.listenerAttached) {
+        osrmCheckbox.checked = localStorage.getItem('boardinggate_useOsrmAsPrimary') !== 'false';
+        osrmCheckbox.addEventListener('change', () => {
+            localStorage.setItem('boardinggate_useOsrmAsPrimary', osrmCheckbox.checked);
+            markCacheAsDirty();
+            showToast(osrmCheckbox.checked ? 'Proveedor: OSRM (detallado)' : 'Proveedor: Mapbox (tráfico)', 'info', 2000);
+        });
+        osrmCheckbox.dataset.listenerAttached = "true";
+    }
+
+    const modeSelect = document.getElementById('voice-options-mode-select');
+    const engineSelect = document.getElementById('voice-options-engine-select');
+    const engineRow = engineSelect?.closest('.voice-opt-group');
+    if (modeSelect && !modeSelect.dataset.listenerAttached) {
+        modeSelect.value = voiceGuidanceMode;
+        modeSelect.addEventListener('change', () => {
+            voiceGuidanceMode = modeSelect.value;
+            localStorage.setItem(VOICE_MODE_KEY, JSON.stringify(voiceGuidanceMode));
+            voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
+            localStorage.setItem(VOICE_GUIDANCE_KEY, JSON.stringify(voiceGuidanceEnabled));
+            markCacheAsDirty();
+            if (engineRow) engineRow.style.display = voiceGuidanceMode === 'voice' ? 'block' : 'none';
+            const label = voiceGuidanceMode === 'silence' ? 'Silencio' : voiceGuidanceMode === 'sounds' ? 'Avisos sonoros' : 'Voz';
+            showToast(`Guiado: ${label}.`, 'info');
+        });
+        modeSelect.dataset.listenerAttached = "true";
+    }
+    if (engineSelect && !engineSelect.dataset.listenerAttached) {
+        engineSelect.value = voiceGuidanceEngine;
+        if (engineRow) engineRow.style.display = voiceGuidanceMode === 'voice' ? 'block' : 'none';
+        engineSelect.addEventListener('change', () => {
+            voiceGuidanceEngine = engineSelect.value;
+            localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
+            markCacheAsDirty();
+            const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : voiceGuidanceEngine === 'online' ? 'Google TTS online (MP3)' : 'Google';
+            showToast(`Motor de voz: ${engineLabel}.`, 'info');
+        });
+        engineSelect.dataset.listenerAttached = "true";
+    }
+    const testBtn = document.getElementById('voice-options-test-btn');
+    if (testBtn && !testBtn.dataset.listenerAttached) {
+        testBtn.addEventListener('click', () => {
+            const wasVoice = voiceGuidanceMode === 'voice';
+            if (!wasVoice) {
+                voiceGuidanceMode = 'voice';
+                voiceGuidanceEnabled = true;
+                localStorage.setItem(VOICE_MODE_KEY, JSON.stringify('voice'));
+                localStorage.setItem(VOICE_GUIDANCE_KEY, JSON.stringify(true));
+                if (modeSelect) modeSelect.value = 'voice';
+                if (engineRow) engineRow.style.display = 'block';
+                markCacheAsDirty();
+            }
+            speakNavigationInstruction('Prueba de sonido');
+            if (!wasVoice) {
+                setTimeout(() => {
+                    voiceGuidanceMode = 'sounds';
+                    voiceGuidanceEnabled = false;
+                    localStorage.setItem(VOICE_MODE_KEY, JSON.stringify('sounds'));
+                    localStorage.setItem(VOICE_GUIDANCE_KEY, JSON.stringify(false));
+                    if (modeSelect) modeSelect.value = 'sounds';
+                    if (engineRow) engineRow.style.display = 'none';
+                    markCacheAsDirty();
+                }, 2000);
+            }
+        });
+        testBtn.dataset.listenerAttached = "true";
+    }
 }    
     
     // ===================================================================
@@ -19812,36 +19964,114 @@ function hideNavigationUI() {
     }
      
     // ===================================================================
-    // NOMBRE: getManeuverInstructionText
+    // NOMBRE: instrucciones de navegación enriquecidas
+    // Mantiene juntas la acción, el nombre de la vía y su código/ref.
+    function roadLabelForStep(step) {
+        if (!step) return '';
+        const name = String(step.name || '').trim();
+        const ref = String(step.ref || step.maneuver?.ref || '').trim();
+        if (name && ref && name.toLowerCase() !== ref.toLowerCase()) return `${name} (${ref})`;
+        return name || ref;
+    }
+
+    function navigationBearing(a, b) {
+        if (!a || !b) return null;
+        const dy = b[1] - a[1];
+        const dx = b[0] - a[0];
+        return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+    }
+
+    function roundaboutClockForSteps(steps, index) {
+        const step = steps[index];
+        const maneuver = step?.maneuver;
+        if (maneuver && Number.isFinite(maneuver.bearing_before) && Number.isFinite(maneuver.bearing_after)) {
+            const relative = (maneuver.bearing_after - maneuver.bearing_before + 360) % 360;
+            const clock = Math.round(relative / 30);
+            return clock === 0 ? 12 : Math.max(1, Math.min(12, clock));
+        }
+        const location = step?.maneuver?.location;
+        if (!location) return null;
+        // Sin bearing_before/bearing_after (p.ej. rutas Mapbox): calculamos la entrada con
+        // el último segmento real de geometría del paso anterior (la aproximación) y la
+        // salida con el primer segmento del siguiente paso (la vía de salida), en lugar de
+        // usar los puntos de maniobra, que pueden estar muy lejos de la rotonda.
+        const previous = [...steps.slice(0, index)].reverse().find(s => s?.geometry?.coordinates?.length >= 2 && !String(s.maneuver?.type || '').includes('roundabout') && !String(s.maneuver?.type || '').includes('rotary'));
+        const next = steps.slice(index + 1).find(s => s?.geometry?.coordinates?.length >= 2 && !String(s.maneuver?.type || '').includes('roundabout') && !String(s.maneuver?.type || '').includes('rotary'));
+        let incoming = null;
+        let outgoing = null;
+        if (previous) {
+            const coords = previous.geometry.coordinates;
+            // El paso anterior termina justo en la entrada de la rotonda:
+            // su último segmento es la dirección de aproximación.
+            const outPoint = coords.length >= 2 ? coords[coords.length - 1] : null;
+            const inPoint = coords.length >= 2 ? coords[coords.length - 2] : null;
+            incoming = inPoint && outPoint ? navigationBearing(inPoint, outPoint) : null;
+        }
+        if (next) {
+            const coords = next.geometry.coordinates;
+            // El paso siguiente empieza en la salida de la rotonda:
+            // su primer segmento es la dirección de la vía de salida.
+            outgoing = coords[0] && coords[1] ? navigationBearing(coords[0], coords[1]) : null;
+        }
+        // Fallback final: puntos de maniobra (aproximado).
+        if (incoming == null || outgoing == null) {
+            const prevManeuver = [...steps.slice(0, index)].reverse().find(s => s?.maneuver?.location);
+            const nextManeuver = steps.slice(index + 1).find(s => s?.maneuver?.location && !String(s.maneuver.type || '').includes('roundabout') && !String(s.maneuver.type || '').includes('rotary'));
+            if (incoming == null && prevManeuver) incoming = navigationBearing(prevManeuver.maneuver.location, location);
+            if (outgoing == null && nextManeuver) outgoing = navigationBearing(location, nextManeuver.maneuver.location);
+        }
+        if (incoming == null || outgoing == null) return null;
+        const relative = (outgoing - incoming + 360) % 360;
+        const clock = Math.round(relative / 30) || 12;
+        return Math.max(1, Math.min(12, clock));
+    }
+
+    function isRoundaboutInstructionType(type) {
+        return ['roundabout', 'rotary', 'roundabout turn', 'exit roundabout', 'exit rotary', 'exit-roundabout', 'exit-rotary'].includes(type);
+    }
+
+    function enrichRouteInstructions(route) {
+        if (!route?.legs) return;
+        const allSteps = route.legs.flatMap(leg => leg.steps || []);
+        allSteps.forEach((step, index) => {
+            if (!step?.maneuver) return;
+            const type = String(step.maneuver.type || '');
+            if (type === 'roundabout turn') step.maneuver.type = 'roundabout';
+            if (type === 'exit roundabout') step.maneuver.type = 'exit-roundabout';
+            if (type === 'exit rotary') step.maneuver.type = 'exit-rotary';
+            step.roadLabel = roadLabelForStep(step);
+            if (isRoundaboutInstructionType(step.maneuver.type)) {
+                step.maneuver.bearingDeg = roundaboutClockForSteps(allSteps, index);
+                step.maneuver.roadLabel = step.roadLabel;
+            }
+        });
+    }
+
+    function roundaboutIconSource(maneuver) {
+        const type = String(maneuver?.type || '');
+        const exit = Number(maneuver?.exit);
+        if (!isRoundaboutInstructionType(type) || !Number.isFinite(exit) || exit < 1) return null;
+        const clock = Number(maneuver.bearingDeg) || (((exit - 1) * 3) % 12 || 12);
+        const angle = (clock % 12) * 30;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#f5c400" stroke="#111" stroke-width="6"/><circle cx="50" cy="50" r="22" fill="none" stroke="#111" stroke-width="8"/><g transform="rotate(${angle} 50 50)"><path d="M50 50V5" stroke="#111" stroke-width="8" stroke-linecap="round"/><path d="M50 3L39 18h22z" fill="#111"/></g><text x="50" y="58" text-anchor="middle" font-family="Arial" font-size="22" font-weight="900">${exit}</text></svg>`;
+        return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    }
+
     function getManeuverInstructionText(maneuver) {
         if (!maneuver) return '';
         const type = maneuver.type || '';
         const modifier = maneuver.modifier || '';
-        let exit = maneuver.exit;
-        let key = `${type}-${modifier}`;
-        let text = maneuverTexts[key];
-        if (!text) {
-            key = `${type}-`;
-            text = maneuverTexts[key];
+        const road = maneuver.roadLabel || '';
+        const clock = Number(maneuver.bearingDeg) ? ` a las ${maneuver.bearingDeg}` : '';
+        const exit = Number(maneuver.exit);
+        const ordinal = exit === 1 ? 'primera' : exit === 2 ? 'segunda' : exit === 3 ? 'tercera' : exit === 4 ? 'cuarta' : exit === 5 ? 'quinta' : (exit > 0 ? `${exit}ª` : '');
+        if (isRoundaboutInstructionType(type)) {
+            return road || (exit > 0 ? `Salida ${exit}` : 'Rotonda');
         }
-        if (!text && type === 'turn' && !modifier) {
-            text = maneuverTexts['turn-'] || type.replace(/-/g, ' ');
-        } else if (!text) {
-            text = type.replace(/-/g, ' ');
-        }
-        const roundaboutExitTypes = ['roundabout turn', 'exit roundabout', 'rotary', 'roundabout'];
-        if (roundaboutExitTypes.includes(type) && typeof exit === 'number' && exit > 0) {
-             const ordinals = ["", "primera", "segunda", "tercera", "cuarta", "quinta"];
-             const ordinalText = (exit >= 1 && exit <= 5) ? ordinals[exit] : `${exit}ª`;
-             // Indicación horaria: si conocemos la dirección de giro (modifier)
-             // la añadimos para que el conductor sepa hacia qué lado salir.
-             const exitSide = (modifier.includes('left') ? ', hacia la izquierda'
-                 : (modifier.includes('right') ? ', hacia la derecha'
-                 : (modifier.includes('straight') ? ', de frente' : '')));
-             text = `Sal en la rotonda en la ${ordinalText} salida${exitSide || ''}`;
-        }
-        let baseText = text.charAt(0).toUpperCase() + text.slice(1);
-        return baseText;
+        let text = maneuverTexts[`${type}-${modifier}`] || maneuverTexts[`${type}-`] || (type === 'turn' ? 'Gira' : type.replace(/-/g, ' '));
+        if (type === 'depart') text = 'Inicia la ruta';
+        if (type === 'arrive') text = 'Has llegado a tu destino';
+        return text.charAt(0).toUpperCase() + text.slice(1) + (road ? ` en ${road}` : '');
     }  
 
 // ===================================================================
@@ -20576,6 +20806,8 @@ function actualizarContadorTareas(count) {
 // ===================================================================
 // NOMBRE: applyZoom (VERSIÓN CON PROPORCIONALIDAD CORREGIDA)
 function applyZoom(state) {
+    const grid = document.getElementById('bookmark-grid');
+    if (!grid) return;
     const originalWidth = 984;
     const zoomedCols = 4;
     const originalCols = 6;
@@ -20913,7 +21145,7 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
         renderLinks(sections[0]);
     }
 
-    function renderGrid() { if (document.body.classList.contains('boot-map')) { renderSectionedLauncher(); return; } grid.innerHTML = ''; cellElements = []; Array.from({ length: TOTAL_CELLS }).forEach((_, index) => { const cellContainer = document.createElement('div'); cellContainer.classList.add('grid-cell'); cellContainer.dataset.index = index; const bookmarkData = currentBookmarks[index]; const section = getSectionForIndex(index); const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; if (bookmarkData) { const link = document.createElement('a'); link.className = 'bookmark-item'; link.title = bookmarkData.name; link.style.backgroundColor = bgColor; link.href = bookmarkData.url || "#"; link.dataset.index = index;
+    function renderGrid() { if (document.body.classList.contains('boot-map')) { renderSectionedLauncher(); return; } const grid = document.getElementById('bookmark-grid'); if (!grid) return; grid.innerHTML = ''; cellElements = []; Array.from({ length: TOTAL_CELLS }).forEach((_, index) => { const cellContainer = document.createElement('div'); cellContainer.classList.add('grid-cell'); cellContainer.dataset.index = index; const bookmarkData = currentBookmarks[index]; const section = getSectionForIndex(index); const bgColor = sectionColors[section ? section.start : null] || sectionColors.unassigned; if (bookmarkData) { const link = document.createElement('a'); link.className = 'bookmark-item'; link.title = bookmarkData.name; link.style.backgroundColor = bgColor; link.href = bookmarkData.url || "#"; link.dataset.index = index;
         if (isKeywordAssignmentMode || (bookmarkData.name && bookmarkData.name === "Inicio Tesla") || !bookmarkData.url || bookmarkData.url === '#') { } else { link.target = "_blank"; link.rel = "noopener noreferrer"; }
         const img = document.createElement('img'); img.src = getFaviconUrl(bookmarkData); img.alt = `Favicon ${bookmarkData.name}`; img.loading = "lazy"; img.onerror = function() { this.removeAttribute('src'); this.onerror = null; }; if (bookmarkData.name === "Mis Updates") img.classList.add('favicon-red'); else if (bookmarkData.name === "Olas Updates") img.classList.add('favicon-blue'); const nameSpan = document.createElement('span'); nameSpan.className = 'bookmark-name'; nameSpan.textContent = bookmarkData.name; link.appendChild(img); link.appendChild(nameSpan); cellContainer.appendChild(link); } else { cellContainer.classList.add('empty-slot'); const addIcon = document.createElement('span'); addIcon.textContent = '+'; cellContainer.appendChild(addIcon); cellContainer.style.backgroundColor = bgColor; }
         cellContainer.addEventListener('click', handleGridCellClick);
@@ -20995,10 +21227,11 @@ function createOtherButtons() {
     if (!document.getElementById('reminder-button')) { reminderButton = document.createElement('span'); reminderButton.className = 'toggle-sign'; reminderButton.id = 'reminder-button'; document.body.appendChild(reminderButton); reminderButton.addEventListener('mousedown', () => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) reminderPressStartTime = Date.now(); }); reminderButton.addEventListener('mouseup', () => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) handleReminderLongPress(); }); reminderButton.addEventListener('mouseleave', () => { reminderPressStartTime = null; }); reminderButton.addEventListener('touchstart', (e) => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) { e.preventDefault(); reminderPressStartTime = Date.now(); } }); reminderButton.addEventListener('touchend', (e) => { if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) { e.preventDefault(); handleReminderLongPress(); } }); }
     if (!document.getElementById('zoom-button')) { zoomButton = document.createElement('span'); zoomButton.className = 'toggle-sign'; zoomButton.id = 'zoom-button'; zoomButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/PNG/zoon-.png" alt="Zoom" style="max-width: 60%; max-height: 60%; object-fit: contain;">`; zoomButton.dataset.zoomState = localStorage.getItem('zoomState') || 'off'; document.body.appendChild(zoomButton); zoomButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; const cS = zoomButton.dataset.zoomState; const nS = cS === 'off' ? 'on' : 'off'; applyZoom(nS); zoomButton.dataset.zoomState = nS; updateButtonStyles(); saveSettings(); adjustButtonPositions(); }); }
     if (!document.getElementById('dark-mode-toggle')) { darkModeToggle = document.createElement('img'); darkModeToggle.className = 'toggle-image'; darkModeToggle.id = 'dark-mode-toggle'; document.body.appendChild(darkModeToggle); darkModeToggle.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; isDarkMode = !isDarkMode; document.body.classList.toggle('dark-mode', isDarkMode); updateButtonStyles(); saveSettings(); }); }
-    if (!document.getElementById('config-button')) {
+    if (!document.getElementById('config-button-launcher')) {
         const configButton = document.createElement('span');
-        configButton.id = 'config-button';
-        configButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/PNG/config.jpg" alt="Configuración">`;
+        configButton.className = 'toggle-sign';
+        configButton.id = 'config-button-launcher';
+        configButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/PNG/personal.png" alt="Configuración">`;
         document.body.appendChild(configButton);
         configButton.addEventListener('click', () => {
             if (!isEditMode && !isAssignmentMode && !isKeywordAssignmentMode) {
@@ -21015,6 +21248,7 @@ function createOtherButtons() {
     }
     if (!document.getElementById('personal-button')) {
         const personalButton = document.createElement('span');
+        personalButton.className = 'toggle-sign';
         personalButton.id = 'personal-button';
         personalButton.innerHTML = `<img src="https://boardinggate.github.io/Tesla/PNG/personal.png" alt="Personal">`;
         document.body.appendChild(personalButton);
@@ -23383,7 +23617,7 @@ function handleWaypointPlacement(displayName, lat, lon) {
     }
 
     isFlying = true;
-    navigationMapInstance.flyTo({ center: [lon, lat], zoom: 14.5, duration: 1500 });
+    navigationMapInstance.flyTo({ center: [lon, lat], zoom: 17, duration: 1500 });
     navigationMapInstance.once('moveend', () => { isFlying = false; });
 
     const cleanup = () => {
@@ -23742,7 +23976,7 @@ async function showSimulationModal() {
                 streetNameText = arrivalWaypoint ? ` <strong>${arrivalWaypoint.address || ""}</strong>` : "";
             }
         } else {
-            maneuverText = maneuver.instruction || getManeuverInstructionText(maneuver);
+            maneuverText = getManeuverInstructionText(maneuver);
             const banner = step.bannerInstructions;
             if (banner && banner.length > 0 && banner[0].primary) {
                 let bannerPrimaryText = banner[0].primary.text;
@@ -23775,7 +24009,7 @@ async function showSimulationModal() {
         simulationList.appendChild(li);
 
         const iconFilename = getManeuverIconFilename(maneuver);
-        const iconUrl = `https://boardinggate.github.io/Tesla/${iconFilename}`;
+        const iconUrl = roundaboutIconSource(maneuver) || `https://boardinggate.github.io/Tesla/${iconFilename}`;
         iconContainer.innerHTML = `<img src="${iconUrl}" alt="Maniobra" style="width:24px; height:24px; object-fit:contain;">`;
         
         stepsShown++;
@@ -24897,9 +25131,9 @@ async function searchAndAddWaypoint(addressQuery = null, searchAsPoi = false) {
         showToast("Ajustando a la carretera más cercana...", "info", 3000);
         const snappedLatLng = await snapCoordsToRoad(initialLat, initialLon);
         
+        if (navigationMapInstance) navigationMapInstance.flyTo({ center: [initialLon, initialLat], zoom: 17, duration: 1500 });
         await addWaypoint(snappedLatLng, displayName);
         
-        if (navigationMapInstance) navigationMapInstance.flyTo({ center: [initialLon, initialLat], zoom: 15 });
         if (searchInput) {
             searchInput.value = '';
             searchInput.dispatchEvent(new Event('input'));
@@ -27031,7 +27265,7 @@ async function ai_tool_get_business_details(args) {
     function startNoticeRotation() { if (notices.length === 0) return; if (isActive) updateNotice(); setInterval(updateNotice, 14000); }   
     // ===================================================================
     function adjustButtonPositions() { const scrollToggle = document.getElementById('scroll-toggle'); if (!scrollToggle) { return; }
-    const scrollToggleHeight = scrollToggle.offsetHeight; const buttonHeight = 74; const buttonSpacing = 10; const startTop = scrollToggleHeight + 20; const fixedButtons = [ document.getElementById('on-off-toggle'), ...document.querySelectorAll('.range-toggle'), document.getElementById('weather-button'), document.getElementById('reminder-button'), document.getElementById('zoom-button'), document.getElementById('dark-mode-toggle') ].filter(button => button !== null).sort((a, b) => { const startA = parseInt(a.dataset.rangeStart) || Infinity; const startB = parseInt(b.dataset.rangeStart) || Infinity; if (a.id === 'on-off-toggle') return -1; if (b.id === 'on-off-toggle') return 1; if (isFinite(startA) && isFinite(startB)) return startA - startB; if (isFinite(startA)) return -1; if (isFinite(startB)) return 1; const order = ['weather-button', 'reminder-button', 'zoom-button', 'dark-mode-toggle']; return order.indexOf(a.id) - order.indexOf(b.id); }); if (fixedButtons.length < 6) { return; } let currentTop = startTop; fixedButtons.forEach((button) => { button.style.position = 'fixed'; button.style.top = `${currentTop}px`; button.style.left = '10px'; currentTop += buttonHeight + buttonSpacing; }); }
+    const scrollToggleHeight = scrollToggle.offsetHeight; const buttonHeight = 74; const buttonSpacing = 10; const startTop = scrollToggleHeight + 20; const fixedButtons = [ document.getElementById('on-off-toggle'), ...document.querySelectorAll('.range-toggle'), document.getElementById('weather-button'), document.getElementById('reminder-button'), document.getElementById('zoom-button'), document.getElementById('dark-mode-toggle'), document.getElementById('config-button-launcher'), document.getElementById('personal-button') ].filter(button => button !== null).sort((a, b) => { const startA = parseInt(a.dataset.rangeStart) || Infinity; const startB = parseInt(b.dataset.rangeStart) || Infinity; if (a.id === 'on-off-toggle') return -1; if (b.id === 'on-off-toggle') return 1; if (isFinite(startA) && isFinite(startB)) return startA - startB; if (isFinite(startA)) return -1; if (isFinite(startB)) return 1; const order = ['weather-button', 'reminder-button', 'zoom-button', 'dark-mode-toggle', 'config-button-launcher', 'personal-button']; return order.indexOf(a.id) - order.indexOf(b.id); }); if (fixedButtons.length < 6) { return; } let currentTop = startTop; fixedButtons.forEach((button) => { button.style.position = 'fixed'; button.style.top = `${currentTop}px`; button.style.left = '10px'; currentTop += buttonHeight + buttonSpacing; }); }
     // ===================================================================
     function getSavedLocations() { try { const locations = localStorage.getItem(SAVED_LOCATIONS_KEY); return locations ? JSON.parse(locations) : Array(MAX_SAVED_LOCATIONS).fill(null); } catch (e) { return Array(MAX_SAVED_LOCATIONS).fill(null); } }   
     // ===================================================================
