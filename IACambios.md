@@ -1504,3 +1504,28 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - Runtime: `APP_CONFIG.keys.mapbox` = token nuevo; `mapboxgl.accessToken` = token nuevo.
 - `isMapboxAuthorizedForCurrentDomain(true)` → **true** (`mapboxAuthCheckCache=true`) → el mapa carga estilo nativo Mapbox («Mapbox Satellite Streets»), no el fallback OSM/Esri.
 - **0 page errors**.
+
+## 88. tesla.html: voz eSpeak offline integrada + rotondas «salga por la 3ª salida a las 9» (2026-09-20)
+
+**Integración de la voz nueva robótica de nav.html en tesla.html** (la que funciona en el navegador del Tesla):
+- Motor **eSpeak offline** (meSpeak.js, carpeta `mespeak/` ya versionada) integrado: carga perezosa de la voz española (`mespeak/voices/es.json`) y síntesis en el PROPIO navegador vía Web Audio — el mismo camino que los pitidos, que sí funcionan en el WebView del coche: sin red, sin API key, sin voces del sistema ni endpoints externos que caigan.
+- Nuevas opciones de motor en Opciones de voz: **«eSpeak offline (sin red — recomendado Tesla)»** y **«Automático (voz navegador, eSpeak si no hay)»**.
+- En el Tesla (sin `speechSynthesis` o sin voces) el motor por defecto pasa a ser **eSpeak** (antes caía a `online`, que exige red para el MP3 de Google).
+- Desbloqueo de audio de meSpeak en el primer gesto del usuario (`unlockAudioOnGesture`), exactamente como hace nav.html.
+- Parámetros configurables del motor en el modal de voz: **Volumen (80–220), Tono (25–99), Velocidad (80–260 ppm) y Timbre** (estándar / f1 / f2 / f3 / m1 / whisper), persistidos en localStorage y aplicados a la siguiente instrucción.
+- El volumen global (mute del altavoz) silencia eSpeak (amplitude 0 → no habla).
+
+**Rotondas — la frase que pediste, «salga por la 3ª salida a las 9»:**
+- El mensaje de rotonda anuncia SIEMPRE el **número real de salida** del proveedor Y el **ángulo del reloj** calculado sobre la geometría real (12 = recto, 3 = derecha, 9 = izquierda): «en la rotonda, salga por la tercera salida a las 9, hacia Calle X».
+- Corregido el disparate de usar el ángulo como ordinal cuando faltaba el número de salida (antes decía «la novena salida a las 9»); sin número ahora dice «tome la salida a las 9».
+- Coma antes de «hacia» para pausa natural al hablar.
+
+**Explicaciones de instrucciones (maneuverTexts) más naturales:**
+- Giros bruscos: «Gira bruscamente a la derecha/izquierda» (antes «Giro brusco…», en modo sustantivo).
+- «Toma la vía de salida» y «Incorpórate a la vía de entrada» (antes «Vía de salida» / «Incorporate a la vía de Entrada»).
+
+**Verificación** (Puppeteer, instalación local `127.0.0.1:8000/tesla.html`):
+- `meSpeak` cargado, `ensureEspeakVoice()` → **true**, `speakEspeak` sintetiza (opts `voice:'es'` + `amplitude>0`), volumen 0 → silencio.
+- Modal de voz: motor eSpeak por defecto, 6 motores (espeak/auto/native/google/clips/online) y sliders de parámetros presentes.
+- Ruta fabricada con rotonda de salida 3 (geometría real → `bearingDeg=9`): ventanas 2 km / 500 m / 200 m reproducen exactamente «…en la rotonda, salga por la tercera salida a las 9, hacia Calle de Toledo»; sin número de salida → «…tome la salida a las 9…».
+- Textos mejorados confirmados («Gira bruscamente a la derecha», «Toma la vía de salida»…). **0 page errors.**

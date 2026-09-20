@@ -70,6 +70,10 @@
     
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>   function initMap() {} </script>
+    
+    <!-- Voz eSpeak offline (meSpeak.js): la que funciona en el navegador del Tesla
+         (sintetiza en el propio navegador, sin red ni voces del sistema). -->
+    <script src="mespeak/mespeak.js"></script>
 </head>
     
 
@@ -1469,7 +1473,7 @@ body.recovering-map-session #auto-start-nav-modal {
     let mapPitchValue = 62;
 
     let lastGpsUpdateTime = 0;
-    const maneuverTexts = { 'turn-sharp right': 'Giro brusco a la derecha', 'turn-right': 'Gira a la derecha', 'bear-right': 'Mantente a la derecha', 'turn-sharp left': 'Giro brusco a la izquierda', 'turn-left': 'Gira a la izquierda', 'bear-left': 'Mantente a la izquierda', 'turn-': 'Gira', 'straight-straight': 'Sigue recto', 'straight-': 'Sigue recto', 'roundabout-': 'Entra en la rotonda', 'roundabout turn-': 'Toma la salida de la rotonda', 'rotary-': 'Entra en la glorieta', 'roundabout turn-left': 'En la rotonda, toma la salida hacia la izquierda', 'roundabout turn-right': 'En la rotonda, toma la salida hacia la derecha', 'roundabout turn-straight': 'En la rotonda, sigue recto', 'destination-left': 'Has llegado a tu destino  (a la izquierda)', 'destination-right': 'Has llegado a tu destino (a la derecha)', 'destination-': ' tu destino ', 'depart-': 'Inicia la ruta', 'arrive-left': 'Has llegado a tu destino (a la izquierda)', 'arrive-right': 'Has llegado a tu destino  (a la derecha)', 'arrive-': 'Has llegado a tu destino', 'continue-straight': 'Continúa recto', 'continue-': 'Continúa', 'new name-': 'Continúa por', 'fork-right': 'En la bifurcación, mantente a la derecha', 'fork-left': 'En la bifurcación, mantente a la izquierda', 'fork-': 'En la bifurcación', 'merge-left': 'Incorpórate por la izquierda', 'merge-right': 'Incorpórate por la derecha', 'merge-straight': 'Incorpórate', 'merge-': 'Incorpórate', 'end of road-left': 'Al final de la vía, gira a la izquierda', 'end of road-right': 'Al final de la vía, gira a la derecha', 'end of road-': 'Fin de la vía', 'u turn-left': 'Haz un cambio de sentido (hacia la izquierda)', 'u turn-right': 'Haz un cambio de sentido (hacia la derecha)', 'u turn-': 'Haz un cambio de sentido', 'use lane-': 'Usa el carril indicado', 'notification-': 'Atención', 'exit roundabout-': 'Sal de la rotonda', 'exit rotary-': 'Sal de la glorieta', 'off ramp-': 'Vía de salida', 'on ramp-': 'Incorporate a la vía de Entrada',};
+    const maneuverTexts = { 'turn-sharp right': 'Gira bruscamente a la derecha', 'turn-right': 'Gira a la derecha', 'bear-right': 'Mantente a la derecha', 'turn-sharp left': 'Gira bruscamente a la izquierda', 'turn-left': 'Gira a la izquierda', 'bear-left': 'Mantente a la izquierda', 'turn-': 'Gira', 'straight-straight': 'Sigue recto', 'straight-': 'Sigue recto', 'roundabout-': 'Entra en la rotonda', 'roundabout turn-': 'Toma la salida de la rotonda', 'rotary-': 'Entra en la glorieta', 'roundabout turn-left': 'En la rotonda, toma la salida hacia la izquierda', 'roundabout turn-right': 'En la rotonda, toma la salida hacia la derecha', 'roundabout turn-straight': 'En la rotonda, sigue recto', 'destination-left': 'Has llegado a tu destino  (a la izquierda)', 'destination-right': 'Has llegado a tu destino (a la derecha)', 'destination-': ' tu destino ', 'depart-': 'Inicia la ruta', 'arrive-left': 'Has llegado a tu destino (a la izquierda)', 'arrive-right': 'Has llegado a tu destino  (a la derecha)', 'arrive-': 'Has llegado a tu destino', 'continue-straight': 'Continúa recto', 'continue-': 'Continúa', 'new name-': 'Continúa por', 'fork-right': 'En la bifurcación, mantente a la derecha', 'fork-left': 'En la bifurcación, mantente a la izquierda', 'fork-': 'En la bifurcación', 'merge-left': 'Incorpórate por la izquierda', 'merge-right': 'Incorpórate por la derecha', 'merge-straight': 'Incorpórate', 'merge-': 'Incorpórate', 'end of road-left': 'Al final de la vía, gira a la izquierda', 'end of road-right': 'Al final de la vía, gira a la derecha', 'end of road-': 'Fin de la vía', 'u turn-left': 'Haz un cambio de sentido (hacia la izquierda)', 'u turn-right': 'Haz un cambio de sentido (hacia la derecha)', 'u turn-': 'Haz un cambio de sentido', 'use lane-': 'Usa el carril indicado', 'notification-': 'Atención', 'exit roundabout-': 'Sal de la rotonda', 'exit rotary-': 'Sal de la glorieta', 'off ramp-': 'Toma la vía de salida', 'on ramp-': 'Incorpórate a la vía de entrada',};
     let distanceToNextManeuverOSRM = Infinity;
     let mapHeaderButtonsVisible = true;
     
@@ -1998,12 +2002,22 @@ const originalBookmarks = [
     const VOICE_MODE_KEY = 'boardinggate_voice_mode';       // 'silence' | 'sounds' | 'voice'
     const VOICE_ENGINE_KEY = 'boardinggate_voice_engine';   // 'native' | 'google' | 'clips' | 'online'
     const VOICE_VOLUME_KEY = 'boardinggate_voice_volume';   // 0..1
+    const VOICE_ESPEEK_AMP_KEY = 'boardinggate_voice_espeak_amp';
+    const VOICE_ESPEEK_PITCH_KEY = 'boardinggate_voice_espeak_pitch';
+    const VOICE_ESPEEK_SPEED_KEY = 'boardinggate_voice_espeak_speed';
+    const VOICE_ESPEEK_VARIANT_KEY = 'boardinggate_voice_espeak_variant';
     let voiceVolume = Math.min(1, Math.max(0, parseFloat(localStorage.getItem(VOICE_VOLUME_KEY) || '1')));
     let voiceVolumeBeforeMute = voiceVolume || 1;
     let voiceGuidanceEnabled = false;
     let voiceGuidanceMode = JSON.parse(localStorage.getItem(VOICE_MODE_KEY) || '"silence"');
     let voiceGuidanceEngine = JSON.parse(localStorage.getItem(VOICE_ENGINE_KEY) || '"native"');
     const voiceSynthesis = window.speechSynthesis;
+    // Parámetros del motor eSpeak (como en nav.html, configurables en Opciones de Voz)
+    let voiceEspeakAmp = parseInt(localStorage.getItem(VOICE_ESPEEK_AMP_KEY)) || 150;
+    let voiceEspeakPitch = parseInt(localStorage.getItem(VOICE_ESPEEK_PITCH_KEY)) || 64;
+    let voiceEspeakSpeed = parseInt(localStorage.getItem(VOICE_ESPEEK_SPEED_KEY)) || 170;
+    let voiceEspeakVariant = localStorage.getItem(VOICE_ESPEEK_VARIANT_KEY) || '';
+    let espeakVoicePromise = null;
     // Compat: deriva el estado desde el modo (los checkboxes antiguos escribian 'boolean')
     voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
     // Audio context para avisos sonoros (se crea perezosamente: los navegadores exigen un gesto del usuario)
@@ -7788,7 +7802,11 @@ function speakNavigationInstruction(text) {
     }
 
     // mode === 'voice'
-    if (voiceGuidanceEngine === 'clips') {
+    if (voiceGuidanceEngine === 'espeak') {
+        speakEspeak(text);
+    } else if (voiceGuidanceEngine === 'auto') {
+        speakAuto(text);
+    } else if (voiceGuidanceEngine === 'clips') {
         speakWithClips(text);
     } else if (voiceGuidanceEngine === 'native') {
         speakNative(text);
@@ -7967,6 +7985,70 @@ function speakWithGoogleVoice(text) {
 }
 
 // ===================================================================
+// NOMBRE: speakEspeak / speakAuto (motor eSpeak offline — meSpeak.js)
+// RESUMEN: Voz robótica sintetizada en el PROPIO navegador (asm.js, Web
+// Audio) — el mismo camino que los pitidos, que sí funcionan en el WebView
+// del Tesla: sin red, sin API key, sin voces del sistema ni endpoints
+// externos que puedan caer o bloquearse. Es el motor que usa nav.html y que
+// ha demostrado funcionar en el navegador del coche.
+// ===================================================================
+
+// Carga perezosa (una sola vez) de la voz española de eSpeak desde
+// mespeak/voices/es.json.
+function ensureEspeakVoice() {
+    if (espeakVoicePromise) return espeakVoicePromise;
+    espeakVoicePromise = new Promise(res => {
+        try {
+            if (!window.meSpeak || !window.meSpeak.loadVoice) { espeakVoicePromise = null; res(false); return; }
+            meSpeak.loadVoice('es', ok => {
+                if (!ok) { espeakVoicePromise = null; res(false); return; }
+                res(true);
+            });
+        } catch (e) { espeakVoicePromise = null; res(false); }
+    });
+    return espeakVoicePromise;
+}
+
+function speakEspeak(text) {
+    if (!text) return;
+    if (voiceVolume <= 0) return; // silenciado por el usuario
+    if (!window.meSpeak || !window.meSpeak.speak) return false;
+    ensureEspeakVoice().then(ok => {
+        if (!ok) { speakNative(text); return; }
+        try {
+            // amplitude 0-200 (más alta que el pitido por defecto), tono algo
+            // agudo y ~170 ppm para que se entienda en los altavoces del coche.
+            // El volumen global (0..1) escala la amplitude del motor.
+            const vOpts = {
+                voice: 'es',
+                amplitude: Math.max(1, Math.round((voiceEspeakAmp || 150) * voiceVolume)),
+                pitch: voiceEspeakPitch || 64,
+                speed: voiceEspeakSpeed || 170,
+            };
+            if (voiceEspeakVariant) vOpts.variant = voiceEspeakVariant;
+            meSpeak.speak(String(text).slice(0, 220), vOpts,
+                success => { if (success === false) speakNative(text); });
+        } catch (e) { speakNative(text); }
+    });
+    return true;
+}
+
+// Mejor disponible: si el navegador tiene una voz Web Speech en español,
+// úsala (más natural); si no la tiene, cae a eSpeak (offline y fiable).
+function speakAuto(text) {
+    try {
+        const synth = (typeof window !== 'undefined' && window.speechSynthesis) ? window.speechSynthesis : null;
+        if (synth && typeof synth.getVoices === 'function' && synth.getVoices().some(v => /^es/i.test(v.lang || ''))) {
+            const u = new SpeechSynthesisUtterance(String(text).slice(0, 180));
+            u.lang = 'es-ES'; u.rate = 1; u.pitch = 1; u.volume = voiceVolume;
+            synth.cancel(); synth.speak(u);
+            return;
+        }
+    } catch (e) { /* cae a eSpeak */ }
+    speakEspeak(text);
+}
+
+// ===================================================================
 // NOMBRE: speakOnline
 // RESUMEN: Motor de voz "Google TTS online". El navegador del Tesla no trae
 // voces de speechSynthesis (getVoices() vacío y speak() mudo) y el Web Audio
@@ -7988,6 +8070,7 @@ function unlockAudioOnGesture() {
     audioUnlocked = true;
     try { ensureAudioCtx(); } catch (e) {}
     try { ensureClipsCtx(); } catch (e) {}
+    try { if (window.meSpeak && meSpeak.unlockAudio) meSpeak.unlockAudio(event || {}); } catch (e) {}
     try {
         const probe = new Audio(SILENT_WAV);
         probe.volume = 0.01;
@@ -8113,8 +8196,13 @@ function loadSavedSettings() {
     voiceGuidanceMode = savedVoiceMode ? JSON.parse(savedVoiceMode) : (legacyVoiceEnabled ? 'voice' : 'silence');
     voiceGuidanceEnabled = voiceGuidanceMode === 'voice';
     const savedVoiceEngine = localStorage.getItem(VOICE_ENGINE_KEY);
+    // Motor por defecto: en sistemas con voces (PC/móvil) el nativo; en el
+    // Tesla (sin speechSynthesis o sin voces) eSpeak offline, que es el que
+    // ha demostrado funcionar en el navegador del coche.
+    let hasSystemVoices = false;
+    try { hasSystemVoices = !!(window.speechSynthesis && (window.speechSynthesis.getVoices() || []).length); } catch (e) { hasSystemVoices = false; }
     if (savedVoiceEngine) voiceGuidanceEngine = JSON.parse(savedVoiceEngine);
-    else if (!window.speechSynthesis) voiceGuidanceEngine = 'online';
+    else voiceGuidanceEngine = hasSystemVoices ? 'native' : 'espeak';
  
     baseCriticalRatio = parseInt(localStorage.getItem(PERFORMANCE_RATIO_CRITICAL_KEY)) || 3;
     performanceRatios.criticalUpdate = baseCriticalRatio;
@@ -11767,16 +11855,24 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
 
             const exitNumR = typeof maneuver.exit === 'number' ? maneuver.exit : null;
             const ordinalsR = ['', 'primera', 'segunda', 'tercera', 'cuarta', 'quinta', 'sexta', 'septima', 'octava', 'novena', 'decima', 'undecima', 'duodecima'];
-            let rdbOrdinal = exitNumR && exitNumR >= 1 && exitNumR <= 12 ? ordinalsR[exitNumR] : (exitNumR ? `${exitNumR}ª` : '');
-            if (!rdbOrdinal) {
-                const clockForOrdinal = Number(maneuver.bearingDeg);
-                rdbOrdinal = clockForOrdinal && clockForOrdinal >= 1 && clockForOrdinal <= 12 ? ordinalsR[clockForOrdinal] : '';
+            // Ángulo del reloj horario (1-12) calculado sobre la geometría real
+            // por roundaboutClockForSteps: 12 = recto, 3 = derecha, 9 = izquierda...
+            const clockAngle = Number(maneuver.bearingDeg);
+            const rdbClock = clockAngle && clockAngle >= 1 && clockAngle <= 12 ? ` a las ${clockAngle}` : '';
+            const rdbRoad = maneuver.roadLabel ? `, hacia ${maneuver.roadLabel}` : '';
+            // Mensaje claro: número de salida REAL del proveedor y, además, el
+            // ángulo del reloj — el usuario lo pide explícitamente ("salida por
+            // la 3ª salida a las 9 horas"). El ángulo NUNCA se usa como ordinal:
+            // antes, sin número de salida, se decía "salga por la novena salida
+            // a las 9", un disparate.
+            let rdbCore;
+            if (exitNumR && exitNumR >= 1 && exitNumR <= 12) {
+                rdbCore = `en la rotonda, salga por la ${ordinalsR[exitNumR]} salida${rdbClock}${rdbRoad}`;
+            } else if (exitNumR) {
+                rdbCore = `en la rotonda, salga por la salida número ${exitNumR}${rdbClock}${rdbRoad}`;
+            } else {
+                rdbCore = `en la rotonda, tome la salida${rdbClock}${rdbRoad}`;
             }
-            const rdbClock = Number(maneuver.bearingDeg) ? ` a las ${maneuver.bearingDeg}` : '';
-            const rdbRoad = maneuver.roadLabel ? ` hacia ${maneuver.roadLabel}` : '';
-            const rdbCore = rdbOrdinal
-                ? `en la rotonda, salga por la ${rdbOrdinal} salida${rdbClock}${rdbRoad}`
-                : `en la rotonda${rdbClock}${rdbRoad}`;
 
             // Aviso combinado "luego": si la maniobra posterior está a menos de 200 m
             // de la actual, se anuncian juntas ("... Luego, gira a la derecha en A3").
@@ -13291,12 +13387,36 @@ function showVoiceOptionsModal() {
         <div class="voice-opt-group">
             <label for="voice-options-engine-select">Motor de voz:</label>
             <select id="voice-options-engine-select">
+                <option value="espeak">eSpeak offline (sin red — recomendado Tesla)</option>
+                <option value="auto">Autom&aacute;tico (voz navegador, eSpeak si no hay)</option>
                 <option value="native">Navegador (offline, PC/m&oacute;vil)</option>
                 <option value="google">Google (red, solo si el sistema lo trae)</option>
                 <option value="clips">Clips pre-generados (WAV offline)</option>
-                <option value="online">Google TTS online (MP3, recomendado en Tesla)</option>
+                <option value="online">Google TTS online (MP3)</option>
             </select>
-            <div class="voice-opt-help">En el Tesla, la voz m&aacute;s fiable es "Google TTS online": reproduce un MP3 real por el <audio> del navegador, sin depender del sintetizador del sistema (que en el coche no tiene voces).</div>
+            <div class="voice-opt-help">En el Tesla, la voz m&aacute;s fiable es "eSpeak offline": sintetiza en el propio navegador (Web Audio, el mismo camino que los pitidos), sin red ni voces del sistema.</div>
+        </div>
+        <div class="voice-opt-group" id="voice-options-espeak-group">
+            <label>Par&aacute;metros de voz (motor eSpeak)</label>
+            <div class="voice-volume-row"><label style="min-width:70px;">Volumen</label>
+                <input id="voice-options-amp" type="range" min="80" max="220" step="1">
+                <span id="voice-options-amp-value" class="voice-volume-value">150</span></div>
+            <div class="voice-volume-row"><label style="min-width:70px;">Tono</label>
+                <input id="voice-options-pitch" type="range" min="25" max="99" step="1">
+                <span id="voice-options-pitch-value" class="voice-volume-value">64</span></div>
+            <div class="voice-volume-row"><label style="min-width:70px;">Vel.</label>
+                <input id="voice-options-speed" type="range" min="80" max="260" step="1">
+                <span id="voice-options-speed-value" class="voice-volume-value">170 ppm</span></div>
+            <label style="margin-top:8px;">Timbre</label>
+            <select id="voice-options-variant">
+                <option value="">Est&aacute;ndar (masculino)</option>
+                <option value="f1">Femenina 1</option>
+                <option value="f2">Femenina 2</option>
+                <option value="f3">Femenina 3</option>
+                <option value="m1">Masculino 1</option>
+                <option value="whisper">Susurro</option>
+            </select>
+            <div class="voice-opt-help">Se aplica a la siguiente instrucci&oacute;n — usa "Probar sonido" para o&iacute;rlo.</div>
         </div>
         <button id="voice-options-test-btn" class="voice-opt-btn">🔊 Probar sonido</button>
         <button id="voice-options-ok-btn" class="voice-opt-btn voice-opt-btn-ok">Listo</button>
@@ -13348,8 +13468,45 @@ function showVoiceOptionsModal() {
         voiceGuidanceEngine = engineSelect.value;
         localStorage.setItem(VOICE_ENGINE_KEY, JSON.stringify(voiceGuidanceEngine));
         markCacheAsDirty();
-        const engineLabel = voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : voiceGuidanceEngine === 'online' ? 'Google TTS online (MP3)' : 'Google';
+        const engineLabel = voiceGuidanceEngine === 'espeak' ? 'eSpeak offline (sin red)' : voiceGuidanceEngine === 'auto' ? 'Automático (navegador → eSpeak)' : voiceGuidanceEngine === 'native' ? 'Navegador (offline)' : voiceGuidanceEngine === 'clips' ? 'Clips pre-generados (WAV)' : voiceGuidanceEngine === 'online' ? 'Google TTS online (MP3)' : 'Google';
         showToast(`Motor de voz: ${engineLabel}.`, 'info');
+    });
+    // Parámetros del motor eSpeak (se aplican a la siguiente instrucción)
+    const ampInput = modal.querySelector('#voice-options-amp');
+    const ampValue = modal.querySelector('#voice-options-amp-value');
+    const pitchInput = modal.querySelector('#voice-options-pitch');
+    const pitchValue = modal.querySelector('#voice-options-pitch-value');
+    const speedInput = modal.querySelector('#voice-options-speed');
+    const speedValue = modal.querySelector('#voice-options-speed-value');
+    const variantSelect = modal.querySelector('#voice-options-variant');
+    const refreshEspeakUi = () => {
+        ampInput.value = String(voiceEspeakAmp);
+        ampValue.textContent = String(voiceEspeakAmp);
+        pitchInput.value = String(voiceEspeakPitch);
+        pitchValue.textContent = String(voiceEspeakPitch);
+        speedInput.value = String(voiceEspeakSpeed);
+        speedValue.textContent = `${voiceEspeakSpeed} ppm`;
+        variantSelect.value = voiceEspeakVariant || '';
+    };
+    refreshEspeakUi();
+    ampInput.addEventListener('input', () => {
+        voiceEspeakAmp = parseInt(ampInput.value) || 150;
+        localStorage.setItem(VOICE_ESPEEK_AMP_KEY, String(voiceEspeakAmp));
+        ampValue.textContent = String(voiceEspeakAmp);
+    });
+    pitchInput.addEventListener('input', () => {
+        voiceEspeakPitch = parseInt(pitchInput.value) || 64;
+        localStorage.setItem(VOICE_ESPEEK_PITCH_KEY, String(voiceEspeakPitch));
+        pitchValue.textContent = String(voiceEspeakPitch);
+    });
+    speedInput.addEventListener('input', () => {
+        voiceEspeakSpeed = parseInt(speedInput.value) || 170;
+        localStorage.setItem(VOICE_ESPEEK_SPEED_KEY, String(voiceEspeakSpeed));
+        speedValue.textContent = `${voiceEspeakSpeed} ppm`;
+    });
+    variantSelect.addEventListener('change', () => {
+        voiceEspeakVariant = variantSelect.value || '';
+        localStorage.setItem(VOICE_ESPEEK_VARIANT_KEY, voiceEspeakVariant);
     });
     modal.querySelector('#voice-options-test-btn').addEventListener('click', () => {
         speakNavigationInstruction('Prueba de sonido');
