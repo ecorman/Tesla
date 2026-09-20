@@ -1,0 +1,52 @@
+name: Deploy Pages con clave Mapbox inyectada
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generar PNG/zbuildgs.js con el secret MAPBOX
+        shell: bash
+        run: |
+          cat > PNG/zbuildgs.js <<'EOF'
+          window.APP_CONFIG = {"firebase":{},"keys":{"mapbox":"${{ secrets.MAPBOX }}","ocm":"be9a78f7-0f5e-4f28-b742-4b7ab4b7eb5a"},"endpoints":{}};
+          EOF
+
+      - name: Verificar que MAPBOX contiene un token valido
+        shell: bash
+        run: |
+          if ! grep -q 'pk\.eyJ1' PNG/zbuildgs.js; then
+            echo "::error::El secret MAPBOX esta vacio o mal definido (se espera un token pk.eyJ1...)"; exit 1;
+          fi
+          echo "OK: zbuildgs.js generado con clave Mapbox desde el secret MAPBOX"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - id: deployment
+        name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
