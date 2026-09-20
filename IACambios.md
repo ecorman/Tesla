@@ -1488,3 +1488,19 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - 700 m → «**Continúa recto**» / «Calle de Atocha» / «300 m» (la instrucción avanza con el coche simulado).
 - 1500 m → «**Has llegado a tu destino**» / «Destino» / «490 m».
 - **0 page errors**. Sin commit (a la espera de petición).
+
+## 87. ecorman.github.io: Mapbox nativo con token inyectado por Actions secret (2026-09-20)
+
+**Problema**: el token nuevo de `agaudir` (`pk.eyJ1IjoiYWdhdWRpci…`) quedaba bloqueado por la push protection de GitHub («Push cannot contain secrets») al subir `PNG/zbuildgs.js`, y la página definitiva `ecorman.github.io` seguía sirviendo el respaldo OSM/Esri en vez de los estilos nativos de Mapbox (que dependen de un token autorizado para ese dominio).
+
+**Solución**:
+- `PNG/zbuildgs.js` pasa a ser una **plantilla sin clave** (`"mapbox":""`); el token vive SOLO en el Actions secret `MAPBOX` (Settings → Secrets and variables → Actions).
+- Workflow único nuevo `.github/workflows/pages.yml`: en cada push a `main` genera `PNG/zbuildgs.js` con `window.APP_CONFIG` (token del secret `MAPBOX` + clave pública OCM), **valida** que el resultado contenga un `pk.eyJ1…` (si el secret está vacío o mal definido, el build falla en rojo) y despliega GitHub Pages (fuente: GitHub Actions).
+- Eliminados los workflows que competían entre sí con `concurrency` y se cancelaban: `deploy-pages.yml` (secret `APP_CONFIG_JSON` sin validación, no se podía confirmar su contenido) y los 6 de ejemplo del tutorial de GitHub (`Step 0..Step 5`, solo ensuciaban la pestaña Actions).
+- Commits: `7f048b3b` (plantilla sin clave + workflow pages.yml), `4ef7efe5` (solo workflow MAPBOX).
+
+**Verificación** (producción, `https://ecorman.github.io/Tesla/tesla.html`, carga real con Puppeteer):
+- `PNG/zbuildgs.js` servido ahora contiene el token inyectado (207 chars, `pk.eyJ1IjoiYWd…5K5-7Q`, 89 caracteres), ya no la plantilla (505 B).
+- Runtime: `APP_CONFIG.keys.mapbox` = token nuevo; `mapboxgl.accessToken` = token nuevo.
+- `isMapboxAuthorizedForCurrentDomain(true)` → **true** (`mapboxAuthCheckCache=true`) → el mapa carga estilo nativo Mapbox («Mapbox Satellite Streets»), no el fallback OSM/Esri.
+- **0 page errors**.
