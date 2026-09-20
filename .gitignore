@@ -38,3 +38,12 @@ Thumbs.db
 
 # Claves inyectadas por Freebuff (Keys/API keys) — NO versionar
 PNG/zbuildgs.js
+
+# Local de desarrollo / pruebas (no subir)
+backups/
+node_modules/
+package.json
+package-lock.json
+enlaces.html
+pptr-*.png
+.freebuff/

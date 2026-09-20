@@ -1370,8 +1370,121 @@ sintaxis directa y dedupe de POIs); 10 grupos repartidos en las 7 pestañas.
 - **Limpieza**: eliminado `CAR_ICON_SVG` (código muerto).
 - **Verificación**: silueta de `PNG/AVANCE.PNG` decodificada y confirmada (flecha clásica); sintaxis completa de `nav.html` OK; `test-poi-live.cjs` **PASS 24/24**, `test-ra.cjs` PASS, `test-espeak.cjs` PASS.
 
-## 78. nav.html: coche = punta clásica en forma de A (PNG/Flecha.PNG) (2026-09-02)
+## 79. tesla.html: reescritura sobre la base «publicada original» + limpieza de trackings/seguridad (2026-09-20)
+
+**Base**: se parte de la versión **publicada en el sitio del autor** (`boardinggate.github.io/Tesla/tesla.html`), no del `tesla.html` previo del repo (HEAD `8a3708fb`, que no coincidía con lo publicado). Antes de tocar nada se guardaron dos backups estructurales en `backups/` (pre-cleanup y pre-original) y la copia raw publicada en el temp.
+
+**Eliminado** (solo lo imprescindible):
+- **StatCounter** (contador de visitas, `statcounter.com` + `th.jpeg` del contador).
+- **Firebase por completo**: SDK, inicialización, UI (chat comunitario, alertas comunitarias, backups de nube, contadores, pestaña «nube»), llamadas y listeners. El resto de funciones que lo usaban (`sendTrafficAlert`, `openAlertModal`, backup en nube…) quedan **inertes con guard** (`if (!window.db)`), sin referencias colgantes a elementos eliminados.
+- **Claves reales** en `PNG/zbuildgs.js` (Firebase, Google, Gemini): el archivo queda reducido a mapbox + ocm, y el token Mapbox/OCM se conserva para que el mapa funcione.
+- **CDNs externos del `<head>`**: tailwind (las clases se convirtieron a `style` inline + shim CSS), el módulo de Firebase, driver.js (tour «Guía interactiva» eliminado por completo) y html2canvas (la captura de pantalla queda desactivada con su guard `typeof html2canvas === 'undefined'`).
+
+**Conservado**: mapbox-gl, turf, chart.js, `tesla.css` publicado, token de mapbox + ocm, y todo el flujo de radares/POIs/alertas locales (sin nube).
+
+**Gate de acceso al mapa**: relajado — solo pide nombre de usuario (sin `allowDMs`). `userId` sigue siendo local-crítico (radares/alertas propias): el perfil guarda en LOCAL, no en Firebase.
+
+**Verificación**: sintaxis de los 4 bloques `<script>` inline OK; smoke test headless (Puppeteer) sin errores de consola JS; greps de referencias colgantes limpios.
+
+## 80. tesla.html: voz mejorada completa (motor multi‑motor + volumen) (2026-09-20)
+
+**Portado desde el backup pre-cleanup** (motor que ya funcionaba en producción) al `tesla.html` publicado limpio:
+
+- **Estado de voz**: `voiceGuidanceMode` (`silence` | `sounds` | `voice`), `voiceGuidanceEngine` (`native` | `google` | `clips` | `online`), `voiceVolume` (0..1 persistido), `alertAudioCtx` (lazy, se crea con el primer gesto), compat con los checkboxes antiguos (`VOICE_GUIDANCE_KEY === 'true'` → modo `'voice'`).
+- **Motor completo**: `NAV_CLIPS` + clips WAV PCM sintetizados en memoria (`synthesizeClipWav`, sin archivos externos ni red, máxima compatibilidad con el WebView del Tesla vía `decodeAudioData`), `speakNative` (SpeechSynthesis), `speakWithGoogleVoice`, `speakOnline` (audio remoto con `SILENT_WAV` de arranque), `unlockAudioOnGesture`, `ensureAudioCtx`, `beep` (con master gain x4) y `playAlertSound` con sonidos distintivos (`far`/`medium`/`near`/`roundabout-exit`/`info`…).
+- **Interfaz**: botón **🔊 Voz** en la cabecera del mapa (`#voice-options-button`) + modal `showVoiceOptionsModal` (modo, motor, volumen, botón de prueba) + `case 'voice-options-button'` en el switch global + entrada `body.map-active #voice-options-modal-instance` en el CSS. Checkbox antiguo del modal de ayuda sincronizado con el modo.
+- **Ventanas de aviso en `updateTurnByTurnDisplay`**: 2 km («En dos kilómetros»), 500 m, 230 m y maniobra exacta; cada ventana dispara UNA vez (`_voiceFlags`). En modo `sounds` pita; en `voice` beep + voz; en `silence` nada.
+- **Verificación**: smoke test headless — todas las funciones del motor existen en el scope del script, 0 errores de consola, sintaxis de los 4 bloques OK.
+
+## 81. tesla.html: salida de rotondas con reloj REAL y detalles de ruta en 3 filas (2026-09-20)
+
+**Rotondas (portado del backup)**:
+- Helpers nuevos: `roadLabelForStep` (name + ref), `navigationBearing`, `roundaboutClockForSteps` (**mide el reloj sobre la geometría real**: entrada = último tramo de la vía de aproximación, salida = primer tramo de la calle de salida, excluyendo solo el anillo; con fallbacks a `bearing_before/after` de OSRM y a puntos de maniobra), `isRoundaboutInstructionType`, `enrichRouteInstructions` (asigna `roadLabel` y `bearingDeg`; hook añadido al inicio de `generateAndCacheCleanManeuverList`), `roundaboutIconSource` (**icono SVG de rotonda con flecha rotada al reloj real + número de salida**, `data:image/svg+xml`), y `getManeuverInstructionText` (texto preferido sobre `maneuver.instruction`: «Salida 2», «en la rotonda…», «Gira a la derecha en A-3 (A-3)»).
+- **Voz de rotonda sin «continúa recto»**: al entrar se anuncia la salida REAL una única vez («en la rotonda, salga por la segunda salida a las 9 en dirección C/ Norte»); el paso posterior (`exit-roundabout`/`exit-rotary`) **no se anuncia**; aviso combinado «luego» cuando la siguiente maniobra está a <200 m; pitido `roundabout-exit` al salir.
+- **Detalles de ruta en 3 filas** (icono+texto / calle / distancia): la fila de calle (`#street-name-line`) queda **siempre visible** (sin `display:none` inline, forzada a flex) y muestra el nombre + código/ref (`roadLabelForStep`); la columna de distancia de la derecha conserva metros/km con precisión de 5 m.
+- **Adaptador Mapbox**: `adaptMapboxRouteToOSRMFormat` añade `ref: step.ref` (para que la fila de calle muestre el código de vía).
+- **Modal de simulación** (`showSimulationModal`): prefiere `getManeuverInstructionText` y usa el icono SVG de rotonda, consistente con el display en vivo.
+- **Verificación**: sintaxis OK; pruebas funcionales headless con fixtures sintéticos — `enrichRouteInstructions` calcula el reloj por geometría (entrada-este → salida-norte = 270° = «las 9»), `roundaboutIconSource` genera el SVG con `rotate(270)` y el número de salida, `getManeuverInstructionText` devuelve «C/ Norte (N-7)» / «Salida 2» / «Gira a la izquierda». Sin commit (a la espera de petición).
 - **Problema (usuario)**: «el icono del coche no es correcto, cambialo por la típica punta en forma de A que se pone en todos los navegadores».
 - **Solución**: nuevo `PNG/Flecha.PNG` (64×64, raster con borde blanco y relleno azul) con la silueta del icono **«navigation»** — cabezal triangular ancho + cola en V invertida, apuntando **arriba** — el de Google/Apple Maps. Generado y verificado (silueta decodificada píxel a píxel).
 - **Rotación**: al apuntar arriba, `updateCarRotation` aplica el rumbo directamente (0° = norte = arriba); se elimina el +90° que compensaba la flecha diagonal de AVANCE.PNG. Sustituido en el marcador del coche (46 px, con sombra).
 - **Verificación**: sintaxis completa de `nav.html` OK; `test-poi-live.cjs` **PASS 24/24**, `test-ra.cjs` PASS, `test-espeak.cjs` PASS.
+
+## 82. tesla.html: mapa invisible por token Mapbox restringido por dominio → fallback OSM (2026-09-20)
+
+**Problema (usuario)**: «PARA ACCEDER A MAPAS… He creado el usuario y no se ve el mapa».
+
+**Diagnóstico (reproducción headless + fetch directo)**:
+- El gate de acceso ya abría el mapa correctamente con el nombre de usuario (`canAccessMaps = userId no vacío` y botón de mapa → `openNavigationMap`); el mapa **se abría** (canvas + modal visibles, 0 errores JS), pero quedaba **en negro**.
+- Causa raíz: el token de Mapbox es **`pk.` restringido por dominio** — `https://api.mapbox.com/v4/*` devuelve **403 `{"message":"Forbidden"}`** salvo cuando el `Referer` es `boardinggate.github.io` (verificado por fetch con/ sin referer: 200 con el de boardinggate, 403 con `127.0.0.1` o sin Referer). Otras claves del archivo publicado quedaron intactas.
+
+**Solución (mapa visible desde cualquier dominio/servidor local)**:
+- `buildOsmRasterStyle()`: estilo **raster de OpenStreetMap** (`tile.openstreetmap.org/{z}/{x}/{y}.png`, sin token ni restricciones) que funciona en cualquier origen.
+- `mapboxAuthCheckCache` + `isMapboxAuthorizedForCurrentDomain()`: sondeo pre-vuelo de una tesela `/v4/` (fetch con el Referer de la página; 403 ⇒ no autorizado). Se lanza en segundo plano al iniciar y se **espera** en `openNavigationMap` (re-sondeo si el cache decía `false`).
+- `openNavigationMap`: si Mapbox no está autorizado → arranca con el estilo OSM + toast «Mapbox no está autorizado en este dominio; usando el mapa OSM estándar…» (el usuario elige capa en el selector).
+- **Minimapa de navegación**, **`reminderModalMap`**, **`locationPickerMap`** y **`locationsPreviewMap`**: mismo respaldo cuando `mapboxAuthCheckCache === false`.
+- **Selector de capas** (`MapSettingsPanel`): nueva opción **«OSM»** (manual, además del fallback automático), persistida en `boardinggate_activeMapLayer`.
+- **UX al guardar el perfil** (`validateAndSaveUserToFirebase`): si «Ir directo a navegación» está activo, recarga automáticamente para que el mapa se abra al guardar el nombre de usuario.
+- **Verificación**: sintaxis de todos los bloques inline OK; Puppeteer — flujo launcher→botón AVANCE y flujo ir-directo: mapa abierto con **24 teselas OSM cargadas**, **0 page errors**; muestreo de píxeles del canvas: brillo medio 211/255, **0,0 % píxeles oscuros** (antes: mapa negro). Restan solo 403 esperados: la sonda de verificación y `terrain-rgb` (terreno 3D, no disponible en OSM raster). Sin commit (a la espera de petición).
+
+## 83. tesla.html: capas Híbrido/Satélite locales (Esri) + proyección globo restaurada (2026-09-20)
+
+**Problema (usuario)**: «solo funciona el OSM con calles, los de híbrido y satélite no funcionan, se ven en negro; también cambio el flying inicial, ahora sale mapamundi plano desde el inicio».
+
+**Diagnóstico**:
+- Al elegir Híbrido o Satélite en el selector de capas se aplicaba el estilo `mapbox://` original → teselas 403 (mismo bloqueo de dominio del token) → negro. El respaldo OSM solo cubría la capa OSM/CALLES.
+- El «globo desde el espacio» del arranque (spin animado a Madrid, `setCenter`/`jumpTo`) dependía de `projection: globe` que trae el estilo original; los estilos raster de respaldo no lo llevaban → mapamundi **plano** desde el inicio.
+
+**Solución**:
+- `buildEsriSatelliteStyle()`: **Esri World Imagery** raster (`server.arcgisonline.com/.../World_Imagery/MapServer/tile/{z}/{y}/{x}`, sin clave, CORS abierto) para la capa **SATÉLITE** cuando Mapbox no está autorizado.
+- `buildHybridStyle()`: satélite Esri + capa raster OSM encima (`raster-opacity: 0.5`) para **HÍBRIDO** (calles y etiquetas sobre la imagen de satélite).
+- `resolveMapStyleForLayer(layerName)`: resuelve el estilo según el estado de autorización — Mapbox autorizado → estilos originales; no autorizado → respaldo raster equivalente por capa (SATÉLITE→Esri, HÍBRIDO→Esri+OSM, CALLES/OSM→OSM). Usado en `openNavigationMap` **y** en el `updateStyle` del selector (`MapSettingsPanel`) para que cambiar de capa nunca devuelva a un mapa negro.
+- **Proyección globo restaurada**: los tres estilos de respaldo llevan `projection: { name: 'globe' }` + `fog` (atmósfera). Nota: en mapbox-gl v3.26 el `projection` del JSON de estilo debe ser **objeto** (`{ name: 'globe' }`); el string solo se acepta en `MapOptions` (el error «Invalid projection name: undefined» en cada `setStyle` desaparece con la forma de objeto).
+- **Verificación**: sintaxis de todos los bloques OK; Puppeteer con cambios de capa reales por el selector — HÍBRIDO inicial (ESRI 25 + OSM 24, brillo 180, 0 % oscuro), cambio a SATÉLITE (48 teselas Esri, brillo 155, 0,6 % oscuro), cambio a HÍBRIDO (73 Esri + 48 OSM, brillo 180) y **0 page errors**; fetch de tile Esri desde la página = 200. Sin commit (a la espera de petición).
+
+## 84. tesla.html: transición suave globo → zoom final (flyTo en vez de jumpTo) (2026-09-20)
+
+**Problema (usuario)**: «solo falta la transición de globo terráqueo a zoom final que da un salto repentino a planisferio».
+
+**Diagnóstico**: al terminar el spin del globo (animación `setCenter` de Austin → Madrid), el código hacía `navigationMapInstance.jumpTo(initialViewOptions)` (zoom 15,5) → **corte instantáneo** del planeta a la vista aérea final.
+
+**Solución**: en el arranque con animación (rama `!isRecovery`) se sustituye el `jumpTo` por un **`flyTo`** con `duration: 2500`, `speed: 1.15`, `curve: 1.35` (manteniendo `initialViewOptions.essential: true`): la cámara desciende suavemente del globo hasta la posición final. En modo recuperación (`isRecovery`) se conserva `jumpTo` (debe ser instantáneo).
+
+**Problema posterior (usuario)**: «no da el salto pero no hace zoom, se queda viendo el globo terráqueo».
+
+**Causa**: `animateMarkerAndMap` (el bucle de seguimiento que arranca con `shouldCenterOnUser`/`navigationFollowUser` activos en el arranque) llama `navigationMapInstance.jumpTo(cameraOptions)` **cada tick**. En `openNavigationMap` se inicializa `markerAnimationState.targetMapZoom = getZoom()` **antes** de que el vuelo aterrice → target = 1.5 (el globo) → el bucle anclaba la cámara al globo cada tick y anulaba el `flyTo` a mitad de vuelo (el salto se notaba según el timing del GPS).
+
+**Solución definitiva** (patrón `isFlying` ya usado en la app): antes del `flyTo` → `isFlying = true` (el bucle se suprime; guard `if (... || isFlying)`); tras el vuelo → `once('moveend', () => { isFlying = false; ... })` y **re-sincronización** de `currentMap*`/`targetMap*` con la vista YA aterrizada (cámara real), para que el seguimiento GPS continúe desde el zoom final y no desde el globo.
+
+**Verificación**: serie de brillo del canvas — sin GPS: 38 → 57 → 82 → 180 y **sostenido en 180** durante 11 s (sin oscilación de vuelta al globo); con GPS simulado (Puppeteer `setGeolocation` Madrid): 38 → 82 → 180, luego 134–188 estable (vista de ciudad, nunca vuelve a ~38) y **0 page errors**. Sintaxis de todos los bloques OK. Sin commit (a la espera de petición).
+
+## 85. tesla.html: el descenso inicial aplica el ángulo 3D (pitch del modo de vista) (2026-09-20)
+
+**Problema (usuario)**: «ya está casi, lo único que no aplica el ángulo del mapa si está en 3D se queda plano».
+
+**Diagnóstico**: en el arranque, tras el spin del globo, el código calculaba bien el pitch según el modo (`const mode = mapViewMode; … if (mode === 'perspective' || mode === 'relief') { initialViewOptions.pitch = mapPitchValue; } else { initialViewOptions.pitch = 0; }`) pero **inmediatamente después una línea lo anulaba**: `initialViewOptions.pitch = 0;` → el `flyTo`/`jumpTo` inicial aterrizaba siempre **plano**, y como el bucle de seguimiento (re-sincronizado en la entrada 84) toma la cámara real, nada volvía a inclinar la vista: en modo 3D/relieve el mapa quedaba horizontal para siempre hasta tocar el selector de vistas.
+
+**Solución**: eliminar la línea `initialViewOptions.pitch = 0;` (anulación injustificada). El constructor del mapa parte de `pitch: 0`, así que el **spin del globo sigue saliendo plano** y es el `flyTo` del descenso el que **interpola el pitch 0 → ángulo del modo** (perspective/relief → `mapPitchValue` guardado en `mapView_pitch` o 62 por defecto; modos planos → 0). El handler `moveend` (entrada 84) re-sincroniza `currentMapPitch`/`targetMapPitch` con la cámara aterrizada → el seguimiento conserva el ángulo.
+
+**Verificación**: Puppeteer con geolocalización fija (Madrid), cámara muestreada cada 0,5 s:
+- Modo 3D (`mapViewMode_v1='perspective'` + `mapView_pitch=50`): pitch **0 → 6,3 → 28 → 41,3 → 47,6 → 49,9 → 50** mientras el zoom desciende 1,5 → 15,5; **aterriza en pitch=50 / zoom=15.5 y se mantiene** (sin volver a 0).
+- Modo por defecto (`relief`, sin `mapView_pitch`): pitch **0 → 3 → 27,3 → 48 → 57,6 → 61,5 → 62** con zoom 1,5 → 15,5; **estable en pitch=62**.
+- **0 page errors** en ambos. Restan solo los 403 esperados de consola (sonda preflight y `terrain-rgb` del terreno 3D, sin DEM en raster). Sintaxis de todos los bloques OK. Sin commit (a la espera de petición).
+
+## 86. tesla.html: instrucciones visibles y avanzando en la simulación de ruta (2026-09-20)
+
+**Problema (usuario)**: «en el modo simulación de ruta no se indican las instrucciones».
+
+**Diagnóstico**: dos bloqueos independientes que solo afectan a la simulación **sin** navegación iniciada (el flujo natural: cargar ruta → botón Simular GPS):
+1. El task `ROUTE_PROGRESS` (que llama a `processRouteProgress` → `updateTurnByTurnDisplay`) tiene el guard `if (isNavigating) …` → con `isNavigating === false` **nunca corría**, así que el panel de maniobras no avanzaba con el coche simulado (solo se pintaba la primera instrucción al calcular la ruta).
+2. `updateNavigationProgressDisplay` solo mostraba `#navigation-top-info-bar` (donde viven `#maneuver-text-display` y `#street-name-display`) cuando `isNavigating` → en simulación el panel de instrucciones quedaba **oculto** (`display: none`).
+
+**Solución**:
+- En `processSimulatedGpsPosition` (compartido por simulación automática y por clic), cuando **no** se navega (`!isNavigating`) y hay ruta cargada, se actualizan `updateTurnByTurnDisplay(route, simulatedDistanceAlongRoute)` y `updateNavigationProgressDisplay(...)` con la distancia simulada — con throttle de 500 ms (nueva variable `lastSimulatedRouteProgressUpdate`) porque el tick de simulación es de 80 ms y no se debe repintar el DOM a esa frecuencia. En navegación iniciada + simulación el task ROUTE_PROGRESS sigue siendo el único responsable (sin path duplicado).
+- `updateNavigationProgressDisplay`: la condición de visibilidad pasa de `if (isNavigating)` a `if (isNavigating || isSimulatingGpsLocation)` para que el panel de instrucciones y el bloque de distancia se muestren durante la simulación.
+
+**Verificación**: sintaxis de todos los bloques inline OK (11/11 cross-checks). Puppeteer con ruta fabricada (2 tramos, 5 pasos) y simulación activada SIN `isNavigating`:
+- 0 m → panel visible (`flex`): «Gira a la derecha» / «Calle de Alcala» / «100 m».
+- 700 m → «**Continúa recto**» / «Calle de Atocha» / «300 m» (la instrucción avanza con el coche simulado).
+- 1500 m → «**Has llegado a tu destino**» / «Destino» / «490 m».
+- **0 page errors**. Sin commit (a la espera de petición).

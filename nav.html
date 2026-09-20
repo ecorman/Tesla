@@ -6,16 +6,8 @@
 <title>NAV — Navegación</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
 <script src="PNG/zbuildgs.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-  import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-  try{
-    const fbApp=initializeApp(window.APP_CONFIG.firebase);
-    window.db=getFirestore(fbApp);
-    window.qCollection=collection;window.qQuery=query;window.qOrderBy=orderBy;window.qLimit=limit;window.qGetDocs=getDocs;
-    window.fDoc=doc;window.fSetDoc=setDoc;window.fDeleteDoc=deleteDoc;
-  }catch(e){console.warn('Firebase no disponible:',e);window.db=null;}
-</script>
+<!-- Modo privado: NAV no inicializa Firebase ni registra actividad de usuarios. -->
+<script>window.db=null;</script>
 <script src='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.js'></script>
 <link href='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.css' rel='stylesheet' />
 <style>
