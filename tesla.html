@@ -1192,6 +1192,19 @@ body.recovering-map-session #auto-start-nav-modal {
     <div id="intersection-preview-map-container"></div>
 </div>
 
+<div id="streetview-window" class="hidden">
+    <div id="streetview-header" title="Arrastra para mover la ventana">
+        <span id="streetview-title">Vista real</span>
+        <span id="streetview-subtitle"></span>
+        <button id="streetview-close" type="button" title="Cerrar vista real">✕</button>
+    </div>
+    <iframe id="streetview-frame" title="Vista real de la calle (Google Street View)" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    <div id="streetview-footer">
+        <span id="streetview-note">Street View</span>
+        <a id="streetview-open-link" href="#" target="_blank" rel="noopener">Abrir en Google Maps ↗</a>
+    </div>
+</div>
+
 <div id="alert-modal-overlay" class="hidden">
     <div id="alert-modal-content">
       </div>
@@ -1466,6 +1479,11 @@ body.recovering-map-session #auto-start-nav-modal {
     const MAP_VIEW_OFFSET_X_KEY = 'mapView_offsetX';
     const MAP_VIEW_OFFSET_Y_KEY = 'mapView_offsetY';
     const MAP_VIEW_SHOW_MINIMAP_KEY = 'mapView_showMinimap';
+    // Ventana de vista real (Google Street View) del próximo cruce/rotonda.
+    // ACTIVADA por defecto; se puede desactivar desde el menú de vista del mapa.
+    const STREETVIEW_ENABLED_KEY = 'boardinggate_streetview_ventana';
+    const STREETVIEW_POS_KEY = 'boardinggate_streetview_posicion';
+    let streetViewPreference = true;
     let mapOffsetX = 0;
     let mapOffsetY = 12;
     let showMinimapPreference = true;
@@ -4397,6 +4415,11 @@ class CustomMapControlsGroup {
                 
             </div>
             <div class="offset-popup-separator"></div>
+            <div id="streetview-toggle-container">
+                <input type="checkbox" id="streetview-toggle-checkbox">
+                <label for="streetview-toggle-checkbox">Vista<br>real</label>
+            </div>
+            <div class="offset-popup-separator"></div>
             <div class="pitch-controls-container">
                 <button id="pitch-arrow-up" class="offset-arrow" title="Aumentar inclinación (pitch)">
                     <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -4464,6 +4487,18 @@ class CustomMapControlsGroup {
             saveSettings();
             showToast(`Minimapa de maniobras ${showMinimapPreference ? 'ACTIVADO' : 'DESACTIVADO'}`, 'info');
         });
+
+        const streetViewCheckbox = this._offsetPopup.querySelector('#streetview-toggle-checkbox');
+        if (streetViewCheckbox) {
+            streetViewCheckbox.checked = streetViewPreference;
+            streetViewCheckbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                streetViewPreference = e.target.checked;
+                saveSettings();
+                if (!streetViewPreference) hideStreetView();
+                showToast(`Vista real (Street View) ${streetViewPreference ? 'ACTIVADA' : 'DESACTIVADA'}`, 'info');
+            });
+        }
 
         this._map.on('pitch', () => this.updatePitchDisplay());
 
@@ -7749,6 +7784,7 @@ function saveSettings() {
     localStorage.setItem(MAP_VIEW_OFFSET_X_KEY, mapOffsetX);
     localStorage.setItem(MAP_VIEW_OFFSET_Y_KEY, mapOffsetY);
     localStorage.setItem(MAP_VIEW_SHOW_MINIMAP_KEY, showMinimapPreference);
+    localStorage.setItem(STREETVIEW_ENABLED_KEY, JSON.stringify(streetViewPreference));
 
     if (!isPitchManuallyOverridden) {
         localStorage.setItem(MAP_VIEW_PITCH_KEY, mapPitchValue);
@@ -8184,6 +8220,9 @@ function loadSavedSettings() {
     mapOffsetY = parseInt(localStorage.getItem(MAP_VIEW_OFFSET_Y_KEY)) || 15;
     const savedMinimapPref = localStorage.getItem(MAP_VIEW_SHOW_MINIMAP_KEY);
     showMinimapPreference = savedMinimapPref === null ? false : JSON.parse(savedMinimapPref);
+    const savedStreetViewPref = localStorage.getItem(STREETVIEW_ENABLED_KEY);
+    streetViewPreference = savedStreetViewPref === null ? true : JSON.parse(savedStreetViewPref);
+    initStreetViewWindow();
     mapPitchValue = parseInt(localStorage.getItem(MAP_VIEW_PITCH_KEY)) || 62;
     mapTerrainExaggeration = parseFloat(localStorage.getItem(MAP_TERRAIN_EXAGGERATION_KEY)) || 0.5; 
 
@@ -9253,6 +9292,128 @@ function hideIntersectionPreviewMap() {
     }
 }
     
+// ===================================================================
+// NOMBRE: Ventana de vista real (Google Street View)
+// Muestra, mientras se aproxima el cruce/rotonda que hay que tomar, una ventana
+// con la vista REAL de la calle orientada hacia la dirección de avance.
+// No necesita API key: usa el embed clásico de Google (`output=svembed`), que
+// internamente redirige al embed oficial conservando el punto y el rumbo; el
+// iframe sí es obligatorio (Google responde «must be used in an iframe» fuera
+// de él). Si algún día hay clave de Google en APP_CONFIG.keys.google, se usa la
+// Street View Embed API oficial.
+// ===================================================================
+let streetViewLastRequestKey = null;
+let streetViewDragOffset = null;
+
+function buildStreetViewUrl(lat, lng, heading) {
+    const h = ((Math.round(Number(heading) || 0) % 360) + 360) % 360;
+    const key = (window.APP_CONFIG && window.APP_CONFIG.keys) ? window.APP_CONFIG.keys.google : null;
+    if (key) {
+        return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&location=${lat},${lng}&heading=${h}&pitch=0&fov=80`;
+    }
+    return `https://www.google.com/maps/embed?origin=mfe&pb=!6m7!1m6!2m2!1d${lat}!2d${lng}!3f${h}!4f0!5f1`;
+}
+
+function buildStreetViewMapsUrl(lat, lng, heading) {
+    const h = ((Math.round(Number(heading) || 0) % 360) + 360) % 360;
+    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}&heading=${h}&pitch=0`;
+}
+
+function hideStreetView() {
+    const windowEl = document.getElementById('streetview-window');
+    if (windowEl) windowEl.classList.add('hidden');
+}
+
+function initStreetViewWindow() {
+    const windowEl = document.getElementById('streetview-window');
+    if (!windowEl || windowEl.dataset.svReady === 'true') return;
+    windowEl.dataset.svReady = 'true';
+
+    try {
+        const savedPos = JSON.parse(localStorage.getItem(STREETVIEW_POS_KEY) || 'null');
+        if (savedPos && Number.isFinite(savedPos.x) && Number.isFinite(savedPos.y)) {
+            windowEl.style.left = `${savedPos.x}px`;
+            windowEl.style.top = `${savedPos.y}px`;
+            windowEl.style.right = 'auto';
+        }
+    } catch (e) {  }
+
+    const closeBtn = document.getElementById('streetview-close');
+    if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); hideStreetView(); });
+
+    const header = document.getElementById('streetview-header');
+    if (header) {
+        header.addEventListener('pointerdown', (e) => {
+            if (e.target.closest && e.target.closest('#streetview-close')) return;
+            const rect = windowEl.getBoundingClientRect();
+            streetViewDragOffset = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+            e.preventDefault();
+        });
+        header.addEventListener('pointermove', (e) => {
+            if (!streetViewDragOffset) return;
+            const maxX = Math.max(0, document.documentElement.clientWidth - 80);
+            const maxY = Math.max(0, document.documentElement.clientHeight - 60);
+            const x = Math.max(-(windowEl.offsetWidth - 90), Math.min(maxX, e.clientX - streetViewDragOffset.dx));
+            const y = Math.max(0, Math.min(maxY, e.clientY - streetViewDragOffset.dy));
+            windowEl.style.left = `${Math.round(x)}px`;
+            windowEl.style.top = `${Math.round(y)}px`;
+            windowEl.style.right = 'auto';
+        });
+        const endDrag = () => {
+            if (!streetViewDragOffset) return;
+            streetViewDragOffset = null;
+            try {
+                localStorage.setItem(STREETVIEW_POS_KEY, JSON.stringify({
+                    x: parseInt(windowEl.style.left, 10) || 0,
+                    y: parseInt(windowEl.style.top, 10) || 0
+                }));
+            } catch (e) {  }
+        };
+        header.addEventListener('pointerup', endDrag);
+        header.addEventListener('pointercancel', endDrag);
+        header.addEventListener('pointerleave', endDrag);
+    }
+}
+
+// ===================================================================
+// NOMBRE: showStreetViewForManeuver
+// Muestra/actualiza la ventana de vista real para la maniobra indicada. El
+// rumbo es el de aproximación (lo que el conductor verá al llegar) y el iframe
+// solo se recarga cuando el punto o el rumbo cambian de verdad.
+// ===================================================================
+function showStreetViewForManeuver(step, route) {
+    const windowEl = document.getElementById('streetview-window');
+    const frame = document.getElementById('streetview-frame');
+    if (!windowEl || !frame) return;
+    if (!streetViewPreference) { hideStreetView(); return; }
+
+    const point = step && step.maneuver ? step.maneuver.location : null;
+    if (!point || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) { hideStreetView(); return; }
+
+    const routeLine = route && route.geometry ? route.geometry.coordinates : null;
+    let heading = null;
+    if (Array.isArray(routeLine) && routeLine.length >= 3) heading = bearingAlongLine(routeLine, point, -25);
+    if (heading == null && step.maneuver && Number.isFinite(step.maneuver.bearing_before)) heading = step.maneuver.bearing_before;
+    if (heading == null) heading = 0;
+
+    const lat = Number(point[1]).toFixed(6);
+    const lng = Number(point[0]).toFixed(6);
+
+    initStreetViewWindow();
+    windowEl.classList.remove('hidden');
+
+    const subtitle = document.getElementById('streetview-subtitle');
+    const label = getManeuverInstructionText(step.maneuver) || 'Próxima maniobra';
+    if (subtitle && subtitle.textContent !== label) subtitle.textContent = label;
+
+    const requestKey = `${lat},${lng},${Math.round(heading)}`;
+    if (requestKey === streetViewLastRequestKey) return;
+    streetViewLastRequestKey = requestKey;
+    frame.src = buildStreetViewUrl(lat, lng, heading);
+    const link = document.getElementById('streetview-open-link');
+    if (link) link.href = buildStreetViewMapsUrl(lat, lng, heading);
+}
+
 // ===================================================================
 // NOMBRE: showAllReminders 
 function showAllReminders(options = {}) {
@@ -11679,6 +11840,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
         if (intersectionPreviewWindow && !intersectionPreviewWindow.classList.contains('hidden') && intersectionPreviewWindow.dataset.source !== 'click') hideIntersectionPreviewMap();
         if (maneuverCounterEl) maneuverCounterEl.style.display = 'none';
         nextManeuverStepForPreview = null;
+        hideStreetView();
         return;
     }  
     
@@ -11971,7 +12133,14 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             progressBarFillEl.style.width = newWidthPercent;
         }
         const isRelevantIntersectionManeuver = type !== 'continue' && type !== 'new name' && type !== 'depart' && type !== 'straight';
-        if (isNavigating && distanceToNextManeuver < 800 && distanceToNextManeuver >= 100 && isRelevantIntersectionManeuver && (!intersectionPreviewWindow || intersectionPreviewWindow.classList.contains('hidden') || intersectionPreviewWindow.dataset.source !== 'click') && (currentLegIndex + '_' + currentStepIndex) !== lastAutoShownManeuverId) {
+        const isInManeuverApproachWindow = isNavigating && distanceToNextManeuver < 800 && distanceToNextManeuver >= 100 && isRelevantIntersectionManeuver;
+        // Ventana de vista real (Street View) del cruce/rotonda que hay que tomar.
+        if (isInManeuverApproachWindow && streetViewPreference) {
+            showStreetViewForManeuver(nextStepToDisplay, route);
+        } else if (!isInManeuverApproachWindow && (distanceToNextManeuver >= 800 || !isNavigating || !isRelevantIntersectionManeuver)) {
+            hideStreetView();
+        }
+        if (isInManeuverApproachWindow && (!intersectionPreviewWindow || intersectionPreviewWindow.classList.contains('hidden') || intersectionPreviewWindow.dataset.source !== 'click') && (currentLegIndex + '_' + currentStepIndex) !== lastAutoShownManeuverId) {
             showIntersectionPreviewMap(nextStepToDisplay, route, false, 10000);
             lastAutoShownManeuverId = currentLegIndex + '_' + currentStepIndex;
         } else if (intersectionPreviewWindow && !intersectionPreviewWindow.classList.contains('hidden') && intersectionPreviewWindow.dataset.source !== 'click' && (distanceToNextManeuver >= 800 || distanceToNextManeuver < 100 || !isRelevantIntersectionManeuver)) {
@@ -11999,6 +12168,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
         }
         distanceToNextManeuverOSRM = Infinity;
         nextManeuverStepForPreview = null;
+        hideStreetView();
         if (miniNavCard) miniNavCard.style.display = 'none';
         if (minimapContainer) minimapContainer.classList.add('hidden');
         if (showMinimapButton) showMinimapButton.classList.add('hidden');
@@ -19612,36 +19782,77 @@ function hideNavigationUI() {
         return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
     }
 
-    function roundaboutClockForSteps(steps, index) {
+    // Rumbo (0-360) con el que se llega o se sale de `pt` sobre la polilínea
+    // `line`, medido a lo largo de `meters` de recorrido real (negativo = hacia
+    // atrás). Medir solo el último/penúltimo punto es engañoso: en los anillos de
+    // rotonda esos tramos son tangenciales (o casi nulos) y desviaban el ángulo
+    // hasta 90°, diciendo por ejemplo «a las 9» en una salida recta (12).
+    function bearingAlongLine(line, pt, meters) {
+        if (!Array.isArray(line) || line.length < 2 || !pt) return null;
+        let nearest = 0, best = Infinity;
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            const d = (c[0] - pt[0]) * (c[0] - pt[0]) + (c[1] - pt[1]) * (c[1] - pt[1]);
+            if (d < best) { best = d; nearest = i; }
+        }
+        const step = meters < 0 ? -1 : 1;
+        let acc = 0, j = nearest;
+        while (acc < Math.abs(meters) && (j + step) >= 0 && (j + step) < line.length) {
+            const a = line[j], b = line[j + step];
+            const dy = b[1] - a[1];
+            const dx = (b[0] - a[0]) * Math.cos(((a[1] + b[1]) / 2) * Math.PI / 180);
+            acc += Math.sqrt(dx * dx + dy * dy) * 111320;
+            j += step;
+        }
+        if (j === nearest) return null;
+        return step > 0 ? navigationBearing(line[nearest], line[j]) : navigationBearing(line[j], line[nearest]);
+    }
+
+    function roundaboutClockForSteps(steps, index, routeLine) {
         const step = steps[index];
         const maneuver = step?.maneuver;
-        const isRingType = (t) => t === 'roundabout' || t === 'rotary';
+        const isRingType = (t) => t === 'roundabout' || t === 'rotary' || t === 'roundabout turn';
 
         // MEDIR SOBRE LA GEOMETRÍA REAL de las vías (el "ángulo real" que ve el
         // conductor):
-        //  - Entrada: último segmento de la vía de aproximación (el paso anterior
-        //    termina justo en la entrada de la rotonda).
-        //  - Salida: primer segmento de la vía que tomamos al salir (siguiente paso,
-        //    incluidos los 'exit roundabout'/'exit rotary', que ya van por la calle
-        //    de salida). Se excluye solo el anillo (roundabout/rotary).
+        //  - Entrada: rumbo de la vía de aproximación 30 m antes de la entrada del
+        //    anillo. Se mide por distancia recorrida y no con el último segmento
+        //    del paso anterior, que en mini-rotondas es casi nulo o tangencial.
+        //  - Salida: rumbo de la vía que tomamos 30 m después del punto donde
+        //    termina el anillo.
+        const ringCoords = step?.geometry?.coordinates;
+        const entryPt = maneuver?.location || (ringCoords && ringCoords[0]) || null;
+        const exitPt = ringCoords && ringCoords.length ? ringCoords[ringCoords.length - 1] : null;
+
+        let incoming = null;
+        let outgoing = null;
+
+        // 1) Polilínea completa de la ruta: lo que ve el conductor de verdad.
+        if (routeLine && routeLine.length >= 3) {
+            if (entryPt) incoming = bearingAlongLine(routeLine, entryPt, -30);
+            if (exitPt) outgoing = bearingAlongLine(routeLine, exitPt, 30);
+        }
+
+        // 2) Geometría de los pasos contiguos, medida también por distancia.
         const previous = [...steps.slice(0, index)].reverse().find(s =>
             s?.geometry?.coordinates?.length >= 2 && !isRingType(String(s.maneuver?.type || '')));
         const next = steps.slice(index + 1).find(s =>
             s?.geometry?.coordinates?.length >= 2 && !isRingType(String(s.maneuver?.type || '')));
-
-        let incoming = null;
-        let outgoing = null;
-        if (previous) {
+        if (incoming == null && previous) {
             const coords = previous.geometry.coordinates;
-            incoming = navigationBearing(coords[coords.length - 2], coords[coords.length - 1]);
+            incoming = bearingAlongLine(coords, coords[coords.length - 1], -25) ||
+                navigationBearing(coords[coords.length - 2], coords[coords.length - 1]);
         }
-        if (next) {
+        if (outgoing == null && next) {
             const coords = next.geometry.coordinates;
-            outgoing = navigationBearing(coords[0], coords[1]);
+            outgoing = bearingAlongLine(coords, coords[0], 25) ||
+                navigationBearing(coords[0], coords[1]);
         }
 
-        // Fallback 1: bearings reales de OSRM (bearing_before = aproximación,
-        // bearing_after = salida) cuando la geometría no ofrece tramos claros.
+        // Fallback 1: bearings del proveedor cuando la geometría no ofrece tramos
+        // claros. Ojo: en el paso del anillo, bearing_before es el rumbo de
+        // aproximación pero bearing_after es la tangente del anillo al entrar (NO
+        // la salida), así que solo sirve como último recurso.
         if (incoming == null && Number.isFinite(maneuver?.bearing_before)) incoming = maneuver.bearing_before;
         if (outgoing == null && Number.isFinite(maneuver?.bearing_after)) outgoing = maneuver.bearing_after;
 
@@ -19654,9 +19865,12 @@ function hideNavigationUI() {
             if (outgoing == null && nextManeuver) outgoing = navigationBearing(location, nextManeuver.maneuver.location);
         }
         if (incoming == null || outgoing == null) return null;
-        const relative = (outgoing - incoming + 360) % 360;
-        const clock = Math.round(relative / 30) || 12;
-        return Math.max(1, Math.min(12, clock));
+        // Ángulo relativo CON SIGNO: positivo = a la derecha, negativo = a la
+        // izquierda. 12 = seguir recto, 3 = derecha, 6 = marcha atrás, 9 = izquierda.
+        const relative = ((outgoing - incoming + 540) % 360) - 180;
+        let clock = Math.round(relative / 30);
+        if (clock < 0) clock += 12;
+        return clock || 12;
     }
 
     function isRoundaboutInstructionType(type) {
@@ -19666,15 +19880,34 @@ function hideNavigationUI() {
     function enrichRouteInstructions(route) {
         if (!route?.legs) return;
         const allSteps = route.legs.flatMap(leg => leg.steps || []);
-        allSteps.forEach((step, index) => {
-            if (!step?.maneuver) return;
+
+        // 1) Canonicalizar PRIMERO todos los tipos con espacio (OSRM/Mapbox los
+        //    escriben «roundabout turn», «exit roundabout», «exit rotary»). Si se
+        //    hace dentro del bucle, un «roundabout turn» posterior todavía sin
+        //    normalizar se confunde con la calle de salida y el ángulo se desvía.
+        for (const step of allSteps) {
+            if (!step?.maneuver) continue;
             const type = String(step.maneuver.type || '');
             if (type === 'roundabout turn') step.maneuver.type = 'roundabout';
-            if (type === 'exit roundabout') step.maneuver.type = 'exit-roundabout';
-            if (type === 'exit rotary') step.maneuver.type = 'exit-rotary';
+            else if (type === 'exit roundabout') step.maneuver.type = 'exit-roundabout';
+            else if (type === 'exit rotary') step.maneuver.type = 'exit-rotary';
+        }
+
+        // 2) Polilínea completa de la ruta (incluye los tramos del anillo), que es
+        //    la referencia con la que se mide el ángulo real de cada salida.
+        const rawGeom = route.geometry || (route.legs.length === 1 ? route.legs[0].geometry : null);
+        let routeLine = null;
+        if (rawGeom && Array.isArray(rawGeom.coordinates) && rawGeom.coordinates.length >= 2) {
+            routeLine = Array.isArray(rawGeom.coordinates[0][0])
+                ? rawGeom.coordinates.flat()
+                : rawGeom.coordinates;
+        }
+
+        allSteps.forEach((step, index) => {
+            if (!step?.maneuver) return;
             step.roadLabel = roadLabelForStep(step);
             if (isRoundaboutInstructionType(step.maneuver.type)) {
-                step.maneuver.bearingDeg = roundaboutClockForSteps(allSteps, index);
+                step.maneuver.bearingDeg = roundaboutClockForSteps(allSteps, index, routeLine);
                 step.maneuver.roadLabel = step.roadLabel;
             }
         });
