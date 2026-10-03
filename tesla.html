@@ -878,7 +878,6 @@ body.recovering-map-session #auto-start-nav-modal {
                 </button>
                 
                 <span id="maneuver-counter-display"></span>
-                <button id="streetview-nav-toggle" class="build-badge sv-nav-toggle" type="button" title="Activar o desactivar la ventana de vista real (Street View)">Vista real</button>
                 <span id="build-badge" class="build-badge" title="Compilación en uso"></span>
                 
                 <div style="flex-grow: 1; margin-left: 5px; display: flex; flex-direction: column;">
@@ -1217,7 +1216,10 @@ body.recovering-map-session #auto-start-nav-modal {
         <span id="streetview-subtitle"></span>
         <button id="streetview-close" type="button" title="Cerrar vista real">✕</button>
     </div>
-    <iframe id="streetview-frame" title="Vista real de la calle (Google Street View)" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    <div id="streetview-frame-wrap">
+        <iframe id="streetview-frame" title="Vista real de la calle (Google Street View)" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        <div id="streetview-loading">Cargando vista real…</div>
+    </div>
     <div id="streetview-footer">
         <span id="streetview-note">Street View</span>
         <a id="streetview-open-link" href="#" target="_blank" rel="noopener">Abrir en Google Maps ↗</a>
@@ -3553,8 +3555,28 @@ class MapSettingsPanel {
                 <input type="checkbox" id="route-minimap-toggle-checkbox">
                 <span>Ver Minimapa de Ruta</span>
             </label>
+            <label class="layer-visibility-toggle">
+                <input type="checkbox" id="streetview-toggle-checkbox">
+                <span>Vista real (Street View)</span>
+            </label>
         `;
         
+        // La casilla de vista real vive junto a la del minimapa de ruta, dentro de
+        // este mismo control. Antes estaba en otro popup y su listener ya no la
+        // alcanzaba, así que el interruptor no respondía.
+        const svCheckbox = routeMinimapControl.querySelector('#streetview-toggle-checkbox');
+        if (svCheckbox) {
+            svCheckbox.checked = streetViewPreference;
+            svCheckbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                streetViewPreference = e.target.checked;
+                saveSettings();
+                if (typeof renderStreetViewToggle === 'function') renderStreetViewToggle();
+                if (!streetViewPreference && typeof hideStreetView === 'function') hideStreetView();
+                showToast(`Vista real (Street View) ${streetViewPreference ? 'ACTIVADA' : 'DESACTIVADA'}`, 'info');
+            });
+        }
+
         const routeMinimapCheckbox = routeMinimapControl.querySelector('#route-minimap-toggle-checkbox');
         routeMinimapCheckbox.checked = showRouteMinimapPreference;
         routeMinimapCheckbox.addEventListener('change', (e) => {
@@ -4435,11 +4457,6 @@ class CustomMapControlsGroup {
                 
             </div>
             <div class="offset-popup-separator"></div>
-            <div id="streetview-toggle-container">
-                <input type="checkbox" id="streetview-toggle-checkbox">
-                <label for="streetview-toggle-checkbox">Vista<br>real</label>
-            </div>
-            <div class="offset-popup-separator"></div>
             <div class="pitch-controls-container">
                 <button id="pitch-arrow-up" class="offset-arrow" title="Aumentar inclinación (pitch)">
                     <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -4510,7 +4527,6 @@ class CustomMapControlsGroup {
 
         const streetViewCheckbox = this._offsetPopup.querySelector('#streetview-toggle-checkbox');
         if (streetViewCheckbox) {
-            streetViewCheckbox.checked = streetViewPreference;
             streetViewCheckbox.addEventListener('change', (e) => {
                 e.stopPropagation();
                 streetViewPreference = e.target.checked;
@@ -9380,6 +9396,18 @@ function initStreetViewWindow() {
     const closeBtn = document.getElementById('streetview-close');
     if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); hideStreetView(); });
 
+    const frame = document.getElementById('streetview-frame');
+    if (frame) {
+        frame.addEventListener('load', () => {
+            frame.dataset.svLoaded = 'true';
+            clearTimeout(streetViewStallTimer);
+            setStreetViewLoading('listo');
+        });
+        frame.addEventListener('error', () => {
+            frame.dataset.svLoaded = '';
+        });
+    }
+
     const header = document.getElementById('streetview-header');
     if (header) {
         header.addEventListener('pointerdown', (e) => {
@@ -9483,9 +9511,41 @@ function showStreetViewForManeuver(step, route) {
     const requestKey = `${lat},${lng},${Math.round(heading)}`;
     if (requestKey === streetViewLastRequestKey) return;
     streetViewLastRequestKey = requestKey;
-    frame.src = buildStreetViewUrl(lat, lng, heading);
+    loadStreetViewFrame(frame, buildStreetViewUrl(lat, lng, heading));
     const link = document.getElementById('streetview-open-link');
     if (link) link.href = buildStreetViewMapsUrl(lat, lng, heading);
+}
+
+// Carga el panorama mostrando un aviso mientras descarga. Si al cabo de unos
+// segundos el iframe no ha pintado nada, se reintenta una vez: en el navegador
+// del coche la primera petición a Google a veces se queda en blanco y la
+// segunda entra bien.
+let streetViewRetryTimer = null;
+let streetViewStallTimer = null;
+
+function setStreetViewLoading(estado) {
+    const box = document.getElementById('streetview-loading');
+    if (!box) return;
+    box.classList.toggle('hidden', estado !== 'cargando');
+    box.classList.toggle('stalled', estado === 'atascado');
+    if (estado === 'atascado') box.textContent = 'No carga la vista real. Reintentando…';
+    else if (estado === 'cargando') box.textContent = 'Cargando vista real…';
+}
+
+function loadStreetViewFrame(frame, url) {
+    if (!frame) return;
+    clearTimeout(streetViewRetryTimer);
+    clearTimeout(streetViewStallTimer);
+    setStreetViewLoading('cargando');
+    frame.src = url;
+    streetViewStallTimer = setTimeout(() => {
+        if (frame.dataset.svLoaded === 'true') return;
+        setStreetViewLoading('atascado');
+        streetViewRetryTimer = setTimeout(() => {
+            frame.dataset.svLoaded = '';
+            frame.src = url;
+        }, 1200);
+    }, 6000);
 }
 
 // ===================================================================
@@ -12217,7 +12277,7 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             // La ventana no aparece porque la preferencia está desactivada: se avisa
             // una sola vez por sesión, porque si no parece que la función esté rota.
             streetViewDisabledNoticeShown = true;
-            showToast('Vista real desactivada. Actívala en el botón de ajustes del mapa (icono "Vista real")', 'info', 6000);
+            showToast('Vista real desactivada. Actívala en los ajustes del mapa, junto a "Ver Minimapa de Ruta"', 'info', 6000);
         } else if (!isInManeuverApproachWindow && (distanceToNextManeuver >= 800 || !isNavigating || !isRelevantIntersectionManeuver)) {
             hideStreetView();
         }
@@ -21111,35 +21171,16 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
         if (badge) badge.textContent = build || 'build local';
     }
 
-    // Botón de vista real en la barra de navegación. Antes solo había una
-    // casilla dentro del menú del mapa, muy escondida, y no había forma de
-    // saber desde la propia pantalla de navegación si estaba activa.
+    // La vista real se activa y desactiva desde el menú de ajustes del mapa,
+    // junto a "Ver Minimapa de Ruta". Antes había además un botón en la barra
+    // de navegación, que el usuario pidió quitar porque mezclaba el control con
+    // la información de ruta. Esta función mantiene las casillas sincronizadas.
     function renderStreetViewToggle() {
-        const btn = document.getElementById('streetview-nav-toggle');
-        if (!btn) return;
-        btn.textContent = streetViewPreference ? 'Vista real ●' : 'Vista real ○';
-        btn.classList.toggle('sv-on', !!streetViewPreference);
-        btn.setAttribute('aria-pressed', streetViewPreference ? 'true' : 'false');
-        btn.title = streetViewPreference
-            ? 'Vista real activada. Pulsa para ocultarla.'
-            : 'Vista real desactivada. Pulsa para mostrarla en cada maniobra.';
-    }
-    function toggleStreetViewFromNav() {
-        streetViewPreference = !streetViewPreference;
-        try { localStorage.setItem(STREETVIEW_ENABLED_KEY, JSON.stringify(streetViewPreference)); } catch (e) {  }
-        const box = document.getElementById('streetview-toggle-checkbox');
-        if (box) box.checked = streetViewPreference;
-        renderStreetViewToggle();
-        if (!streetViewPreference) {
-            hideStreetView();
-            showToast('Vista real desactivada', 'info', 2500);
-        } else {
-            showToast('Vista real activada: se mostrará en cada maniobra', 'success', 2500);
-        }
+        document.querySelectorAll('#streetview-toggle-checkbox').forEach(box => {
+            if (box.checked !== !!streetViewPreference) box.checked = !!streetViewPreference;
+        });
     }
     document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('streetview-nav-toggle');
-        if (btn) btn.addEventListener('click', toggleStreetViewFromNav);
         renderStreetViewToggle();
     });
     renderBuildInfo();

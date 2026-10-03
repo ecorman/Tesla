@@ -36,16 +36,6 @@ body.dark-mode footer {background-color: #92927E;}
     max-width: 100%; position: relative;}
 .footer-subtext {
     font-size: 0.75rem; color: #5C5C47; margin-top: 0.25rem; text-align: center;}
-/* Botón de vista real en la barra de navegación: siempre a mano durante la
-   marcha, con el estado visible en el propio botón. */
-.sv-nav-toggle {
-    border: 1px solid #9A9A82; background: #E4E5DA; color: #5C5C47;
-    border-radius: 999px; padding: 1px 8px; font-size: 0.62rem; cursor: pointer;
-    align-self: center; white-space: nowrap; line-height: 1.5;}
-.sv-nav-toggle.sv-on { background: #2f6b3d; color: #fff; border-color: #2f6b3d; font-weight: 700;}
-.sv-nav-toggle:active { transform: scale(0.96);}
-body.dark-mode .sv-nav-toggle { background: #4a4a3a; color: #ddd; border-color: #5a5a46;}
-
 /* Chapa de compilación en la barra de navegación: discreta, pero permite
    confirmar con un vistazo que el coche está con el último build. */
 .build-badge {
@@ -4592,9 +4582,19 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     background-color: rgba(255, 255, 255, 0.18); color: #FFFFFF;
     font-size: 15px; line-height: 1; cursor: pointer;}
 #streetview-close:hover { background-color: rgba(220, 53, 69, 0.85); }
+#streetview-frame-wrap { position: relative; width: 100%; height: 230px; background-color: #1b1b1b; }
 #streetview-frame {
     width: 100%; height: 230px; border: 0;
     display: block; background-color: #1b1b1b;}
+/* Aviso mientras el panorama descarga. El navegador del coche va lento con las
+   conexiones de datos y a veces el iframe se queda en blanco sin explicar por
+   qué; al menos queda claro que está cargando y no colgado. */
+#streetview-loading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background-color: #1b1b1b; color: #cfcfcf; font-size: 0.9rem; letter-spacing: 0.3px;
+    pointer-events: none;}
+#streetview-loading.hidden { display: none; }
+#streetview-loading.stalled { background-color: #2a1b1b; color: #ffb4a2;}
 #streetview-footer {
     display: flex; align-items: center; justify-content: space-between;
     padding: 3px 8px;}
@@ -4611,6 +4611,7 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     cursor: pointer; text-align: center; line-height: 1.05;}
 body.mobile-view #streetview-window { width: 78vw; }
 body.mobile-view #streetview-frame { height: 34vh; }
+body.mobile-view #streetview-frame-wrap { height: 34vh; }
 /* === FIN: ventana de vista real (Google Street View) === */
 
 #utils-button { left: 1012px !important; max-width: 30px !important; max-height: 30px !important; }
