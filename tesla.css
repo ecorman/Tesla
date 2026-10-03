@@ -36,6 +36,12 @@ body.dark-mode footer {background-color: #92927E;}
     max-width: 100%; position: relative;}
 .footer-subtext {
     font-size: 0.75rem; color: #5C5C47; margin-top: 0.25rem; text-align: center;}
+.footer-buildinfo {
+    font-size: 0.7rem; color: #5C5C47; margin-top: 0.35rem; text-align: center;
+    opacity: 0.85; line-height: 1.4; word-break: break-word;}
+.footer-buildinfo .bi-ok    { font-weight: bold; }
+.footer-buildinfo .bi-warn  { font-weight: bold; }
+body.dark-mode .footer-buildinfo { color: #3C3C2C; }
 .footer-link-green {color: #5C5C47; text-decoration: none;
     transition: color 0.2s ease;}
 .footer-link-green:hover {   color: #5C5C47;}

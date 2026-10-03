@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Tesla-MCU%20Optimized-E82127?style=for-the-badge&logo=tesla&logoColor=white" alt="Tesla MCU Ready" />
-  <img src="https://img.shields.io/badge/Mapbox_GL_JS-v3.26-000000?style=for-the-badge&logo=mapbox&logoColor=white" alt="Mapbox GL JS" />
+  <img src="https://img.shields.io/badge/Mapbox_GL_JS-v3.32-000000?style=for-the-badge&logo=mapbox&logoColor=white" alt="Mapbox GL JS" />
   <img src="https://img.shields.io/badge/3D_Terrain-DEM%20Relief-4CAF50?style=for-the-badge" alt="3D Terrain Relief" />
   <img src="https://img.shields.io/badge/Firebase-Realtime%20Sync-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
   <img src="https://img.shields.io/badge/Google_Gemini-AI%20Copilot-8E75B2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI" />
@@ -22,6 +22,34 @@
   <a href="#-optimizaciones-para-el-navegador-tesla">Optimizaciones MCU</a> •
   <a href="#-despliegue-y-configuración">Instalación</a>
 </p>
+
+---
+
+## ⚠️ URLs: cuál es la buena y cuál no
+
+Existen **dos repositorios distintos** que publican una página llamada `Tesla/tesla.html`. No son el mismo proyecto y **no tienen las mismas funciones**:
+
+| URL | Repositorio | Street View | Mapa | Nube |
+|-----|-------------|-------------|------|------|
+| ✅ **`https://ecorman.github.io/Tesla/tesla.html`** | `ecorman/Tesla` (**este repo**) | ✅ Sí | Solo necesita un nombre de usuario | ❌ Desactivada (copia solo local) |
+| ❌ `https://boardinggate.github.io/Tesla/tesla.html` | `BoardingGate/Tesla` (proyecto independiente, **no es un fork**) | ❌ No existe | Exige además `Permitir MDs` + `Backup automático` | ✅ Firebase activo |
+
+**Usa siempre la primera.** La segunda no tiene ventana de Street View, usa rutas absolutas a su propio dominio y llega a tens de miles de líneas de diferencia con este repositorio (el proyecto ha divergido en ambos sentidos).
+
+> Nota: las dos versiones usan ya Mapbox GL JS **v3.32.0**. Aquí se actualizó manualmente el 2026-10-03; antes se quedó en v3.26.0.
+
+Como ayuda, la propia web muestra en su pie **el origen desde el que se ha cargado** y avisa en rojo si detecta que no es la versión correcta (ver `.footer-buildinfo` en [tesla.css](tesla.css)).
+
+---
+
+## 🔒 Privacidad
+
+Este repositorio es una versión **desprovista de servicios de terceros**:
+
+* **Sin sincronización en la nube.** No hay Firebase operativo: `PNG/zbuildgs.js` se genera con `firebase:{}` vacío. Todo se guarda en `localStorage` del propio navegador del coche.
+* **Botón "Guardar mis datos (solo en este dispositivo)"** en Configuración: copia local pura, sin ninguna petición saliente.
+* **Entradas y salidas de red limitadas** a lo imprescindible para la navegación (Mapbox, OSRM y el panorama de Street View bajo demanda).
+* La aplicación **arranca directamente en el navegador/mapa**: no hay pantalla intermedia de enlaces (esa página, [enlaces.html](enlaces.html), existe como enlace independiente dentro del lanzador, pero no se usa como portada).
 
 ---
 
@@ -123,7 +151,7 @@ El navegador integrado de Tesla presenta limitaciones de memoria y cambios de re
 ## 🛠️ Tecnologías Utilizadas
 
 * **Frontend:** HTML5, CSS3 Avanzado, JavaScript Moderno (Vanilla JS ES6+).
-* **Motor Cartográfico:** [Mapbox GL JS v3.26.0](https://www.mapbox.com/).
+* **Motor Cartográfico:** [Mapbox GL JS v3.32.0](https://www.mapbox.com/).
 * **Cálculo Geoespacial:** [Turf.js v6.5.0](https://turfjs.org/).
 * **Gráficas & Telemetría:** [Chart.js v3.9.1](https://www.chartjs.org/).
 * **Base de Datos & Backend:** [Firebase Firestore v11.9.1](https://firebase.google.com/).

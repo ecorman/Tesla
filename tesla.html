@@ -65,8 +65,8 @@
     
 <!-- REVISAR CADA 30 DIAS API DE MAPBOX -->
     
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.26.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.32.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.32.0/mapbox-gl.js'></script>
     
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>    <script>   function initMap() {} </script>
@@ -784,6 +784,7 @@ body.recovering-map-session #auto-start-nav-modal {
           <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
         </div>
 
+        <p id="build-info" class="footer-buildinfo"></p>
         <p class="footer-subtext">La inteligencia tiene ciertos limites. La locura, casi ninguno 🫶 🤟</p>
     </div>
 </footer>
@@ -9376,6 +9377,41 @@ function initStreetViewWindow() {
 }
 
 // ===================================================================
+// Calcula hacia dónde debe mirar la vista real para que se vea la maniobra
+// tal y como se ejecutará: mirando hacia la vía por la que se sale, no de
+// canto a la carretera. El sesgo final (STREETVIEW_EXIT_OFFSET) abre un poco
+// el ángulo para que la bifurcación quede de frente y no exactamente de perfil.
+// ===================================================================
+const STREETVIEW_EXIT_OFFSET = -18;
+
+function streetViewHeadingForManeuver(step, routeLine) {
+    const m = (step && step.maneuver) ? step.maneuver : {};
+    // bearingDeg = ángulo exacto de salida en las rotondas (12 posiciones).
+    const deg = Number(m.bearingDeg);
+    const after = Number(m.bearing_after);
+    const before = Number(m.bearing_before);
+
+    let base = null, source = '', sourceBearing = 0;
+    if (Number.isFinite(deg)) {
+        // En una rotonda el ángulo de salida es relativo a la entrada.
+        base = (Number.isFinite(before) ? before + deg : deg);
+        source = 'salida'; sourceBearing = deg;
+    } else if (Number.isFinite(after)) {
+        base = after; source = 'salida'; sourceBearing = Math.round(((after % 360) + 360) % 360);
+    } else if (Array.isArray(routeLine) && routeLine.length >= 3) {
+        base = bearingAlongLine(routeLine, m.location, 0);
+        source = 'carretera'; sourceBearing = Math.round(((base % 360) + 360) % 360);
+    } else if (Number.isFinite(before)) {
+        base = before; source = 'carretera'; sourceBearing = Math.round(((before % 360) + 360) % 360);
+    }
+
+    if (base == null || !Number.isFinite(base)) { base = 0; source = 'norte'; sourceBearing = 0; }
+    let heading = base + STREETVIEW_EXIT_OFFSET;
+    heading = ((Math.round(heading) % 360) + 360) % 360;
+    return { heading, source, sourceBearing };
+}
+
+// ===================================================================
 // NOMBRE: showStreetViewForManeuver
 // Muestra/actualiza la ventana de vista real para la maniobra indicada. El
 // rumbo es el de aproximación (lo que el conductor verá al llegar) y el iframe
@@ -9391,10 +9427,8 @@ function showStreetViewForManeuver(step, route) {
     if (!point || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) { hideStreetView(); return; }
 
     const routeLine = route && route.geometry ? route.geometry.coordinates : null;
-    let heading = null;
-    if (Array.isArray(routeLine) && routeLine.length >= 3) heading = bearingAlongLine(routeLine, point, -25);
-    if (heading == null && step.maneuver && Number.isFinite(step.maneuver.bearing_before)) heading = step.maneuver.bearing_before;
-    if (heading == null) heading = 0;
+    const headingInfo = streetViewHeadingForManeuver(step, routeLine);
+    const heading = headingInfo.heading;
 
     const lat = Number(point[1]).toFixed(6);
     const lng = Number(point[0]).toFixed(6);
@@ -9404,7 +9438,9 @@ function showStreetViewForManeuver(step, route) {
 
     const subtitle = document.getElementById('streetview-subtitle');
     const label = getManeuverInstructionText(step.maneuver) || 'Próxima maniobra';
-    if (subtitle && subtitle.textContent !== label) subtitle.textContent = label;
+    const suffix = headingInfo.source === 'salida' ? ` · vista orientada a la salida (${headingInfo.sourceBearing}°)` : '';
+    const fullLabel = label + suffix;
+    if (subtitle && subtitle.textContent !== fullLabel) subtitle.textContent = fullLabel;
 
     const requestKey = `${lat},${lng},${Math.round(heading)}`;
     if (requestKey === streetViewLastRequestKey) return;
@@ -20946,6 +20982,24 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
     
     // ===================================================================
     async function updateVersion() { try { const lmd = await getLastModifiedDate(); const v = formatVersionDate(lmd); const el = document.getElementById('version'); if (el) el.textContent = `versión: ${v}`; } catch (e) { const el = document.getElementById('version'); if (el) el.textContent = 'versión: error'; } }
+
+    // Muestra la URL desde la que se ha cargado realmente esta página.
+    // Existe más de un proyecto llamado "Tesla/BoardingGate" publicado en GitHub Pages;
+    // si se abre el equivocado falta Street View y el mapa exige "Permitir MDs".
+    const EXPECTED_HOSTS = ['ecorman.github.io'];
+    function renderBuildInfo() {
+        const el = document.getElementById('build-info');
+        if (!el) return;
+        const host = location.host || 'archivo local';
+        const offline = !location.protocol.startsWith('http');
+        const ok = offline || EXPECTED_HOSTS.some(h => host === h);
+        const marca = ok
+            ? '<span class="bi-ok">· fuente correcta</span>'
+            : '<span class="bi-warn">· AVISO: esta NO es la versión de ecorman (sin Street View y con nube obligatoria)</span>';
+        const mapbox = (window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.mapbox) ? 'Mapbox OK' : 'Mapbox SIN clave';
+        el.innerHTML = `Origen: ${host} ${marca} · ${mapbox} · nube desactivada (solo copia local)`;
+    }
+    renderBuildInfo();
     
     // ===================================================================
     const getFaviconUrl = (bookmarkData) => { try { const urlToParse = bookmarkData?.url || ''; const customFavicon = bookmarkData?.favicon; if (customFavicon && (customFavicon.startsWith('data:image') || customFavicon.startsWith('http') || customFavicon.startsWith('./'))) return customFavicon; if (urlToParse) { const domain = new URL(urlToParse).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } } catch (e) { } return 'https://via.placeholder.com/64'; };
