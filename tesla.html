@@ -780,9 +780,7 @@ body.recovering-map-session #auto-start-nav-modal {
                 </h1>
             </div>
         </div>
-        <div class="footer-line">
-          <a href="https://x.com/boardinggate/status/1857325553742721116?s=46" class="footer-link-green" target="_blank" rel="noopener noreferrer">Ahorremos un dinero con mis REFERIDOS</a>
-        </div>
+        <div class="footer-line"></div>
 
         <p id="build-info" class="footer-buildinfo"></p>
         <p class="footer-subtext">La inteligencia tiene ciertos limites. La locura, casi ninguno 🫶 🤟</p>
@@ -21310,14 +21308,20 @@ if (userId && userId.trim() !== '') {
         reloadButton.addEventListener('click', () => { if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return; location.reload(); });
     }
 
-    if (!document.getElementById('store-button')) {
-        const storeButton = document.createElement('span');
-        storeButton.id = 'store-button';
-        storeButton.innerHTML = `<img src="PNG/store.png" alt="Tienda/Referidos">`;
-        document.body.appendChild(storeButton);
-        storeButton.addEventListener('click', () => {
+    // Acceso directo a Configuración DENTRO de la vista de mapa. Antes solo
+    // había un engranaje en el lanzador, así que para abrir Configuración (y con
+    // ella el Diagnóstico) había que salir del mapa.
+    if (!document.getElementById('config-map-button')) {
+        const configMapButton = document.createElement('span');
+        configMapButton.id = 'config-map-button';
+        configMapButton.title = 'Configuración y Diagnóstico';
+        configMapButton.innerHTML = `<img src="PNG/config.jpg" alt="Configuración">`;
+        document.body.appendChild(configMapButton);
+        configMapButton.addEventListener('click', () => {
             if (isEditMode || isAssignmentMode || isKeywordAssignmentMode) return;
-            showReferralsModal(); // Función que crearemos a continuación
+            // A diferencia del engranaje del lanzador, aquí NO se cierra el mapa:
+            // se abre Configuración encima y al cerrarlo se sigue navegando.
+            showConfigModal();
         });
     }
     

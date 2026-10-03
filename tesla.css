@@ -164,6 +164,24 @@ body.dark-mode .toggle-sign.range-toggle:not([data-state="hidden"]):hover:not(.e
     width: clamp(24px, 4vw, 32px); height: clamp(24px, 4vw, 32px);
     stroke: #E6E6DC;}
 #config-button { left: 185px !important; }
+/* Engranaje de Configuración para la vista de mapa. Va arriba a la izquierda,
+   que es el único hueco libre: abajo-derecha lo ocupan los controles del mapa
+   (addControl 'bottom-right'), abajo-izquierda la brújula, y arriba-derecha la
+   ventana de vista real. Los botones del lanzador que ocupaban este rincón se
+   ocultan al abrir el mapa. */
+#config-map-button {
+    position: fixed; left: 12px; top: 96px;
+    width: 62px; height: 62px; border-radius: 50%;
+    background-color: #ABAB99; border: 1px solid #7c7c68;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+    z-index: 1050; cursor: pointer;
+    display: none; align-items: center; justify-content: center;
+    transition: filter 0.2s ease, background-color 0.2s ease, transform 0.2s ease;}
+body.map-active #config-map-button { display: flex; }
+#config-map-button img {
+    width: 38px; height: 38px; object-fit: contain; display: block; filter: none !important;}
+#config-map-button:hover { background-color: #D9A066; transform: scale(1.06);}
+body.dark-mode #config-map-button { background-color: #ABAB99; filter: brightness(85%);}
 #personal-button { left: 260px !important; }
 #radar-button { left: 330px !important; }
 #home-button { left: 400px !important; }
