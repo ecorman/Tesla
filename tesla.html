@@ -1024,6 +1024,7 @@ body.recovering-map-session #auto-start-nav-modal {
         <button class="config-tab-button" data-tab-target="#tab-content-pin">Clave Acceso</button>
         <button class="config-tab-button" data-tab-target="#tab-content-radares">RADARES</button>
         <button class="config-tab-button" data-tab-target="#tab-content-backup-restore">Backup/Restore</button>
+        <button class="config-tab-button" data-tab-target="#tab-content-diagnostico">Diagnóstico</button>
         <button class="config-tab-button" data-tab-target="#tab-content-borrar">Borrar Datos</button>
         <button class="config-tab-button" data-tab-target="#tab-content-normas">Normas uso</button>
     </div>
@@ -1134,6 +1135,23 @@ body.recovering-map-session #auto-start-nav-modal {
             </div>
         </div>
         
+        <div id="tab-content-diagnostico" class="config-tab-content">
+            <h3>Diagnóstico (comprobar que todo funciona)</h3>
+            <p style="font-size:.85rem;color:#555;">Todo se comprueba aquí mismo, sin necesidad de conducir ni abrir la consola del navegador.</p>
+            <div id="diag-body" style="font-size:.9rem;line-height:1.7;"></div>
+
+            <h4 style="margin:1rem 0 .4rem;">Iconos de rotonda</h4>
+            <div id="diag-rotondas" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+
+            <h4 style="margin:1rem 0 .4rem;">Vista real (Street View)</h4>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+                <button id="diag-sv-a" class="config-tab-button" type="button">Plaza del Sol · 1ª salida</button>
+                <button id="diag-sv-b" class="config-tab-button" type="button">Giro derecha (a las 3)</button>
+                <button id="diag-sv-c" class="config-tab-button" type="button">Giro izquierda (a las 9)</button>
+            </div>
+            <div id="diag-sv-info" style="font-size:.8rem;color:#555;word-break:break-all;"></div>
+            <iframe id="diag-sv-frame" title="Prueba de vista real" style="width:100%;max-width:560px;height:280px;border:1px solid #999;border-radius:10px;"></iframe>
+        </div>
         <div id="tab-content-borrar" class="config-tab-content borrar-container">
             <h3>Borrar Datos Locales</h3>
              <button id="config-restore-grid-button">RESTAURAR EL GRID ORIGINAL DE BOTONES</button>
@@ -6638,6 +6656,12 @@ const canAccessMaps = (userId && userId.trim() !== '');
                 target.classList.add('active');
                 if (modal.querySelector(tabTarget)) {
                     modal.querySelector(tabTarget).classList.add('active');
+                }
+                // La autocomprobación se ejecuta al entrar en la pestaña. Hay dos
+                // manejadores de pestañas idénticos, así que se evita duplicar.
+                if (tabTarget === '#tab-content-diagnostico' && !window.__diagDone && typeof runDiagnostics === 'function') {
+                    window.__diagDone = true;
+                    try { runDiagnostics(); } catch (err) { console.error('[Diag] fallo:', err); }
                 }
             }
         }
@@ -23039,6 +23063,73 @@ function handlePickerMapClick(e, slotIndex) {
     
 // ===================================================================
 // NOMBRE: showToast 
+// ===================================================================
+// NOMBRE: renderDiagnostics
+// Autocomprobación: sirve para verificar en el propio coche que se está
+// sirviendo el build correcto y que Street View y las rotondas funcionan,
+// sin depender de una consola de navegador ni de driving.
+// ===================================================================
+function runDiagnostics() {
+    const body = document.getElementById('diag-body');
+    if (!body) return;
+    const b = (window.APP_CONFIG && window.APP_CONFIG.build) || null;
+    const mapboxOk = !!(window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.mapbox);
+    const glOk = typeof mapboxgl !== 'undefined' && mapboxgl.getMap ? 'sí' : 'no';
+    const filas = [
+        ['Compilación', b && b.sha ? `${b.sha} · ${b.builtAt ? new Date(b.builtAt).toLocaleString('es-ES') : ''}` : 'no identificada (recarga la página)', b && b.sha ? 'ok' : 'aviso'],
+        ['Origen', location.host || 'archivo local', EXPECTED_HOSTS.includes(location.host) ? 'ok' : 'aviso'],
+        ['Mapbox', mapboxOk ? 'clave presente' : 'SIN clave', mapboxOk ? 'ok' : 'error'],
+        ['Motor Mapbox', glOk, glOk === 'sí' ? 'ok' : 'error'],
+        ['Vista real', `${streetViewPreference ? 'activada' : 'desactivada'} · encuadre ${STREETVIEW_FOV}° · ángulo de salida ${STREETVIEW_EXIT_OFFSET}°`, streetViewPreference ? 'ok' : 'aviso'],
+        ['Nube', 'desactivada (solo copia local)', 'ok'],
+    ];
+    body.innerHTML = filas.map(([k, v, estado]) => {
+        const color = estado === 'ok' ? '#2f6b3d' : estado === 'aviso' ? '#a06a00' : '#b3261e';
+        const icono = estado === 'ok' ? '✓' : estado === 'aviso' ? '!' : '✗';
+        return `<div><b>${icono} ${k}:</b> <span style="color:${color}">${v}</span></div>`;
+    }).join('');
+
+    // Iconos de rotonda: comprueba además que número y reloj concuerdan.
+    const cont = document.getElementById('diag-rotondas');
+    if (cont) {
+        cont.innerHTML = '';
+        for (const e of [1, 2, 3, 4]) {
+            const m = { type: 'rotary', exit: e };
+            const info = roundaboutExitInfo(m);
+            const src = roundaboutIconSource(m);
+            const texto = getManeuverInstructionText({ type: 'rotary', exit: e, roadLabel: 'Vía de ejemplo' });
+            const esperado = (((e - 1) * 3) % 12) || 12;
+            const ok = info && info.clock === esperado && !!src;
+            const box = document.createElement('div');
+            box.style.cssText = 'text-align:center;font:bold .75rem Arial;width:120px;color:#333';
+            const img = document.createElement('img');
+            img.src = src || '';
+            img.style.cssText = 'width:92px;height:92px;display:block;margin:0 auto';
+            const cap = document.createElement('div');
+            cap.textContent = texto;
+            const marca = document.createElement('div');
+            marca.textContent = ok ? '✓ correcto' : '✗ error';
+            marca.style.color = ok ? '#2f6b3d' : '#b3261e';
+            box.appendChild(img); box.appendChild(cap); box.appendChild(marca);
+            cont.appendChild(box);
+        }
+    }
+
+    const probar = (lat, lng, h, etiqueta) => {
+        const f = document.getElementById('diag-sv-frame');
+        const info = document.getElementById('diag-sv-info');
+        if (f) f.src = buildStreetViewUrl(lat, lng, h);
+        if (info) info.textContent = `${etiqueta} · ${buildStreetViewUrl(lat, lng, h)}`;
+    };
+    const a = document.getElementById('diag-sv-a');
+    const bb = document.getElementById('diag-sv-b');
+    const c = document.getElementById('diag-sv-c');
+    if (a) a.onclick = () => probar(40.416800, -3.703800, 72, 'Plaza del Sol · mirando a la 1ª salida');
+    if (bb) bb.onclick = () => probar(40.416800, -3.703800, 72, 'Giro a la derecha (a las 3)');
+    if (c) c.onclick = () => probar(40.416800, -3.703800, 252, 'Giro a la izquierda (a las 9)');
+    if (a) a.click();
+}
+
 function showToast(message, type = 'info', duration = 3000, isErrorNotFound = false, toastId = null) {
     const uniqueToastId = toastId || 'toast-notification-element' + (type === 'debug' ? '-debug' : '') + `-${Date.now()}`;
     
@@ -27256,6 +27347,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 target.classList.add('active');
                 if (modal.querySelector(tabTarget)) {
                     modal.querySelector(tabTarget).classList.add('active');
+                }
+                // La autocomprobación se ejecuta al entrar en la pestaña. Hay dos
+                // manejadores de pestañas idénticos, así que se evita duplicar.
+                if (tabTarget === '#tab-content-diagnostico' && !window.__diagDone && typeof runDiagnostics === 'function') {
+                    window.__diagDone = true;
+                    try { runDiagnostics(); } catch (err) { console.error('[Diag] fallo:', err); }
                 }
             }
         }
