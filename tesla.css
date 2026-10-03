@@ -36,6 +36,16 @@ body.dark-mode footer {background-color: #92927E;}
     max-width: 100%; position: relative;}
 .footer-subtext {
     font-size: 0.75rem; color: #5C5C47; margin-top: 0.25rem; text-align: center;}
+/* Botón de vista real en la barra de navegación: siempre a mano durante la
+   marcha, con el estado visible en el propio botón. */
+.sv-nav-toggle {
+    border: 1px solid #9A9A82; background: #E4E5DA; color: #5C5C47;
+    border-radius: 999px; padding: 1px 8px; font-size: 0.62rem; cursor: pointer;
+    align-self: center; white-space: nowrap; line-height: 1.5;}
+.sv-nav-toggle.sv-on { background: #2f6b3d; color: #fff; border-color: #2f6b3d; font-weight: 700;}
+.sv-nav-toggle:active { transform: scale(0.96);}
+body.dark-mode .sv-nav-toggle { background: #4a4a3a; color: #ddd; border-color: #5a5a46;}
+
 /* Chapa de compilación en la barra de navegación: discreta, pero permite
    confirmar con un vistazo que el coche está con el último build. */
 .build-badge {

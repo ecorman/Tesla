@@ -880,6 +880,7 @@ body.recovering-map-session #auto-start-nav-modal {
                 </button>
                 
                 <span id="maneuver-counter-display"></span>
+                <button id="streetview-nav-toggle" class="build-badge sv-nav-toggle" type="button" title="Activar o desactivar la ventana de vista real (Street View)">Vista real</button>
                 <span id="build-badge" class="build-badge" title="Compilación en uso"></span>
                 
                 <div style="flex-grow: 1; margin-left: 5px; display: flex; flex-direction: column;">
@@ -4498,6 +4499,7 @@ class CustomMapControlsGroup {
                 e.stopPropagation();
                 streetViewPreference = e.target.checked;
                 saveSettings();
+                if (typeof renderStreetViewToggle === 'function') renderStreetViewToggle();
                 if (!streetViewPreference) hideStreetView();
                 showToast(`Vista real (Street View) ${streetViewPreference ? 'ACTIVADA' : 'DESACTIVADA'}`, 'info');
             });
@@ -8226,6 +8228,10 @@ function loadSavedSettings() {
     const savedStreetViewPref = localStorage.getItem(STREETVIEW_ENABLED_KEY);
     streetViewPreference = savedStreetViewPref === null ? true : JSON.parse(savedStreetViewPref);
     initStreetViewWindow();
+    // El botón se refresca aquí y no solo al arrancar: loadSavedSettings corre
+    // después de DOMContentLoaded, así que si no se refresca aquí el botón
+    // muestra "activada" aunque la preferencia guardada sea desactivada.
+    if (typeof renderStreetViewToggle === 'function') renderStreetViewToggle();
     mapPitchValue = parseInt(localStorage.getItem(MAP_VIEW_PITCH_KEY)) || 62;
     mapTerrainExaggeration = parseFloat(localStorage.getItem(MAP_TERRAIN_EXAGGERATION_KEY)) || 0.5; 
 
@@ -12061,12 +12067,13 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             const isRoundaboutExit = isRoundaboutInstructionType(type);
             const isRoundaboutLeaving = type === 'exit-roundabout' || type === 'exit-rotary';
 
-            const exitNumR = typeof maneuver.exit === 'number' ? maneuver.exit : null;
-            const ordinalsR = ['', 'primera', 'segunda', 'tercera', 'cuarta', 'quinta', 'sexta', 'septima', 'octava', 'novena', 'decima', 'undecima', 'duodecima'];
-            // Ángulo del reloj horario (1-12) calculado sobre la geometría real
-            // por roundaboutClockForSteps: 12 = recto, 3 = derecha, 9 = izquierda...
-            const clockAngle = Number(maneuver.bearingDeg);
-            const rdbClock = clockAngle && clockAngle >= 1 && clockAngle <= 12 ? ` a las ${clockAngle}` : '';
+            const exitInfoR = roundaboutExitInfo(maneuver);
+            const exitNumR = exitInfoR && exitInfoR.exit != null ? exitInfoR.exit : null;
+            // El reloj se toma siempre de la MISMA fuente que el icono. Antes se
+            // mezclaban: el número venía del proveedor (4ª salida) y el ángulo de
+            // la geometría (11), así que se anunciaba "cuarta salida a las 11",
+            // que se contradecía. Ahora 4ª salida es siempre "a las 9".
+            const rdbClock = exitInfoR ? roundaboutClockText(exitInfoR.clock) : '';
             const rdbRoad = maneuver.roadLabel ? `, hacia ${maneuver.roadLabel}` : '';
             // Mensaje claro: número de salida REAL del proveedor y, además, el
             // ángulo del reloj — el usuario lo pide explícitamente ("salida por
@@ -12074,8 +12081,9 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             // antes, sin número de salida, se decía "salga por la novena salida
             // a las 9", un disparate.
             let rdbCore;
-            if (exitNumR && exitNumR >= 1 && exitNumR <= 12) {
-                rdbCore = `en la rotonda, salga por la ${ordinalsR[exitNumR]} salida${rdbClock}${rdbRoad}`;
+            const ordR = exitNumR ? roundaboutOrdinal(exitNumR) : '';
+            if (exitNumR && ordR) {
+                rdbCore = `en la rotonda, salga por la ${ordR} salida${rdbClock}${rdbRoad}`;
             } else if (exitNumR) {
                 rdbCore = `en la rotonda, salga por la salida número ${exitNumR}${rdbClock}${rdbRoad}`;
             } else {
@@ -19964,14 +19972,62 @@ function hideNavigationUI() {
         });
     }
 
+    // ------------------------------------------------------------------
+    // Fuente única de verdad para la salida de una rotonda.
+    //
+    // El número de salida que da el proveedor (exit) es autoritativo: la 1ª
+    // salida es a las 3, la 2ª a las 6, la 3ª a las 9, etc. El ángulo calculado
+    // sobre la geometría (bearingDeg) se midió y devolvía casi siempre 11, 10 o
+    // 12 — valores que apuntan a "siga recto" y contradicen el número de salida
+    // real — así que solo se usa si el proveedor no da «exit».
+    // ------------------------------------------------------------------
+    function roundaboutExitInfo(maneuver) {
+        if (!maneuver) return null;
+        const exit = Number(maneuver.exit);
+        if (Number.isFinite(exit) && exit >= 1) {
+            const clock = (((exit - 1) * 3) % 12) || 12;
+            return { exit, clock, source: 'exit' };
+        }
+        const deg = Number(maneuver.bearingDeg);
+        if (Number.isFinite(deg) && deg >= 1 && deg <= 12) {
+            return { exit: null, clock: deg, source: 'angulo' };
+        }
+        return null;
+    }
+
+    // 12 = recto, 3 = derecha, 6 = marcha atrás, 9 = izquierda.
+    function roundaboutClockText(clock) {
+        const n = Math.round(Number(clock));
+        if (!Number.isFinite(n) || n < 1 || n > 12) return '';
+        return n === 1 ? ' a la 1' : ` a las ${n}`;
+    }
+
+    const ROUNDABOUT_ORDINALS = {
+        1: 'primera', 2: 'segunda', 3: 'tercera', 4: 'cuarta', 5: 'quinta',
+        6: 'sexta', 7: 'séptima', 8: 'octava', 9: 'novena', 10: 'décima',
+        11: 'undécima', 12: 'duodécima',
+    };
+    function roundaboutOrdinal(n) { return ROUNDABOUT_ORDINALS[n] || ''; }
+
     function roundaboutIconSource(maneuver) {
         const type = String(maneuver?.type || '');
-        const exit = Number(maneuver?.exit);
-        if (!isRoundaboutInstructionType(type) || !Number.isFinite(exit) || exit < 1) return null;
-        const clock = Number(maneuver.bearingDeg) || (((exit - 1) * 3) % 12 || 12);
-        const angle = (clock % 12) * 30;
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#f5c400" stroke="#111" stroke-width="6"/><circle cx="50" cy="50" r="22" fill="none" stroke="#111" stroke-width="8"/><g transform="rotate(${angle} 50 50)"><path d="M50 50V5" stroke="#111" stroke-width="8" stroke-linecap="round"/><path d="M50 3L39 18h22z" fill="#111"/></g><text x="50" y="58" text-anchor="middle" font-family="Arial" font-size="22" font-weight="900">${exit}</text></svg>`;
-        return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        if (!isRoundaboutInstructionType(type)) return null;
+        const info = roundaboutExitInfo(maneuver);
+        if (!info) return null;
+        const angle = ((info.clock % 12) + 12) % 12 * 30;
+        const rad = (angle * Math.PI) / 180;
+        const px = (r) => (50 + r * Math.sin(rad)).toFixed(1);
+        const py = (r) => (50 - r * Math.cos(rad)).toFixed(1);
+        // La boca de salida se abre en el anillo (r=46) y la flecha corre por
+        // dentro (de 17 a 38) para no salirse del círculo.
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<circle cx="50" cy="50" r="46" fill="#f5c400" stroke="#111" stroke-width="6"/>
+<circle cx="50" cy="50" r="19" fill="none" stroke="#111" stroke-width="9"/>
+<circle cx="${px(45)}" cy="${py(45)}" r="9" fill="#fff" stroke="#111" stroke-width="3"/>
+<path d="M${px(17)} ${py(17)}L${px(30)} ${py(30)}" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+<path d="M${px(38)} ${py(38)}L${px(28)} ${py(35)}L${px(35)} ${py(26)}Z" fill="#111"/>
+<text x="50" y="57" text-anchor="middle" font-family="Arial" font-size="21" font-weight="900" fill="#111">${info.exit != null ? info.exit : info.clock}</text></svg>`;
+        return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace(/\s+/g, ' '))}`;
     }
 
     function getManeuverInstructionText(maneuver) {
@@ -19979,11 +20035,15 @@ function hideNavigationUI() {
         const type = maneuver.type || '';
         const modifier = maneuver.modifier || '';
         const road = maneuver.roadLabel || '';
-        const clock = Number(maneuver.bearingDeg) ? ` a las ${maneuver.bearingDeg}` : '';
-        const exit = Number(maneuver.exit);
-        const ordinal = exit === 1 ? 'primera' : exit === 2 ? 'segunda' : exit === 3 ? 'tercera' : exit === 4 ? 'cuarta' : exit === 5 ? 'quinta' : (exit > 0 ? `${exit}ª` : '');
         if (isRoundaboutInstructionType(type)) {
-            return road || (exit > 0 ? `Salida ${exit}` : 'Rotonda');
+            const info = roundaboutExitInfo(maneuver);
+            if (!info) return road || 'Rotonda';
+            const rel = info.exit != null ? `Salida ${info.exit}` : 'Salida';
+            const ord = info.exit != null ? roundaboutOrdinal(info.exit) : '';
+            // El número y el reloj van juntos: "Salida 3 (a las 9)".
+            const reloj = roundaboutClockText(info.clock);
+            const cabecera = info.exit != null && ord ? `${rel} (${ord}${reloj})` : `${rel}${reloj}`;
+            return road ? `${cabecera} · ${road}` : cabecera;
         }
         let text = maneuverTexts[`${type}-${modifier}`] || maneuverTexts[`${type}-`] || (type === 'turn' ? 'Gira' : type.replace(/-/g, ' '));
         if (type === 'depart') text = 'Inicia la ruta';
@@ -21028,6 +21088,38 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
         const badge = document.getElementById('build-badge');
         if (badge) badge.textContent = build || 'build local';
     }
+
+    // Botón de vista real en la barra de navegación. Antes solo había una
+    // casilla dentro del menú del mapa, muy escondida, y no había forma de
+    // saber desde la propia pantalla de navegación si estaba activa.
+    function renderStreetViewToggle() {
+        const btn = document.getElementById('streetview-nav-toggle');
+        if (!btn) return;
+        btn.textContent = streetViewPreference ? 'Vista real ●' : 'Vista real ○';
+        btn.classList.toggle('sv-on', !!streetViewPreference);
+        btn.setAttribute('aria-pressed', streetViewPreference ? 'true' : 'false');
+        btn.title = streetViewPreference
+            ? 'Vista real activada. Pulsa para ocultarla.'
+            : 'Vista real desactivada. Pulsa para mostrarla en cada maniobra.';
+    }
+    function toggleStreetViewFromNav() {
+        streetViewPreference = !streetViewPreference;
+        try { localStorage.setItem(STREETVIEW_ENABLED_KEY, JSON.stringify(streetViewPreference)); } catch (e) {  }
+        const box = document.getElementById('streetview-toggle-checkbox');
+        if (box) box.checked = streetViewPreference;
+        renderStreetViewToggle();
+        if (!streetViewPreference) {
+            hideStreetView();
+            showToast('Vista real desactivada', 'info', 2500);
+        } else {
+            showToast('Vista real activada: se mostrará en cada maniobra', 'success', 2500);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('streetview-nav-toggle');
+        if (btn) btn.addEventListener('click', toggleStreetViewFromNav);
+        renderStreetViewToggle();
+    });
     renderBuildInfo();
     
     // ===================================================================
