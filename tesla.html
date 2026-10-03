@@ -880,6 +880,7 @@ body.recovering-map-session #auto-start-nav-modal {
                 </button>
                 
                 <span id="maneuver-counter-display"></span>
+                <span id="build-badge" class="build-badge" title="Compilación en uso"></span>
                 
                 <div style="flex-grow: 1; margin-left: 5px; display: flex; flex-direction: column;">
                     <div id="navigation-top-info-bar" style="padding-left: 30px;">    
@@ -20995,15 +20996,21 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
     
     
     // ===================================================================
-    async function updateVersion() { try { const lmd = await getLastModifiedDate(); const v = formatVersionDate(lmd); const el = document.getElementById('version'); if (el) el.textContent = `versión: ${v}`; } catch (e) { const el = document.getElementById('version'); if (el) el.textContent = 'versión: error'; } }
-
-    // Muestra la URL desde la que se ha cargado realmente esta página.
-    // Existe más de un proyecto llamado "Tesla/BoardingGate" publicado en GitHub Pages;
-    // si se abre el equivocado falta Street View y el mapa exige "Permitir MDs".
+    async function updateVersion() { try { const lmd = await getLastModifiedDate(); const v = formatVersionDate(lmd); const el = document.getElementById('version'); if (el) el.textContent = `versión: ${v}`; } catch (e) { const el = document.getElementById('version'); if (el) el.textContent = 'versión: error'; } }// Muestra la URL desde la que se ha cargado realmente esta página.
+// Existe más de un proyecto llamado "Tesla/BoardingGate" publicado en GitHub Pages;
+// si se abre el equivocado falta Street View y el mapa exige "Permitir MDs".
+// El identificador de compilación lo inyecta el workflow de Pages al desplegar,
+// así que dice exactamente qué build está sirviendo GitHub, no una fecha escrita a mano.
     const EXPECTED_HOSTS = ['ecorman.github.io'];
+    function buildDescriptor() {
+        const b = (window.APP_CONFIG && window.APP_CONFIG.build) || null;
+        if (b && b.sha) {
+            const fecha = b.builtAt ? new Date(b.builtAt).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }) : '';
+            return fecha ? `build ${b.sha} · ${fecha}` : `build ${b.sha}`;
+        }
+        return null;
+    }
     function renderBuildInfo() {
-        const el = document.getElementById('build-info');
-        if (!el) return;
         const host = location.host || 'archivo local';
         const offline = !location.protocol.startsWith('http');
         const ok = offline || EXPECTED_HOSTS.some(h => host === h);
@@ -21011,7 +21018,15 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
             ? '<span class="bi-ok">· fuente correcta</span>'
             : '<span class="bi-warn">· AVISO: esta NO es la versión de ecorman (sin Street View y con nube obligatoria)</span>';
         const mapbox = (window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.mapbox) ? 'Mapbox OK' : 'Mapbox SIN clave';
-        el.innerHTML = `Origen: ${host} ${marca} · ${mapbox} · nube desactivada (solo copia local)`;
+        const build = buildDescriptor();
+        const el = document.getElementById('build-info');
+        if (el) {
+            el.innerHTML = `Origen: ${host} ${marca} · ${mapbox} · nube desactivada (solo copia local)`
+                + (build ? `<br>${build}` : '');
+        }
+        // Chapa discreta en la barra de navegación: visible mientras se conduce.
+        const badge = document.getElementById('build-badge');
+        if (badge) badge.textContent = build || 'build local';
     }
     renderBuildInfo();
     

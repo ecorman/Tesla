@@ -36,6 +36,13 @@ body.dark-mode footer {background-color: #92927E;}
     max-width: 100%; position: relative;}
 .footer-subtext {
     font-size: 0.75rem; color: #5C5C47; margin-top: 0.25rem; text-align: center;}
+/* Chapa de compilación en la barra de navegación: discreta, pero permite
+   confirmar con un vistazo que el coche está con el último build. */
+.build-badge {
+    font-size: 0.6rem; color: #8A8A74; opacity: 0.75; white-space: nowrap;
+    font-weight: normal; letter-spacing: 0.2px; align-self: center;}
+body.dark-mode .build-badge { color: #6E6E58; }
+
 .footer-buildinfo {
     font-size: 0.7rem; color: #5C5C47; margin-top: 0.35rem; text-align: center;
     opacity: 0.85; line-height: 1.4; word-break: break-word;}

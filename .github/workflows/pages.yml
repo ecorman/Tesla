@@ -26,9 +26,14 @@ jobs:
 
       - name: Generar PNG/zbuildgs.js con el secret MAPBOX
         shell: bash
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_REF: ${{ github.ref_name }}
         run: |
-          cat > PNG/zbuildgs.js <<'EOF'
-          window.APP_CONFIG = {"firebase":{},"keys":{"mapbox":"${{ secrets.MAPBOX }}","ocm":"be9a78f7-0f5e-4f28-b742-4b7ab4b7eb5a"},"endpoints":{}};
+          # 'build' y 'builtAt' permiten a la pagina mostrar con que compilacion se
+          # esta sirviendo, para saber con certeza si el coche tiene la ultima.
+          cat > PNG/zbuildgs.js <<EOF
+          window.APP_CONFIG = {"firebase":{},"keys":{"mapbox":"${{ secrets.MAPBOX }}","ocm":"be9a78f7-0f5e-4f28-b742-4b7ab4b7eb5a"},"endpoints":{},"build":{"sha":"${BUILD_SHA:0:8}","ref":"${BUILD_REF}","builtAt":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}};
           EOF
 
       - name: Verificar que MAPBOX contiene un token valido
