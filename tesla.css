@@ -4606,6 +4606,19 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     background-color: #1b1b1b; color: #cfcfcf; font-size: 0.9rem; letter-spacing: 0.3px;
     pointer-events: none;}
 #streetview-loading.hidden { display: none; }
+/* Marcador de la salida, dibujado encima del panorama para señalar por dónde
+   hay que continuar. No intercepta el ratón. */
+#streetview-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+#streetview-overlay.hidden { display: none; }
+.sv-exit-marker {
+    position: absolute; bottom: 8%; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.85));}
+.sv-exit-marker svg { display: block; }
+.sv-exit-label {
+    background: rgba(0, 0, 0, 0.72); color: #b9ffcf; border: 1px solid #00e676;
+    border-radius: 5px; padding: 1px 6px; font-size: 0.72rem; font-weight: 700;
+    white-space: nowrap;}
+.sv-exit-marker.fuera .sv-exit-label { border-color: #ffca28; color: #ffe082; }
 #streetview-loading.stalled { background-color: #2a1b1b; color: #ffb4a2;}
 #streetview-footer {
     display: flex; align-items: center; justify-content: space-between;

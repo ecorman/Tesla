@@ -1219,6 +1219,7 @@ body.recovering-map-session #auto-start-nav-modal {
     <div id="streetview-frame-wrap">
         <iframe id="streetview-frame" title="Vista real de la calle (Google Street View)" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         <div id="streetview-loading">Cargando vista real…</div>
+        <div id="streetview-overlay" class="hidden"></div>
     </div>
     <div id="streetview-footer">
         <span id="streetview-note">Street View</span>
@@ -9355,11 +9356,14 @@ let streetViewDragOffset = null;
 let streetViewResizeState = null;
 
 // Encuadre de la vista real (parámetro !5f de la URL de Google Maps).
-// Medido sobre el mismo punto: con 1 la imagen sale muy abierta y lejana; a
-// partir de ~50 el zoom satura. 75 da un plano cercano sin primeros planos
-// exagerados, que es lo que sirve para reconocer la salida de un cruce.
-const STREETVIEW_FOV = 75;    // apertura del encuadre (satura sobre ~50-100)
+// Medido: en este parámetro MENOR valor = más alejado. Con 0 se ve el cruce
+// entero, que es lo que hace falta para decidir la maniobra; con 20 y superiores
+// ya sale un primer plano que no deja ver por dónde salir.
+const STREETVIEW_FOV = 0;     // 0 = vista más abierta
 const STREETVIEW_PITCH = 0;   // 0 = horizontal; negativo = mirar algo hacia abajo
+// Apertura efectiva que usa Google cuando !5f vale 0, necesaria para colocar
+// el marcador de la salida sobre la imagen.
+const STREETVIEW_EFFECTIVE_FOV = 90;
 
 function buildStreetViewUrl(lat, lng, heading) {
     const h = ((Math.round(Number(heading) || 0) % 360) + 360) % 360;
@@ -9379,6 +9383,8 @@ function buildStreetViewMapsUrl(lat, lng, heading) {
 function hideStreetView() {
     const windowEl = document.getElementById('streetview-window');
     if (windowEl) windowEl.classList.add('hidden');
+    const ov = document.getElementById('streetview-overlay');
+    if (ov) ov.classList.add('hidden');
 }
 
 function initStreetViewWindow() {
@@ -9512,7 +9518,13 @@ function saveStreetViewGeometry(windowEl) {
 // canto a la carretera. El sesgo final (STREETVIEW_EXIT_OFFSET) abre un poco
 // el ángulo para que la bifurcación quede de frente y no exactamente de perfil.
 // ===================================================================
-const STREETVIEW_EXIT_OFFSET = -18;
+// La cámara apunta exactamente al rumbo de salida (desvío 0). Antes se desviaba
+// 18 grados, lo que dejaba la salida fuera de centro y hacía falta el marcador
+// para encontrarla; mirando de frente, la salida queda en medio de la foto.
+const STREETVIEW_EXIT_OFFSET = 0;
+// Ancho angular que cubre realmente la imagen, para situar el marcador de la
+// salida dentro del panorama.
+const SV_PANO_FOV = 90;
 
 function streetViewHeadingForManeuver(step, routeLine) {
     const m = (step && step.maneuver) ? step.maneuver : {};
@@ -9522,7 +9534,14 @@ function streetViewHeadingForManeuver(step, routeLine) {
     const before = Number(m.bearing_before);
 
     let base = null, source = '', sourceBearing = 0;
-    if (Number.isFinite(deg)) {
+    // En una rotonda manda el número de salida del proveedor: el bearing_after
+    // es la tangente al entrar en el anillo, no la dirección por la que se sale.
+    const rdb = isRoundaboutInstructionType(String(m.type || '')) ? roundaboutExitInfo(m) : null;
+    if (rdb && rdb.source === 'exit') {
+        const delta = (((rdb.exit - 1) * 90) % 360);
+        base = (Number.isFinite(before) ? before + delta : delta);
+        source = 'salida'; sourceBearing = rdb.clock;
+    } else if (Number.isFinite(deg)) {
         // En una rotonda el ángulo de salida es relativo a la entrada.
         base = (Number.isFinite(before) ? before + deg : deg);
         source = 'salida'; sourceBearing = deg;
@@ -9536,9 +9555,44 @@ function streetViewHeadingForManeuver(step, routeLine) {
     }
 
     if (base == null || !Number.isFinite(base)) { base = 0; source = 'norte'; sourceBearing = 0; }
+    const exitBearing = ((base % 360) + 360) % 360;
     let heading = base + STREETVIEW_EXIT_OFFSET;
     heading = ((Math.round(heading) % 360) + 360) % 360;
-    return { heading, source, sourceBearing };
+    return { heading, source, sourceBearing, exitBearing };
+}
+
+// ------------------------------------------------------------------
+// Marca la salida dentro de la propia foto. La cámara apunta al rumbo de
+// salida menos STREETVIEW_EXIT_OFFSET, así que la salida queda desplazada
+// hacia un lado del panorama; aquí se dibuja un marcador en ese punto para
+// que se vea exactamente por dónde hay que continuar.
+// ------------------------------------------------------------------
+function updateStreetViewOverlay(info) {
+    const box = document.getElementById('streetview-overlay');
+    if (!box) return;
+    if (!info || info.source !== 'salida' || !Number.isFinite(info.exitBearing)) {
+        box.classList.add('hidden');
+        return;
+    }
+    let delta = info.exitBearing - info.heading;
+    delta = ((delta + 540) % 360) - 180;          // -180..180
+    const half = SV_PANO_FOV / 2;
+    const fuera = Math.abs(delta) > half;
+    const pos = fuera ? Math.sign(delta) * (half - 4) : delta;
+    const x = 50 + (pos / half) * 46;             // % del ancho
+    const ang = fuera ? (delta > 0 ? 22 : -22) : 0;
+    const texto = info.exitLabel || 'Salida';
+
+    box.classList.remove('hidden');
+    box.innerHTML = `
+        <div class="sv-exit-marker${fuera ? ' fuera' : ''}" style="left:${x.toFixed(1)}%;transform:translateX(-50%) rotate(${ang}deg)">
+            <svg viewBox="0 0 60 92" width="46" height="70" aria-hidden="true">
+                <path d="M30 90 L30 34" stroke="#00e676" stroke-width="7" stroke-linecap="round"/>
+                <path d="M30 4 L46 34 L14 34 Z" fill="#00e676" stroke="#043a1f" stroke-width="2"/>
+                <ellipse cx="30" cy="84" rx="17" ry="5" fill="#00e676" opacity="0.5"/>
+            </svg>
+            <span class="sv-exit-label">${texto}</span>
+        </div>`;
 }
 
 // ===================================================================
@@ -9559,6 +9613,27 @@ function showStreetViewForManeuver(step, route) {
     const routeLine = route && route.geometry ? route.geometry.coordinates : null;
     const headingInfo = streetViewHeadingForManeuver(step, routeLine);
     const heading = headingInfo.heading;
+    const typeManiobra = String((step && step.maneuver) ? step.maneuver.type || '' : '');
+    const infoRotonda = isRoundaboutInstructionType(typeManiobra) ? roundaboutExitInfo(step.maneuver) : null;
+    let exitLabel = null;
+    if (infoRotonda) {
+        exitLabel = infoRotonda.exit != null
+            ? `Salida ${infoRotonda.exit} · a las ${infoRotonda.clock}`
+            : `A las ${infoRotonda.clock}`;
+    } else {
+        // OSRM expresa el giro como type 'turn' + modifier 'right'; algunos
+        // proveedores lo meten todo en el tipo ('turn-right'), así que se mira en
+        // ambos sitios para no quedarse sin etiqueta.
+        const mod = String((step.maneuver && step.maneuver.modifier) || '');
+        const giro = (mod + ' ' + typeManiobra);
+        if (/left|izquierda/.test(giro)) exitLabel = 'Gira a la izquierda';
+        else if (/right|derecha/.test(giro)) exitLabel = 'Gira a la derecha';
+        else if (typeManiobra === 'fork') exitLabel = 'Mantente por el camino indicado';
+    }
+    const overlayInfo = headingInfo.source === 'salida'
+        ? Object.assign({}, headingInfo, { exitLabel: exitLabel || headingInfo.sourceBearing + '°' })
+        : null;
+    updateStreetViewOverlay(overlayInfo);
 
     const lat = Number(point[1]).toFixed(6);
     const lng = Number(point[0]).toFixed(6);
@@ -23195,7 +23270,7 @@ const glOk = (typeof mapboxgl !== 'undefined' && mapboxgl.version)
         ['Origen', location.host || 'archivo local', EXPECTED_HOSTS.includes(location.host) ? 'ok' : 'aviso'],
         ['Mapbox', mapboxOk ? 'clave presente' : 'SIN clave', mapboxOk ? 'ok' : 'error'],
         ['Motor Mapbox', glOk, glOk === 'no cargado' ? 'error' : 'ok'],
-        ['Vista real', `${streetViewPreference ? 'activada' : 'desactivada'} · encuadre ${STREETVIEW_FOV}° · ángulo de salida ${STREETVIEW_EXIT_OFFSET}°`, streetViewPreference ? 'ok' : 'aviso'],
+        ['Vista real', `${streetViewPreference ? 'activada' : 'desactivada'} · vista ${STREETVIEW_FOV === 0 ? 'abierta (máxima)' : STREETVIEW_FOV + '°'} · mira a la salida`, streetViewPreference ? 'ok' : 'aviso'],
         ['Nube', 'desactivada (solo copia local)', 'ok'],
     ];
     body.innerHTML = filas.map(([k, v, estado]) => {
