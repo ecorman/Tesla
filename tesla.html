@@ -23074,12 +23074,15 @@ function runDiagnostics() {
     if (!body) return;
     const b = (window.APP_CONFIG && window.APP_CONFIG.build) || null;
     const mapboxOk = !!(window.APP_CONFIG && window.APP_CONFIG.keys && window.APP_CONFIG.keys.mapbox);
-    const glOk = typeof mapboxgl !== 'undefined' && mapboxgl.getMap ? 'sí' : 'no';
+    // mapboxgl es un objeto con .version; getMap no existe, así que no sirve como
+// prueba de que la librería cargó.
+const glOk = (typeof mapboxgl !== 'undefined' && mapboxgl.version)
+        ? `cargado (v${mapboxgl.version})` : 'no cargado';
     const filas = [
         ['Compilación', b && b.sha ? `${b.sha} · ${b.builtAt ? new Date(b.builtAt).toLocaleString('es-ES') : ''}` : 'no identificada (recarga la página)', b && b.sha ? 'ok' : 'aviso'],
         ['Origen', location.host || 'archivo local', EXPECTED_HOSTS.includes(location.host) ? 'ok' : 'aviso'],
         ['Mapbox', mapboxOk ? 'clave presente' : 'SIN clave', mapboxOk ? 'ok' : 'error'],
-        ['Motor Mapbox', glOk, glOk === 'sí' ? 'ok' : 'error'],
+        ['Motor Mapbox', glOk, glOk === 'no cargado' ? 'error' : 'ok'],
         ['Vista real', `${streetViewPreference ? 'activada' : 'desactivada'} · encuadre ${STREETVIEW_FOV}° · ángulo de salida ${STREETVIEW_EXIT_OFFSET}°`, streetViewPreference ? 'ok' : 'aviso'],
         ['Nube', 'desactivada (solo copia local)', 'ok'],
     ];
