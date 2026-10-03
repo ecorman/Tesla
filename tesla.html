@@ -1224,6 +1224,7 @@ body.recovering-map-session #auto-start-nav-modal {
         <span id="streetview-note">Street View</span>
         <a id="streetview-open-link" href="#" target="_blank" rel="noopener">Abrir en Google Maps ↗</a>
     </div>
+    <div id="streetview-resize" title="Arrastra para cambiar el tamaño"></div>
 </div>
 
 <div id="alert-modal-overlay" class="hidden">
@@ -9351,6 +9352,7 @@ function hideIntersectionPreviewMap() {
 // ===================================================================
 let streetViewLastRequestKey = null;
 let streetViewDragOffset = null;
+let streetViewResizeState = null;
 
 // Encuadre de la vista real (parámetro !5f de la URL de Google Maps).
 // Medido sobre el mismo punto: con 1 la imagen sale muy abierta y lejana; a
@@ -9391,6 +9393,14 @@ function initStreetViewWindow() {
             windowEl.style.top = `${savedPos.y}px`;
             windowEl.style.right = 'auto';
         }
+        // El tamaño se recuerda junto con la posición: al reabrir la ventana
+        // aparece con las mismas medidas con las que se dejó.
+        if (savedPos && Number.isFinite(savedPos.w) && Number.isFinite(savedPos.h)) {
+            const w = Math.max(220, Math.min(savedPos.w, window.innerWidth - 20));
+            const h = Math.max(160, Math.min(savedPos.h, window.innerHeight - 20));
+            windowEl.style.width = `${w}px`;
+            windowEl.style.height = `${h}px`;
+        }
     } catch (e) {  }
 
     const closeBtn = document.getElementById('streetview-close');
@@ -9429,17 +9439,71 @@ function initStreetViewWindow() {
         const endDrag = () => {
             if (!streetViewDragOffset) return;
             streetViewDragOffset = null;
-            try {
-                localStorage.setItem(STREETVIEW_POS_KEY, JSON.stringify({
-                    x: parseInt(windowEl.style.left, 10) || 0,
-                    y: parseInt(windowEl.style.top, 10) || 0
-                }));
-            } catch (e) {  }
+            saveStreetViewGeometry(windowEl);
         };
         header.addEventListener('pointerup', endDrag);
         header.addEventListener('pointercancel', endDrag);
         header.addEventListener('pointerleave', endDrag);
     }
+
+    // ---- Tamaño configurable ----
+    const handle = document.getElementById('streetview-resize');
+    if (handle) {
+        handle.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            // offsetWidth/Height miden el tamaño real de la ventana: a diferencia
+            // de getBoundingClientRect, no vienen divididos por el zoom del Tesla.
+            streetViewResizeState = {
+                startX: e.clientX, startY: e.clientY,
+                startW: windowEl.offsetWidth, startH: windowEl.offsetHeight
+            };
+            const onMove = (ev) => {
+                if (!streetViewResizeState) return;
+                ev.preventDefault();
+                const maxW = Math.max(220, document.documentElement.clientWidth - 20);
+                const maxH = Math.max(160, document.documentElement.clientHeight - 20);
+                const w = Math.max(220, Math.min(streetViewResizeState.startW + (ev.clientX - streetViewResizeState.startX), maxW));
+                const h = Math.max(160, Math.min(streetViewResizeState.startH + (ev.clientY - streetViewResizeState.startY), maxH));
+                windowEl.style.width = `${Math.round(w)}px`;
+                windowEl.style.height = `${Math.round(h)}px`;
+            };
+            const onUp = () => {
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+                document.removeEventListener('pointercancel', onUp);
+                if (streetViewResizeState) {
+                    streetViewResizeState = null;
+                    saveStreetViewGeometry(windowEl);
+                }
+            };
+            // Se escucha en el documento, no en el asa: el puntero se va del
+            // elemento en cuanto pasa el borde y entonces los eventos se pierden.
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
+            document.addEventListener('pointercancel', onUp);
+        });
+    }
+}
+
+// Guarda posición y tamaño de la ventana para reaparecer igual al reabrirla.
+// Se guardan los valores de estilo, NO los del getBoundingClientRect: en el
+// Tesla la página va con zoom 0.65, así que el rectángulo viene ya dividido y,
+// si se guardara ese, la ventana encogería un poco más en cada recarga.
+function saveStreetViewGeometry(windowEl) {
+    if (!windowEl) return;
+    try {
+        const r = windowEl.getBoundingClientRect();
+        const px = parseFloat(windowEl.style.left);
+        const py = parseFloat(windowEl.style.top);
+        const pw = parseFloat(windowEl.style.width);
+        const ph = parseFloat(windowEl.style.height);
+        localStorage.setItem(STREETVIEW_POS_KEY, JSON.stringify({
+            x: Math.round(Number.isFinite(px) ? px : r.left),
+            y: Math.round(Number.isFinite(py) ? py : r.top),
+            w: Math.round(Number.isFinite(pw) ? pw : r.width),
+            h: Math.round(Number.isFinite(ph) ? ph : r.height)
+        }));
+    } catch (e) {  }
 }
 
 // ===================================================================
@@ -20259,6 +20323,9 @@ function closeOtherModals(modalToKeepOpenId = null) {
 // ===================================================================
 // NOMBRE: showConfigModal 
 function showConfigModal() {
+    // La ventana de vista real va por encima de casi todo; al abrir un modal se
+    // retira para no taparlo.
+    if (typeof hideStreetView === 'function') hideStreetView();
     closeOtherModals('config-modal');
     const modal = document.getElementById('config-modal');
     if (!modal) return;

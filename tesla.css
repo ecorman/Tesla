@@ -4560,13 +4560,17 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
 /* === INICIO: ventana de vista real (Google Street View) durante la navegación === */
 #streetview-window {
     position: fixed; top: 10px; right: 10px;
-    width: 390px; max-width: calc(100vw - 20px);
+    width: 390px; height: 340px; max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
     display: flex; flex-direction: column;
     background-color: rgba(0, 0, 0, 0.82);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 7px; overflow: hidden;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55);
-    z-index: 8890 !important; color: #eee; font-size: 0.95rem;}
+    /* Por encima de los 10000 del modal del mapa: con 8890 el canvas del mapa
+       tapaba la ventana y durante la navegación no se veía nada. Al abrir un
+       modal (Configuración, filtros…) la ventana se oculta. */
+    z-index: 100001 !important; color: #eee; font-size: 0.95rem;}
 #streetview-window.hidden { display: none !important; }
 #streetview-header {
     display: flex; align-items: center; gap: 8px;
@@ -4582,10 +4586,18 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     background-color: rgba(255, 255, 255, 0.18); color: #FFFFFF;
     font-size: 15px; line-height: 1; cursor: pointer;}
 #streetview-close:hover { background-color: rgba(220, 53, 69, 0.85); }
-#streetview-frame-wrap { position: relative; width: 100%; height: 230px; background-color: #1b1b1b; }
+#streetview-frame-wrap { position: relative; width: 100%; flex: 1 1 auto; min-height: 90px; background-color: #1b1b1b; }
 #streetview-frame {
-    width: 100%; height: 230px; border: 0;
+    width: 100%; height: 100%; min-height: 90px; border: 0;
     display: block; background-color: #1b1b1b;}
+/* Asa de tamaño: esquina inferior derecha de la ventana flotante. */
+#streetview-resize {
+    position: absolute; right: 0; bottom: 0; width: 26px; height: 26px;
+    cursor: nwse-resize; z-index: 3; touch-action: none;
+    background:
+        linear-gradient(135deg, transparent 0 50%, #cfcfcf 50% 62%, transparent 62% 76%, #cfcfcf 76% 88%, transparent 88%);}
+#streetview-resize:hover { background:
+        linear-gradient(135deg, transparent 0 50%, #ffffff 50% 62%, transparent 62% 76%, #ffffff 76% 88%, transparent 88%); }
 /* Aviso mientras el panorama descarga. El navegador del coche va lento con las
    conexiones de datos y a veces el iframe se queda en blanco sin explicar por
    qué; al menos queda claro que está cargando y no colgado. */
@@ -4611,7 +4623,7 @@ body.mobile-view #navigation-bottom-progress-bar.scaled-for-maneuver { transform
     cursor: pointer; text-align: center; line-height: 1.05;}
 body.mobile-view #streetview-window { width: 78vw; }
 body.mobile-view #streetview-frame { height: 34vh; }
-body.mobile-view #streetview-frame-wrap { height: 34vh; }
+body.mobile-view #streetview-frame-wrap { flex: 1 1 auto; }
 /* === FIN: ventana de vista real (Google Street View) === */
 
 #utils-button { left: 1012px !important; max-width: 30px !important; max-height: 30px !important; }
