@@ -1483,6 +1483,7 @@ body.recovering-map-session #auto-start-nav-modal {
     // Ventana de vista real (Google Street View) del próximo cruce/rotonda.
     // ACTIVADA por defecto; se puede desactivar desde el menú de vista del mapa.
     const STREETVIEW_ENABLED_KEY = 'boardinggate_streetview_ventana';
+let streetViewDisabledNoticeShown = false;
     const STREETVIEW_POS_KEY = 'boardinggate_streetview_posicion';
     let streetViewPreference = true;
     let mapOffsetX = 0;
@@ -9306,18 +9307,26 @@ function hideIntersectionPreviewMap() {
 let streetViewLastRequestKey = null;
 let streetViewDragOffset = null;
 
+// Encuadre de la vista real (parámetro !5f de la URL de Google Maps).
+// Medido sobre el mismo punto: con 1 la imagen sale muy abierta y lejana; a
+// partir de ~50 el zoom satura. 75 da un plano cercano sin primeros planos
+// exagerados, que es lo que sirve para reconocer la salida de un cruce.
+const STREETVIEW_FOV = 75;    // apertura del encuadre (satura sobre ~50-100)
+const STREETVIEW_PITCH = 0;   // 0 = horizontal; negativo = mirar algo hacia abajo
+
 function buildStreetViewUrl(lat, lng, heading) {
     const h = ((Math.round(Number(heading) || 0) % 360) + 360) % 360;
     const key = (window.APP_CONFIG && window.APP_CONFIG.keys) ? window.APP_CONFIG.keys.google : null;
     if (key) {
-        return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&location=${lat},${lng}&heading=${h}&pitch=0&fov=80`;
+        return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&location=${lat},${lng}&heading=${h}&pitch=${STREETVIEW_PITCH}&fov=${STREETVIEW_FOV}`;
     }
-    return `https://www.google.com/maps/embed?origin=mfe&pb=!6m7!1m6!2m2!1d${lat}!2d${lng}!3f${h}!4f0!5f1`;
+    // Orden del parámetro pb: !3f=rumbo, !4f=pitch, !5f=campo de visión.
+    return `https://www.google.com/maps/embed?origin=mfe&pb=!6m7!1m6!2m2!1d${lat}!2d${lng}!3f${h}!4f${STREETVIEW_PITCH}!5f${STREETVIEW_FOV}`;
 }
 
 function buildStreetViewMapsUrl(lat, lng, heading) {
     const h = ((Math.round(Number(heading) || 0) % 360) + 360) % 360;
-    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}&heading=${h}&pitch=0`;
+    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}&heading=${h}&pitch=${STREETVIEW_PITCH}&fov=${STREETVIEW_FOV}`;
 }
 
 function hideStreetView() {
@@ -12173,6 +12182,11 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
         // Ventana de vista real (Street View) del cruce/rotonda que hay que tomar.
         if (isInManeuverApproachWindow && streetViewPreference) {
             showStreetViewForManeuver(nextStepToDisplay, route);
+        } else if (isInManeuverApproachWindow && !streetViewPreference && !streetViewDisabledNoticeShown) {
+            // La ventana no aparece porque la preferencia está desactivada: se avisa
+            // una sola vez por sesión, porque si no parece que la función esté rota.
+            streetViewDisabledNoticeShown = true;
+            showToast('Vista real desactivada. Actívala en el botón de ajustes del mapa (icono "Vista real")', 'info', 6000);
         } else if (!isInManeuverApproachWindow && (distanceToNextManeuver >= 800 || !isNavigating || !isRelevantIntersectionManeuver)) {
             hideStreetView();
         }
