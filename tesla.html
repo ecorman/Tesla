@@ -878,7 +878,6 @@ body.recovering-map-session #auto-start-nav-modal {
                 </button>
                 
                 <span id="maneuver-counter-display"></span>
-                <span id="build-badge" class="build-badge" title="Compilación en uso"></span>
                 
                 <div style="flex-grow: 1; margin-left: 5px; display: flex; flex-direction: column;">
                     <div id="navigation-top-info-bar" style="padding-left: 30px;">    
@@ -9385,6 +9384,9 @@ function hideStreetView() {
     if (windowEl) windowEl.classList.add('hidden');
     const ov = document.getElementById('streetview-overlay');
     if (ov) ov.classList.add('hidden');
+    // Al volver a abrir la ventana se quiere una panorámica nueva, no la que
+    // ya se cargó para la maniobra anterior.
+    streetViewLastRequestKey = null;
 }
 
 function initStreetViewWindow() {
@@ -9523,8 +9525,146 @@ function saveStreetViewGeometry(windowEl) {
 // para encontrarla; mirando de frente, la salida queda en medio de la foto.
 const STREETVIEW_EXIT_OFFSET = 0;
 // Ancho angular que cubre realmente la imagen, para situar el marcador de la
-// salida dentro del panorama.
-const SV_PANO_FOV = 90;
+// salida dentro del panorama. Con STREETVIEW_FOV = 0 Google entrega la vista
+// más abierta que ofrece el embed, del orden de 120°; se usan 120 y no 90 para
+// que el marcador no se pegue al borde antes de tiempo y acabe apuntando a un
+// sitio que no está en la foto.
+const SV_PANO_FOV = 120;
+
+// Avanza `meters` metros reales por la polilínea desde el punto más cercano a
+// `pt` y devuelve esas coordenadas. Sirve para desplazar el punto donde se pide
+// la panorámica: el de maniobra está en el mismísimo vértice, y desde ahí la
+// foto sale mirando a la bifurcación desde un sitio imposible (o sin la vía de
+// salida a la vista). Desplazarnos 20 m por la carretera hace que la cámara
+// esté de verdad sobre la vía, tangente a ella y mirando hacia delante.
+function advanceAlongRoute(line, pt, meters) {
+    if (!Array.isArray(line) || line.length < 2 || !pt) return null;
+    let nearest = 0, best = Infinity;
+    for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        const d = (c[0] - pt[0]) * (c[0] - pt[0]) + (c[1] - pt[1]) * (c[1] - pt[1]);
+        if (d < best) { best = d; nearest = i; }
+    }
+    const target = Math.abs(meters);
+    const step = meters < 0 ? -1 : 1;
+    let acc = 0, j = nearest;
+    while (acc < target && (j + step) >= 0 && (j + step) < line.length) {
+        const a = line[j], b = line[j + step];
+        const dy = b[1] - a[1];
+        const dx = (b[0] - a[0]) * Math.cos(((a[1] + b[1]) / 2) * Math.PI / 180);
+        acc += Math.sqrt(dx * dx + dy * dy) * 111320;
+        j += step;
+    }
+    if (j === nearest) return null;
+    const a = line[nearest], b = line[j];
+    if (acc > target && target > 0) {
+        // Reparto proporcional del último tramo para no pasarse de largo.
+        const ddy = b[1] - a[1];
+        const ddx = (b[0] - a[0]) * Math.cos(((a[1] + b[1]) / 2) * Math.PI / 180);
+        const total = Math.sqrt(ddx * ddx + ddy * ddy) * 111320;
+        const f = total > 0 ? Math.max(0, Math.min(1, (target - (acc - total)) / total)) : 1;
+        return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+    }
+    return [b[0], b[1]];
+}
+
+// Distancia en metros entre dos coordenadas [lon, lat].
+function distanceMeters(a, b) {
+    const dy = (b[1] - a[1]) * 111320;
+    const dx = (b[0] - a[0]) * 111320 * Math.cos(((a[1] + b[1]) / 2) * Math.PI / 180);
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Puntos que delimitan el anillo de una rotonda (entrada y boca de salida).
+function roundaboutRingBounds(step) {
+    const coords = step && step.geometry && step.geometry.coordinates;
+    const m = (step && step.maneuver) ? step.maneuver : {};
+    const entry = m.location || (coords && coords[0]) || null;
+    // Mapbox emite dos pasos por rotonda: la entrada al anillo y la salida.
+    // En el de salida el punto de maniobra ES la boca del anillo, mientras que
+    // la geometría que lo acompaña llega a ser el resto de la ruta entera (se
+    // han medido 50 km), así que ahí el último punto no sirve de nada.
+    if (/^exit/.test(String(m.type || ''))) return { entry, exit: entry };
+    let exit = coords && coords.length ? coords[coords.length - 1] : null;
+    // Una rotonda no tiene 250 m de diámetro: si el último punto está tan lejos
+    // del principio, la geometría no es el anillo y es mejor el punto de maniobra.
+    if (exit && entry && distanceMeters(entry, exit) > 250) exit = entry;
+    return { entry, exit };
+}
+
+// Metros por delante de la maniobra a los que se lleva la cámara cuando no hay
+// posición de GPS disponible.
+const STREETVIEW_AHEAD_METERS = 20;
+// Metros por delante del coche a los que se mira para decidir la orientación.
+// Si no hay rumbo fiable del GPS, el rumbo sale de la propia carretera.
+const STREETVIEW_LOOKAHEAD_METERS = 30;
+// El marcador de salida solo aparece cuando la boca está razonablemente cerca;
+// más lejos apuntaría a un píxel y no aportaría nada.
+const STREETVIEW_MARKER_MAX_METERS = 250;
+
+// Rumbo de brújula (0-360) de `from` a `to`, corrigiendo la longitud por la
+// latitud. navigationBearing no lo hace y a 40° de latitud se desvía hasta 15°,
+// que es justo lo que separa el marcador de la salida real.
+function compassBearing(from, to) {
+    if (!from || !to) return null;
+    const lat = (Number(from[1]) + Number(to[1])) / 2 * Math.PI / 180;
+    const dx = (Number(to[0]) - Number(from[0])) * Math.cos(lat);
+    const dy = Number(to[1]) - Number(from[1]);
+    if (!Number.isFinite(dx) || !Number.isFinite(dy) || (dx === 0 && dy === 0)) return null;
+    return ((Math.atan2(dx, dy) * 180 / Math.PI) + 360) % 360;
+}
+
+// Punto concreto por el que hay que continuar: en una rotonda, la boca de
+// salida; en cualquier otra maniobra, el vértice de la vía.
+function salidaPointForManeuver(step) {
+    if (!step) return null;
+    const m = step.maneuver || {};
+    if (isRoundaboutInstructionType(String(m.type || ''))) {
+        const ring = roundaboutRingBounds(step);
+        return (ring && ring.exit) || m.location || null;
+    }
+    return m.location || null;
+}
+
+// Cámara de la vista real: se sitúa EN el coche, no en el punto de maniobra,
+// y mira hacia delante por donde se conduce. Así la foto va cambiando a la vez
+// que el coche avanza, en lugar de saltar a un sitio fijo de la ruta.
+function streetViewCamera(step, routeLine) {
+    const fallback = (step && step.maneuver) ? step.maneuver.location : null;
+    const loc = navigationCurrentLocation;
+    let point = null;
+    if (loc && Number.isFinite(loc.longitude) && Number.isFinite(loc.latitude)) {
+        point = [Number(loc.longitude), Number(loc.latitude)];
+    } else {
+        // Sin GPS todavía: se usa el punto sobre la vía, 20 m por delante de la
+        // maniobra, para que la foto no salga desde un sitio imposible.
+        const info = streetViewHeadingForManeuver(step, routeLine);
+        point = info.anchor || fallback;
+    }
+    if (!point || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) {
+        return { point: null, heading: 0, source: 'norte' };
+    }
+
+    // Rumbo: primero la carretera por la que se va (estable aunque el GPS
+    // oscile), y si no hay polilínea el rumbo que da el GPS.
+    let heading = null, source = '';
+    if (Array.isArray(routeLine) && routeLine.length >= 3) {
+        let ahead = bearingAlongLine(routeLine, point, STREETVIEW_LOOKAHEAD_METERS);
+        // En el último tramo puede no quedar ruta por delante (fin de ruta): se
+        // mira entonces hacia atrás, que es lo único que queda.
+        if (!Number.isFinite(ahead)) ahead = bearingAlongLine(routeLine, point, -STREETVIEW_LOOKAHEAD_METERS);
+        if (Number.isFinite(ahead)) { heading = ahead; source = 'carretera'; }
+    }
+    if (heading == null && loc && Number.isFinite(loc.heading)) {
+        heading = Number(loc.heading); source = 'gps';
+    }
+    if (heading == null) {
+        heading = (step && step.maneuver && Number.isFinite(Number(step.maneuver.bearing_before)))
+            ? Number(step.maneuver.bearing_before) : 0;
+        source = 'maniobra';
+    }
+    return { point, heading: ((Math.round(heading) % 360) + 360) % 360, source };
+}
 
 function streetViewHeadingForManeuver(step, routeLine) {
     const m = (step && step.maneuver) ? step.maneuver : {};
@@ -9532,25 +9672,39 @@ function streetViewHeadingForManeuver(step, routeLine) {
     const deg = Number(m.bearingDeg);
     const after = Number(m.bearing_after);
     const before = Number(m.bearing_before);
+    const isRing = isRoundaboutInstructionType(String(m.type || ''));
 
     let base = null, source = '', sourceBearing = 0;
+    // Referencia sobre la que avanzamos por la carretera: en una rotonda, la
+    // boca de salida (el final del anillo), no el punto de entrada.
+    const ring = isRing ? roundaboutRingBounds(step) : null;
+    const anchorRef = (isRing && ring && ring.exit) ? ring.exit : m.location;
+
+    // 1) Geometría real: el rumbo de la vía de salida medido 25 m por delante
+    //    del punto donde colocamos la cámara. Es lo que ve el conductor.
+    let anchor = advanceAlongRoute(routeLine, anchorRef, STREETVIEW_AHEAD_METERS) || anchorRef;
+    if (Array.isArray(routeLine) && routeLine.length >= 3) {
+        const ahead = bearingAlongLine(routeLine, anchor, STREETVIEW_LOOKAHEAD_METERS);
+        if (Number.isFinite(ahead)) {
+            base = ahead; source = 'carretera';
+            sourceBearing = Math.round(((ahead % 360) + 360) % 360);
+        }
+    }
+
     // En una rotonda manda el número de salida del proveedor: el bearing_after
     // es la tangente al entrar en el anillo, no la dirección por la que se sale.
-    const rdb = isRoundaboutInstructionType(String(m.type || '')) ? roundaboutExitInfo(m) : null;
-    if (rdb && rdb.source === 'exit') {
+    const rdb = isRing ? roundaboutExitInfo(m) : null;
+    if (base == null && rdb && rdb.source === 'exit') {
         const delta = (((rdb.exit - 1) * 90) % 360);
         base = (Number.isFinite(before) ? before + delta : delta);
         source = 'salida'; sourceBearing = rdb.clock;
-    } else if (Number.isFinite(deg)) {
+    } else if (base == null && Number.isFinite(deg)) {
         // En una rotonda el ángulo de salida es relativo a la entrada.
         base = (Number.isFinite(before) ? before + deg : deg);
         source = 'salida'; sourceBearing = deg;
-    } else if (Number.isFinite(after)) {
+    } else if (base == null && Number.isFinite(after)) {
         base = after; source = 'salida'; sourceBearing = Math.round(((after % 360) + 360) % 360);
-    } else if (Array.isArray(routeLine) && routeLine.length >= 3) {
-        base = bearingAlongLine(routeLine, m.location, 0);
-        source = 'carretera'; sourceBearing = Math.round(((base % 360) + 360) % 360);
-    } else if (Number.isFinite(before)) {
+    } else if (base == null && Number.isFinite(before)) {
         base = before; source = 'carretera'; sourceBearing = Math.round(((before % 360) + 360) % 360);
     }
 
@@ -9558,19 +9712,19 @@ function streetViewHeadingForManeuver(step, routeLine) {
     const exitBearing = ((base % 360) + 360) % 360;
     let heading = base + STREETVIEW_EXIT_OFFSET;
     heading = ((Math.round(heading) % 360) + 360) % 360;
-    return { heading, source, sourceBearing, exitBearing };
+    return { heading, source, sourceBearing, exitBearing, anchor };
 }
 
 // ------------------------------------------------------------------
-// Marca la salida dentro de la propia foto. La cámara apunta al rumbo de
-// salida menos STREETVIEW_EXIT_OFFSET, así que la salida queda desplazada
-// hacia un lado del panorama; aquí se dibuja un marcador en ese punto para
-// que se vea exactamente por dónde hay que continuar.
+// Marca la salida dentro de la propia foto. La cámara va en el coche mirando
+// al frente, así que la salida aparece en el lado del panorama hacia el que
+// cae su rumbo real: aquí se dibuja el marcador en ese punto, con la distancia
+// que falta para llegar, y se gira un poco cuando queda fuera del encuadre.
 // ------------------------------------------------------------------
 function updateStreetViewOverlay(info) {
     const box = document.getElementById('streetview-overlay');
     if (!box) return;
-    if (!info || info.source !== 'salida' || !Number.isFinite(info.exitBearing)) {
+    if (!info || !Number.isFinite(info.exitBearing)) {
         box.classList.add('hidden');
         return;
     }
@@ -9581,7 +9735,8 @@ function updateStreetViewOverlay(info) {
     const pos = fuera ? Math.sign(delta) * (half - 4) : delta;
     const x = 50 + (pos / half) * 46;             // % del ancho
     const ang = fuera ? (delta > 0 ? 22 : -22) : 0;
-    const texto = info.exitLabel || 'Salida';
+    const texto = (info.exitLabel || 'Salida')
+        + (Number.isFinite(info.distSalida) ? ` · ${Math.round(info.distSalida / 10) * 10} m` : '');
 
     box.classList.remove('hidden');
     box.innerHTML = `
@@ -9607,14 +9762,14 @@ function showStreetViewForManeuver(step, route) {
     if (!windowEl || !frame) return;
     if (!streetViewPreference) { hideStreetView(); return; }
 
-    const point = step && step.maneuver ? step.maneuver.location : null;
-    if (!point || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) { hideStreetView(); return; }
-
     const routeLine = route && route.geometry ? route.geometry.coordinates : null;
-    const headingInfo = streetViewHeadingForManeuver(step, routeLine);
-    const heading = headingInfo.heading;
     const typeManiobra = String((step && step.maneuver) ? step.maneuver.type || '' : '');
-    const infoRotonda = isRoundaboutInstructionType(typeManiobra) ? roundaboutExitInfo(step.maneuver) : null;
+    const isRing = isRoundaboutInstructionType(typeManiobra);
+    const cam = streetViewCamera(step, routeLine);
+    if (!cam.point) { hideStreetView(); return; }
+    const heading = cam.heading;
+
+    const infoRotonda = isRing ? roundaboutExitInfo(step.maneuver) : null;
     let exitLabel = null;
     if (infoRotonda) {
         exitLabel = infoRotonda.exit != null
@@ -9630,24 +9785,34 @@ function showStreetViewForManeuver(step, route) {
         else if (/right|derecha/.test(giro)) exitLabel = 'Gira a la derecha';
         else if (typeManiobra === 'fork') exitLabel = 'Mantente por el camino indicado';
     }
-    const overlayInfo = headingInfo.source === 'salida'
-        ? Object.assign({}, headingInfo, { exitLabel: exitLabel || headingInfo.sourceBearing + '°' })
-        : null;
-    updateStreetViewOverlay(overlayInfo);
 
-    const lat = Number(point[1]).toFixed(6);
-    const lng = Number(point[0]).toFixed(6);
+    // Punto exacto por el que hay que salir. En una rotonda es la boca de
+    // salida del anillo, no el punto de entrada: por eso el marcador aparecía
+    //plantado en la entrada y no donde está la salida.
+    const salida = salidaPointForManeuver(step);
+    const distSalida = salida ? distanceMeters(cam.point, salida) : Infinity;
+    const cerca = salida && distSalida <= STREETVIEW_MARKER_MAX_METERS;
+    // Rumbo, en grados de brújula, desde la cámara hasta el punto de salida.
+    const rumboSalida = cerca ? compassBearing(cam.point, salida) : null;
+    updateStreetViewOverlay(cerca ? { heading, exitBearing: rumboSalida, exitLabel, distSalida } : null);
+
+    const lat = Number(cam.point[1]).toFixed(6);
+    const lng = Number(cam.point[0]).toFixed(6);
 
     initStreetViewWindow();
     windowEl.classList.remove('hidden');
 
     const subtitle = document.getElementById('streetview-subtitle');
     const label = getManeuverInstructionText(step.maneuver) || 'Próxima maniobra';
-    const suffix = headingInfo.source === 'salida' ? ` · vista orientada a la salida (${headingInfo.sourceBearing}°)` : '';
-    const fullLabel = label + suffix;
+    const dist = cerca ? ` · salida a ${Math.round(distSalida / 10) * 10} m` : '';
+    const fullLabel = label + dist;
     if (subtitle && subtitle.textContent !== fullLabel) subtitle.textContent = fullLabel;
 
-    const requestKey = `${lat},${lng},${Math.round(heading)}`;
+    // Recarga del iframe solo cuando ha cambiado algo de verdad: el GPS llega
+    // cada pocos metros y recargar la panorámica en cada punto dejaría la
+    // pantalla en blanco constantemente. Con estos redondeos se actualiza cada
+    // ~10 m o cada 10° de giro, más de una vez por segundo dando vueltas.
+    const requestKey = `${lat.slice(0, 7)},${lng.slice(0, 7)},${Math.round(heading / 10) * 10}`;
     if (requestKey === streetViewLastRequestKey) return;
     streetViewLastRequestKey = requestKey;
     loadStreetViewFrame(frame, buildStreetViewUrl(lat, lng, heading));
@@ -12408,7 +12573,12 @@ function updateTurnByTurnDisplay(route, carDistanceAlongTheRoute = 0) {
             progressBarFillEl.style.width = newWidthPercent;
         }
         const isRelevantIntersectionManeuver = type !== 'continue' && type !== 'new name' && type !== 'depart' && type !== 'straight';
-        const isInManeuverApproachWindow = isNavigating && distanceToNextManeuver < 800 && distanceToNextManeuver >= 100 && isRelevantIntersectionManeuver;
+        // La vista real acompaña la aproximación entera. En una rotonda se
+        // mantiene casi hasta meterse en el anillo: el punto interesante (la
+        // boca de salida) queda a mitad del anillo, no en el punto de entrada.
+        const isRingManeuver = isRoundaboutInstructionType(String(type || ''));
+        const minDistanciaVistaReal = isRingManeuver ? 10 : 60;
+        const isInManeuverApproachWindow = isNavigating && distanceToNextManeuver < 800 && distanceToNextManeuver >= minDistanciaVistaReal && isRelevantIntersectionManeuver;
         // Ventana de vista real (Street View) del cruce/rotonda que hay que tomar.
         if (isInManeuverApproachWindow && streetViewPreference) {
             showStreetViewForManeuver(nextStepToDisplay, route);
@@ -20187,7 +20357,14 @@ function hideNavigationUI() {
             if (!step?.maneuver) return;
             step.roadLabel = roadLabelForStep(step);
             if (isRoundaboutInstructionType(step.maneuver.type)) {
-                step.maneuver.bearingDeg = roundaboutClockForSteps(allSteps, index, routeLine);
+                // Solo se mide el anillo en el paso de ENTRADA. En el paso de
+                // salida el proveedor mete a veces la geometría del resto de la
+                // ruta entera (se han visto 50 km), así que medir ahí da
+                // angulos sin sentido y contaminaba el cálculo.
+                const esEntrada = !/^exit/.test(String(step.maneuver.type));
+                if (esEntrada) {
+                    step.maneuver.bearingDeg = roundaboutClockForSteps(allSteps, index, routeLine);
+                }
                 step.maneuver.roadLabel = step.roadLabel;
             }
         });
@@ -20196,22 +20373,34 @@ function hideNavigationUI() {
     // ------------------------------------------------------------------
     // Fuente única de verdad para la salida de una rotonda.
     //
-    // El número de salida que da el proveedor (exit) es autoritativo: la 1ª
-    // salida es a las 3, la 2ª a las 6, la 3ª a las 9, etc. El ángulo calculado
-    // sobre la geometría (bearingDeg) se midió y devolvía casi siempre 11, 10 o
-    // 12 — valores que apuntan a "siga recto" y contradicen el número de salida
-    // real — así que solo se usa si el proveedor no da «exit».
+    // El RELOJ (a las 3, a las 9...) se mide sobre la geometría real de la vía,
+    // que es lo que ve el conductor. El NÚMERO de salida lo da el proveedor
+    // (Mapbox no lo da, así que se deduce del reloj; OSRM sí, en su campo «exit»).
+    //
+    // Antes se daba prioridad al número y se derivaba el reloj con «+90° por
+    // salida», suponiendo siempre circulación por la derecha. Al comprobarlo
+    // contra rutas reales, esa regla falló en 12 de 16 rotondas: el número de
+    // salida no siempre coincide con la geometría. El reloj medido, en cambio,
+    // es correcto por construcción, porque sale del ángulo con signo entre la
+    // vía de entrada y la de salida, sea cual sea el lado de circulación.
     // ------------------------------------------------------------------
     function roundaboutExitInfo(maneuver) {
         if (!maneuver) return null;
         const exit = Number(maneuver.exit);
-        if (Number.isFinite(exit) && exit >= 1) {
-            const clock = (((exit - 1) * 3) % 12) || 12;
-            return { exit, clock, source: 'exit' };
-        }
+        const exitOk = Number.isFinite(exit) && exit >= 1 ? exit : null;
         const deg = Number(maneuver.bearingDeg);
-        if (Number.isFinite(deg) && deg >= 1 && deg <= 12) {
-            return { exit: null, clock: deg, source: 'angulo' };
+        const degOk = Number.isFinite(deg) && deg >= 1 && deg <= 12 ? Math.round(deg) : null;
+
+        if (degOk != null) {
+            // El reloj medido manda. Si no hay número se deduce del reloj
+            // (3→2ª, 6→3ª, 9→4ª); las 12 son ambiguas (1ª o 5ª) y quedan sin número.
+            let num = exitOk;
+            if (num == null && degOk !== 12) num = degOk / 3 + 1;
+            return { exit: num, clock: degOk, source: 'angulo' };
+        }
+        if (exitOk != null) {
+            const clock = (((exitOk - 1) * 3) % 12) || 12;
+            return { exit: exitOk, clock, source: 'exit' };
         }
         return null;
     }
@@ -21308,9 +21497,9 @@ function showSaveRoutePromptModal(defaultName, onSaveCallback) {
             el.innerHTML = `Origen: ${host} ${marca} · ${mapbox} · nube desactivada (solo copia local)`
                 + (build ? `<br>${build}` : '');
         }
-        // Chapa discreta en la barra de navegación: visible mientras se conduce.
-        const badge = document.getElementById('build-badge');
-        if (badge) badge.textContent = build || 'build local';
+        // El identificador de compilación ya no se muestra en la barra de
+        // navegación: ocupaba espacio y molestaba durante la conducción. Sigue
+        // disponible en el pie y en la pestaña de Diagnóstico.
     }
 
     // La vista real se activa y desactiva desde el menú de ajustes del mapa,
@@ -23270,7 +23459,7 @@ const glOk = (typeof mapboxgl !== 'undefined' && mapboxgl.version)
         ['Origen', location.host || 'archivo local', EXPECTED_HOSTS.includes(location.host) ? 'ok' : 'aviso'],
         ['Mapbox', mapboxOk ? 'clave presente' : 'SIN clave', mapboxOk ? 'ok' : 'error'],
         ['Motor Mapbox', glOk, glOk === 'no cargado' ? 'error' : 'ok'],
-        ['Vista real', `${streetViewPreference ? 'activada' : 'desactivada'} · vista ${STREETVIEW_FOV === 0 ? 'abierta (máxima)' : STREETVIEW_FOV + '°'} · mira a la salida`, streetViewPreference ? 'ok' : 'aviso'],
+        ['Vista real', `${streetViewPreference ? 'activada' : 'desactivada'} · vista ${STREETVIEW_FOV === 0 ? 'abierta (máxima)' : STREETVIEW_FOV + '°'} · sigue al coche y marca la salida`, streetViewPreference ? 'ok' : 'aviso'],
         ['Nube', 'desactivada (solo copia local)', 'ok'],
     ];
     body.innerHTML = filas.map(([k, v, estado]) => {
