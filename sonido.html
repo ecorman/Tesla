@@ -57,11 +57,14 @@
     <div id="speedBox"><div id="speed">0</div><div id="speedUnit">KM/H</div></div>
   </div>
 
-  <div class="row"><button id="start">▶ Arrancar sonido</button></div>
+  <div class="row"><button id="start">▶ Arrancar sonido</button><button id="rev" class="chip" style="min-width:160px">🏁 Rev<br><small style="font-weight:normal">(mantener)</small></button></div>
   <div class="row" id="profiles"></div>
 
   <div class="panel">
     <label>🔊 Volumen <input type="range" id="vol" min="0" max="100" value="70"></label>
+    <label>🎛️ Carácter (leva) <input type="range" id="char" min="0" max="100" value="50"></label>
+    <label>💥 Petardeo al levantar <input type="range" id="crack" min="0" max="100" value="35"></label>
+    <label>⚡ Respuesta del acelerador <input type="range" id="thr" min="20" max="200" value="100"></label>
     <label><input type="checkbox" id="gpsOn"> Activar GPS (usar velocidad del coche)</label>
     <label><input type="checkbox" id="demoTog"> Modo demo (simular velocidad sin GPS)</label>
     <div class="panel" id="demoBox"><label>🚀 Velocidad simulada <input type="range" id="demo" min="0" max="240" value="0"><b id="demoKmh">0</b> km/h</label></div>
@@ -96,6 +99,13 @@ const S = {
   gpsOn: false,
   demo: false,
   demoSpeed: 0,
+  // motor DSP
+  wl: false,         // motor por AudioWorklet disponible
+  wlNode: null,
+  char: 0.5,         // carácter (leva / rumor irregular) 0..1
+  crack: 0.35,       // petardeo al levantar 0..1
+  thrMul: 1.0,       // respuesta del acelerador
+  revHold: false,    // botón Rev mantenido
   // telemetría
   speed: 0,          // km/h suavizada
   rawSpeed: 0,
@@ -115,10 +125,13 @@ try {
   const saved = JSON.parse(localStorage.getItem("teslasound") || "{}");
   if (saved.vol != null) S.vol = saved.vol;
   if (saved.profile) { const p = PROFILES.find(x => x.id === saved.profile); if (p) S.profile = p; }
+  if (saved.char != null) S.char = saved.char;
+  if (saved.crack != null) S.crack = saved.crack;
+  if (saved.thrMul != null) S.thrMul = saved.thrMul;
 } catch (e) {}
 
 function persist() {
-  try { localStorage.setItem("teslasound", JSON.stringify({ vol: S.vol, profile: S.profile.id })); } catch (e) {}
+  try { localStorage.setItem("teslasound", JSON.stringify({ vol: S.vol, profile: S.profile.id, char: S.char, crack: S.crack, thrMul: S.thrMul })); } catch (e) {}
 }
 
 /* ---------- Audio ---------- */
@@ -147,7 +160,119 @@ function makeNoiseBuffer(sec) {
   return b;
 }
 
-function buildGraph() {
+/* --- Motor DSP por AudioWorklet: un pulso real por cada chispa (720°),
+       espaciado irregular por cilindro, resonancia de escape y petardeos.
+       Todo se genera muestra a muestra, no es ningún MP3 ni conexión. --- */
+const WORKLET_SRC = `
+class EngineProcessor extends AudioWorkletProcessor {
+  static get parameterDescriptors(){ return []; }
+  constructor(){ super();
+    this.rpm=0; this.load=0;
+    this.rpmS=0; this.loadS=0;
+    this.cyl=8; this.harm=1;
+    this.char=0.5; this.crack=0.3; this.lope=0.5;
+    this.fases=[]; this.buildCyl();
+    this._prevA=0; this.angle=0;
+    this.activas=[];
+    this.lp=0; this.dc=0;
+    this.popT=0; this.popEnv=0;
+    this.loadPrev=0; this.decelT=0;
+    this.lopWob=0; this.lopT=0;
+    this.port.onmessage=(e)=>{ const d=e.data;
+      if(d.t==='p'){
+        this.rpm=d.rpm; this.load=d.load;
+        if(d.char!==undefined) this.char=d.char;
+        if(d.crack!==undefined) this.crack=d.crack;
+        if(d.lope!==undefined) this.lope=d.lope;
+        if(d.cyl!==undefined && d.cyl!==this.cyl){ this.cyl=d.cyl|0; this.buildCyl(); }
+        if(d.harm!==undefined) this.harm=d.harm;
+      }
+    };
+  }
+  /* fases de chispa dentro del ciclo de 720 grados (4 pi rad)
+     con el espaciado real de cada tiro */
+  buildCyl(){
+    const n=Math.max(1,this.cyl|0), base=4*Math.PI/n;
+    this.fases=[];
+    let acc=0;
+    for(let i=0;i<n;i++){
+      this.fases.push(acc);
+      // patrones de encendido: V8 crossplane alterna 90/180 grados,
+      // V12 uniforme, 4 en linea ligera asimetria, diesel traqueteo
+      let m=1;
+      if(n===8) m=(i%2===0)?0.67:1.33;
+      else if(n===4) m=(i%2===0)?1.1:0.9;
+      else if(n===6) m=(i%2===0)?0.86:1.14;
+      acc+=m*(base/2)*2;
+    }
+  }
+  process(inputs, outputs){
+    const out=outputs[0]; if(!out||!out[0]) return true;
+    const out0=out[0], sr=sampleRate, N=out0.length;
+    const T=N/sr;
+    this.rpmS+=(this.rpm-this.rpmS)*(1-Math.exp(-T/0.012));
+    this.loadS+=(this.load-this.loadS)*(1-Math.exp(-T/0.05));
+    const rpm=this.rpmS, load=Math.max(0,Math.min(1,this.loadS));
+    const F=(rpm/60)*(this.cyl/2)*this.harm;      // chispas por segundo
+    const dA=F*4*Math.PI/sr;
+    // ventana de petardeo: el par está cayendo (levantó el pie)
+    if(this.decelT>0) this.decelT-=T;
+    if(this.loadPrev-this.loadS>0.12){ this.decelT=0.45; this.loadPrev=this.loadS; }
+    else this.loadPrev=this.loadS;
+    // vaivén del ralentí (apegotes de leva)
+    this.lopT-=T; if(this.lopT<=0){ this.lopT=0.012+Math.random()*0.05;
+      this.lopWob=(Math.random()*2-1)*(0.3+0.7*this.char); }
+    const pres=1+this.lope*1.5*this.lopWob*(rpm<3000?1:0.35);
+    // probabilidad de petardeo
+    let popP=this.crack*(this.decelT>0?0.4:0.02)*(0.3+0.7*rpm/6500)*T;
+    for(let i=0;i<N;i++){
+      this._prevA=this.angle;
+      this.angle=(this.angle+dA)%(4*Math.PI);
+      for(let c=0;c<this.fases.length;c++){
+        const f=this.fases[c];
+        let df=f-this._prevA; if(df<0)df+=4*Math.PI;
+        if(df<this.angle-this._prevA+1e-9){
+          const amp=(0.5+0.5*load)*(0.82+0.36*Math.random());
+          this.activas.push({
+            t:0, amp,
+            f0:2*Math.PI*F*(0.55+0.6*Math.random())*(rpm>500?1:0.6),
+            e1:0.010+0.016*Math.random(),
+            e2:0.0012+0.0028*Math.random(),
+            ph:Math.random()*2*Math.PI
+          });
+        }
+      }
+      let y=0;
+      for(let k=this.activas.length-1;k>=0;k--){
+        const p=this.activas[k]; p.t+=1/sr;
+        const e1=Math.exp(-p.t/p.e1);
+        y+=p.amp*(e1*Math.sin(p.f0*p.t+p.ph)+Math.exp(-p.t/p.e2)*(Math.random()*2-1)*0.55);
+        if(p.t>0.075) this.activas.splice(k,1);
+      }
+      // petardeos de escape
+      if(this.popEnv<=1e-4 && Math.random()<popP){
+        this.popEnv=0.35+0.5*Math.random()*this.crack;
+        this.popT=0.008+0.02*Math.random();
+      }
+      if(this.popT>0) this.popT-=1/sr;
+      if(this.popT<=0) this.popEnv*=0.86;
+      if(this.popEnv>0) y+=this.popEnv*(Math.random()*2-1)*0.5;
+      // corte del limitador al pisar a fondo
+      let g=1;
+      if(rpm>0.955*6500 && load>0.9) g=(Math.random()<0.35)?0.25:1;
+      // cuerpo: pasa-bajos suave + bloqueo DC
+      this.lp+=(y-this.lp)*0.35;
+      const s=this.lp*pres*0.9*g;
+      this.dc=s-this.dc*0.998;
+      out0[i]=this.dc*4;
+    }
+    return true;
+  }
+}
+registerProcessor('engine-proc', EngineProcessor);
+`;
+
+async function buildGraph() {
   ctx = new (window.AudioContext || window.webkitAudioContext)();
   master = ctx.createGain(); master.gain.value = S.vol;
   comp = ctx.createDynamicsCompressor();
@@ -158,11 +283,48 @@ function buildGraph() {
   engGain.connect(modGain); modGain.connect(shaper); shaper.connect(master);
   master.connect(comp); comp.connect(ctx.destination);
 
+  // analizador opcional para pruebas automáticas (?probe en la URL)
+  if (location.search.indexOf("probe") >= 0) {
+    const an = ctx.createAnalyser(); an.fftSize = 2048;
+    comp.connect(an); window.__an = an;
+  }
+
   const P = S.profile;
-  if (P.ev) { buildEV(); } else { buildICE(P); }
+  S.wl = false; S.wlNode = null;
+  if (!P.ev && ctx.audioWorklet) {
+    const tries = [
+      () => URL.createObjectURL(new Blob([WORKLET_SRC], { type: "application/javascript" })),
+      () => "data:application/javascript;base64," + btoa(unescape(encodeURIComponent(WORKLET_SRC))),
+    ];
+    for (const urlOf of tries) {
+      try {
+        const url = urlOf();
+        await ctx.audioWorklet.addModule(url);
+        S.wlNode = new AudioWorkletNode(ctx, "engine-proc", {
+          numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1],
+        });
+        S.wlNode.connect(engGain);
+        S.wl = true;
+        break;
+      } catch (e) { S.wl = false; S.wlNode = null; S.wlErr = (e && e.message) || String(e); }
+    }
+  }
+
+  if (P.ev) { buildEV(); }
+  else if (!S.wl) { buildICE(P); }   // reserva: osciladores si no hay Worklet
+  buildWind();                       // viento + rodadura (compartido)
 
   master.gain.setTargetAtTime(S.vol, ctx.currentTime, 0.05);
   engGain.gain.setTargetAtTime(1, ctx.currentTime, 0.4);   // arranque suave
+}
+
+/* --- Viento + rodadura (se usan en todos los motores) --- */
+function buildWind() {
+  noise.wind = {};
+  noise.wind.src = ctx.createBufferSource(); noise.wind.src.buffer = makeNoiseBuffer(3); noise.wind.src.loop = true;
+  noise.wind.lp = ctx.createBiquadFilter(); noise.wind.lp.type = "lowpass"; noise.wind.lp.frequency.value = 700;
+  noise.wind.g = ctx.createGain(); noise.wind.g.gain.value = 0.0;
+  noise.wind.src.connect(noise.wind.lp); noise.wind.lp.connect(noise.wind.g); noise.wind.g.connect(master); noise.wind.src.start(ctx.currentTime);
 }
 
 /* --- Motor de combustión --- */
@@ -197,13 +359,6 @@ function buildICE(P) {
   noise.int.g = ctx.createGain(); noise.int.g.gain.value = 0.0;
   noise.int.src.connect(noise.int.hp); noise.int.hp.connect(noise.int.g); noise.int.g.connect(engGain); noise.int.src.start(t);
 
-  // Viento + rodadura (con la velocidad)
-  noise.wind = {};
-  noise.wind.src = ctx.createBufferSource(); noise.wind.src.buffer = makeNoiseBuffer(3); noise.wind.src.loop = true;
-  noise.wind.lp = ctx.createBiquadFilter(); noise.wind.lp.type = "lowpass"; noise.wind.lp.frequency.value = 700;
-  noise.wind.g = ctx.createGain(); noise.wind.g.gain.value = 0.0;
-  noise.wind.src.connect(noise.wind.lp); noise.wind.lp.connect(noise.wind.g); noise.wind.g.connect(master); noise.wind.src.start(t);
-
   // Lope (tambalear en ralentí): oscilador que modula modGain.gain
   lfo = ctx.createOscillator(); lfo.type = "sawtooth"; lfo.frequency.value = 4;
   lopeDepth = ctx.createGain(); lopeDepth.gain.value = 0;   // profundidad de mod.
@@ -236,8 +391,10 @@ function destroyGraph() {
   try { oscs.forEach(x => x.o.stop()); } catch (e) {}
   try { ["exh","int","wind"].forEach(k => { if (noise[k] && noise[k].src) noise[k].src.stop(); }); } catch (e) {}
   try { if (lfo) lfo.stop(); } catch (e) {}
+  try { if (S.wlNode) S.wlNode.disconnect(); } catch (e) {}
   try { ctx.close(); } catch (e) {}
   ctx = null; oscs = []; noise = {}; lfo = null;
+  S.wl = false; S.wlNode = null;
 }
 
 /* Traqueteo/expulsión del turbo al soltar el acelerador */
@@ -258,6 +415,12 @@ function blowoff() {
 
 /* ---------- Marchas y RPM ---------- */
 const SHIFT_MS = 380;
+/* Acelerón "Rev" con el freno pisado (parado): aplica a todos los motores */
+function revBoost(P, sp, now) {
+  if (!S.revHold || sp >= 5) return 0;
+  const wob = Math.sin(now / 650) * 0.5 + 0.5;
+  return P.idle + (P.redline - P.idle) * (0.22 + 0.42 * wob);
+}
 /* Marcha persistente: avanza/retrocede cuando la velocidad cruza los límites
    de banda de cada relación, de modo que el corte de revoluciones al subir
    marcha y el "blip" al reducir quedan reproducidos en el salto de RPM. */
@@ -315,8 +478,47 @@ function audioFrame(dtMs) {
     return;
   }
 
-  // RPM objetivo según la marcha persistente actual
-  S.rpmTarget = rpmInGear(P, S.gear, sp);
+  // ============ modo AudioWorklet: DSP cilindro a cilindro ============
+  if (S.wl && S.wlNode) {
+    // RPM objetivo según la marcha persistente (o el Rev mantenido)
+    S.rpmTarget = Math.max(rpmInGear(P, S.gear, sp), revBoost(P, sp, now));
+    S.rpm += (S.rpmTarget - S.rpm) * Math.min(1, k * (S.shifting > 0 ? 6 : 3.5));
+    if (S.rpm < P.idle * 0.8) S.rpm = P.idle;
+
+    // carga: acelerador real + caída de par al cambiar
+    const load = Math.min(1, S.throttle * 1.6 * S.thrMul) * (S.shifting > 0 ? 0.18 : 1);
+
+    // petardeo: solo si soltó el acelerador o ralentí irregular (carácter)
+    const popLevel = (S.throttle < 0.06 ? S.crack * 0.9 : S.crack * 0.25) *
+                     (sp < 4 ? 0.55 : 1);
+
+    const wob = 0.9 + 0.2 * Math.sin(now / 430) * load * (sp > 80 ? 1 : 0.4);
+    try {
+      S.wlNode.port.postMessage({
+        t: "p",
+        rpm: S.rpm,
+        load: Math.min(1, load * (S.revHold && sp < 5 ? 1.2 : wob)),
+        cyl: P.cyl,
+        harm: P.pitch,
+        char: S.char,
+        crack: popLevel,
+        lope: P.lope * Math.max(0.3, 1 - S.rpm / (P.idle * 6)),
+      });
+    } catch (e) {}
+
+    // saturación y cromado del escape acompañan al régimen
+    shaper.curve = makeDistortionCurve(3 + P.growl * (1 + load * 3));
+
+    // viento + rodadura (igual que en el modo de reserva)
+    const windG = sp > 20 ? Math.min(0.11, Math.pow(sp / 240, 1.5)) : 0;
+    noise.wind.g.gain.setTargetAtTime(windG, t, 0.4);
+    noise.wind.lp.frequency.setTargetAtTime(500 + sp * 6, t, 0.4);
+    return;
+  }
+
+  // ============ modo de reserva: osciladores estándar ============
+  // RPM objetivo según la marcha persistente (o el Rev mantenido)
+  S.rpmTarget = Math.max(rpmInGear(P, S.gear, sp), revBoost(P, sp, now));
 
   // suavizado RPM hacia el objetivo
   S.rpm += (S.rpmTarget - S.rpm) * Math.min(1, k * (S.shifting > 0 ? 6 : 3.5));
@@ -537,22 +739,25 @@ function renderProfiles() {
     const b = document.createElement("button");
     b.className = "chip" + (p.id === S.profile.id ? " sel" : "");
     b.textContent = p.name;
-    b.onclick = () => {
+    b.onclick = async () => {
       S.profile = p;
       document.getElementById("profileName").textContent = p.name;
       renderProfiles();
       persist();
-      if (S.running) { destroyGraph(); buildGraph(); }
+      if (S.running) { destroyGraph(); await buildGraph(); }
     };
     wrap.appendChild(b);
   });
   document.getElementById("profileName").textContent = S.profile.name;
 }
 
-function setRunning(on) {
+async function setRunning(on) {
   const btn = document.getElementById("start");
   if (on) {
-    if (!ctx) { try { buildGraph(); } catch (e) { alert("Este navegador no soporta Web Audio"); return; } }
+    if (!ctx) {
+      try { await buildGraph(); }
+      catch (e) { alert("Este navegador no soporta Web Audio"); return; }
+    }
     if (ctx.state === "suspended") ctx.resume();
     S.running = true; btn.textContent = "⏸ Parar sonido"; btn.classList.add("running");
   } else {
@@ -563,11 +768,29 @@ function setRunning(on) {
 
 document.getElementById("start").onclick = () => setRunning(!S.running);
 
+/* Rev (acelerón con el freno pisado): mantener pulsado */
+{
+  const rev = document.getElementById("rev");
+  const down = (e) => { e.preventDefault(); if (!ctx) setRunning(true); S.revHold = true; rev.classList.add("sel"); };
+  const up = () => { S.revHold = false; rev.classList.remove("sel"); };
+  rev.addEventListener("pointerdown", down);
+  for (const ev of ["pointerup", "pointerleave", "pointercancel"]) rev.addEventListener(ev, up);
+}
+
 document.getElementById("vol").oninput = (e) => {
   S.vol = e.target.value / 100;
   if (master) master.gain.setTargetAtTime(S.vol, ctx.currentTime, 0.05);
   persist();
 };
+{ // Carácter (leva/irregularidad), Petardeo y Aceleración
+  const c = document.getElementById("char"), k = document.getElementById("crack"), th = document.getElementById("thr");
+  c.value = Math.round(S.char * 100);
+  k.value = Math.round(S.crack * 100);
+  th.value = Math.round(S.thrMul * 100);
+  c.oninput = (e) => { S.char = e.target.value / 100; persist(); };
+  k.oninput = (e) => { S.crack = e.target.value / 100; persist(); };
+  th.oninput = (e) => { S.thrMul = e.target.value / 100; persist(); };
+}
 document.getElementById("gpsOn").onchange = (e) => {
   S.gpsOn = e.target.checked;
   if (S.gpsOn) { startGps(); if (S.status === "off") gpsStatus("warn", "GPS: buscando señal…"); }

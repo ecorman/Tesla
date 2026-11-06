@@ -11,7 +11,7 @@ const puppeteer = require("puppeteer-core");
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   page.on("pageerror", e => errors.push("PAGEERROR: " + e.message));
 
-  await page.goto("file:///E:/Android/TeslaNav/sonido.html");
+  await page.goto("file:///E:/Android/TeslaNav/sonido.html?probe");
   await new Promise(r => setTimeout(r, 500));
 
   // arrancar sonido
@@ -42,9 +42,35 @@ const puppeteer = require("puppeteer-core");
     rpm: (typeof S !== "undefined") ? Math.round(S.rpm) : null,
     running: (typeof S !== "undefined") ? S.running : null,
     demo: (typeof S !== "undefined") ? S.demo : null,
+    modo: (typeof S !== "undefined") ? (S.wl ? "AudioWorklet (DSP)" : "osciladores (reserva)") : null,
   }));
+  // nivel de audio real (RMS) desde el analizador
+  const rms = await page.evaluate(() => new Promise(res => {
+    const an = window.__an;
+    if (!an) { res(null); return; }
+    const buf = new Float32Array(an.fftSize);
+    an.getFloatTimeDomainData(buf);
+    let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+    res(Math.sqrt(s / buf.length));
+  }));
+  console.log("RMS audio:", rms);
   console.log("speed al inicio:", speed0);
   console.log("tras demo 120 km/h:", JSON.stringify(st));
+  if (typeof S !== "undefined" && S.wlErr) console.log("fallo Worklet:", S.wlErr);
+
+  // Rev mantenido parado
+  const revTest = await page.evaluate(async () => {
+    S.demoSpeed = 0; await new Promise(r => setTimeout(r, 2500));
+    const rev = document.getElementById("rev");
+    rev.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await new Promise(r => setTimeout(r, 3200));
+    const out = { rpm: Math.round(S.rpm), revHold: S.revHold };
+    rev.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+    await new Promise(r => setTimeout(r, 2500));
+    out.rpmTrasSoltar = Math.round(S.rpm);
+    return out;
+  });
+  console.log("Rev mantenido:", JSON.stringify(revTest));
 
   await page.evaluate(() => { S.demoSpeed = 30; S.speed = 30; });   // cruza en 3.ª
   await new Promise(r => setTimeout(r, 3000));
