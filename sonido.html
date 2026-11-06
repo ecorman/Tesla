@@ -134,6 +134,22 @@ function persist() {
   try { localStorage.setItem("teslasound", JSON.stringify({ vol: S.vol, profile: S.profile.id, char: S.char, crack: S.crack, thrMul: S.thrMul })); } catch (e) {}
 }
 
+/* Tablas del modelo de órdenes (pesos de cada armónico respecto del giro
+   del cigüeñal) y de resonadores de escape por perfil de motor. */
+const ORDER_TAB = {
+  v8:     [[0.5,0.30],[1,0.42],[1.5,0.18],[2,0.62],[2.5,0.14],[3,0.40],[3.5,0.12],[4,1.00],[4.5,0.12],[5,0.28],[6,0.50],[7,0.22],[8,0.34]],
+  v12:    [[0.5,0.22],[1,0.35],[1.5,0.12],[2,0.50],[2.5,0.10],[3,0.42],[3.5,0.14],[4,0.60],[4.5,0.15],[5,0.40],[6,1.00],[7,0.35],[8,0.45],[10,0.30],[12,0.28]],
+  r4:     [[0.5,0.28],[1,0.55],[1.5,0.30],[2,1.00],[2.5,0.12],[3,0.35],[3.5,0.18],[4,0.60],[5,0.30],[6,0.40],[8,0.25]],
+  diesel: [[0.5,0.35],[1,0.75],[1.5,0.25],[2,0.60],[2.5,0.10],[3,1.00],[3.5,0.12],[4,0.55],[5,0.30],[6,0.45],[8,0.30]],
+};
+const RES_TAB = {
+  v8:     [{tau:2.6,g:0.82,damp:0.30},{tau:5.2,g:0.68,damp:0.33},{tau:10.4,g:0.55,damp:0.36}],
+  v12:    [{tau:1.9,g:0.78,damp:0.32},{tau:3.9,g:0.62,damp:0.34},{tau:8.1,g:0.50,damp:0.36}],
+  r4:     [{tau:2.2,g:0.75,damp:0.31},{tau:4.4,g:0.60,damp:0.33}],
+  diesel: [{tau:3.0,g:0.85,damp:0.27},{tau:6.1,g:0.70,damp:0.29},{tau:12.2,g:0.55,damp:0.33}],
+};
+const BURST_TAB = { v8:0.30, v12:0.22, r4:0.50, diesel:0.55 };  // ráfagas de válvulas
+
 /* ---------- Audio ---------- */
 let ctx = null, master = null, comp = null, shaper = null, engGain = null;
 let oscs = [], gains = {}, noise = {}, lfo = null, lopeDepth = null, modGain = null;
@@ -160,111 +176,111 @@ function makeNoiseBuffer(sec) {
   return b;
 }
 
-/* --- Motor DSP por AudioWorklet: un pulso real por cada chispa (720°),
-       espaciado irregular por cilindro, resonancia de escape y petardeos.
-       Todo se genera muestra a muestra, no es ningún MP3 ni conexión. --- */
+/* --- Motor DSP por AudioWorklet, siguiendo el modelo público de síntesis
+       de sonido de motor (ver ordenes: Baldan et al. 2015; Doerfler & Wyse
+       2026; Dupré et al. 2023): banco de armónicos en "órdenes de motor"
+       (múltiplos medio-enteros de la frecuencia de giro del cigüeñal),
+       variabilidad de ciclo a ciclo (ruido rosa), ráfagas de válvulas/
+       admisión moduladas por órdenes bajas y bancos de resonadores de
+       escape tipo Karplus-Strong. Implementación propia, sin muestras. --- */
 const WORKLET_SRC = `
 class EngineProcessor extends AudioWorkletProcessor {
   static get parameterDescriptors(){ return []; }
   constructor(){ super();
     this.rpm=0; this.load=0;
     this.rpmS=0; this.loadS=0;
-    this.cyl=8; this.harm=1;
     this.char=0.5; this.crack=0.3; this.lope=0.5;
-    this.fases=[]; this.buildCyl();
-    this._prevA=0; this.angle=0;
-    this.activas=[];
-    this.lp=0; this.dc=0;
+    this.orders=[]; this.amps=null;
+    this.combs=[];
+    this.phi=0;
+    this.pink=0; this.pink2=0;
+    this.white=0;                 // ráfaga LPF de válvulas
+    this.burstGain=0.3;
     this.popT=0; this.popEnv=0;
     this.loadPrev=0; this.decelT=0;
-    this.lopWob=0; this.lopT=0;
+    this.xp=0; this.dcp=0;        // bloqueo DC
     this.port.onmessage=(e)=>{ const d=e.data;
       if(d.t==='p'){
         this.rpm=d.rpm; this.load=d.load;
         if(d.char!==undefined) this.char=d.char;
         if(d.crack!==undefined) this.crack=d.crack;
         if(d.lope!==undefined) this.lope=d.lope;
-        if(d.cyl!==undefined && d.cyl!==this.cyl){ this.cyl=d.cyl|0; this.buildCyl(); }
-        if(d.harm!==undefined) this.harm=d.harm;
+        if(d.burstGain!==undefined) this.burstGain=d.burstGain;
+        if(d.amps && Array.isArray(d.amps) && d.amps.length===this.orders.length) this.amps=d.amps;
+      } else if(d.t==='orders'){
+        this.orders=d.list.map(o=>({h:+o.h, d:+o.d, vx:+o.vx, gx:+o.gx}));
+      } else if(d.t==='res'){
+        const aHP=Math.min(0.05, 2*Math.PI*30/sampleRate);  // fuera el boom subgrave
+        this.combs=d.list.map(x=>{
+          const n=Math.max(4, Math.round(x.tau*sampleRate/1000));
+          return {buf:new Float32Array(n), pos:0, g:+x.g, damp:+x.damp, st:0, hp:0, hpc:aHP};
+        });
       }
     };
   }
-  /* fases de chispa dentro del ciclo de 720 grados (4 pi rad)
-     con el espaciado real de cada tiro */
-  buildCyl(){
-    const n=Math.max(1,this.cyl|0), base=4*Math.PI/n;
-    this.fases=[];
-    let acc=0;
-    for(let i=0;i<n;i++){
-      this.fases.push(acc);
-      // patrones de encendido: V8 crossplane alterna 90/180 grados,
-      // V12 uniforme, 4 en linea ligera asimetria, diesel traqueteo
-      let m=1;
-      if(n===8) m=(i%2===0)?0.67:1.33;
-      else if(n===4) m=(i%2===0)?1.1:0.9;
-      else if(n===6) m=(i%2===0)?0.86:1.14;
-      acc+=m*(base/2)*2;
-    }
-  }
   process(inputs, outputs){
     const out=outputs[0]; if(!out||!out[0]) return true;
-    const out0=out[0], sr=sampleRate, N=out0.length;
-    const T=N/sr;
-    this.rpmS+=(this.rpm-this.rpmS)*(1-Math.exp(-T/0.012));
+    const out0=out[0], sr=sampleRate, N=out0.length, T=N/sr;
+    this.rpmS+=(this.rpm-this.rpmS)*(1-Math.exp(-T/0.015));
     this.loadS+=(this.load-this.loadS)*(1-Math.exp(-T/0.05));
-    const rpm=this.rpmS, load=Math.max(0,Math.min(1,this.loadS));
-    const F=(rpm/60)*(this.cyl/2)*this.harm;      // chispas por segundo
-    const dA=F*4*Math.PI/sr;
-    // ventana de petardeo: el par está cayendo (levantó el pie)
+    const rpm=Math.max(0,this.rpmS), load=Math.max(0,Math.min(1,this.loadS));
+    if(rpm<30){ out0.fill(0); return true; }
+    const f0=rpm/60;
+    const dP=2*Math.PI*f0/sr;
+    const nyq=sr*0.42;
+    // variabilidad de ciclo a ciclo: profundidad mayor en ralentí y con carácter
+    const cycA=0.08+0.5*Math.max(this.char,this.lope)*(1-0.6*Math.min(1,rpm/4500));
+    // ventana de petardeo (par cayendo)
     if(this.decelT>0) this.decelT-=T;
-    if(this.loadPrev-this.loadS>0.12){ this.decelT=0.45; this.loadPrev=this.loadS; }
+    if(this.loadPrev-this.loadS>0.12){ this.decelT=0.5; this.loadPrev=this.loadS; }
     else this.loadPrev=this.loadS;
-    // vaivén del ralentí (apegotes de leva)
-    this.lopT-=T; if(this.lopT<=0){ this.lopT=0.012+Math.random()*0.05;
-      this.lopWob=(Math.random()*2-1)*(0.3+0.7*this.char); }
-    const pres=1+this.lope*1.5*this.lopWob*(rpm<3000?1:0.35);
-    // probabilidad de petardeo
-    let popP=this.crack*(this.decelT>0?0.4:0.02)*(0.3+0.7*rpm/6500)*T;
+    const popP=this.crack*(this.decelT>0?0.5:0.02)*(0.3+0.7*Math.min(1,rpm/6500))*T;
     for(let i=0;i<N;i++){
-      this._prevA=this.angle;
-      this.angle=(this.angle+dA)%(4*Math.PI);
-      for(let c=0;c<this.fases.length;c++){
-        const f=this.fases[c];
-        let df=f-this._prevA; if(df<0)df+=4*Math.PI;
-        if(df<this.angle-this._prevA+1e-9){
-          const amp=(0.5+0.5*load)*(0.82+0.36*Math.random());
-          this.activas.push({
-            t:0, amp,
-            f0:2*Math.PI*F*(0.55+0.6*Math.random())*(rpm>500?1:0.6),
-            e1:0.010+0.016*Math.random(),
-            e2:0.0012+0.0028*Math.random(),
-            ph:Math.random()*2*Math.PI
-          });
+      this.phi+=dP; if(this.phi>Math.PI*12) this.phi-=Math.PI*12; // 6 revoluciones
+      const w1=Math.random()*2-1;
+      this.pink=0.85*this.pink+0.15*w1;       // ruido rosa bruto (2 polos)
+      this.pink2=0.65*this.pink2+0.05*w1;
+      const pinkNow=(this.pink+this.pink2)*0.6;
+      // banco de órdenes del motor + ráfagas de válvulas ancladas a órdenes bajas
+      let harm=0, venv=0;
+      for(let k=0;k<this.orders.length;k++){
+        const o=this.orders[k];
+        const a=this.amps?this.amps[k]:0;
+        if(a<0.004) continue;
+        const f=(o.h+o.d)*f0;
+        if(f>nyq) continue;
+        const s=Math.sin((o.h+o.d)*this.phi);
+        harm+=a*s;
+        if(o.vx){ const v=Math.abs(s); venv+=o.gx*v*v*v; }   // |phi_m|^3 igual que en el papel
+      }
+      this.white=0.85*this.white+0.15*w1;     // ruido blanco para ráfagas
+      let sV=harm*(1-cycA+2.2*cycA*pinkNow);
+      sV+=this.white*this.burstGain*venv*(0.35+0.65*load);// petardeos de escape
+      if(this.popT<=0){
+        if(this.popEnv<0.02 && Math.random()<popP){
+          this.popEnv=0.35+0.5*Math.random()*this.crack;
+          this.popT=0.006+0.02*Math.random();
         }
-      }
-      let y=0;
-      for(let k=this.activas.length-1;k>=0;k--){
-        const p=this.activas[k]; p.t+=1/sr;
-        const e1=Math.exp(-p.t/p.e1);
-        y+=p.amp*(e1*Math.sin(p.f0*p.t+p.ph)+Math.exp(-p.t/p.e2)*(Math.random()*2-1)*0.55);
-        if(p.t>0.075) this.activas.splice(k,1);
-      }
-      // petardeos de escape
-      if(this.popEnv<=1e-4 && Math.random()<popP){
-        this.popEnv=0.35+0.5*Math.random()*this.crack;
-        this.popT=0.008+0.02*Math.random();
-      }
-      if(this.popT>0) this.popT-=1/sr;
+      } else { this.popT-=1/sr; sV+=this.popEnv*(Math.random()*2-1)*0.5; }
       if(this.popT<=0) this.popEnv*=0.86;
-      if(this.popEnv>0) y+=this.popEnv*(Math.random()*2-1)*0.5;
-      // corte del limitador al pisar a fondo
-      let g=1;
-      if(rpm>0.955*6500 && load>0.9) g=(Math.random()<0.35)?0.25:1;
-      // cuerpo: pasa-bajos suave + bloqueo DC
-      this.lp+=(y-this.lp)*0.35;
-      const s=this.lp*pres*0.9*g;
-      this.dc=s-this.dc*0.998;
-      out0[i]=this.dc*4;
+      // banco resonador (combs con amortiguación, Karplus-Strong);
+      // paso-alto dentro del bucle: sin él, la ganancia DC 1/(1-g)
+      // convierte el banco en un bombardeo de subgraves
+      let yr=0;
+      for(let k=0;k<this.combs.length;k++){
+        const cb=this.combs[k];
+        const delayed=cb.buf[cb.pos];
+        const dhp=delayed-cb.hp; cb.hp+=dhp*cb.hpc;   // HP ~30 Hz en el bucle
+        cb.st+=(dhp-cb.st)*cb.damp;                   // amortiguación del bucle
+        cb.buf[cb.pos]=sV+cb.g*cb.st;
+        cb.pos=(cb.pos+1)%cb.buf.length;
+        yr+=delayed;
+      }
+      let mixVal=(this.combs.length)?(sV*0.55+yr*0.85):sV;
+      // bloqueo DC y salida
+      const hpz=mixVal-this.xp; this.xp=mixVal;
+      this.dcp=hpz+0.998*this.dcp;
+      out0[i]=this.dcp*3.2;
     }
     return true;
   }
@@ -285,7 +301,7 @@ async function buildGraph() {
 
   // analizador opcional para pruebas automáticas (?probe en la URL)
   if (location.search.indexOf("probe") >= 0) {
-    const an = ctx.createAnalyser(); an.fftSize = 2048;
+    const an = ctx.createAnalyser(); an.fftSize = 4096; an.smoothingTimeConstant = 0;
     comp.connect(an); window.__an = an;
   }
 
@@ -394,7 +410,7 @@ function destroyGraph() {
   try { if (S.wlNode) S.wlNode.disconnect(); } catch (e) {}
   try { ctx.close(); } catch (e) {}
   ctx = null; oscs = []; noise = {}; lfo = null;
-  S.wl = false; S.wlNode = null;
+  S.wl = false; S.wlNode = null; S._wlKey = null; S._wlList = null; S._wlW = null;
 }
 
 /* Traqueteo/expulsión del turbo al soltar el acelerador */
@@ -478,7 +494,7 @@ function audioFrame(dtMs) {
     return;
   }
 
-  // ============ modo AudioWorklet: DSP cilindro a cilindro ============
+  // ============ modo AudioWorklet: modelo de órdenes + resonadores ========
   if (S.wl && S.wlNode) {
     // RPM objetivo según la marcha persistente (o el Rev mantenido)
     S.rpmTarget = Math.max(rpmInGear(P, S.gear, sp), revBoost(P, sp, now));
@@ -492,22 +508,60 @@ function audioFrame(dtMs) {
     const popLevel = (S.throttle < 0.06 ? S.crack * 0.9 : S.crack * 0.25) *
                      (sp < 4 ? 0.55 : 1);
 
-    const wob = 0.9 + 0.2 * Math.sin(now / 430) * load * (sp > 80 ? 1 : 0.4);
+    // banco de órdenes y resonadores del perfil: se manda al cambiar de motor
+    if (S._wlKey !== P.id) {
+      const tab = ORDER_TAB[P.id] || ORDER_TAB.v8;
+      const scale = P.id === "diesel" ? 1.6 : P.id === "v12" ? 0.7 : 1;
+      const gxBase = [0.35, 0.75, 0.5, 0.95];           // pesos de ráfaga por orden bajo
+      const sub = [0.5, 1, 1.5, 2];
+      const list = tab.map(([h, w]) => ({
+        h,
+        d: (Math.random() * 2 - 1) * 0.004,            // desviación de orden (huella)
+        vx: sub.includes(h) ? 1 : 0,
+        gx: sub.includes(h) ? gxBase[sub.indexOf(h)] * scale * Math.sqrt(w) : 0,
+      }));
+      try {
+        S.wlNode.port.postMessage({ t: "orders", list });
+        S.wlNode.port.postMessage({ t: "res", list: RES_TAB[P.id] || RES_TAB.v8 });
+      } catch (e) {}
+      S._wlKey = P.id;
+      S._wlList = list;
+      S._wlW = tab.map(x => x[1]);
+    }
+
+    // amplitudes dinámicas por orden: bajos con la carga, la orden de
+    // encendido muy sensible y los altos creciendo con el régimen
+    const rr = Math.min(1, S.rpm / P.redline);
+    const l0 = Math.min(1, load);
+    const firing = P.cyl / 2;
+    const amps = S._wlW.map((w, i) => {
+      const h = S._wlList[i].h;
+      let a = w;
+      if (h <= 2) a *= 0.55 + 0.85 * l0 + 0.25 * rr;
+      if (h === firing) a *= 0.7 + 0.6 * l0;
+      if (h > firing) a *= 0.4 + 0.9 * Math.min(1, rr * 1.2);
+      // por debajo de ~40 Hz no hay altavoz que lo reproduzca: solo emborra
+      const fq = h * S.rpm / 60;
+      if (fq < 40) a *= Math.max(0.12, fq / 40);
+      return a;
+    });
+
+    const wob = 0.9 + 0.2 * Math.sin(now / 430) * l0 * (sp > 80 ? 1 : 0.4);
     try {
       S.wlNode.port.postMessage({
         t: "p",
         rpm: S.rpm,
-        load: Math.min(1, load * (S.revHold && sp < 5 ? 1.2 : wob)),
-        cyl: P.cyl,
-        harm: P.pitch,
+        load: Math.min(1, l0 * (S.revHold && sp < 5 ? 1.2 : wob)),
         char: S.char,
         crack: popLevel,
         lope: P.lope * Math.max(0.3, 1 - S.rpm / (P.idle * 6)),
+        burstGain: BURST_TAB[P.id] || 0.3,
+        amps,
       });
     } catch (e) {}
 
     // saturación y cromado del escape acompañan al régimen
-    shaper.curve = makeDistortionCurve(3 + P.growl * (1 + load * 3));
+    shaper.curve = makeDistortionCurve(3 + P.growl * (1 + l0 * 2));
 
     // viento + rodadura (igual que en el modo de reserva)
     const windG = sp > 20 ? Math.min(0.11, Math.pow(sp / 240, 1.5)) : 0;

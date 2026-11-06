@@ -54,6 +54,24 @@ const puppeteer = require("puppeteer-core");
     res(Math.sqrt(s / buf.length));
   }));
   console.log("RMS audio:", rms);
+
+  // espectral: el pico de graves debe seguir la orden de encendido del V8 (4×f0)
+  const spec = await page.evaluate(() => new Promise(res => {
+    const an = window.__an;
+    if (!an) { res(null); return; }
+    const buf = new Float32Array(an.frequencyBinCount);
+    an.getFloatFrequencyData(buf);
+    const binHz = an.context.sampleRate / an.fftSize;
+    let best = -Infinity, bestI = -1;
+    for (let i = 2; i < Math.floor(400 / binHz); i++) {
+      if (buf[i] > best) { best = buf[i]; bestI = i; }
+    }
+    res({ peakHz: bestI * binHz, rpmNow: Math.round(S.rpm) });
+  }));
+  if (spec) {
+    const orderIdExpected = 4 * spec.rpmNow / 60;
+    console.log("pico espectral:", spec.peakHz.toFixed(1), "Hz; esperado (orden 4 x f0):", orderIdExpected.toFixed(1), "Hz");
+  }
   console.log("speed al inicio:", speed0);
   console.log("tras demo 120 km/h:", JSON.stringify(st));
   if (typeof S !== "undefined" && S.wlErr) console.log("fallo Worklet:", S.wlErr);
