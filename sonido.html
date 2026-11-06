@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sonido Motor · GPS</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0d10; --card:#16191e; --ink:#e8eaed; --dim:#9aa0a6; --accent:#e82127; --ok:#31c48d; --warn:#f6c344; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:Arial,Helvetica,sans-serif;
+         display:flex; flex-direction:column; align-items:center; gap:10px; padding:14px; overflow-x:hidden; }
+  header { width:100%; max-width:900px; display:flex; align-items:center; gap:12px; }
+  header h1 { margin:0; font-size:clamp(1.1rem,3vw,1.6rem); }
+  header .sub { font-size:.85rem; color:var(--dim); }
+  #gps { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:.9rem; color:var(--dim); }
+  #gpsDot { width:10px; height:10px; border-radius:50%; background:#666; }
+  #gpsDot.ok { background:var(--ok); } #gpsDot.warn { background:var(--warn); } #gpsDot.err { background:var(--accent); }
+
+  #gaugeWrap { position:relative; width:min(88vw,380px); aspect-ratio:1; flex:0 0 auto; }
+  canvas { width:100%; height:100%; display:block; }
+  #speedBox { position:absolute; top:56%; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; }
+  #speed { font-size:clamp(3rem,12vw,4.6rem); font-weight:bold; line-height:1; }
+  #speedUnit { font-size:.9rem; color:var(--dim); letter-spacing:2px; }
+  #gearBox { position:absolute; top:26%; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; }
+  #gearLabel { font-size:.75rem; color:var(--dim); letter-spacing:2px; }
+  #gear { font-size:clamp(1.6rem,6vw,2.4rem); font-weight:bold; color:var(--accent); }
+  #gear.infwheel { color:var(--ok); }
+  #profileName { margin-top:2px; font-size:.85rem; color:var(--dim); }
+
+  .row { width:100%; max-width:900px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  button { min-height:52px; min-width:52px; border:0; border-radius:12px; padding:10px 20px;
+           font-size:1.05rem; font-weight:bold; color:#fff; background:#2a2f36; cursor:pointer; }
+  button:active { transform:scale(.97); }
+  #start { background:var(--accent); font-size:1.2rem; min-width:200px; }
+  #start.running { background:var(--ok); }
+  .chip { border:2px solid #2a2f36; background:transparent; color:var(--ink); font-weight:normal; font-size:.95rem; padding:10px 14px; }
+  .chip.sel { border-color:var(--accent); color:var(--accent); font-weight:bold; }
+
+  .panel { width:100%; max-width:900px; background:var(--card); border-radius:14px; padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+  .panel label { font-size:.9rem; color:var(--dim); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  input[type=range] { flex:1; min-width:150px; height:34px; accent-color:var(--accent); }
+  #demoBox { display:none; }
+  #demoBox.on { display:flex; }
+  footer { font-size:.75rem; color:var(--dim); text-align:center; max-width:900px; padding-bottom:6px; }
+</style>
+</head>
+<body>
+  <header>
+    <div><h1>🔊 Sonido Motor</h1><div class="sub">Velocidad en tiempo real vía GPS del coche</div></div>
+    <div id="gps"><span id="gpsDot"></span><span id="gpsTxt">GPS: pulsa activar</span></div>
+  </header>
+
+  <div id="gaugeWrap">
+    <canvas id="gauge" width="760" height="760"></canvas>
+    <div id="gearBox"><div id="gearLabel">MARCHA</div><div id="gear">N</div><div id="profileName"></div></div>
+    <div id="speedBox"><div id="speed">0</div><div id="speedUnit">KM/H</div></div>
+  </div>
+
+  <div class="row"><button id="start">▶ Arrancar sonido</button></div>
+  <div class="row" id="profiles"></div>
+
+  <div class="panel">
+    <label>🔊 Volumen <input type="range" id="vol" min="0" max="100" value="70"></label>
+    <label><input type="checkbox" id="gpsOn"> Activar GPS (usar velocidad del coche)</label>
+    <label><input type="checkbox" id="demoTog"> Modo demo (simular velocidad sin GPS)</label>
+    <div class="panel" id="demoBox"><label>🚀 Velocidad simulada <input type="range" id="demo" min="0" max="240" value="0"><b id="demoKmh">0</b> km/h</label></div>
+  </div>
+
+  <footer>Gasta batería y CPU: ciérralo al terminar. El navegador del Tesla pedirá permiso de ubicación la primera vez.<br>Herramienta de entretenimiento — no sostiene la seguridad del vehículo.</footer>
+
+<script>
+"use strict";
+/* ============================================================
+   Teslasound-style: sonido de motor simulado con velocidad GPS.
+   Sin dependencias externas. Web Audio + watchPosition.
+   ============================================================ */
+
+/* ---------- Perfiles de motor ---------- */
+/* cyl: cilindros, redline: rpm corte, pitch: multiplicador tonal,
+   growl: distorsión, lope: irregularidad en ralentí, noise: rumble aerodinámico,
+   gearMax: km/h máximos por marcha (relaciones), ev: motor eléctrico */
+const PROFILES = [
+  { id:"v8",    name:"V8 Muscle",     cyl:8,  redline:6200, idle:750,  pitch:1.0, growl:1.0, lope:0.8, noise:0.9, gearMax:[42,78,118,165,220,300] },
+  { id:"v12",   name:"V12 Tipo Ferrari", cyl:12, redline:8200, idle:900,  pitch:1.35,growl:0.55,lope:0.35,noise:0.7, gearMax:[55,100,150,205,270,340] },
+  { id:"r4",    name:"Rally Turbo 🏁", cyl:4,  redline:7000, idle:900,  pitch:0.9, growl:0.8, lope:0.5, noise:1.0, gearMax:[38,72,110,155,210,280], turbo:true },
+  { id:"diesel",name:"Diésel Rudo",    cyl:6,  redline:4300, idle:750,  pitch:0.72,growl:1.15,lope:1.0, noise:1.1, gearMax:[32,60,90,125,165,210] },
+  { id:"plaid", name:"Tesla Plaid ⚡",  ev:true, gearMax:[0,0,0,0,0,0] },
+];
+
+/* ---------- Estado ---------- */
+const S = {
+  profile: PROFILES[0],
+  vol: 0.7,
+  running: false,
+  gpsOn: false,
+  demo: false,
+  demoSpeed: 0,
+  // telemetría
+  speed: 0,          // km/h suavizada
+  rawSpeed: 0,
+  throttle: 0,       // 0..1 aceleración suavizada
+  rpm: 0,
+  rpmTarget: 0,
+  gear: 0,           // índice 0..N-1 ; ev = null
+  shifting: 0,       // ms restantes de la transición
+  lastFix: null,     // {lat,lon,t}
+  gpsFixes: 0,
+  lastFixTime: 0,
+  watchId: null,
+  status: "off",
+};
+
+try {
+  const saved = JSON.parse(localStorage.getItem("teslasound") || "{}");
+  if (saved.vol != null) S.vol = saved.vol;
+  if (saved.profile) { const p = PROFILES.find(x => x.id === saved.profile); if (p) S.profile = p; }
+} catch (e) {}
+
+function persist() {
+  try { localStorage.setItem("teslasound", JSON.stringify({ vol: S.vol, profile: S.profile.id })); } catch (e) {}
+}
+
+/* ---------- Audio ---------- */
+let ctx = null, master = null, comp = null, shaper = null, engGain = null;
+let oscs = [], gains = {}, noise = {}, lfo = null, lopeDepth = null, modGain = null;
+let blowoffNodes = null;
+
+function makeDistortionCurve(k) {
+  const n = 1024, c = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = i * 2 / n - 1;
+    c[i] = (1 + k) * x / (1 + k * Math.abs(x));
+  }
+  return c;
+}
+
+function makeNoiseBuffer(sec) {
+  const b = ctx.createBuffer(1, ctx.sampleRate * sec, ctx.sampleRate);
+  const d = b.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < d.length; i++) {
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.02 * w) / 1.02;          // browniano
+    d[i] = last * 3.5 + 0.12 * w;             // mezcla brown + blanco
+  }
+  return b;
+}
+
+function buildGraph() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  master = ctx.createGain(); master.gain.value = S.vol;
+  comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -14; comp.ratio.value = 6;
+  shaper = ctx.createWaveShaper(); shaper.curve = makeDistortionCurve(6);
+  engGain = ctx.createGain(); engGain.gain.value = 0;      // atenuación global
+  modGain = ctx.createGain(); modGain.gain.value = 1;      // modulación "lope"
+  engGain.connect(modGain); modGain.connect(shaper); shaper.connect(master);
+  master.connect(comp); comp.connect(ctx.destination);
+
+  const P = S.profile;
+  if (P.ev) { buildEV(); } else { buildICE(P); }
+
+  master.gain.setTargetAtTime(S.vol, ctx.currentTime, 0.05);
+  engGain.gain.setTargetAtTime(1, ctx.currentTime, 0.4);   // arranque suave
+}
+
+/* --- Motor de combustión --- */
+function buildICE(P) {
+  const t = ctx.currentTime;
+  // Frecuencia de encendido (4 tiempos): RPM/60 * (cil/2) * pitch tonal
+  oscs = [];
+  const mk = (type, ratio, gain) => {
+    const o = ctx.createOscillator(); o.type = type;
+    const g = ctx.createGain(); g.gain.value = gain;
+    o.connect(g); g.connect(engGain); o.start(t);
+    oscs.push({ o, g, ratio });
+    return { o, g, ratio };
+  };
+  gains.fund  = mk("sawtooth", 0.5, 0.40);   // explosions al doble de giro → fundamental grave
+  gains.sub   = mk("sine",     0.25, 0.55);  // zumba del cárter
+  gains.h2    = mk("sawtooth", 1.0, 0.22);
+  gains.h3    = mk("square",   1.5, 0.12);
+  gains.high  = mk("sawtooth", 3.0, 0.10);
+
+  // Ruído de escape (banda que sigue las RPM)
+  noise.exh = {};
+  noise.exh.src = ctx.createBufferSource(); noise.exh.src.buffer = makeNoiseBuffer(3); noise.exh.src.loop = true;
+  noise.exh.bp = ctx.createBiquadFilter(); noise.exh.bp.type = "bandpass"; noise.exh.bp.frequency.value = 200; noise.exh.bp.Q.value = 1.2;
+  noise.exh.g = ctx.createGain(); noise.exh.g.gain.value = 0.0;
+  noise.exh.src.connect(noise.exh.bp); noise.exh.bp.connect(noise.exh.g); noise.exh.g.connect(engGain); noise.exh.src.start(t);
+
+  // Aspiración (hiss bajo carga)
+  noise.int = {};
+  noise.int.src = ctx.createBufferSource(); noise.int.src.buffer = makeNoiseBuffer(3); noise.int.src.loop = true;
+  noise.int.hp = ctx.createBiquadFilter(); noise.int.hp.type = "highpass"; noise.int.hp.frequency.value = 900;
+  noise.int.g = ctx.createGain(); noise.int.g.gain.value = 0.0;
+  noise.int.src.connect(noise.int.hp); noise.int.hp.connect(noise.int.g); noise.int.g.connect(engGain); noise.int.src.start(t);
+
+  // Viento + rodadura (con la velocidad)
+  noise.wind = {};
+  noise.wind.src = ctx.createBufferSource(); noise.wind.src.buffer = makeNoiseBuffer(3); noise.wind.src.loop = true;
+  noise.wind.lp = ctx.createBiquadFilter(); noise.wind.lp.type = "lowpass"; noise.wind.lp.frequency.value = 700;
+  noise.wind.g = ctx.createGain(); noise.wind.g.gain.value = 0.0;
+  noise.wind.src.connect(noise.wind.lp); noise.wind.lp.connect(noise.wind.g); noise.wind.g.connect(master); noise.wind.src.start(t);
+
+  // Lope (tambalear en ralentí): oscilador que modula modGain.gain
+  lfo = ctx.createOscillator(); lfo.type = "sawtooth"; lfo.frequency.value = 4;
+  lopeDepth = ctx.createGain(); lopeDepth.gain.value = 0;   // profundidad de mod.
+  lfo.connect(lopeDepth); lopeDepth.connect(modGain.gain);
+  lfo.start(t);
+}
+
+/* --- Eléctrico tipo Plaid --- */
+function buildEV() {
+  oscs = [];
+  const mk = (type, ratio, gain) => {
+    const o = ctx.createOscillator(); o.type = type;
+    const g = ctx.createGain(); g.gain.value = gain;
+    o.connect(g); g.connect(engGain); o.start(ctx.currentTime);
+    oscs.push({ o, g, ratio });
+  };
+  gains.fund = mk("sine",     1.0, 0.34);  // binomial del motor
+  gains.h2   = mk("sine",     2.0, 0.16);
+  gains.high = mk("triangle", 8.0, 0.06);  // armónico PWM del inversor
+
+  noise.wind = {};
+  noise.wind.src = ctx.createBufferSource(); noise.wind.src.buffer = makeNoiseBuffer(3); noise.wind.src.loop = true;
+  noise.wind.lp = ctx.createBiquadFilter(); noise.wind.lp.type = "lowpass"; noise.wind.lp.frequency.value = 900;
+  noise.wind.g = ctx.createGain(); noise.wind.g.gain.value = 0.0;
+  noise.wind.src.connect(noise.wind.lp); noise.wind.lp.connect(noise.wind.g); noise.wind.g.connect(master); noise.wind.src.start(ctx.currentTime);
+}
+
+function destroyGraph() {
+  if (!ctx) return;
+  try { oscs.forEach(x => x.o.stop()); } catch (e) {}
+  try { ["exh","int","wind"].forEach(k => { if (noise[k] && noise[k].src) noise[k].src.stop(); }); } catch (e) {}
+  try { if (lfo) lfo.stop(); } catch (e) {}
+  try { ctx.close(); } catch (e) {}
+  ctx = null; oscs = []; noise = {}; lfo = null;
+}
+
+/* Traqueteo/expulsión del turbo al soltar el acelerador */
+function blowoff() {
+  if (!ctx || !S.profile.turbo) return;
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource(); src.buffer = makeNoiseBuffer(0.5);
+  const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 3;
+  const g = ctx.createGain(); g.gain.value = 0;
+  bp.frequency.setValueAtTime(5200, t);
+  bp.frequency.exponentialRampToValueAtTime(1900, t + 0.35);
+  g.gain.setValueAtTime(0.001, t);
+  g.gain.exponentialRampToValueAtTime(0.18, t + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  src.connect(bp); bp.connect(g); g.connect(master);
+  src.start(t); src.stop(t + 0.5);
+}
+
+/* ---------- Marchas y RPM ---------- */
+const SHIFT_MS = 380;
+/* Marcha persistente: avanza/retrocede cuando la velocidad cruza los límites
+   de banda de cada relación, de modo que el corte de revoluciones al subir
+   marcha y el "blip" al reducir quedan reproducidos en el salto de RPM. */
+function rpmInGear(P, gearIdx, speed) {
+  const lo = P.gearMax[gearIdx - 1] || 0;
+  const hi = P.gearMax[gearIdx] || (lo + 30);
+  const clamped = Math.min(speed, hi);
+  const frac = Math.max(0, (clamped - lo) / Math.max(1, hi - lo));
+  return P.idle + frac * (P.redline - P.idle);
+}
+function estGear(P, speed) {
+  let g = 0;
+  while (g < P.gearMax.length - 1 && speed > P.gearMax[g]) g++;
+  return g;
+}
+
+/* ---------- DSP por frame (llamado en rAF) ---------- */
+function audioFrame(dtMs) {
+  if (!ctx || !S.running) return;
+  const P = S.profile;
+  const t = ctx.currentTime, now = performance.now();
+  const sp = Math.max(0, S.speed);
+  const k = dtMs / 1000;
+
+  // transición de cambio de marcha
+  if (S.shifting > 0) {
+    S.shifting -= dtMs;
+    if (S.shifting <= 0) S.shifting = 0;
+  }
+
+  const shiftDip = S.shifting > 0 ? 0.25 : 1;      // caída de par al cambiar
+  let engineLoad = Math.min(1, S.throttle * 1.6) * shiftDip;
+
+  if (P.ev) {
+    // el dial actúa como "potencia": sube con la velocidad (escala 0–200 km/h)
+    const RL = 14000;
+    S.rpmTarget = Math.min(RL, sp / 200 * RL);
+    S.rpm += (S.rpmTarget - S.rpm) * Math.min(1, k * 3);
+    // whine eléctrico: Hz sube con la velocidad (motor ~14 000 rpm)
+    const f = Math.max(0, sp * 9.5 + 40);
+    const braket = sp < 2 ? 0 : 1;
+    oscs.forEach(x => {
+      const target = f * x.ratio;
+      x.o.frequency.setTargetAtTime(target, t, 0.06);
+    });
+    gains.fund.g.gain.setTargetAtTime(0.30 * (S.throttle > 0.05 ? (0.65 + 0.35 * S.throttle) : braket * 0.55), t, 0.1);
+    noise.wind.g.gain.setTargetAtTime(sp > 25 ? Math.min(0.10, (sp - 25) / 1500) : 0, t, 0.3);
+    noise.wind.lp.frequency.setTargetAtTime(900 + sp * 12, t, 0.3);
+    if (S.throttle < 0.02 && sp > 8) {          // freno regenerativo
+      gains.fund.g.gain.setTargetAtTime(0.16, t, 0.15);
+      gains.h2.g.gain.setTargetAtTime(0.07, t, 0.15);
+    } else {
+      gains.h2.g.gain.setTargetAtTime(0.14, t, 0.15);
+    }
+    return;
+  }
+
+  // RPM objetivo según la marcha persistente actual
+  S.rpmTarget = rpmInGear(P, S.gear, sp);
+
+  // suavizado RPM hacia el objetivo
+  S.rpm += (S.rpmTarget - S.rpm) * Math.min(1, k * (S.shifting > 0 ? 6 : 3.5));
+  if (S.rpm < P.idle * 0.8) S.rpm = P.idle;
+
+  const firing = S.rpm / 60 * (P.cyl / 2);
+  const hz = firing * P.pitch;
+
+  // osciladores del motor
+  oscs.forEach(x => { x.o.frequency.setTargetAtTime(hz * x.ratio, t, 0.04); });
+
+  // ganancias ligadas a RPM/carga
+  const rr = Math.min(1, S.rpm / P.redline);
+  const bass = 0.5 + engineLoad * 0.4;
+  gains.sub.g.gain.setTargetAtTime(0.50 * bass, t, 0.1);
+  gains.fund.g.gain.setTargetAtTime((0.34 + engineLoad * 0.30), t, 0.1);
+  gains.h2.g.gain.setTargetAtTime(0.18 + rr * 0.22, t, 0.1);
+  gains.h3.g.gain.setTargetAtTime(0.08 + engineLoad * rr * 0.16, t, 0.1);
+  gains.high.g.gain.setTargetAtTime(0.05 + rr * rr * 0.14, t, 0.1);
+  shaper.curve = makeDistortionCurve(2 + P.growl * (1 + engineLoad * 2.2));
+
+  // lope: profundidad de temblor: mucha al ralentí, nada a altas RPM
+  const lopeAmt = P.lope * Math.max(0, 1 - S.rpm / (P.idle * 3)) * (sp < 3 ? 1 : 0.25);
+  lopeDepth.gain.setTargetAtTime(lopeAmt * 0.55, t, 0.2);
+  lfo.frequency.setTargetAtTime(firing / 8, t, 0.1);
+
+  // escape: rumble con la carga
+  noise.exh.bp.frequency.setTargetAtTime(Math.max(80, hz * 1.6), t, 0.08);
+  noise.exh.g.gain.setTargetAtTime(0.05 + engineLoad * 0.28 * P.noise, t, 0.1);
+
+  // aspiración: hiss bajo carga
+  noise.int.hp.frequency.setTargetAtTime(900 + rr * 1800, t, 0.3);
+  noise.int.g.gain.setTargetAtTime(engineLoad * rr * 0.12, t, 0.15);
+
+  // viento + rodadura
+  const windG = sp > 20 ? Math.min(0.11, Math.pow(sp / 240, 1.5)) : 0;
+  noise.wind.g.gain.setTargetAtTime(windG, t, 0.4);
+  noise.wind.lp.frequency.setTargetAtTime(500 + sp * 6, t, 0.4);
+}
+
+/* ---------- GPS ---------- */
+function gpsStatus(cls, txt) {
+  document.getElementById("gpsDot").className = cls;
+  document.getElementById("gpsTxt").textContent = txt;
+}
+
+function onFix(pos) {
+  const c = pos.coords;
+  S.gpsFixes++;
+  S.lastFixTime = performance.now();
+
+  // 1) velocidad nativa si existe
+  let v = (c.speed != null && isFinite(c.speed)) ? c.speed * 3.6 : null;
+
+  // 2) fallback: distancia entre fixes
+  if (v == null && S.lastFix) {
+    const dt = (pos.timestamp - S.lastFix.t) / 1000;
+    if (dt > 0.05 && dt < 6) {
+      const R = 6371000, toR = Math.PI / 180;
+      const dLat = (c.latitude - S.lastFix.lat) * toR;
+      const dLon = (c.longitude - S.lastFix.lon) * toR * Math.cos(S.lastFix.lat * toR);
+      const dist = Math.sqrt(dLat * dLat + dLon * dLon) * R;
+      v = Math.abs(dist / dt) * 3.6;   // m/s → km/h
+      if (dist < 3 && dt < 2) v = Math.min(v, S.speed);   // GPS "tiembla" en un semáforo
+    }
+  }
+  S.lastFix = { lat: c.latitude, lon: c.longitude, t: pos.timestamp };
+  if (v != null) S.rawSpeed = v;
+
+  gpsStatus("ok", "GPS " + (c.accuracy ? "±" + Math.round(c.accuracy) + " m" : "OK"));
+  S.status = "ok";
+}
+
+function gpsError(err) {
+  const map = { 1: "Permiso denegado", 2: "Sin posición disponible", 3: "Tiempo agotado" };
+  if (S.gpsFixes === 0) gpsStatus("err", "GPS: " + (map[err.code] || "error"));
+  else gpsStatus("warn", "GPS: " + (map[err.code] || "error") + " (reintenta)");
+  S.status = "err";
+}
+
+function startGps() {
+  if (S.watchId != null) return;
+  if (!navigator.geolocation) { gpsStatus("err", "GPS no disponible"); return; }
+  gpsStatus("warn", "GPS: buscando señal…");
+  S.watchId = navigator.geolocation.watchPosition(onFix, gpsError,
+    { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+}
+
+function stopGps() {
+  if (S.watchId != null) navigator.geolocation.clearWatch(S.watchId);
+  S.watchId = null; S.lastFix = null; S.rawSpeed = 0;
+}
+
+/* ---------- Bucle de animación (audio + UI) ---------- */
+let lastFrame = performance.now();
+function frame() {
+  const now = performance.now();
+  const dt = Math.min(60, now - lastFrame); lastFrame = now;
+
+  // fuente de velocidad: demo > GPS
+  let target = 0;
+  if (S.demo) {
+    target = S.demoSpeed;
+    S.rawSpeed = target;
+  } else if (S.gpsOn && S.status === "ok" && now - S.lastFixTime < 4000) {
+    target = S.rawSpeed;
+  } else if (S.gpsOn && S.status !== "ok") {
+    target = 0;
+  }
+
+  const k = Math.min(1, dt / 500);                 // suavizado ~0.5 s
+  const prev = S.speed;
+  S.speed += (target - S.speed) * k;
+
+  // acelerador postulado: variación de velocidad
+  const accelMs = (S.speed - prev) / 3.6 / (dt / 1000);
+  const thr = Math.max(0, Math.min(1, accelMs / 3.2));
+  S.throttle += (thr - S.throttle) * Math.min(1, dt / 350);
+
+  // gestión de marchas (persistente): sube al cortar, baja al arrastrar
+  if (!S.profile.ev) {
+    if (S.shifting > 0) {
+      S.shifting -= dt;
+      if (S.shifting <= 0) S.shifting = 0;
+    } else if (S.speed > 1) {
+      const P = S.profile;
+      const eg = estGear(P, S.speed);
+      if (eg > S.gear) {                       // sube de marcha
+        S.gear = eg;
+        S.shifting = SHIFT_MS;
+        if (S.throttle < 0.25) blowoff();      // alivio del turbo al cortar
+      } else if (eg < S.gear) {                // baja de marcha (blip)
+        S.gear = eg;
+        S.shifting = SHIFT_MS * 0.7;
+      }
+    } else {
+      S.gear = 0;
+    }
+  }
+
+  audioFrame(dt);
+  drawGauge();
+  updateReadouts();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Lienzo: cuentavueltas ---------- */
+const gauge = document.getElementById("gauge");
+const g2 = gauge.getContext("2d");
+const ARC0 = Math.PI * 0.75, ARC1 = Math.PI * 2.25;
+function drawGauge() {
+  const P = S.profile, redline = P.redline || 14000;
+  const W = gauge.width, cx = W / 2, cy = W / 2, R = W * 0.40;
+  g2.clearRect(0, 0, W, W);
+  // fondo
+  g2.fillStyle = "#16191e";
+  g2.beginPath(); g2.arc(cx, cy, R * 1.12, 0, Math.PI * 2); g2.fill();
+  // pista
+  g2.lineWidth = W * 0.045; g2.lineCap = "round";
+  g2.strokeStyle = "#2a2f36";
+  g2.beginPath(); g2.arc(cx, cy, R, ARC0, ARC1); g2.stroke();
+  // zona roja último
+  const redStart = ARC0 + (ARC1 - ARC0) * 0.86;
+  g2.strokeStyle = P.ev ? "#154d3a" : "#5a1a1c";
+  g2.beginPath(); g2.arc(cx, cy, R, redStart, ARC1); g2.stroke();
+  // marcas
+  const ticks = 14;
+  g2.lineWidth = W * 0.008; g2.strokeStyle = "#6b6f76";
+  for (let i = 0; i <= ticks; i++) {
+    const a = ARC0 + (ARC1 - ARC0) * i / ticks;
+    const r1 = R * 0.90, r2 = R * 0.98;
+    g2.beginPath();
+    g2.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    g2.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+    g2.stroke();
+  }
+  // arco activo
+  const frac = Math.min(1, Math.max(0, S.rpm / redline)) * 0.95;
+  if (frac > 0.005) {
+    g2.strokeStyle = frac > 0.86 ? "#ff2d33" : "#ffd24d";
+    g2.lineWidth = W * 0.045;
+    g2.beginPath(); g2.arc(cx, cy, R, ARC0, ARC0 + (ARC1 - ARC0) * frac); g2.stroke();
+  }
+  // aguja
+  const a = ARC0 + (ARC1 - ARC0) * frac;
+  g2.strokeStyle = "#e8eaed"; g2.lineWidth = W * 0.012;
+  g2.beginPath();
+  g2.moveTo(cx - Math.cos(a) * R * 0.14, cy - Math.sin(a) * R * 0.14);
+  g2.lineTo(cx + Math.cos(a) * R * 0.86, cy + Math.sin(a) * R * 0.86);
+  g2.stroke();
+  g2.fillStyle = "#e82127";
+  g2.beginPath(); g2.arc(cx, cy, W * 0.025, 0, Math.PI * 2); g2.fill();
+  // RPM numérico
+  g2.fillStyle = "#9aa0a6"; g2.font = Math.floor(W * 0.075) + "px Arial";
+  g2.textAlign = "center";
+  g2.fillText(Math.round(S.rpm) + " rpm", cx, cy + R * 0.62);
+}
+
+/* ---------- UI ---------- */
+function updateReadouts() {
+  const spTxt = String(Math.round(S.speed));
+  const speedEl = document.getElementById("speed");
+  if (speedEl.textContent !== spTxt) speedEl.textContent = spTxt;
+  const gearEl = document.getElementById("gear");
+  if (S.profile.ev) {
+    if (!gearEl.classList.contains("infwheel")) { gearEl.textContent = "∞"; gearEl.classList.add("infwheel"); }
+  } else {
+    const txt = S.speed < 2 ? "N" : String(S.gear + 1);
+    if (gearEl.textContent !== txt) gearEl.textContent = txt;
+    if (gearEl.classList.contains("infwheel")) gearEl.classList.remove("infwheel");
+  }
+}
+
+function renderProfiles() {
+  const wrap = document.getElementById("profiles");
+  wrap.innerHTML = "";
+  PROFILES.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "chip" + (p.id === S.profile.id ? " sel" : "");
+    b.textContent = p.name;
+    b.onclick = () => {
+      S.profile = p;
+      document.getElementById("profileName").textContent = p.name;
+      renderProfiles();
+      persist();
+      if (S.running) { destroyGraph(); buildGraph(); }
+    };
+    wrap.appendChild(b);
+  });
+  document.getElementById("profileName").textContent = S.profile.name;
+}
+
+function setRunning(on) {
+  const btn = document.getElementById("start");
+  if (on) {
+    if (!ctx) { try { buildGraph(); } catch (e) { alert("Este navegador no soporta Web Audio"); return; } }
+    if (ctx.state === "suspended") ctx.resume();
+    S.running = true; btn.textContent = "⏸ Parar sonido"; btn.classList.add("running");
+  } else {
+    S.running = false; btn.textContent = "▶ Arrancar sonido"; btn.classList.remove("running");
+    if (ctx) ctx.suspend();
+  }
+}
+
+document.getElementById("start").onclick = () => setRunning(!S.running);
+
+document.getElementById("vol").oninput = (e) => {
+  S.vol = e.target.value / 100;
+  if (master) master.gain.setTargetAtTime(S.vol, ctx.currentTime, 0.05);
+  persist();
+};
+document.getElementById("gpsOn").onchange = (e) => {
+  S.gpsOn = e.target.checked;
+  if (S.gpsOn) { startGps(); if (S.status === "off") gpsStatus("warn", "GPS: buscando señal…"); }
+  else { stopGps(); gpsStatus("", "GPS desactivado"); }
+};
+document.getElementById("demoTog").onchange = (e) => {
+  S.demo = e.target.checked;
+  document.getElementById("demoBox").classList.toggle("on", S.demo);
+  if (S.demo) { S.demoSpeed = +document.getElementById("demo").value; }
+};
+document.getElementById("demo").oninput = (e) => {
+  S.demoSpeed = +e.target.value;
+  document.getElementById("demoKmh").textContent = e.target.value;
+};
+
+document.addEventListener("visibilitychange", () => {
+  if (!ctx) return;
+  if (document.hidden) { if (S.running) ctx.suspend(); }
+  else if (S.running) ctx.resume();
+});
+
+/* arranque */
+document.getElementById("vol").value = Math.round(S.vol * 100);
+renderProfiles();
+gpsStatus("", "GPS: marca «Activar GPS»");
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
