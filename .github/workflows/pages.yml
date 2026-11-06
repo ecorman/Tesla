@@ -19,7 +19,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    # ubuntu-24.04: desde la imagen ubuntu-latest=26 (19-oct-2026) el passo
+    # "Deploy to GitHub Pages" fallaba con "Deployment failed, try again later"
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
